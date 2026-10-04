@@ -2,7 +2,7 @@
 import Layout from '@/layouts/Layout.astro';
 import CategoryNav from '@/components/CategoryNav.astro';
 import { getCollection } from 'astro:content';
-import { buildWhatsAppUrl, formatPrice } from '@/utils/whatsapp';
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
 import TourCard from '@/components/TourCard.astro';
 
 const tours = (await getCollection('tours')).sort((a: any, b: any) => {
