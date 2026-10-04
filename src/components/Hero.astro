@@ -122,7 +122,9 @@ import heroImg from '@/assets/pileh.webp';
 
 .finder-group select,
 .finder-group input {
-  padding: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  height: 48px; /* Her iki kutunun boyutunu eşitler */
+  box-sizing: border-box; /* Padding'in yüksekliği bozmasını engeller */
   border: 1px solid var(--wb-line);
   border-radius: var(--radius-md);
   background: var(--wb-warm-white);
@@ -130,6 +132,7 @@ import heroImg from '@/assets/pileh.webp';
   font-family: inherit;
   font-size: 0.9375rem;
   transition: border-color 0.2s ease;
+  line-height: normal;
 }
 
 .finder-group select:focus,
@@ -141,8 +144,10 @@ import heroImg from '@/assets/pileh.webp';
 .finder-btn {
   flex: 1;
   min-width: 120px;
+  height: 48px;
+  box-sizing: border-box;
   border-radius: var(--radius-md);
-  padding: 0.75rem 1.5rem;
+  padding: 0 1.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
