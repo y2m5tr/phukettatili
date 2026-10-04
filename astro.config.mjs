@@ -3,7 +3,7 @@ import sitemap from '@astrojs/sitemap';
 
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://phukettatili.com',
+  site: 'https://phukettatili.netlify.app',
   trailingSlash: 'always',
   integrations: [
     sitemap({

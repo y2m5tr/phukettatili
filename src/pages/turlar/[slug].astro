@@ -40,19 +40,19 @@ const schema = {
   '@type': 'TouristTour',
   name: data.title,
   description: data.excerpt,
-  image: `https://phukettatili.com/assets/${data.image}`,
+  image: `https://phukettatili.netlify.app/assets/${data.image}`,
   offers: {
     '@type': 'Offer',
     priceCurrency: 'THB',
     price: data.price_thb ? String(data.price_thb) : undefined,
     availability: 'https://schema.org/InStock',
-    url: `https://phukettatili.com/turlar/${slug}/`,
+    url: `https://phukettatili.netlify.app/turlar/${slug}/`,
   },
   touristType: ['Family', 'Couple', 'AdventureSeeker'],
   provider: {
     '@type': 'Organization',
     name: 'Phuket Tatili',
-    url: 'https://phukettatili.com',
+    url: 'https://phukettatili.netlify.app',
     sameAs: ['https://wa.me/66828950665'],
   },
 };

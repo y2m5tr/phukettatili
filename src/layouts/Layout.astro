@@ -24,15 +24,15 @@ const {
   schema,
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://phukettatili.com');
-const imageUrl = new URL(image, Astro.site || 'https://phukettatili.com').toString();
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://phukettatili.netlify.app');
+const imageUrl = new URL(image, Astro.site || 'https://phukettatili.netlify.app').toString();
 
 const defaultSchema = {
   '@context': 'https://schema.org',
   '@type': 'Organization',
   name: 'Phuket Tatili',
-  url: 'https://phukettatili.com',
-  logo: 'https://phukettatili.com/assets/logo-main.png',
+  url: 'https://phukettatili.netlify.app',
+  logo: 'https://phukettatili.netlify.app/assets/logo-main.png',
   telephone: '+66828950665',
   areaServed: { '@type': 'Place', name: 'Phuket, Tayland' },
   availableLanguage: ['Turkish', 'English'],

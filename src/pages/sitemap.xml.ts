@@ -21,7 +21,7 @@ export const GET: APIRoute = async () => {
 ${pages
   .map(
     (page) => `  <url>
-    <loc>https://phukettatili.com/${page}</loc>
+    <loc>https://phukettatili.netlify.app/${page}</loc>
     <changefreq>weekly</changefreq>
     <priority>${page === '' ? '1.0' : page.startsWith('turlar/') ? '0.8' : '0.7'}</priority>
   </url>`

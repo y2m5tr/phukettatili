@@ -2,7 +2,7 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://phukettatili.com/sitemap-index.xml
+Sitemap: https://phukettatili.netlify.app/sitemap-index.xml
 
 # Block search bots from internal paths
 Disallow: /api/

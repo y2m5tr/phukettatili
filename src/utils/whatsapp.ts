@@ -12,8 +12,14 @@ export const WHATSAPP_NUMBER = (ENV?.WHATSAPP_PHONE ? ENV.WHATSAPP_PHONE.replace
 export function buildWhatsAppUrl(context: string = 'Genel Bilgi', details: string = ''): string {
   // Strip HTML tags and trim
   const cleanContext = context.replace(/<[^>]*>?/gm, '').trim();
-
-  let message = `Merhaba, ${cleanContext} hakkında bilgi almak istiyorum.`;
+  
+  // Avoid double greeting: if context already starts with "Merhaba", don't prepend another
+  let message: string;
+  if (cleanContext.toLowerCase().startsWith('merhaba')) {
+    message = cleanContext;
+  } else {
+    message = `Merhaba, ${cleanContext} hakkında bilgi almak istiyorum.`;
+  }
 
   if (details.trim()) {
     message += `\n\n${details.trim()}`;
