@@ -1,0 +1,136 @@
+---
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
+
+interface Props {
+  context?: string;
+  position?: 'bottom-right' | 'bottom-left';
+}
+
+const {
+  context = 'Merhaba! Phuket Tatili hizmetlerinde plan yapmak istiyorum.',
+  position = 'bottom-right'
+} = Astro.props;
+
+const waUrl = buildWhatsAppUrl(context);
+---
+
+<div class="wa-container" data-position={position}>
+  <a 
+    class="wa-button" 
+    href={waUrl} 
+    target="_blank" 
+    rel="noopener noreferrer"
+    aria-label="WhatsApp'ta tatil planı yapın"
+  >
+    <img
+      class="wa-icon"
+      src="/assets/whatsapp-mark.svg"
+      alt=""
+      width="24"
+      height="24"
+      aria-hidden="true"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="wa-text">WhatsApp'tan yazın</span>
+  </a>
+</div>
+
+<style>
+/* WhatsApp Floating Button Container */
+.wa-container {
+  position: fixed;
+  bottom: 24px;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.wa-container[data-position="bottom-left"] {
+  justify-content: flex-start;
+  padding-left: 24px;
+}
+
+.wa-container[data-position="bottom-right"] {
+  justify-content: flex-end;
+  padding-right: 24px;
+}
+
+/* Floating Button */
+.wa-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  background: var(--wb-clay);
+  color: var(--wb-warm-white);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(201, 107, 85, 0.3);
+  position: relative;
+  z-index: 2;
+  max-width: 280px;
+  word-break: break-word;
+}
+
+.wa-button:hover {
+  background: var(--wb-ink);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(201, 107, 85, 0.4);
+}
+
+.wa-button:active {
+  transform: translateY(-1px);
+}
+
+/* WhatsApp Icon */
+.wa-icon {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  filter: brightness(1.1);
+}
+
+/* Button Text */
+.wa-text {
+  line-height: 1.2;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .wa-button {
+    padding: 12px 16px;
+    font-size: 0.75rem;
+    max-width: 240px;
+  }
+}
+
+@media (max-width: 360px) {
+  .wa-container {
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+  
+  .wa-button {
+    max-width: 200px;
+    gap: 8px;
+    padding: 10px 14px;
+  }
+  
+  .wa-text {
+    display: none;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .wa-button {
+    transition: all 0.2s ease;
+  }
+}
+</style>

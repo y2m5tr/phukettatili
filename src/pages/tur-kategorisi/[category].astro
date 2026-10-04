@@ -1,0 +1,267 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import TourCard from '@/components/TourCard.astro';
+import CategoryNav from '@/components/CategoryNav.astro';
+import { getCollection } from 'astro:content';
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
+
+export async function getStaticPaths() {
+  const categories = await getCollection('categories');
+  const allTours = await getCollection('tours');
+
+  const paths: any[] = [];
+
+  // Top-level categories
+  for (const cat of categories) {
+    const matchingTours = allTours.filter((t: any) => t.data.category === cat.data.slug);
+    paths.push({
+      params: { category: cat.data.slug },
+      props: {
+        categoryName: cat.data.name,
+        categoryLabel: cat.data.label_tr,
+        categorySlug: cat.data.slug,
+        description: cat.data.description,
+        heroImage: cat.data.hero_image,
+        tours: matchingTours,
+      },
+    });
+
+    // Subcategories
+    for (const child of cat.data.children) {
+      const childTours = allTours.filter(
+        (t: any) => t.data.subcategory === child.slug || t.data.category === child.slug
+      );
+      paths.push({
+        params: { category: child.slug },
+        props: {
+          categoryName: child.name,
+          categoryLabel: child.label_tr,
+          categorySlug: child.slug,
+          description: child.description || cat.data.description,
+          heroImage: child.hero_image || cat.data.hero_image,
+          tours: childTours,
+          parentCategoryLabel: cat.data.label_tr,
+          parentCategorySlug: cat.data.slug,
+        },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const {
+  categoryLabel,
+  categorySlug,
+  description,
+  heroImage,
+  tours,
+  parentCategoryLabel,
+  parentCategorySlug,
+} = Astro.props;
+
+const waUrl = buildWhatsAppUrl(`${categoryLabel} Tur Talebi`);
+---
+
+<Layout
+  title={`${categoryLabel} — Phuket Turları`}
+  description={description}
+  image={`/assets/${heroImage}`}
+  breadcrumbTitle={categoryLabel}
+  categoryLabel={parentCategoryLabel}
+  categorySlug={parentCategorySlug}
+>
+  <!-- CATEGORY HERO -->
+  <section class="category-hero" style={`background-image: url('/assets/${heroImage}');`}>
+    <div class="wb-container category-hero__inner">
+      <span class="wb-eyebrow">Tur Kategorisi · Phuket Tatili</span>
+      <h1 class="h1-display">
+        {categoryLabel} <span>Rotaları</span>
+      </h1>
+      <p class="category-hero-description">
+        {description}
+      </p>
+      <div class="category-hero-actions">
+        <a href="#kategori-listesi" class="wb-button wb-button--text">Kategoriler</a>
+        <a href={waUrl} target="_blank" rel="noopener" class="wb-button wb-button--primary">Bu Kategori İçin Destek Al ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORY NAVIGATION -->
+  <section id="kategori-listesi" class="wb-container section">
+    <header class="section-header">
+      <span class="wb-eyebrow">Diğer Seçenekler</span>
+      <h2>Kategori Değiştir</h2>
+    </header>
+    <CategoryNav currentCategorySlug={categorySlug} />
+  </section>
+
+  <!-- TOURS LIST -->
+  <section class="wb-container section">
+    <div class="category-tours-header">
+      <h2>{categoryLabel} ({tours.length} tur)</h2>
+      <a href="/turlar/" class="wb-button wb-button--text">Tüm turları gör →</a>
+    </div>
+
+    {tours.length > 0 ? (
+      <div class="tour-grid">
+        {tours.map((tour: any, index: number) => (
+          <TourCard tour={tour} isFirst={index === 0} />
+        ))}
+      </div>
+    ) : (
+      <div class="category-empty">
+        <h3>Bu kategoride yeni turlar hazırlanıyor</h3>
+        <p>{categoryLabel} için özel rota ve fiyat talebinizi WhatsApp'tan bize sorabilirsiniz.</p>
+        <a href={waUrl} target="_blank" rel="noopener" class="wb-button wb-button--primary">
+          WhatsApp'tan Rota İste ↗
+        </a>
+      </div>
+    )}
+  </section>
+</Layout>
+
+<style>
+/* Category Page Styles */
+.category-hero {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  color: var(--wb-warm-white);
+  overflow: hidden;
+}
+
+.category-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(23, 42, 57, 0.55), rgba(23, 42, 57, 0.8));
+  z-index: 0;
+}
+
+.category-hero__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 60ch;
+}
+
+.category-hero-description {
+  margin-bottom: var(--space-lg);
+  line-height: 1.6;
+  max-width: 50ch;
+  color: var(--wb-warm-white);
+}
+
+.category-hero-actions {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.section-header {
+  margin-bottom: var(--space-md);
+}
+
+.section-header .wb-eyebrow {
+  display: block;
+  margin-bottom: var(--space-sm);
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.75rem;
+  color: var(--wb-ink);
+}
+
+.category-tours-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-3xl);
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.category-tours-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--wb-ink);
+}
+
+.category-empty {
+  text-align: center;
+  padding: var(--space-4xl) var(--space-lg);
+  background: var(--wb-warm-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--wb-line);
+  margin-top: var(--space-xl);
+}
+
+.category-empty h3 {
+  color: var(--wb-ink);
+  font-size: 1.25rem;
+  margin: 0 0 var(--space-md);
+}
+
+.category-empty p {
+  color: var(--wb-olive);
+  margin: 0 0 var(--space-lg);
+}
+
+/* Tour Grid for category pages */
+.tour-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .category-hero {
+    min-height: auto;
+    padding-block: var(--space-3xl);
+  }
+
+  .category-hero-description {
+    max-width: 45ch;
+  }
+
+  .category-tours-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .tour-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .category-hero__inner {
+    padding-inline: 12px;
+  }
+
+  .category-hero-actions {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .category-empty {
+    padding: var(--space-2xl) var(--space-sm);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .category-hero,
+  .category-tours-header,
+  .category-empty,
+  .tour-grid {
+    transition: none;
+  }
+}</style>

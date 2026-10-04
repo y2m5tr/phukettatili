@@ -1,0 +1,40 @@
+{
+  "name": "Entertainment Tours",
+  "label_tr": "Gösteriler ve Şovlar",
+  "slug": "entertainment-tours",
+  "icon": "🎭",
+  "short_desc": "Akşam şovları ve sahne deneyimleri",
+  "description": "Akşam şovları ve eğlence programları: FantaSea, Siam Niramit, Simon Cabaret ve Carnival Magic.",
+  "hero_image": "culture.webp",
+  "order": 3,
+  "children": [
+    {
+      "name": "Carnival Magic",
+      "label_tr": "Carnival Magic",
+      "slug": "carnival-magic",
+      "description": "Phuket’in yeni nesil tema parkı: sokak gösterileri, canlı performanslar ve dev sahne şovu.",
+      "hero_image": "culture.webp"
+    },
+    {
+      "name": "FantaSea Show",
+      "label_tr": "FantaSea Gösterisi",
+      "slug": "fantasea-show",
+      "description": "Kamala’daki gösteri parkı: sahne şovu, yemek ve tema parkı atmosferini birleştiren akşam programı.",
+      "hero_image": "culture.webp"
+    },
+    {
+      "name": "Siam Niramit Show",
+      "label_tr": "Siam Niramit Gösterisi",
+      "slug": "siam-niramit-show",
+      "description": "Tayland kültürünü sahneye taşıyan büyük gösteri; isteğe bağlı yemek ve transfer seçenekleri.",
+      "hero_image": "culture.webp"
+    },
+    {
+      "name": "Simon Cabaret",
+      "label_tr": "Simon Cabaret",
+      "slug": "simon-cabaret",
+      "description": "Phuket’in dünyaca ünlü kabare şovu: renkli kostümler, müzik ve sahne performansı.",
+      "hero_image": "culture.webp"
+    }
+  ]
+}

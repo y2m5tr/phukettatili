@@ -1,0 +1,258 @@
+---
+import { buildWhatsAppUrl, WHATSAPP_NUMBER } from '@/utils/whatsapp';
+import { Image } from 'astro:assets';
+import heroImg from '@/assets/pileh.webp';
+
+const waUrl = buildWhatsAppUrl('Phuket, sizin ritminizde planı');
+---
+
+<section class="hero">
+  <div class="hero-container">
+    <div class="hero-text">
+      <span class="wb-eyebrow">Keyif dolu bir yolculuk</span>
+      <h2 class="hero-title h1-display">Phuket, sizin ritminizde.</h2>
+      <p class="hero-lead">
+        Arkadaşlarını ve aileni topla. Ritminize göre Phuket'te Türkçe yerel destekle tatilinizi kurgulayın.
+      </p>
+      <!-- SMART TOUR FINDER WIDGET -->
+      <div class="hero-finder animate-fade-up" style="animation-delay: 0.2s;">
+        <div class="finder-glass">
+          <div class="finder-group">
+            <label for="finder-category">Ne arıyorsunuz?</label>
+            <select id="finder-category">
+              <option value="Karışık Ada Turu">🏝️ Ada Turları</option>
+              <option value="Macera & Safari">🐘 Macera & Safari</option>
+              <option value="Gece Şovları & Eğlence">🎭 Gösteri & Eğlence</option>
+              <option value="Özel VIP Yat">🛥️ Özel VIP Yat</option>
+            </select>
+          </div>
+          
+          <div class="finder-group">
+            <label for="finder-date">Tarih</label>
+            <input type="date" id="finder-date" min={new Date().toISOString().split('T')[0]} />
+          </div>
+
+          <div class="finder-group">
+            <label for="finder-pax">Kişi</label>
+            <select id="finder-pax">
+              <option value="2 Yetişkin">2 Yetişkin</option>
+              <option value="Aile (Çocuklu)">Aile (Çocuklu)</option>
+              <option value="Balayı Çifti">Balayı Çifti</option>
+              <option value="Grup (4+)">Grup (4+)</option>
+            </select>
+          </div>
+
+          <button id="finder-submit" class="wb-button wb-button--primary finder-btn" data-phone={WHATSAPP_NUMBER}>
+            <span>Planla</span>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M1 8H15M15 8L8 1M15 8L8 15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+      </div>
+      <!-- END WIDGET -->
+
+      <div class="hero-support animate-fade-up" style="animation-delay: 0.3s;">
+        <img src="/assets/logo-favicon.png" alt="Türkçe yerel destek" width="20" height="20" loading="lazy" style="border-radius: 50%;" />
+        <span>Phuket'te Türkçe yerel destek</span>
+      </div>
+    </div>
+    <div class="hero-image animate-fade-up" style="animation-delay: 0.4s;">
+      <Image src={heroImg} alt="Phuket adalarından görülen turkuaz sular" width={1200} height={900} format="webp" loading="eager" fetchpriority="high" />
+    </div>
+  </div>
+</section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('finder-submit');
+    if (!btn) return;
+    
+    btn.addEventListener('click', () => {
+      const cat = (document.getElementById('finder-category') as HTMLSelectElement).value;
+      const date = (document.getElementById('finder-date') as HTMLInputElement).value;
+      const pax = (document.getElementById('finder-pax') as HTMLSelectElement).value;
+      const phone = btn.getAttribute('data-phone') || '66828950665';
+      
+      const formattedDate = date ? new Date(date).toLocaleDateString('tr-TR') : 'Henüz belli değil';
+      
+      const message = `Merhaba, Phuket tatilim için plan oluşturmak istiyorum.\n\n🎯 İlgi Alanı: ${cat}\n📅 Tarih: ${formattedDate}\n👥 Kişi: ${pax}\n\nBana uygun seçenekleri iletebilir misiniz?`;
+      
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`, '_blank');
+    });
+  });
+</script>
+
+<style>
+.hero {
+  padding-block: var(--space-3xl);
+  background: var(--wb-warm-white);
+}
+
+/* SMART TOUR FINDER STYLES */
+.hero-finder {
+  margin-top: var(--space-xl);
+}
+
+.finder-glass {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-md);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md) var(--space-lg);
+  box-shadow: 0 8px 32px -8px rgba(0, 0, 0, 0.08);
+}
+
+.finder-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.finder-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--wb-olive);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.finder-group select,
+.finder-group input {
+  padding: 0.75rem;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--radius-md);
+  background: var(--wb-warm-white);
+  color: var(--wb-ink);
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: border-color 0.2s ease;
+}
+
+.finder-group select:focus,
+.finder-group input:focus {
+  outline: none;
+  border-color: var(--wb-clay);
+}
+
+.finder-btn {
+  flex: 1;
+  min-width: 120px;
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .finder-glass {
+    flex-direction: column;
+    align-items: stretch;
+    padding: var(--space-lg);
+  }
+}
+/* END SMART FINDER */
+
+
+.hero-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: var(--space-3xl);
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.hero-title {
+  line-height: 1.1;
+  margin-top: var(--space-sm);
+}
+
+.hero-lead {
+  font-size: 1.125rem;
+  max-width: 45ch;
+  color: var(--wb-olive);
+  line-height: 1.6;
+}
+
+.hero-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin-top: var(--space-lg);
+  flex-wrap: wrap;
+}
+
+.hero-support {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+  font-size: 0.875rem;
+  color: var(--wb-olive);
+}
+
+.hero-support img {
+  filter: brightness(0) invert(1);
+}
+
+.hero-image img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-xl);
+  object-fit: cover;
+}
+
+.wb-eyebrow {
+  display: inline-block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--wb-clay);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-xs);
+}
+
+.h1-display, .h2-display, .h3-display {
+  font-family: 'Playfair Display', var(--font-body);
+  font-weight: 700;
+  line-height: 1.1;
+  margin-top: 0;
+  color: var(--wb-ink);
+}
+
+.h1-display { font-size: clamp(2.5rem, 5vw, 4rem); }
+.h2-display { font-size: clamp(2rem, 4vw, 3rem); }
+.h3-display { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+
+@media (max-width: 768px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding-block: var(--space-2xl);
+  }
+  .hero-container {
+    gap: var(--space-lg);
+  }
+  .h1-display {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    transition: none;
+  }
+}
+</style>

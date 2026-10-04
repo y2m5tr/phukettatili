@@ -1,0 +1,120 @@
+---
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import FloatingWhatsApp from '@/components/FloatingWhatsApp.astro';
+import '@/styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+  image?: string;
+  breadcrumbTitle?: string;
+  categoryLabel?: string;
+  categorySlug?: string;
+  schema?: Record<string, any>;
+}
+
+const {
+  title,
+  description = "Phuket'te Türkçe yerel destekle ada turları, özel yatlar, otel ve transfer planlaması. Rezervasyon için WhatsApp'ta bize ulaşın.",
+  image = "/assets/pileh.webp",
+  breadcrumbTitle,
+  categoryLabel,
+  categorySlug,
+  schema,
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://phukettatili.com');
+const imageUrl = new URL(image, Astro.site || 'https://phukettatili.com').toString();
+
+const defaultSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Organization',
+  name: 'Phuket Tatili',
+  url: 'https://phukettatili.com',
+  logo: 'https://phukettatili.com/assets/logo-main.png',
+  telephone: '+66828950665',
+  areaServed: { '@type': 'Place', name: 'Phuket, Tayland' },
+  availableLanguage: ['Turkish', 'English'],
+};
+---
+
+<!doctype html>
+<html lang="tr-TR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title} — Phuket Tatili</title>
+    <meta name="description" content={description} />
+    <meta name="theme-color" content="#F5EFE6" />
+    <meta name="color-scheme" content="light" />
+    <link rel="canonical" href={canonicalURL} />
+    
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="Phuket Tatili" />
+    <meta property="og:locale" content="tr_TR" />
+    <meta property="og:title" content={`${title} — Phuket Tatili`} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:type" content="website" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={`${title} — Phuket Tatili`} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    <meta name="twitter:site" content="@phukettatili" />
+    
+    <!-- Favicons -->
+    <link rel="icon" type="image/png" sizes="384x384" href="/assets/logo-favicon.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/assets/logo-favicon.png" />
+    
+    <!-- Preconnect Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    
+    <!-- Structured Data -->
+    <script
+      type="application/ld+json"
+      set:html={JSON.stringify(schema || defaultSchema, null, 2)}
+    />
+    
+    <!-- Netlify Identity Widget -->
+    <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Ana içeriğe atla</a>
+    
+    <Header
+      breadcrumbTitle={breadcrumbTitle}
+      categoryLabel={categoryLabel}
+      categorySlug={categorySlug}
+    />
+    
+    <main id="main-content">
+      <slot />
+    </main>
+    
+    <Footer />
+    <FloatingWhatsApp />
+    
+    <script>
+      if (window.netlifyIdentity) {
+        window.netlifyIdentity.on("init", user => {
+          if (!user) {
+            window.netlifyIdentity.on("login", () => {
+              document.location.href = "/admin/";
+            });
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "title": "Phuket Otelleri",
+  "slug": "oteller",
+  "menu_label": "Oteller",
+  "eyebrow": "Bölge seçimi · Teklif üzerine",
+  "heading": "OTELİ DEĞİL, DOĞRU BÖLGEYİ SEÇ.",
+  "intro": "Plaja, gece hayatına, sakinliğe veya ada turlarına yakınlık beklentinizi anlayıp uygun bölge ve konaklama seçeneklerini teklif aşamasında karşılaştıralım.",
+  "media": "beach.webp",
+  "media_alt": "Phuket kıyısında turkuaz deniz ve tropikal plaj",
+  "media_caption": "Temsili Phuket görseli — belirli bir otel veya oda değildir.",
+  "options": [
+    {
+      "title": "Patong ve merkez",
+      "text": "Hareketli çevre, restoranlar ve gece hayatına yakınlık arayanlar için."
+    },
+    {
+      "title": "Kata ve Karon",
+      "text": "Plaj erişimi ile daha dengeli bir tatil ritmini birleştirir."
+    },
+    {
+      "title": "Bang Tao ve kuzey",
+      "text": "Daha geniş tesisler ve sakin/premium atmosfer arayanlara göre değerlendirilebilir."
+    },
+    {
+      "title": "Villa ve özel konaklama",
+      "text": "Grup yapısı, konum ve hizmet beklentisine göre teklif edilir."
+    }
+  ],
+  "questions": [
+    "Giriş–çıkış tarihleri",
+    "Oda ve kişi sayısı",
+    "Tercih edilen bölge",
+    "Otel standardı ve özel ihtiyaçlar"
+  ],
+  "cta_context": "Otel Teklifi",
+  "cta_details": "Giriş–çıkış:\nOda/kişi sayısı:\nTercih edilen bölge:\nBeklentilerim:",
+  "order": 2
+}

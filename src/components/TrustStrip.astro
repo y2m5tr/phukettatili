@@ -1,0 +1,74 @@
+---
+interface AssuranceItem {
+  text: string;
+}
+
+const items: AssuranceItem[] = [
+  { text: 'Türkçe iletişim – sorularınız yanıtlanır Türkçe olarak' },
+  { text: 'Yazılı teklif – tüm detaylar ödeme öncesi net şekilde sunulur' },
+  { text: 'Şeffaf rezervasyon – kapora ve iptal şartları açıkça belirtilir' },
+];
+---
+
+<section class="trust-strip">
+  <div class="trust-container">
+    {items.map((item) => (
+      <div class="trust-item">
+        <span class="trust-icon" aria-hidden="true">✓</span>
+        <p class="trust-text">{item.text}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+.trust-strip {
+  background: var(--wb-warm-white);
+  padding: var(--space-2xl);
+  margin: 0;
+  border-top: 1px solid var(--wb-line);
+  border-bottom: 1px solid var(--wb-line);
+}
+
+.trust-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3xl);
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.trust-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  max-width: 400px;
+}
+
+.trust-icon {
+  color: var(--wb-clay);
+  font-size: 1.5rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.trust-text {
+  margin: 0;
+  color: var(--wb-ink);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+@media (max-width: 768px) {
+  .trust-container {
+    gap: var(--space-2xl);
+  }
+  
+  .trust-text {
+    max-width: none;
+  }
+}
+</style>

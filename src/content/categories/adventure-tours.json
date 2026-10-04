@@ -1,0 +1,61 @@
+{
+  "name": "Adventure Tours",
+  "label_tr": "Macera Turları",
+  "slug": "adventure-tours",
+  "icon": "🏍️",
+  "short_desc": "ATV, zipline ve su aktiviteleri",
+  "description": "ATV, fil, zipline, jet ski ve rafting gibi hız ve doğa odaklı deneyimler. Maceranın dozunu kendiniz seçin.",
+  "hero_image": "railay.webp",
+  "order": 2,
+  "children": [
+    {
+      "name": "ATV (quad bike)",
+      "label_tr": "ATV (dört teker)",
+      "slug": "atv-quad-bike",
+      "description": "Phuket’in iç kesimlerindeki patikalarda ATV ile çamur, tırmanış ve manzara dolu macera.",
+      "hero_image": "culture.webp"
+    },
+    {
+      "name": "Elephant",
+      "label_tr": "Fil Gözlem",
+      "slug": "elephant",
+      "description": "Hayvan refahı standartlarına uygun, düşük temaslı fil gözlem ve bakım programları.",
+      "hero_image": "elephant.webp"
+    },
+    {
+      "name": "Hanuman World (zipline)",
+      "label_tr": "Hanuman World (Zipline)",
+      "slug": "hanuman-world-zipline",
+      "description": "Orman kanopisinde zipline, köprü ve platformlarla rehberli yüksek macera parkuru.",
+      "hero_image": "railay.webp"
+    },
+    {
+      "name": "Jet Ski",
+      "label_tr": "Jet Ski",
+      "slug": "jet-ski",
+      "description": "Phuket kıyılarında jet ski ile hız ve dalga keyfi; seans ve rota seçenekleri.",
+      "hero_image": "underwater.webp"
+    },
+    {
+      "name": "Sea Activities",
+      "label_tr": "Deniz Aktiviteleri",
+      "slug": "sea-activities",
+      "description": "Parasailing, banana boat ve şnorkel gibi su üstü aktiviteleri.",
+      "hero_image": "underwater.webp"
+    },
+    {
+      "name": "Sport Fishing",
+      "label_tr": "Sportif Balıkçılık",
+      "slug": "sport-fishing",
+      "description": "Phuket açıklarında olta balıkçılığı: yarım veya tam gün tekneyle av rotaları.",
+      "hero_image": "underwater.webp"
+    },
+    {
+      "name": "White Water Rafting",
+      "label_tr": "Akarsu Raftingi",
+      "slug": "white-water-rafting",
+      "description": "Phang Nga’nın akarsularında rafting; hız, kahkaha ve doğa bir arada.",
+      "hero_image": "railay.webp"
+    }
+  ]
+}

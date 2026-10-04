@@ -1,0 +1,14 @@
+/* Homepage composition overrides - global.css handles shared tokens */
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .hero,
+  .service-gateway-item,
+  .trust-item,
+  .editorial-feature,
+  .faq-item,
+  .tour-card,
+  .category-card {
+    transition: none;
+  }
+}

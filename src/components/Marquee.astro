@@ -1,0 +1,24 @@
+---
+const items = [
+  'Phi Phi Adaları',
+  'James Bond Körfezi',
+  'Coral Adası & Banana Beach',
+  'Similan Takımadaları',
+  'Khao Sok & Cheow Lan',
+  'Lüks Yat Kiralama',
+  'ATV Orman Safarisi',
+  'Hanuman World Zipline',
+  'Fil Bakım ve Gözlem',
+  'Simon Cabaret',
+  'Carnival Magic',
+  'Hong by Starlight'
+];
+---
+
+<div class="pt-marquee" aria-hidden="true">
+  <div class="pt-marquee-track">
+    {[...items, ...items].map((text) => (
+      <span>{text}</span>
+    ))}
+  </div>
+</div>

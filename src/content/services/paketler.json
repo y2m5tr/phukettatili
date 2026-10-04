@@ -1,0 +1,38 @@
+{
+  "title": "Tatil Paketleri",
+  "slug": "paketler",
+  "menu_label": "Paketler",
+  "eyebrow": "Uçuş hariç · Size göre plan",
+  "heading": "GÜNLERİ BİR ARAYA GETİR.",
+  "intro": "Otel, transfer ve deneyimleri tek bir sabit kalıba değil; tarihlerinize, grubunuza ve tatil ritminize göre bir araya getirelim.",
+  "media": "family.webp",
+  "media_alt": "Phuket sahilinde birlikte vakit geçiren gezginler",
+  "media_caption": "Temsili Phuket atmosferi — kesin içerik teklif sırasında belirlenir.",
+  "options": [
+    {
+      "title": "İlk Phuket tatili",
+      "text": "Bölge, gün sayısı ve tempo seçiminden başlayarak dengeli bir plan."
+    },
+    {
+      "title": "Arkadaş grubu",
+      "text": "Ada günleri, sosyal deneyimler ve serbest zamanı birlikte düşünür."
+    },
+    {
+      "title": "Çiftler ve kutlamalar",
+      "text": "Özel anlara alan bırakan, daha sakin veya premium bir akış."
+    },
+    {
+      "title": "Kişiye özel program",
+      "text": "Hazır paket yerine önceliklerinize göre oluşturulan teklif."
+    }
+  ],
+  "questions": [
+    "Tarih veya tarih aralığı",
+    "Gece sayısı",
+    "Kişi sayısı",
+    "Öncelikler ve bütçe yaklaşımı"
+  ],
+  "cta_context": "Tatil Paketi Talebi",
+  "cta_details": "Tarih aralığı:\nGece sayısı:\nKişi sayısı:\nÖnceliklerim:",
+  "order": 1
+}

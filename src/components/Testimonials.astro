@@ -1,0 +1,118 @@
+---
+const reviews = [
+  {
+    name: "Ayşe & Burak Yılmaz",
+    type: "Balayı Çifti",
+    tour: "Phi Phi & Maya Bay",
+    text: "Phuket'teki ilk günümüzdü ve harika bir başlangıç yaptık. Hızlı botla adaları gezmek rüya gibiydi, yerel rehberlik ve transferler kusursuzdu.",
+    stars: 5,
+  },
+  {
+    name: "Emre T.",
+    type: "Arkadaş Grubu",
+    tour: "Özel VIP Yat (Katamaran)",
+    text: "Tüm gün özel yatımızda Phuket'in gizli koylarını keşfettik. Fiyat/performans olarak mükemmel bir deneyimdi. Kesinlikle herkese tavsiye ederim.",
+    stars: 5,
+  },
+  {
+    name: "Zeynep K.",
+    type: "Aile Seyahati",
+    tour: "Fil Safari & Macera",
+    text: "Çocuklarla birlikte katıldık, fillerle vakit geçirmek hayatımızın en güzel anılarından biri oldu. Türkçe iletişim kurabilmek bizi çok rahatlattı.",
+    stars: 5,
+  }
+];
+---
+<section class="testimonials-section section">
+  <div class="wb-container">
+    <div class="section-header" style="text-align: center; margin-bottom: var(--space-2xl);">
+      <span class="section-kicker">Bizimle Gezenler Ne Diyor?</span>
+      <h2 class="section-title">Gerçek Müşteri Deneyimleri</h2>
+    </div>
+
+    <div class="testimonials-grid">
+      {reviews.map((review, i) => (
+        <div class="testimonial-card animate-fade-up" style={`animation-delay: ${i * 0.1}s;`}>
+          <div class="testimonial-stars">
+            {Array.from({ length: review.stars }).map(() => (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="#C96B55" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" stroke="#C96B55" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            ))}
+          </div>
+          <p class="testimonial-text">"{review.text}"</p>
+          <div class="testimonial-author">
+            <strong>{review.name}</strong>
+            <span>{review.type} • <em>{review.tour}</em></span>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+.testimonials-section {
+  background: var(--bg-subtle);
+  border-top: 1px solid var(--wb-line);
+  padding-block: var(--space-4xl);
+}
+
+.testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-lg);
+}
+
+.testimonial-card {
+  background: var(--wb-warm-white);
+  padding: var(--space-xl);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--wb-line);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.testimonial-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--wb-clay);
+}
+
+.testimonial-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.testimonial-text {
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: var(--wb-ink);
+  font-style: italic;
+  margin: 0;
+  flex-grow: 1;
+}
+
+.testimonial-author {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--wb-line);
+  padding-top: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.testimonial-author strong {
+  font-weight: 700;
+  color: var(--wb-ink);
+  font-size: 0.9375rem;
+}
+
+.testimonial-author span {
+  font-size: 0.8125rem;
+  color: var(--wb-olive);
+}
+</style>

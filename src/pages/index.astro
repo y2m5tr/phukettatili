@@ -1,0 +1,173 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import Hero from '@/components/Hero.astro';
+import PromoVideo from '@/components/PromoVideo.astro';
+import ServiceGateway from '@/components/ServiceGateway.astro';
+import TourCard from '@/components/TourCard.astro';
+import CategoryNav from '@/components/CategoryNav.astro';
+import TrustStrip from '@/components/TrustStrip.astro';
+import EditorialFeature from '@/components/EditorialFeature.astro';
+import Testimonials from '@/components/Testimonials.astro';
+import { getCollection } from 'astro:content';
+
+const allTours = await getCollection('tours');
+const featuredTours = allTours
+  .sort((a: any, b: any) => (a.data.order || 99) - (b.data.order || 99))
+  .slice(0, 6);
+---
+
+<Layout
+  title="Phuket Turları ve Tatil Rehberi — Türkçe Yerel Destek"
+  description="Phuket'te Türkçe yerel destekle ada turları, özel yatlar, otel ve transfer planlaması. WhatsApp'tan ulaşın: +66 82 895 0665"
+  image="/assets/pileh.webp"
+>
+  <!-- HERO -->
+  <Hero />
+  
+  <!-- PROMO VIDEO -->
+  <PromoVideo />
+  
+  <!-- TRAVEL NEEDS -->
+  <section class="gateway-section section">
+    <div class="wb-container">
+      <h2 class="section-title">Sizin seyahat ihtiyacınız neler?</h2>
+      <div class="service-gateway-grid">
+        <ServiceGateway
+          title="Turlar"
+          href="/turlar/"
+          image="/assets/beachclub.webp"
+          alt="Ada turları ve deniz aktiviteleri"
+        />
+        <ServiceGateway
+          title="Konaklama"
+          href="/oteller/"
+          image="/assets/family.webp"
+          alt="Phuket otelleri ve villa"
+        />
+        <ServiceGateway
+          title="Transfer"
+          href="/transferler/"
+          image="/assets/culture.webp"
+          alt="Havalimanı ve iskele transferleri"
+        />
+        <ServiceGateway
+          title="Özel plan"
+          href="/paketler/"
+          image="/assets/yacht.webp"
+          alt="VIP yat ve özel deneyimler"
+        />
+      </div>
+    </div>
+  </section>
+  
+  <!-- SELECTED EXPERIENCES -->
+  <section class="selected-tours section">
+    <div class="wb-container">
+      <header class="section-header">
+        <span class="section-kicker">Öne Çıkan Seçenekler</span>
+        <h2 class="section-title">Popüler Phuket Deneyimleri</h2>
+        <p class="section-description">Tüm programlar rezervasyon öncesi yazılı olarak teyit edilir.</p>
+      </header>
+      
+      <div class="tours-grid">
+        {featuredTours.map((tour: any, index: number) => (
+          <TourCard tour={tour} isFirst={index === 0} />
+        ))}
+      </div>
+    </div>
+  </section>
+  
+  <!-- CATEGORY NAVIGATION -->
+  <section class="categories-section section">
+    <div class="wb-container">
+      <div class="section-header">
+        <span class="section-kicker">Tüm Rotalar</span>
+        <h2 class="section-title">Kategoriye Göre Keşfedin</h2>
+      </div>
+      <CategoryNav />
+    </div>
+  </section>
+  
+  <!-- TRUST STRIP -->
+  <TrustStrip />
+  
+  <!-- EDITORIAL FEATURE -->
+  <EditorialFeature />
+  
+  <Testimonials />
+  
+  <!-- FAQ -->
+  <section class="faq-section section">
+    <div class="wb-container">
+      <div class="section-header">
+        <span class="section-kicker">Sıkça Sorulan Sorular</span>
+        <h2 class="section-title">Merak Edilenler</h2>
+        <p class="section-description">Rezervasyon ve tatil süreciyle ilgili temel bilgiler.</p>
+      </div>
+      
+      <div class="faq-grid">
+        <details class="faq-item">
+          <summary>Ödeme nasıl yapılır?</summary>
+          <p>Ödeme öncesinde tüm detaylar, dahil/hariç olanlar ve iptal şartları yazılı teklif olarak paylaşılır. Kapora ve kalan tutar, tedarikçinin şartlarına göre Phuket'e varışta veya banka/kart ile ödenir.</p>
+        </details>
+        
+        <details class="faq-item">
+          <summary>İptal ve hava koşulları politikası nedir?</summary>
+          <p>Hava muhalefeti veya deniz fırtınası nedeniyle liman idaresinin izin vermediği durumlarda tur ertelenir veya tedarikçi iade kuralları çerçevesinde ücret iadesi yapılır.</p>
+        </details>
+        
+        <details class="faq-item">
+          <summary>Turları nasıl planlayabilirim?</summary>
+          <p>Sitedeki "Hızlı Planını Kur" formunu doldurarak veya WhatsApp butonuna tıklayarak seyahat tarihlerinizi ve kişi sayınızı iletin; size en uygun gün planını hazırlayalım.</p>
+        </details>
+      </div>
+    </div>
+    
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [{
+        "@type": "Question",
+        "name": "Ödeme nasıl yapılır?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Ödeme öncesinde tüm detaylar, dahil/hariç olanlar ve iptal şartları yazılı teklif olarak paylaşılır. Kapora ve kalan tutar, tedarikçinin şartlarına göre Phuket'e varışta veya banka/kart ile ödenir."
+        }
+      }, {
+        "@type": "Question",
+        "name": "İptal ve hava koşulları politikası nedir?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Hava muhalefeti veya deniz fırtınası nedeniyle liman idaresinin izin vermediği durumlarda tur ertelenir veya tedarikçi iade kuralları çerçevesinde ücret iadesi yapılır."
+        }
+      }, {
+        "@type": "Question",
+        "name": "Turları nasıl planlayabilirim?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sitedeki formunu doldurarak veya WhatsApp butonuna tıklayarak seyahat tarihlerinizi ve kişi sayınızı iletin; size en uygun gün planını hazırlayalım."
+        }
+      }]
+    }
+    </script>
+  </section>
+</Layout>
+
+<style is:global>
+/* Service Gateway Grid - Homepage only */
+.service-gateway-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+
+@media (max-width: 960px) {
+  .service-gateway-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .service-gateway-grid { grid-template-columns: 1fr; gap: var(--space-md); }
+}
+</style>

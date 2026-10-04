@@ -1,0 +1,215 @@
+---
+import { formatPrice } from '@/utils/whatsapp';
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  tour: CollectionEntry<'tours'>;
+  isFirst?: boolean;
+}
+
+const { tour, isFirst = false } = Astro.props;
+const { data } = tour;
+const slug = tour.id.replace(/\.md$/, '');
+const formattedPrice = formatPrice(data.price_type, data.price_thb);
+---
+
+<article 
+  class="tour-card animate-fade-up" 
+  data-featured={isFirst}
+  data-category={data.category}
+  data-subcategory={data.subcategory || ''}
+  data-title={data.title?.toLowerCase() || ''}
+  data-excerpt={data.excerpt?.toLowerCase() || ''}
+>
+  <a href={`/turlar/${slug}/`} class="tour-card-link">
+    <div class="tour-card-media">
+      <picture>
+        {data.image_480 ? (
+          <source media="(max-width: 480px)" srcset={`/assets/${data.image.replace('.webp', '-480.webp')}`} />
+        ) : null}
+        <img
+          src={`/assets/${data.image}`}
+          alt={data.title}
+          width="640"
+          height="440"
+          loading="lazy"
+          decoding="async"
+        />
+      </picture>
+    </div>
+    <div class="tour-card-content">
+      <div class="tour-card-header">
+        <small class="tour-card-duration">{data.duration}</small>
+        <h3 class="tour-card-title">{data.title}</h3>
+      </div>
+      <div class="tour-card-footer">
+        <div class="tour-card-price">
+          <strong class="tour-card-price-value">{formattedPrice}</strong>
+          <span class="tour-card-price-label">güncel teklif</span>
+        </div>
+        <a href={`/turlar/${slug}/`} class="tour-card-detail-link" aria-label="Detayları incele">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </a>
+</article>
+
+<style>
+.tour-card {
+  background: var(--wb-warm-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 20px -4px rgba(0, 0, 0, 0.03), 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  grid-column: span 1;
+}
+
+.tour-card:hover {
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  transform: translateY(-4px) scale(1.005);
+}
+
+.tour-card[data-featured="true"] {
+  grid-column: span 3;
+}
+
+.tour-card-link {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+}
+
+.tour-card-media {
+  position: relative;
+  aspect-ratio: 16/10;
+  overflow: hidden;
+}
+
+.tour-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.tour-card:hover .tour-card-media img {
+  transform: scale(1.05);
+}
+
+.tour-card-content {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+.tour-card-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.tour-card-duration {
+  color: var(--wb-clay);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: block;
+}
+
+.tour-card-title {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--wb-ink);
+  line-height: 1.3;
+}
+
+.tour-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  margin-top: auto;
+}
+
+.tour-card-price {
+  text-align: center;
+}
+
+.tour-card-price-value {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--wb-ink);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.tour-card-price-label {
+  color: var(--wb-olive);
+  font-size: 0.75rem;
+  display: block;
+}
+
+.tour-card-detail-link {
+  color: var(--wb-clay);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  transition: gap 0.2s ease;
+}
+
+.tour-card-detail-link:hover {
+  gap: 12px;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .tour-card[data-featured="true"],
+  .tour-card {
+    grid-column: span 1;
+  }
+
+  .tour-card-content {
+    padding: var(--space-sm);
+  }
+
+  .tour-card-title {
+    font-size: 0.9375rem;
+  }
+
+  .tour-card-price-value {
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tour-card {
+    border-width: 1px;
+  }
+
+  .tour-card-duration {
+    font-size: 0.6875rem;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .tour-card,
+  .tour-card-link {
+    transition: none;
+  }
+}
+</style>

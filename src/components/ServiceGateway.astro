@@ -1,0 +1,94 @@
+---
+interface Props {
+  title: string;
+  href: string;
+  image: string;
+  alt: string;
+  count?: number;
+}
+
+const { title, href, image, alt, count } = Astro.props;
+---
+
+<article class="service-gateway-item">
+  <a href={href} class="service-gateway-link">
+    <div class="service-gateway-media">
+      <img src={image} alt={alt} loading="lazy" />
+    </div>
+    <div class="service-gateway-content">
+      <h3 class="service-gateway-title">{title}</h3>
+      {count !== undefined && <span class="service-gateway-count">{count}</span>}
+      <span class="service-gateway-cta">→ {title === 'Turlar' ? 'turları incele' : title === 'Konaklama' ? 'otelleri incele' : title === 'Transfer' ? 'transferleri incele' : 'detayları incele'}</span>
+    </div>
+  </a>
+</article>
+
+<style>
+.service-gateway-item {
+  background: var(--wb-warm-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--wb-line);
+  overflow: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+.service-gateway-item:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+.service-gateway-link {
+  display: flex;
+  text-decoration: none;
+  color: inherit;
+}
+.service-gateway-media img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+}
+.service-gateway-content {
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.service-gateway-title {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--wb-ink);
+  line-height: 1.4;
+}
+.service-gateway-count {
+  font-size: 0.9375rem;
+  color: var(--wb-olive);
+  font-weight: 500;
+  margin-bottom: 0;
+}
+.service-gateway-cta {
+  font-size: 0.875rem;
+  color: var(--wb-clay);
+  font-weight: 500;
+  margin-top: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+.service-gateway-cta::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  clip-path: polygon(6px 0, 12px 6px, 6px 12px, 0 6px);
+}
+@media (max-width: 768px) {
+  .service-gateway-content {
+    padding: var(--space-sm);
+  }
+  .service-gateway-title {
+    font-size: 1rem;
+  }
+}
+</style>

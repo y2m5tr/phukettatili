@@ -1,0 +1,97 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
+
+const waUrl = buildWhatsAppUrl('İletişim ve Bilgi İsteği');
+---
+
+<Layout
+  title="İletişim"
+  description="Phuket Tatili ile iletişim kurun. WhatsApp, telefon veya sorularınız için doğrudan mesaj gönderin."
+  breadcrumbTitle="İletişim"
+>
+  <section class="shell" style="padding-block: var(--space-3xl); max-width: 800px;">
+    <span class="wb-eyebrow">Bizimle İletişime Geçin</span>
+    <h1>İletişim</h1>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-lg); margin-bottom: var(--space-3xl);">
+      <!-- WhatsApp Card -->
+      <div class="wb-warm-white" style="padding: var(--space-lg); border-radius: var(--radius-lg); border: 1px solid var(--wb-line);">
+        <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+          <img src="/assets/whatsapp-mark.svg" alt="WhatsApp" width="48" height="48" />
+          <strong style="color: var(--wb-clay);">WhatsApp</strong>
+        </div>
+        <p style="color: var(--wb-olive); margin-bottom: var(--space-md);">
+          Türkçe yerel destekle anında bilgi alın. Müsaitlik, fiyat ve program teyidini önce yazılı olarak alırız.
+        </p>
+        <a href={waUrl} target="_blank" rel="noopener" class="wb-button wb-button--primary">
+          WhatsApp'tan Yazın →
+        </a>
+      </div>
+
+      <!-- Phone Card -->
+      <div class="wb-warm-white" style="padding: var(--space-lg); border-radius: var(--radius-lg); border: 1px solid var(--wb-line);">
+        <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+          <span style="font-size: 1.5rem;">📱</span>
+          <strong style="color: var(--wb-clay);">Telefon</strong>
+        </div>
+        <p style="color: var(--wb-olive); margin-bottom: var(--space-md);">
+          +66 82 895 0665 (WhatsApp üzerinden 7/24 destek)
+        </p>
+        <a href={waUrl} target="_blank" rel="noopener" class="wb-button wb-button--primary">
+          WhatsApp Hazır →
+        </a>
+      </div>
+
+      <!-- Location Card -->
+      <div class="wb-warm-white" style="padding: var(--space-lg); border-radius: var(--radius-lg); border: 1px solid var(--wb-line);">
+        <div style="display: flex; align-items: center; gap: var(--space-md); margin-bottom: var(--space-md);">
+          <span style="font-size: 1.5rem;">📍</span>
+          <strong style="color: var(--wb-clay);">Konum</strong>
+        </div>
+        <p style="color: var(--wb-olive); margin-bottom: var(--space-md);">
+          Kathu, Phuket, Tayland
+        </p>
+        <p style="color: var(--wb-olive); font-size: 0.875rem;">7/24 aktif, WhatsApp'tan ulaşın.</p>
+      </div>
+    </div>
+
+    <!-- Contact Form / Quick Actions -->
+    <div style="background: var(--wb-warm-white); border-radius: var(--radius-lg); border: 1px solid var(--wb-line); padding: var(--space-lg); margin-bottom: var(--space-3xl);">
+      <h2 style="color: var(--wb-ink); margin-top: 0;">Hızlı İletişim Seçenekleri</h2>
+      <p style="color: var(--wb-olive);">Aşağıdaki butonlara tıklayarak doğrudan WhatsApp üzerinden önceden doldurulmuş mesajlar gönderin.</p>
+      
+      <div style="display: flex; flex-direction: column; gap: var(--space-md); margin-top: var(--space-lg);">
+        <a href={buildWhatsAppUrl('Tatil Paketi Talebi', 'Tarih aralığı:\nGece sayısı:\nKişi sayısı:\nBütçe yaklaşımı:')} class="wb-button wb-button--text" style="justify-content: center;">
+          Tatil Paketi Talebi
+        </a>
+        <a href={buildWhatsAppUrl('Tur Rezervasyonu', 'İlgilendiğiniz tur: \nTarih: \nKişi sayısı:')} class="wb-button wb-button--text" style="justify-content: center;">
+          Tur Rezervasyonu
+        </a>
+        <a href={buildWhatsAppUrl('Soru & Destek', 'Sormak istediğiniz soru:')} class="wb-button wb-button--text" style="justify-content: center;">
+          Soru & Destek
+        </a>
+      </div>
+    </div>
+
+    <!-- FAQ -->
+    <div style="background: var(--wb-warm-white); border-radius: var(--radius-lg); border: 1px solid var(--wb-line); padding: var(--space-lg);">
+      <h2 style="color: var(--wb-ink); margin-top: 0;">Sıkça Sorulan Sorular</h2>
+      
+      <details style="margin-bottom: var(--space-md);">
+        <summary style="font-weight: 600; color: var(--wb-ink);">WhatsApp üzerinden mesaj gönderdiğimde ne olur?</summary>
+        <p style="color: var(--wb-body); margin-top: 0;">Mesajınız Türkçe yerel ekibimize ulaşır. Size dönüş yazılı olarak gönderilir ve tatil planınız için müsaitlik, güncel fiyat ve program detayları paylaşılır.</p>
+      </details>
+
+      <details style="margin-bottom: var(--space-md);">
+        <summary style="font-weight: 600; color: var(--wb-ink);">Ödeme nerede yapılır?</summary>
+        <p style="color: var(--wb-body); margin-top: 0;">Ödeme rezervasyon onayından sonra tedarikçi tarafından belirtilen kapora tutarı ve kalan ödeme tutarları üzerinden yapılır. Tam ödeme tarihleri WhatsApp üzerinden yazılı olarak teyit edilir.</p>
+      </details>
+
+      <details>
+        <summary style="font-weight: 600; color: var(--wb-ink);">Rezervasyon iptal ettirilebilir mi?</summary>
+        <p style="color: var(--wb-body); margin-top: 0;">Tedarikçi iptal politikaları çerçevesinde rezervasyon iptal edilebilir. Hava koşulları veya liman kapanışları durumunda tur ertelenir veya tam iade yapılır. Detaylar rezervasyon öncesi yazılı olarak paylaşılır.</p>
+      </details>
+    </div>
+  </section>
+</Layout>

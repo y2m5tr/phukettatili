@@ -1,0 +1,367 @@
+---
+const scenes = [
+  {
+    img: 'underwater.webp',
+    alt: 'Phuket açıklarında berrak suda yüzen gezgin',
+    small: 'Sualtı · Racha Yai',
+    title: 'Mavinin altına in.',
+    body: 'İlk deneyiminizse sakin, tecrübeliyseniz daha derin.',
+    href: '/tur-kategorisi/sea-activities/',
+    tabIcon: '🐠',
+    tabLabel: 'Sualtı',
+    tabSub: 'Racha Yai'
+  },
+  {
+    img: 'beach.webp',
+    alt: "Phuket'te turkuaz denizli sakin kumsal",
+    small: 'Kıyı · Yavaş gün',
+    title: 'Takvimi kıyıda unut.',
+    body: 'Kalabalıktan uzak bir koy, iyi bir öğle yemeği.',
+    href: '/tur-kategorisi/coral-island/',
+    tabIcon: '🏖️',
+    tabLabel: 'Sakin koylar',
+    tabSub: 'Yavaş gün'
+  },
+  {
+    img: 'pileh.webp',
+    alt: "Pileh Lagoon'un dik kayalıkları",
+    small: 'Tekne · Phi Phi',
+    title: "Pileh'e herkesten önce.",
+    body: 'Günün saatini doğru seçip lagünü en dingin anında görün.',
+    href: '/tur-kategorisi/phi-phi-islands/',
+    tabIcon: '🏝️',
+    tabLabel: 'Ada rotası',
+    tabSub: 'Phi Phi'
+  },
+  {
+    img: 'family.webp',
+    alt: 'Phuket sahilinde aile',
+    small: 'Ailece · Esnek plan',
+    title: 'Herkese iyi gelen gün.',
+    body: 'Çocukların enerjisi ve sizin dinlenme isteğiniz dengede kalsın.',
+    href: '/paketler/',
+    tabIcon: '👨‍👩‍👧',
+    tabLabel: 'Ailece',
+    tabSub: 'Esnek plan'
+  },
+  {
+    img: 'yacht.webp',
+    alt: 'Premium yat atmosferi',
+    small: 'VIP yat · Özel rota',
+    title: 'Rotayı kendine ayır.',
+    body: 'Yat, rota ve günün ritmi tamamen size göre netleşsin.',
+    href: '/tur-kategorisi/private-charters/',
+    tabIcon: '⛵',
+    tabLabel: 'VIP yat',
+    tabSub: 'Özel rota'
+  },
+  {
+    img: 'beachclub.webp',
+    alt: 'Phuket beach club gün batımı',
+    small: 'Beach club · Gün batımı',
+    title: 'Gün batınca tempo değişsin.',
+    body: 'Masa, giriş ve koşullar yazılı olarak doğrulansın.',
+    href: '/vip-ozel/',
+    tabIcon: '🌅',
+    tabLabel: 'Beach club',
+    tabSub: 'Gün batımı'
+  }
+];
+---
+
+<div class="wb-container" style="padding-bottom: var(--space-3xl);">
+  <div class="scene-tabs" role="tablist" aria-label="Deneyim kategorileri">
+    {scenes.map((s, i) => (
+      <button
+        class={`scene-tab ${i === 0 ? 'is-active' : ''}`}
+        type="button"
+        role="tab"
+        aria-selected={i === 0 ? 'true' : 'false'}
+        data-index={i}
+      >
+        <span class="scene-tab__icon">{s.tabIcon}</span>
+        <span>{s.tabLabel}</span>
+        <small style="display: block; font-size: 10px; color: var(--wb-olive);">{s.tabSub}</small>
+      </button>
+    ))}
+  </div>
+
+  <div class="scene-stage" aria-label="Phuket deneyimlerini keşfet">
+    <div class="scene-progress" aria-hidden="true" style="width: 16.66%;"></div>
+    <div class="scene-track">
+      {scenes.map((s, i) => (
+        <article
+          class={`scene-item ${i === 0 ? 'is-active' : ''}`}
+          data-index={i}
+        >
+          <img
+            src={`/assets/${s.img}`}
+            alt={s.alt}
+            width="640"
+            height="853"
+            decoding="async"
+            loading={i < 2 ? 'eager' : 'lazy'}
+          />
+          <span class="scene-number">
+            {String(i + 1).padStart(2, '0')} / {String(scenes.length).padStart(2, '0')}
+          </span>
+          <div class="scene-copy">
+            <small>{s.small}</small>
+            <h2>{s.title}</h2>
+            <p>{s.body}</p>
+            <a class="scene-link" href={s.href}>
+              Rotayı incele
+            </a>
+          </div>
+        </article>
+      ))}
+    </div>
+
+    <div class="scene-controls">
+      <button type="button" class="scene-prev" aria-label="Önceki sahne">←</button>
+      <button type="button" class="scene-next" aria-label="Sonraki sahne">→</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const stage = document.querySelector('.scene-stage');
+  const tabs = document.querySelectorAll('.scene-tab');
+  if (stage && tabs.length) {
+    const track = stage.querySelector('.scene-track') as HTMLElement;
+    const scenes = stage.querySelectorAll('.scene-item');
+    const progressBar = stage.querySelector('.scene-progress') as HTMLElement;
+    const prevBtn = stage.querySelector('.scene-prev');
+    const nextBtn = stage.querySelector('.scene-next');
+
+    let currentIndex = 0;
+
+    const showScene = (index: number) => {
+      currentIndex = Math.max(0, Math.min(index, scenes.length - 1));
+      const targetScene = scenes[currentIndex] as HTMLElement;
+
+      tabs.forEach((tab, i) => {
+        const active = i === currentIndex;
+        tab.setAttribute('aria-selected', String(active));
+        tab.classList.toggle('is-active', active);
+      });
+
+      scenes.forEach((sc, i) => {
+        sc.classList.toggle('is-active', i === currentIndex);
+      });
+
+      if (progressBar) {
+        progressBar.style.width = `${((currentIndex + 1) / scenes.length) * 100}%`;
+      }
+
+      if (targetScene && track) {
+        track.scrollTo({ left: targetScene.offsetLeft, behavior: 'smooth' });
+      }
+    };
+
+    tabs.forEach((tab, idx) => {
+      tab.addEventListener('click', () => showScene(idx));
+    });
+
+    prevBtn?.addEventListener('click', () => {
+      showScene((currentIndex - 1 + scenes.length) % scenes.length);
+    });
+
+    nextBtn?.addEventListener('click', () => {
+      showScene((currentIndex + 1) % scenes.length);
+    });
+  }
+</script>
+
+<style>
+.scene-tabs {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  padding-bottom: var(--space-lg);
+  border-bottom: 1px solid var(--wb-line);
+  flex-wrap: wrap;
+}
+
+.scene-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.75rem 0.5rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--wb-body);
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+}
+
+.scene-tab:hover {
+  color: var(--wb-clay);
+  background: var(--wb-warm-white);
+}
+
+.scene-tab.is-active {
+  color: var(--wb-clay);
+  background: var(--wb-warm-white);
+  font-weight: 600;
+}
+
+.scene-tab__icon {
+  font-size: 1.25rem;
+}
+
+.scene-stage {
+  position: relative;
+}
+
+.scene-progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 4px;
+  background: var(--wb-clay);
+  z-index: 2;
+  transition: width 0.3s ease;
+}
+
+.scene-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snapping-type: x mandatory;
+  gap: var(--space-lg);
+}
+
+.scene-track::-webkit-scrollbar {
+  display: none;
+}
+
+.scene-item {
+  flex: 0 0 auto;
+  scroll-snap-align: start;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  min-width: 280px;
+}
+
+.scene-item img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-lg);
+  object-fit: cover;
+}
+
+.scene-number {
+  display: block;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--wb-olive);
+}
+
+.scene-copy {
+  background: var(--wb-warm-white);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  border: 1px solid var(--wb-line);
+}
+
+.scene-copy small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--wb-olive);
+  margin-bottom: 0.25rem;
+}
+
+.scene-copy h2 {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--wb-ink);
+  margin: 0 0 var(--space-xs);
+}
+
+.scene-copy p {
+  font-size: 0.9375rem;
+  color: var(--wb-body);
+  line-height: 1.5;
+  margin: 0 0 var(--space-md);
+}
+
+.scene-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: var(--wb-clay);
+  font-weight: 500;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.scene-link:hover {
+  text-decoration: underline;
+}
+
+.scene-controls {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: var(--space-lg);
+}
+
+.scene-prev,
+.scene-next {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--wb-line);
+  background: var(--wb-warm-white);
+  color: var(--wb-ink);
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.scene-prev:hover,
+.scene-next:hover {
+  background: var(--wb-clay);
+  color: var(--wb-warm-white);
+}
+
+@media (max-width: 768px) {
+  .scene-tabs {
+    justify-content: center;
+  }
+  
+  .scene-tab {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.25rem;
+  }
+  
+  .scene-tabs .scene-tab__icon {
+    font-size: 1.125rem;
+  }
+  
+  .scene-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scene-tab,
+  .scene-item,
+  .scene-controls button {
+    transition: none;
+  }
+  
+  .scene-track {
+    scroll-behavior: auto;
+  }
+}</style>

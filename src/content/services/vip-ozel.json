@@ -1,0 +1,38 @@
+{
+  "title": "VIP ve Özel Deneyimler",
+  "slug": "vip-ozel",
+  "menu_label": "VIP & Özel",
+  "eyebrow": "Yat · Kutlama · Gece",
+  "heading": "KALABALIĞA GÖRE DEĞİL, SANA GÖRE.",
+  "intro": "Özel yat, kutlama, beach club veya gece planını hazır bir ürün gibi değil; tarih, grup ve beklentilerinize göre tekliflendirelim.",
+  "media": "pileh.webp",
+  "media_alt": "Phuket açıklarında premium yat atmosferi",
+  "media_caption": "Temsili atmosfer — belirli bir yat, mekân veya hizmet standardı değildir.",
+  "options": [
+    {
+      "title": "Özel yat ve rota",
+      "text": "Tekne, kapasite, rota ve kapsam güncel müsaitlikle birlikte doğrulanır."
+    },
+    {
+      "title": "Beach club planı",
+      "text": "Masa, giriş ve güncel koşullar talep sonrasında netleşir."
+    },
+    {
+      "title": "Kutlama ve özel gün",
+      "text": "Doğum günü, yıldönümü veya grup kutlaması için kişisel teklif."
+    },
+    {
+      "title": "Gece ve özel program",
+      "text": "Ulaşım ve mekân seçenekleri güncel koşullarla birlikte planlanır."
+    }
+  ],
+  "questions": [
+    "Tarih ve kişi sayısı",
+    "Deneyim türü",
+    "Özel gün veya beklenti",
+    "Bütçe yaklaşımı"
+  ],
+  "cta_context": "VIP ve Özel Deneyim Talebi",
+  "cta_details": "Tarih:\nKişi sayısı:\nİlgilendiğim deneyim:\nBeklentilerim:",
+  "order": 4
+}

@@ -1,0 +1,761 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import { buildWhatsAppUrl, formatPrice, WHATSAPP_NUMBER } from '@/utils/whatsapp';
+import CurrencyConverter from '@/components/CurrencyConverter.astro';
+import TourCard from '@/components/TourCard.astro';
+
+export async function getStaticPaths() {
+  const tours = await getCollection('tours');
+  return tours.map((tour: any) => {
+    const similarTours = tours
+      .filter((t: any) => t.data.category === tour.data.category && t.id !== tour.id)
+      .slice(0, 3);
+      
+    return {
+      params: { slug: tour.id.replace(/\.md$/, '') },
+      props: { tour, similarTours },
+    };
+  });
+}
+
+interface Props {
+  tour: CollectionEntry<'tours'>;
+  similarTours: CollectionEntry<'tours'>[];
+}
+
+const { tour, similarTours } = Astro.props;
+const { data } = tour;
+const { Content } = await render(tour);
+const slug = tour.id.replace(/\.md$/, '');
+
+const formattedPrice = formatPrice(data.price_type, data.price_thb);
+const waUrl = buildWhatsAppUrl(
+  data.title,
+  `Seçilen Tur: ${data.title}\nSüre: ${data.duration}\nKişi Sayısı:\nTercih Edilen Tarih:`
+);
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'TouristTour',
+  name: data.title,
+  description: data.excerpt,
+  image: `https://phukettatili.com/assets/${data.image}`,
+  offers: {
+    '@type': 'Offer',
+    priceCurrency: 'THB',
+    price: data.price_thb ? String(data.price_thb) : undefined,
+    availability: 'https://schema.org/InStock',
+    url: `https://phukettatili.com/turlar/${slug}/`,
+  },
+  touristType: ['Family', 'Couple', 'AdventureSeeker'],
+  provider: {
+    '@type': 'Organization',
+    name: 'Phuket Tatili',
+    url: 'https://phukettatili.com',
+    sameAs: ['https://wa.me/66828950665'],
+  },
+};
+---
+
+<Layout
+  title={data.title}
+  description={data.excerpt}
+  image={`/assets/${data.image}`}
+  breadcrumbTitle={data.title}
+  categoryLabel={data.category_label}
+  categorySlug={data.category}
+  schema={schema}
+>
+  <!-- TOUR HERO -->
+  <section class="tour-hero" style={`background-image: url('/assets/${data.image}');`}>
+    <div class="wb-container tour-hero__inner">
+      <a
+        href="/turlar/"
+        class="tour-hero-back"
+      >
+        ← Tüm Turlara Dön
+      </a>
+      
+      <div class="tour-hero__kicker">{data.category_label}</div>
+      
+      <h1 class="h1-display">{data.title}</h1>
+      
+      <p class="tour-hero-excerpt">
+        {data.excerpt}
+      </p>
+
+      <dl class="tour-meta">
+        <div>
+          <dt>Süre</dt>
+          <dd>{data.duration}</dd>
+        </div>
+        <div>
+          <dt>Fiyat</dt>
+          <dd>{formattedPrice}</dd>
+        </div>
+        <div>
+          <dt>Kategori</dt>
+          <dd>{data.category_label}</dd>
+        </div>
+        {data.age_min && (
+          <div>
+            <dt>Yaş Sınırı</dt>
+            <dd>{data.age_min}</dd>
+          </div>
+        )}
+        {data.max_weight && (
+          <div>
+            <dt>Maksimum Kilo</dt>
+            <dd>{data.max_weight} kg</dd>
+          </div>
+        )}
+      </dl>
+
+      <div class="tour-actions">
+        <a
+          href={waUrl}
+          target="_blank"
+          rel="noopener"
+          class="wb-button wb-button--primary"
+        >
+          <img
+            src="/assets/whatsapp-mark.svg"
+            alt=""
+            width="18"
+            height="18"
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+          />
+          WhatsApp'ta Müsaitlik Sor
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- TOUR DETAIL CONTENT -->
+  <section class="tour-layout">
+    <article class="tour-content">
+      {data.source_status === 'owner_approved' && (
+        <div class="tour-disclosure">
+          <strong>Güvence Notu</strong>
+          <p>
+            Bu tur Phuket Tatili yerel işletme onayıyla listelenmiştir. Saatler, dahil/hariç hizmetler, transfer bölgesi ve güncel ücretler rezervasyon öncesinde WhatsApp üzerinden yazılı olarak teyit edilir.
+          </p>
+        </div>
+      )}
+
+      <div class="tour-body">
+        <Content />
+      </div>
+
+      {data.included.length > 0 && (
+        <>
+          <h2>Dahil Olan Hizmetler</h2>
+          <ul>
+            {data.included.map((item: string) => (
+              <li>{item}</li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {data.excluded.length > 0 && (
+        <>
+          <h2>Dahil Olmayanlar</h2>
+          <ul>
+            {data.excluded.map((item: string) => (
+              <li class="excluded-item">{item}</li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {data.program.length > 0 && (
+        <>
+          <h2>Program Akışı</h2>
+          <ol>
+            {data.program.map((step: string) => (
+              <li>{step}</li>
+            ))}
+          </ol>
+        </>
+      )}
+
+      {data.restrictions.length > 0 && (
+        <>
+          <h2>Önemli Kısıtlamalar ve Sağlık Kuralları</h2>
+          <ul>
+            {data.restrictions.map((r: string) => (
+              <li>{r}</li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {data.faq.length > 0 && (
+        <>
+          <h2>Sık Sorulan Sorular</h2>
+          <div class="tour-faq">
+            {data.faq.map((item: any) => (
+              <details class="faq-item">
+                <summary>{item.q}</summary>
+                <p>{item.a}</p>
+              </details>
+            ))}
+          </div>
+        </>
+      )}
+
+      <h2>Güvenli Rezervasyon Süreci</h2>
+      <div class="booking-process">
+        <div class="booking-step">
+          <strong>01. Türkçe Yerel Destek</strong>
+          <p>Phuket'te yerel ekibimiz sorularınızı anında yanıtlar.</p>
+        </div>
+        <div class="booking-step">
+          <strong>02. Yazılı Teyit</strong>
+          <p>Tüm detaylar, dahil olanlar ve fiyat ödeme öncesinde yazılı gelir.</p>
+        </div>
+        <div class="booking-step">
+          <strong>03. Tedarikçi Denetimi</strong>
+          <p>Lisanslı ve sigortalı resmi Tayland tur operatörleriyle çalışılır.</p>
+        </div>
+        <div class="booking-step">
+          <strong>04. Hava Şartı Esnekliği</strong>
+          <p>Liman kapanışlarında tarih değişimi veya iade yapılır.</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- STICKY BOOKING CARD -->
+    <aside class="tour-booking" id="booking-widget" data-tour-title={tour.data.title} data-base-wa={WHATSAPP_NUMBER}>
+      <h3>Rezervasyon Talebi</h3>
+      <div class="tour-booking__price">
+        <strong>{formattedPrice}</strong>
+        <small>Güncel fiyat ve müsaitlik yazılı doğrulanır</small>
+      </div>
+
+      <div class="booking-inputs">
+        <div class="input-group">
+          <label for="tour-date">Tarih Seçin</label>
+          <input type="date" id="tour-date" min={new Date().toISOString().split('T')[0]} />
+        </div>
+        <div class="input-group">
+          <label for="tour-pax">Kişi Sayısı</label>
+          <select id="tour-pax">
+            <option value="1 Yetişkin">1 Yetişkin</option>
+            <option value="2 Yetişkin" selected>2 Yetişkin</option>
+            <option value="3 Yetişkin">3 Yetişkin</option>
+            <option value="4 Yetişkin">4 Yetişkin</option>
+            <option value="5+ Kişi">5+ Kişi</option>
+            <option value="Çocuklu Aile">Çocuklu Aile</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="tour-booking__process">
+        <p>1. WhatsApp'tan tarih ve kişi sayınızı iletin.</p>
+        <p>2. Güncel müsaitliği ve net tutarı onaylayalım.</p>
+        <p>3. Kapora sonrası rezervasyon fişiniz düzenlensin.</p>
+      </div>
+
+      <a
+        href={waUrl}
+        target="_blank"
+        rel="noopener"
+        class="wb-button wb-button--primary tour-booking__cta"
+        id="wa-cta-button"
+      >
+        <img
+          src="/assets/whatsapp-mark.svg"
+          alt=""
+          width="18"
+          height="18"
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+        />
+        WhatsApp'ta Sor ↗
+      </a>
+      <small class="tour-booking__note">
+        Mesaj göndermek herhangi bir ödeme veya kesin yükümlülük doğurmaz.
+      </small>
+    </aside>
+    
+    <!-- CURRENCY CONVERTER -->
+    <div style="position: sticky; top: 550px;">
+      <CurrencyConverter />
+    </div>
+
+  </section>
+
+  <!-- SIMILAR TOURS -->
+  {similarTours && similarTours.length > 0 && (
+    <section class="similar-tours-section">
+      <div class="section-header" style="margin-bottom: var(--space-xl); text-align: center;">
+        <span class="section-kicker">İlginizi Çekebilir</span>
+        <h2 class="section-title">Benzer Turlar</h2>
+      </div>
+      <div class="similar-tours-grid">
+        {similarTours.map((st: any) => (
+          <TourCard tour={st} />
+        ))}
+      </div>
+    </section>
+  )}
+</Layout>
+
+<script>
+  // Dinamik WhatsApp Linki Oluşturma
+  document.addEventListener('DOMContentLoaded', () => {
+    const widget = document.getElementById('booking-widget');
+    if (!widget) return;
+
+    const dateInput = document.getElementById('tour-date') as HTMLInputElement;
+    const paxInput = document.getElementById('tour-pax') as HTMLSelectElement;
+    const waButton = document.getElementById('wa-cta-button') as HTMLAnchorElement;
+
+    const tourTitle = widget.getAttribute('data-tour-title') || 'Tur';
+    const waNumber = widget.getAttribute('data-base-wa') || '66828950665';
+
+    function updateWaLink() {
+      const dateVal = dateInput.value ? new Date(dateInput.value).toLocaleDateString('tr-TR') : 'Belirtilmedi';
+      const paxVal = paxInput.value;
+
+      const message = `Merhaba, ${tourTitle} hakkında bilgi almak istiyorum.\n\n📅 Tarih: ${dateVal}\n👥 Kişi: ${paxVal}`;
+      waButton.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
+    }
+
+    if (dateInput) dateInput.addEventListener('change', updateWaLink);
+    if (paxInput) paxInput.addEventListener('change', updateWaLink);
+  });
+</script>
+
+<style>
+/* Tour Detail Styles */
+.tour-hero {
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  color: var(--wb-warm-white);
+  overflow: hidden;
+}
+
+.tour-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(23, 42, 57, 0.4), rgba(23, 42, 57, 0.6));
+  z-index: 0;
+}
+
+.tour-hero__inner {
+  position: relative;
+  z-index: 1;
+  max-width: 60ch;
+}
+
+.tour-hero-back {
+  color: var(--wb-warm-white);
+  font-size: 0.875rem;
+  text-decoration: underline;
+  text-decoration-color: var(--wb-clay);
+  text-decoration-thickness: 1px;
+  margin-bottom: var(--space-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tour-hero__kicker {
+  display: block;
+  margin-bottom: var(--space-sm);
+  color: var(--wb-clay);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tour-hero-excerpt {
+  margin-bottom: var(--space-lg);
+  line-height: 1.6;
+  max-width: 60ch;
+}
+
+.tour-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.tour-meta dt {
+  color: var(--wb-olive);
+  font-size: 0.75rem;
+  margin: 0 0 4px;
+}
+
+.tour-meta dd {
+  color: var(--wb-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tour-actions {
+  display: flex;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.tour-content {
+  max-width: 65ch;
+  margin: 0 auto;
+}
+
+.tour-body {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--wb-body);
+  margin-bottom: var(--space-3xl);
+}
+
+.tour-disclosure {
+  background: var(--bg-subtle);
+  border-left: 4px solid var(--wb-clay);
+  padding: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.tour-disclosure strong {
+  color: var(--wb-ink);
+}
+
+.tour-disclosure p {
+  color: var(--wb-olive);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tour-meta dt,
+.tour-meta dd {
+  display: flex;
+}
+
+.tour-meta dt {
+  color: var(--wb-olive);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.tour-meta dd {
+  color: var(--wb-ink);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tour-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.tour-meta dd {
+  font-size: 1rem;
+}
+
+.tour-meta dt {
+  font-size: 0.8125rem;
+}
+
+.tour-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.tour-meta > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.tour-meta dt {
+  color: var(--wb-olive);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.tour-meta dd {
+  color: var(--wb-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.tour-meta > div + div {
+  border-left: 1px solid var(--wb-line);
+  margin-left: var(--space-lg);
+  padding-left: var(--space-lg);
+}
+
+@media (max-width: 600px) {
+  .tour-meta > div + div {
+    border-left: none;
+    border-top: 1px solid var(--wb-line);
+    margin-left: 0;
+    padding-left: 0;
+    margin-top: var(--space-lg);
+  }
+}
+
+.tour-meta > div {
+  border-left: 1px solid var(--wb-line);
+  padding-left: var(--space-lg);
+}
+
+.tour-meta > div:first-child {
+  border-left: none;
+  padding-left: 0;
+}
+
+.tour-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-lg);
+}
+
+.tour-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.tour-meta dt {
+  color: var(--wb-olive);
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.tour-meta dd {
+  color: var(--wb-ink);
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.excluded-item {
+  position: relative;
+  padding-left: 24px;
+}
+
+.excluded-item::before {
+  content: '✕';
+  position: absolute;
+  left: 0;
+  color: var(--wb-clay);
+  font-weight: 800;
+}
+
+.tour-faq {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-3xl);
+}
+
+.faq-item {
+  background: var(--bg-subtle);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+}
+
+.faq-item summary {
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--wb-ink);
+  margin: 0;
+  padding: 0;
+}
+
+.faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-item p {
+  margin: var(--space-sm) 0 0 0;
+  color: var(--wb-body);
+  font-size: 0.9375rem;
+  line-height: 1.6;
+}
+
+.booking-process {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-lg);
+  margin-bottom: var(--space-3xl);
+}
+
+.booking-step {
+  background: var(--bg-subtle);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+}
+
+.booking-step strong {
+  color: var(--wb-ink);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.booking-step p {
+  color: var(--wb-olive);
+  font-size: 0.875rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.tour-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3xl);
+  padding-block: var(--space-3xl);
+}
+
+@media (min-width: 768px) {
+  .tour-layout {
+    grid-template-columns: 1fr 320px;
+  }
+}
+
+.tour-booking {
+  background: var(--bg-subtle);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  position: sticky;
+  top: 100px;
+}
+
+.tour-booking__price {
+  text-align: center;
+  margin-bottom: var(--space-lg);
+}
+
+.tour-booking__price strong {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--wb-ink);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.tour-booking__price small {
+  color: var(--wb-olive);
+  font-size: 0.8125rem;
+}
+
+/* Booking Inputs */
+.booking-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+  padding: var(--space-md) 0;
+  border-top: 1px solid var(--wb-line);
+  border-bottom: 1px solid var(--wb-line);
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-group label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--wb-olive);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input-group input,
+.input-group select {
+  padding: 0.75rem;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--radius-md);
+  background: var(--wb-warm-white);
+  color: var(--wb-ink);
+  font-family: inherit;
+  font-size: 0.9375rem;
+}
+
+.input-group input:focus,
+.input-group select:focus {
+  outline: none;
+  border-color: var(--wb-clay);
+  box-shadow: 0 0 0 2px rgba(201, 107, 85, 0.2);
+}
+
+.tour-booking__process {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+  font-size: 0.875rem;
+  color: var(--wb-body);
+}
+
+.tour-booking__process p {
+  margin: 0;
+}
+
+.tour-booking__cta {
+  justify-content: center;
+  width: 100%;
+}
+
+.tour-booking__note {
+  text-align: center;
+  margin-top: var(--space-md);
+  color: var(--wb-olive);
+  font-size: 0.75rem;
+}
+
+/* Similar Tours */
+.similar-tours-section {
+  padding-block: var(--space-3xl);
+  border-top: 1px solid var(--wb-line);
+  margin-top: var(--space-2xl);
+}
+
+.similar-tours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--space-xl);
+  margin: 0 auto;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .tour-hero,
+  .tour-booking,
+  .faq-item,
+  .tour-content,
+  .tour-layout {
+    transition: none;
+  }
+}
+</style>

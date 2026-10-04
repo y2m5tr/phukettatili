@@ -1,0 +1,38 @@
+{
+  "title": "Phuket Transferleri",
+  "slug": "transferler",
+  "menu_label": "Transferler",
+  "eyebrow": "Havalimanı · Otel · İskele",
+  "heading": "İLK ADIMDAN SON DURAĞA.",
+  "intro": "Uçuş, otel ve tekne saatlerinizi paylaşın; uygun rota ve araç kapsamı yazılı olarak doğrulandıktan sonra transfer talebinizi netleştirelim.",
+  "media": "longtail.webp",
+  "media_alt": "Phuket kıyısında ulaşım ve ada atmosferini temsil eden tekne",
+  "media_caption": "Temsili Phuket görseli — belirli bir araç veya transfer rotası değildir.",
+  "options": [
+    {
+      "title": "Havalimanı–otel",
+      "text": "Uçuş ve konaklama bilgilerine göre tek yön veya gidiş–dönüş talebi."
+    },
+    {
+      "title": "Otel–iskele",
+      "text": "Tur ya da feribot saatiyle uyumlu bağlantı planlaması."
+    },
+    {
+      "title": "Özel araç",
+      "text": "Kişi, bagaj ve rota bilgisine göre araç türü teklif edilir."
+    },
+    {
+      "title": "Grup transferi",
+      "text": "Grup büyüklüğü ve bagaj ihtiyacına göre ayrı planlanır."
+    }
+  ],
+  "questions": [
+    "Tarih ve saat",
+    "Alış ve bırakış noktası",
+    "Kişi ve bagaj sayısı",
+    "Uçuş veya tekne bilgisi"
+  ],
+  "cta_context": "Transfer Talebi",
+  "cta_details": "Tarih/saat:\nAlış noktası:\nBırakış noktası:\nKişi ve bagaj:\nUçuş/tekne bilgisi:",
+  "order": 3
+}

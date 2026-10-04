@@ -1,0 +1,75 @@
+{
+  "name": "Island Tours",
+  "label_tr": "Ada Turları",
+  "slug": "island-tours",
+  "icon": "🏝️",
+  "short_desc": "Lagün, şnorkel ve plaj günleri",
+  "description": "Phuket çıkışlı ada rotaları: Phi Phi, James Bond, Coral, Similan ve daha fazlası. Turkuaz lagünler, beyaz kumlu plajlar ve şnorkel durakları.",
+  "hero_image": "pileh.webp",
+  "order": 1,
+  "children": [
+    {
+      "name": "Phi Phi Islands",
+      "label_tr": "Phi Phi Adaları",
+      "slug": "phi-phi-islands",
+      "description": "Phuket’e yaklaşık 40 km uzaklıktaki Phi Phi takımadaları; Maya Bay, Monkey Beach ve Pileh Lagoon çevresinde şnorkel, yüzme ve plaj molası seçenekleri.",
+      "hero_image": "pileh.webp"
+    },
+    {
+      "name": "James Bond Island",
+      "label_tr": "James Bond Adası",
+      "slug": "james-bond-island",
+      "description": "Phang Nga Körfezi’nin kireçtaşı kayalıkları arasında kano, mağara ve lagün duraklarıyla ünlü James Bond Adası rotası.",
+      "hero_image": "bay.webp"
+    },
+    {
+      "name": "Coral Island",
+      "label_tr": "Coral Adası",
+      "slug": "coral-island",
+      "description": "Chalong’a kısa mesafedeki Coral Adası: beyaz kum, şnorkel ve sakin deniz keyfi için yarım veya tam gün seçenekler.",
+      "hero_image": "beach.webp"
+    },
+    {
+      "name": "Hong by Starlight",
+      "label_tr": "Hong Gece Turu",
+      "slug": "hong-by-starlight",
+      "description": "Gece denizinin parlayan planktonları eşliğinde Hong Adası koylarını keşfeden akşam rotası.",
+      "hero_image": "underwater.webp"
+    },
+    {
+      "name": "Khai Islands",
+      "label_tr": "Khai Adaları",
+      "slug": "khai-islands",
+      "description": "Phuket açıklarındaki küçük Khai adaları: berrak sığ sular ve şnorkel için yakın ve hızlı bir kaçış.",
+      "hero_image": "underwater.webp"
+    },
+    {
+      "name": "Krabi Islands",
+      "label_tr": "Krabi Adaları",
+      "slug": "krabi-islands",
+      "description": "Krabi kıyısındaki adalar ve lagünler: Railay, Hong ve dört ada rotalarını kapsayan günübirlik programlar.",
+      "hero_image": "railay.webp"
+    },
+    {
+      "name": "Raya Yai Island",
+      "label_tr": "Racha Yai Adası",
+      "slug": "raya-yai-island",
+      "description": "Phuket’in güneyindeki Racha Yai: berrak suyu, plajları ve şnorkel noktalarıyla popüler günübirlik rota.",
+      "hero_image": "underwater.webp"
+    },
+    {
+      "name": "Similan Islands",
+      "label_tr": "Similan Adaları",
+      "slug": "similan-islands",
+      "description": "Andaman’ın en berrak sularına sahip Similan takımadaları; sezonluk koruma kurallarına tabi günübirlik programlar.",
+      "hero_image": "underwater.webp"
+    },
+    {
+      "name": "Surin Islands",
+      "label_tr": "Surin Adaları",
+      "slug": "surin-islands",
+      "description": "Bakir mercan resifleri ve berrak koylarıyla Surin Adaları; konaklamalı veya günübirlik seçenekler.",
+      "hero_image": "bay.webp"
+    }
+  ]
+}

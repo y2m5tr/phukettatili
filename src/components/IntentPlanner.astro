@@ -1,0 +1,383 @@
+---
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
+
+const intentButtons = [
+  { label: 'Ada', data: 'Ada', img: 'pileh.webp', alt: 'Pileh Lagünü · Ada modu' },
+  { label: 'Macera', data: 'Macera', img: 'railay.webp', alt: 'Railay sahili · Macera modu' },
+  { label: 'Kültür', data: 'Kültür', img: 'culture.webp', alt: 'Geleneksel tapınak · Kültür modu' },
+  { label: 'Özel', data: 'Özel', img: 'longtail.webp', alt: 'Özel tekne · Özel rota modu' },
+];
+
+const defaultWaUrl = buildWhatsAppUrl('Ada odaklı · 7 gün · 2 kişi · tarih esnek için Phuket tatil planı istiyorum.');
+---
+
+<section class="intent-planner" aria-labelledby="section-title">
+  <div class="wb-container">
+    <div class="intent-planner-grid">
+      <div class="intent-planner-content">
+        <span class="wb-eyebrow">Tayland'da sana göre bir rota</span>
+        <h2 id="section-title">Tatili seçme.<span>Niyetini seç.</span></h2>
+        <p>Nasıl hissetmek istediğinizi söyleyin; Phuket'i gününüze, temponuza ve grubunuza göre bir araya getirelim.</p>
+        <div class="intent-route">Phuket · Phi Phi · Krabi · Phang Nga · Racha</div>
+      </div>
+
+      <div class="intent-planner-visual" aria-live="polite">
+        <div class="intent-planner-slides">
+          {intentButtons.map((btn, i) => (
+            <div
+              id={`intent-slide-${i + 1}`}
+              class={`intent-slide ${i === 0 ? 'is-active' : ''}`}
+              aria-hidden={i === 0 ? 'false' : 'true'}
+              data-intent={btn.data}
+            >
+              <img
+                src={`/assets/${btn.img}`}
+                alt={btn.alt}
+                width="800"
+                height="800"
+                decoding="async"
+                loading={i === 0 ? 'eager' : 'lazy'}
+                style="width: 100%; height: auto; border-radius: var(--radius-xl); object-fit: cover;"
+              />
+            </div>
+          ))}
+        </div>
+
+        <form id="intent-planner" class="intent-form" onsubmit="return false">
+          <div class="intent-form-head">
+            <h3>Hızlı planını kur</h3>
+            <span>01 / NİYET</span>
+          </div>
+
+          <fieldset class="intent-grid" aria-label="Seyahat niyeti">
+            {intentButtons.map((btn, i) => (
+              <button
+                type="button"
+                class="intent-button"
+                data-intent={btn.data}
+                data-index={i}
+                data-caption={btn.alt}
+                aria-pressed={i === 0 ? 'true' : 'false'}
+              >
+                {btn.label}
+              </button>
+            ))}
+          </fieldset>
+
+          <div class="intent-fields">
+            <label>
+              Başlangıç
+              <input id="intent-date" name="baslangic" type="date" />
+            </label>
+            <label>
+              Süre
+              <select id="intent-duration" name="sure">
+                <option>4 gün</option>
+                <option selected>7 gün</option>
+                <option>10 gün</option>
+                <option>14 gün</option>
+              </select>
+            </label>
+            <label>
+              Kişi
+              <select id="intent-people" name="kisi">
+                <option>1 kişi</option>
+                <option selected>2 kişi</option>
+                <option>3 kişi</option>
+                <option>4+ kişi</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="intent-row">
+            <div class="intent-summary" aria-live="polite">
+              <small>Plan özeti</small>
+              <strong id="intent-plan-summary">Ada odaklı · 7 gün · 2 kişi · tarih esnek</strong>
+            </div>
+            <a
+              id="intent-whatsapp-plan"
+              class="wb-button wb-button--primary intent-wa-button"
+              href={defaultWaUrl}
+              target="_blank"
+              rel="noopener"
+            >
+              <img
+                src="/assets/whatsapp-mark.svg"
+                alt=""
+                width="18"
+                height="18"
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+              />
+              WhatsApp'ta planla ↗
+            </a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+  const planner = document.querySelector('#intent-planner');
+  if (planner) {
+    const intents = planner.querySelectorAll('.intent-button');
+    const dateInput = planner.querySelector('#intent-date') as HTMLInputElement;
+    const durationInput = planner.querySelector('#intent-duration') as HTMLSelectElement;
+    const peopleInput = planner.querySelector('#intent-people') as HTMLSelectElement;
+    const summary = planner.querySelector('#intent-plan-summary');
+    const whatsappBtn = planner.querySelector('#intent-whatsapp-plan') as HTMLAnchorElement;
+    const slides = document.querySelectorAll('.intent-slide');
+
+    const whatsappNumber = '66828950665';
+    const buildWaUrl = (context: string, details: string = ''): string => {
+      const cleanContext = context.replace(/<[^>]*>?/gm, '').trim();
+      let message = `Merhaba, ${cleanContext} hakkında bilgi almak istiyorum.`;
+      if (details.trim()) {
+        message += `\n\n${details.trim()}`;
+      }
+      return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    };
+
+    let selectedIntent = 'Ada';
+
+    // Set min date to today
+    if (dateInput) {
+      const today = new Date().toISOString().split('T')[0];
+      dateInput.min = today;
+    }
+
+    const formatDate = (val: string) => {
+      if (!val) return 'tarih esnek';
+      const parts = val.split('-');
+      if (parts.length === 3) {
+        return `${parts[2]}.${parts[1]}.${parts[0]}`;
+      }
+      return val;
+    };
+
+    const updatePlan = () => {
+      const duration = durationInput?.value || '7 gün';
+      const people = peopleInput?.value || '2 kişi';
+      const dateText = formatDate(dateInput?.value || '');
+      const planText = `${selectedIntent} odaklı · ${duration} · ${people} · ${dateText}`;
+
+      if (summary) summary.textContent = planText;
+      if (whatsappBtn) {
+        whatsappBtn.href = buildWaUrl(planText);
+      }
+    };
+
+    intents.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        intents.forEach((b) => b.setAttribute('aria-pressed', 'false'));
+        btn.setAttribute('aria-pressed', 'true');
+        selectedIntent = btn.getAttribute('data-intent') || 'Ada';
+        const index = parseInt(btn.getAttribute('data-index') || '0', 10);
+        const planText = `${selectedIntent} odaklı · ${durationInput?.value || '7 gün'} · ${peopleInput?.value || '2 kişi'} · ${formatDate(dateInput?.value || '')}`;
+
+        slides.forEach((slide, i) => {
+          const isActive = i === index;
+          slide.classList.toggle('is-active', isActive);
+          slide.setAttribute('aria-hidden', String(!isActive));
+        });
+
+        if (summary) summary.textContent = planText;
+        updatePlan();
+      });
+    });
+
+    [dateInput, durationInput, peopleInput].forEach((input) => {
+      input?.addEventListener('change', updatePlan);
+    });
+  }
+</script>
+
+<style>
+.intent-planner {
+  padding-block: var(--space-3xl);
+}
+
+.intent-planner-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: var(--space-3xl);
+}
+
+.intent-planner-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+.intent-route {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--wb-olive);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.intent-planner-visual {
+  position: relative;
+}
+
+.intent-planner-slides {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  max-width: 400px;
+}
+
+.intent-slide {
+  display: none;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.intent-slide.is-active {
+  display: block;
+}
+
+.intent-form {
+  background: var(--wb-warm-white);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--wb-line);
+  padding: var(--space-lg);
+  margin-top: var(--space-lg);
+}
+
+.intent-form-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: var(--space-md);
+}
+
+.intent-form-head h3 {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--wb-ink);
+  margin: 0;
+}
+
+.intent-grid {
+  display: flex;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+}
+
+.intent-button {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--wb-ink);
+  background: var(--wb-warm-white);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.intent-button:hover {
+  background: var(--wb-clay);
+  color: var(--wb-warm-white);
+}
+
+.intent-button[aria-pressed="true"] {
+  background: var(--wb-clay);
+  color: var(--wb-warm-white);
+}
+
+.intent-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
+}
+
+.intent-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  color: var(--wb-body);
+}
+
+.intent-fields input,
+.intent-fields select {
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--wb-line);
+  font-family: var(--font-body);
+  font-size: 1rem;
+}
+
+.intent-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-md);
+}
+
+.intent-summary {
+  font-family: var(--font-body);
+}
+
+.intent-summary small {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--wb-olive);
+  margin-bottom: 4px;
+}
+
+.intent-summary strong {
+  color: var(--wb-ink);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.intent-wa-button {
+  min-width: 180px;
+}
+
+@media (max-width: 768px) {
+  .intent-planner-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .intent-planner-slides {
+    max-width: 100%;
+  }
+  
+  .intent-grid {
+    flex-wrap: wrap;
+  }
+  
+  .intent-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .intent-wa-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intent-slide,
+  .intent-button,
+  .intent-form {
+    transition: none;
+  }
+}</style>

@@ -1,0 +1,156 @@
+---
+---
+<div class="currency-converter" id="currency-widget">
+  <div class="currency-converter__header">
+    <span class="currency-icon">🇹🇭 🇹🇷</span>
+    <span class="currency-title">Kur Çevirici</span>
+  </div>
+  <div class="currency-converter__body">
+    <div class="currency-input">
+      <input type="number" id="thb-input" placeholder="0" min="0" />
+      <span class="currency-label">THB</span>
+    </div>
+    <div class="currency-equals">=</div>
+    <div class="currency-input">
+      <input type="number" id="try-input" placeholder="0" min="0" />
+      <span class="currency-label">TRY</span>
+    </div>
+    <div class="currency-rate" id="exchange-rate-info">
+      Güncel kur yükleniyor...
+    </div>
+  </div>
+</div>
+
+<script>
+  // Kur çevirici mantığı (Sabit kur veya API üzerinden)
+  // Şimdilik API kullanımı olmadan günlük ortalama bir kur (örn: 1 THB = 0.95 TRY) ile başlayabilir veya exchangerate-api kullanabiliriz.
+  document.addEventListener('DOMContentLoaded', async () => {
+    const thbInput = document.getElementById('thb-input') as HTMLInputElement;
+    const tryInput = document.getElementById('try-input') as HTMLInputElement;
+    const rateInfo = document.getElementById('exchange-rate-info') as HTMLDivElement;
+
+    if (!thbInput || !tryInput || !rateInfo) return;
+
+    // Gerçek bir senaryoda bu veri backend'den veya API'den alınır.
+    // Şimdilik Frankfurter API kullanarak (sadece desteklenen para birimlerini kontrol etmeli)
+    // Tayland Bahtı (THB) ve Türk Lirası (TRY) genellikle open.er-api.com da var.
+    
+    let rate = 0.95; // Varsayılan/Fallback kur: 1 THB = 0.95 TL
+    
+    try {
+      const response = await fetch('https://open.er-api.com/v6/latest/THB');
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.rates && data.rates.TRY) {
+          rate = data.rates.TRY;
+        }
+      }
+    } catch (e) {
+      console.warn("Kur çekilemedi, varsayılan kullanılıyor.");
+    }
+
+    rateInfo.innerHTML = `1 THB ≈ <strong>${rate.toFixed(3)} TRY</strong> <small>(Yaklaşık)</small>`;
+
+    const updateTry = () => {
+      const thb = parseFloat(thbInput.value);
+      if (!isNaN(thb)) {
+        tryInput.value = (thb * rate).toFixed(2);
+      } else {
+        tryInput.value = '';
+      }
+    };
+
+    const updateThb = () => {
+      const trl = parseFloat(tryInput.value);
+      if (!isNaN(trl)) {
+        thbInput.value = (trl / rate).toFixed(2);
+      } else {
+        thbInput.value = '';
+      }
+    };
+
+    thbInput.addEventListener('input', updateTry);
+    tryInput.addEventListener('input', updateThb);
+  });
+</script>
+
+<style>
+.currency-converter {
+  background: var(--wb-warm-white);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  margin: var(--space-md) 0;
+}
+
+.currency-converter__header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.currency-title {
+  font-weight: 600;
+  color: var(--wb-ink);
+  font-size: 0.875rem;
+}
+
+.currency-converter__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.currency-input {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.currency-input input {
+  width: 100%;
+  padding: 0.75rem 3rem 0.75rem 0.75rem;
+  border: 1px solid var(--wb-line);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 1rem;
+  background: var(--bg-subtle);
+}
+
+.currency-input input:focus {
+  outline: none;
+  border-color: var(--wb-clay);
+  background: var(--wb-warm-white);
+}
+
+.currency-label {
+  position: absolute;
+  right: 1rem;
+  font-weight: 600;
+  color: var(--wb-olive);
+  font-size: 0.875rem;
+  pointer-events: none;
+}
+
+.currency-equals {
+  text-align: center;
+  color: var(--wb-olive);
+  font-weight: bold;
+}
+
+.currency-rate {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--wb-olive);
+  margin-top: var(--space-xs);
+}
+
+.currency-rate strong {
+  color: var(--wb-ink);
+}
+
+.currency-rate small {
+  color: var(--wb-line);
+}
+</style>

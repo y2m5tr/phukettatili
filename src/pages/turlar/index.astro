@@ -1,0 +1,306 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import CategoryNav from '@/components/CategoryNav.astro';
+import { getCollection } from 'astro:content';
+import { buildWhatsAppUrl, formatPrice } from '@/utils/whatsapp';
+import TourCard from '@/components/TourCard.astro';
+
+const tours = (await getCollection('tours')).sort((a: any, b: any) => {
+  return (a.data.order || 99) - (b.data.order || 99);
+});
+const categories = (await getCollection('categories')).sort((a: any, b: any) => {
+  return a.data.order - b.data.order;
+});
+const waUrl = buildWhatsAppUrl('Tur Seçimi ve Planlama');
+---
+
+<Layout
+  title="Tüm Phuket Turları ve Deneyimleri"
+  description="Phi Phi adalarından lüks yatlara, ATV safarisinden gösterilere kadar tüm doğrulanmış Phuket turlarını karşılaştırın."
+  breadcrumbTitle="Tüm Turlar"
+>
+  <!-- WARM BOUTIQUE ARCHIVE HERO -->
+  <section class="archive-hero" style="background-image: linear-gradient(rgba(23, 42, 57, 0.4), rgba(23, 42, 57, 0.6)), url('/assets/pileh.webp');">
+    <div class="wb-container">
+      <span class="h2-display" style="font-family: var(--font-display); color: var(--wb-warm-white); margin-bottom: var(--space-sm);">
+        <span class="wb-eyebrow">Doğrulanmış Deneyimler · {tours.length} Seçenek</span>
+      </span>
+      <h1 class="h1-display" style="font-family: var(--font-display); color: var(--wb-warm-white); max-width: 60ch; margin-bottom: var(--space-md);">
+        TURLARI KEŞFET.<span style="color: var(--wb-clay);"> SAHNENİ SEÇ.</span>
+      </h1>
+      <p style="color: var(--wb-warm-white); max-width: 50ch; margin-bottom: var(--space-lg); line-height: 1.6;">
+        Ada turlarından özel yat kiralamaya, maceradan gece şovlarına kadar seçenekleri karşılaştırın. WhatsApp'ta güncel fiyat ve program teyidini netleştirin.
+      </p>
+      <div style="display: flex; gap: var(--space-md); flex-wrap: wrap; margin-bottom: var(--space-lg);">
+        <a class="wb-button wb-button--primary" href="#katalog" style="min-height: 2.75rem; padding: 0.7rem 1.1rem;">
+          Turları Filtrele
+        </a>
+        <a class="wb-button wb-button--text" href={waUrl} target="_blank" rel="noopener" style="min-height: 2.75rem; padding: 0.7rem 1.1rem;">
+          Bana Uygun Turu Bul ↗
+        </a>
+      </div>
+      <div style="margin-top: var(--space-lg); padding-top: var(--space-lg); border-top: 1px solid var(--wb-line);">
+        <small style="color: var(--wb-warm-white); font-size: 0.875rem;">
+          Türkçe yerel destek
+        </small>
+      </div>
+    </div>
+  </section>
+
+  <!-- CATEGORY NAVIGATION -->
+  <section id="kategoriler" class="wb-container" style="padding-top: var(--space-3xl);">
+    <header style="margin-bottom: var(--space-md);">
+      <span class="wb-eyebrow">Hızlı Seçim</span>
+      <h2>Bölge ve Temaya Göre İnceleyin</h2>
+    </header>
+    <CategoryNav />
+  </section>
+
+  <!-- LIVE SEARCH & FILTER CATALOG -->
+  <section id="katalog" class="wb-container" style="padding-bottom: var(--space-4xl);">
+    <!-- Search and Filter Controls -->
+    <div class="archive-filter" style="background: var(--wb-warm-white); border: 1px solid var(--wb-line); border-radius: var(--radius-lg); padding: var(--space-lg); margin-bottom: var(--space-xl);">
+      <div style="display: flex; gap: var(--space-md); flex-wrap: wrap; justify-content: space-between; align-items: center;">
+        <div style="flex: 1; min-width: 260px;">
+          <label for="tour-search" class="visually-hidden">Tur ara</label>
+          <input
+            id="tour-search"
+            class="archive-search"
+            type="search"
+            placeholder="Tur adı, ada veya aktivite ara... (örn: Phi Phi, Zipline)"
+            style="width: 100%; padding: var(--space-md) var(--space-lg); border: 1px solid var(--wb-line); border-radius: var(--radius-pill); font-family: var(--font-body); font-size: 1rem; background: var(--wb-warm-white); color: var(--wb-body);"
+          />
+        </div>
+
+        <div class="archive-filter-wrapper">
+          <div class="archive-filter-buttons" id="category-filter-buttons">
+            <button
+              type="button"
+              class="filter-pill is-active"
+              data-cat="all"
+            >
+              Tümü <span class="filter-count">{tours.length}</span>
+            </button>
+            {categories.map((c: any) => (
+              <button
+                type="button"
+                class="filter-pill"
+                data-cat={c.data.slug}
+              >
+                {c.data.label_tr}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOUR GRID -->
+    <div class="archive-grid" id="tours-grid" style="display: grid; gap: var(--space-lg);">
+      {tours.map((tour: any, index: number) => (
+        <div class="tour-card-wrapper">
+          <TourCard tour={tour} isFirst={index === 0} />
+        </div>
+      ))}
+    </div>
+
+    <!-- EMPTY FILTER RESULTS -->
+    <div id="no-tours-found" class="archive-empty" style="display: none; text-align: center; padding: var(--space-4xl) var(--space-lg); background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--bg-border); margin-top: var(--space-xl);">
+      <h3>Aramanızla eşleşen tur bulunamadı</h3>
+      <p style="color: var(--wb-olive); margin-top: var(--space-md);">Arama terimini değiştirebilir veya aradığınız özel rotayı WhatsApp'tan bize sorabilirsiniz.</p>
+      <a class="wb-button wb-button--primary" style="margin-top: var(--space-lg);" href={waUrl} target="_blank" rel="noopener">
+        WhatsApp ile Rota İste ↗
+      </a>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  const searchInput = document.getElementById('tour-search') as HTMLInputElement;
+  const filterButtons = document.querySelectorAll('#category-filter-buttons button');
+  const cards = document.querySelectorAll('#tours-grid .tour-card') as NodeListOf<HTMLElement>;
+  const noFound = document.getElementById('no-tours-found');
+
+  let activeCategory = 'all';
+  let searchQuery = '';
+
+  const filterTours = () => {
+    let visibleCount = 0;
+
+    cards.forEach((card) => {
+      const cardCategory = card.getAttribute('data-category') || '';
+      const cardSub = card.getAttribute('data-subcategory') || '';
+      const title = card.getAttribute('data-title') || '';
+      const excerpt = card.getAttribute('data-excerpt') || '';
+
+      const categoryMatch = activeCategory === 'all' || cardCategory === activeCategory || cardSub === activeCategory;
+      const searchMatch = !searchQuery || title.includes(searchQuery) || excerpt.includes(searchQuery);
+
+      if (categoryMatch && searchMatch) {
+        card.style.display = '';
+        visibleCount++;
+      } else {
+        card.style.display = 'none';
+      }
+    });
+
+    if (noFound) {
+      noFound.style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+  };
+
+  searchInput?.addEventListener('input', (e) => {
+    searchQuery = (e.target as HTMLInputElement).value.trim().toLowerCase();
+    filterTours();
+  });
+
+  filterButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      filterButtons.forEach((b) => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+      activeCategory = btn.getAttribute('data-cat') || 'all';
+      filterTours();
+    });
+  });
+
+  // Initial filter to show all tours
+  filterTours();
+</script>
+
+<style>
+/* Archive-specific styles */
+.archive-hero {
+  background-size: cover;
+  background-position: center;
+  padding-block: var(--space-4xl);
+  display: flex;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.archive-hero .h2-display .wb-eyebrow {
+  display: block;
+  margin-bottom: var(--space-sm);
+}
+
+.archive-search {
+  width: 100%;
+  max-width: 500px;
+}
+
+.archive-filter-wrapper {
+  margin-top: var(--space-md);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  padding-bottom: 4px;
+}
+.archive-filter-wrapper::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.archive-filter-buttons {
+  display: flex;
+  gap: var(--space-sm);
+  width: max-content;
+}
+
+.filter-pill {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--wb-line);
+  background: var(--wb-warm-white);
+  color: var(--wb-olive);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.filter-pill:hover {
+  border-color: var(--wb-clay);
+  color: var(--wb-ink);
+}
+
+.filter-pill.is-active {
+  background: var(--wb-clay);
+  color: var(--wb-warm-white);
+  border-color: var(--wb-clay);
+}
+
+.filter-count {
+  background: rgba(0,0,0,0.1);
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+}
+
+.filter-pill.is-active .filter-count {
+  background: rgba(255,255,255,0.2);
+}
+
+.archive-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin-top: var(--space-xl);
+}
+
+.tour-card-wrapper {
+  list-style: none;
+}
+
+.tour-card-detail-link:hover {
+  gap: 12px;
+}
+
+.archive-empty h3 {
+  font-family: var(--font-body);
+  font-size: 1.5rem;
+  color: var(--wb-ink);
+  margin: 0 0 var(--space-md);
+}
+
+.archive-empty p {
+  margin: 0;
+  color: var(--wb-olive);
+}
+
+@media (max-width: 480px) {
+  .archive-hero {
+    padding-block: var(--space-2xl);
+    min-height: auto;
+  }
+
+  .archive-hero .h2-display {
+    font-size: 1.25rem;
+  }
+
+  .archive-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-md);
+  }
+
+  .tour-card {
+    grid-column: span 1;
+  }
+
+  .archive-empty {
+    padding: var(--space-2xl) var(--space-sm);
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .archive-hero,
+  .tour-card,
+  .tour-card-link {
+    transition: none;
+  }
+}
+</style>

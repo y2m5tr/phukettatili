@@ -1,0 +1,33 @@
+{
+  "name": "Private Charters",
+  "label_tr": "Özel Rotalar ve Kiralama",
+  "slug": "private-charters",
+  "icon": "⛵",
+  "short_desc": "Yat, longtail ve kişisel rotalar",
+  "description": "Özel araç ve tekne seçenekleri: şehir turu, geleneksel longtail ve lüks sürat teknesi. Rota ve tempo size kalsın.",
+  "hero_image": "longtail.webp",
+  "order": 4,
+  "children": [
+    {
+      "name": "Phuket City Tour",
+      "label_tr": "Phuket Şehir Turu",
+      "slug": "phuket-city-tour",
+      "description": "Eski Şehir, tapınaklar ve seyir noktalarıyla özel klimalı araçla esnek Phuket şehir turu.",
+      "hero_image": "culture.webp"
+    },
+    {
+      "name": "Longtail Boat",
+      "label_tr": "Longtail Tekne Kiralama",
+      "slug": "longtail-boat",
+      "description": "Geleneksel ahşap tekneyle koy koy Phuket ve çevresini keşfetme; küçük gruplar ve romantik planlar için ideal.",
+      "hero_image": "longtail.webp"
+    },
+    {
+      "name": "Speedboat",
+      "label_tr": "Özel Sürat Teknesi",
+      "slug": "speedboat",
+      "description": "Özel sürat teknesiyle ada rotaları: kendi temponuzda, kalabalıktan uzak kişisel program.",
+      "hero_image": "pileh.webp"
+    }
+  ]
+}

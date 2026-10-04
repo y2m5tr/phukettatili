@@ -1,0 +1,33 @@
+backend:
+  name: git-gateway # Eğer Netlify veya benzeri bir servisle (Github) entegre edecekseniz standart backend
+  branch: main # Kodunuzun bulunduğu ana dal
+  
+media_folder: "public/assets"
+public_folder: "/assets"
+
+site_url: https://phukettatili.com
+display_url: https://phukettatili.com
+logo_url: https://phukettatili.com/assets/logo-favicon.png
+
+locale: "tr" # Yönetici panelini Türkçe yapar
+
+collections:
+  - name: "tours"
+    label: "Turlar"
+    folder: "src/content/tours"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Tur Adı", name: "title", widget: "string" }
+      - { label: "Kategori", name: "category", widget: "select", options: ["island-tours", "adventure-tours", "entertainment-tours", "transfers", "private-yacht"] }
+      - { label: "Alt Kategori", name: "subcategory", widget: "string", required: false }
+      - { label: "Kategori Etiketi", name: "category_label", widget: "string", hint: "Örn: Phi Phi Adaları" }
+      - { label: "Kısa Açıklama", name: "excerpt", widget: "text" }
+      - { label: "Görsel", name: "image", widget: "image" }
+      - { label: "Fiyat Tipi", name: "price_type", widget: "select", options: ["fixed", "quote"], default: "quote" }
+      - { label: "Fiyat (THB)", name: "price_thb", widget: "number", required: false }
+      - { label: "Süre", name: "duration", widget: "string", default: "Tam gün" }
+      - { label: "Dahil Olanlar", name: "included", widget: "list", field: { label: "Madde", name: "item", widget: "string" } }
+      - { label: "Hariç Olanlar", name: "excluded", widget: "list", field: { label: "Madde", name: "item", widget: "string" } }
+      - { label: "Tur Programı", name: "program", widget: "list", field: { label: "Madde", name: "item", widget: "string" } }
+      - { label: "Tur Detay İçeriği", name: "body", widget: "markdown" }

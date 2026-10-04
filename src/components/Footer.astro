@@ -1,0 +1,360 @@
+---
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
+
+const currentYear = new Date().getFullYear();
+const waUrl = buildWhatsAppUrl('Merhaba! Phuket Tatili hizmetlerinde rezervasyon yapmak istiyorum.');
+---
+
+<footer class="site-footer">
+  <div class="footer-container">
+    <!-- Footer Top Section -->
+    <div class="footer-grid">
+      <!-- Brand Section -->
+      <div class="footer-brand">
+        <a href="/" class="footer-brand-link">
+          <img
+            class="footer-logo-img"
+            src="/assets/logo-main.png"
+            alt="Phuket Tatili Logo"
+            width="180"
+            height="60"
+            decoding="async"
+            loading="eager"
+            style="filter: grayscale(1) invert(1) brightness(2) contrast(200%); mix-blend-mode: screen; object-fit: contain; height: 112px; width: auto; margin-left: -12px;"
+          />
+        </a>
+        <p class="footer-brand-desc">
+          Phuket'te Türkçe destekle tur, konaklama, transfer ve özel rota planlaması.
+        </p>
+      </div>
+
+      <!-- Navigation Section -->
+      <nav class="footer-nav" aria-label="Alt menü">
+        <h3 class="footer-nav-title">Keşfet</h3>
+        <ul class="footer-nav-list">
+          <li><a href="/turlar/" class="footer-nav-link">Turlar</a></li>
+          <li><a href="/tur-kategorisi/island-tours/" class="footer-nav-link">Ada Turları</a></li>
+          <li><a href="/tur-kategorisi/adventure-tours/" class="footer-nav-link">Macera</a></li>
+          <li><a href="/tur-kategorisi/entertainment-tours/" class="footer-nav-link">Gösteriler</a></li>
+          <li><a href="/paketler/" class="footer-nav-link">Paketler</a></li>
+          <li><a href="/oteller/" class="footer-nav-link">Oteller</a></li>
+          <li><a href="/transferler/" class="footer-nav-link">Transferler</a></li>
+        </ul>
+      </nav>
+
+      <!-- Quick Links Section -->
+      <nav class="footer-nav" aria-label="Hızlı erişim">
+        <h3 class="footer-nav-title">Hızlı Linkler</h3>
+        <ul class="footer-nav-list">
+          <li><a href="/#neden-biz" class="footer-nav-link">Neden Biz?</a></li>
+          <li><a href="/turlar/" class="footer-nav-link">Tüm Turlar</a></li>
+          <li><a href="/turlar/#fiyat" class="footer-nav-link">Fiyat Bilgileri</a></li>
+          <li><a href="/gizlilik-ve-kosullar/" class="footer-nav-link">Gizlilik ve Koşullar</a></li>
+          <li><a href="/iletisim/" class="footer-nav-link">İletişim</a></li>
+        </ul>
+      </nav>
+
+      <!-- Booking CTA Section -->
+      <div class="footer-booking">
+        <h3 class="footer-booking-title">Hemen Başla</h3>
+        <p class="footer-booking-desc">
+          WhatsApp'tan tıkla ve tatilinizi birlikte planlayalım.
+        </p>
+        <a href={waUrl} target="_blank" rel="noopener noreferrer" class="wb-button wb-button--primary footer-wa-button">
+          <img
+            class="whatsapp-icon"
+            src="/assets/whatsapp-mark.svg"
+            alt=""
+            width="20"
+            height="20"
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+          />
+          <span>WhatsApp'tan Yazın</span>
+        </a>
+        <p class="footer-booking-note">
+          <small>Talebiniz alındıktan sonra, müsaitlik ve kapora bilgileri yazılı olarak gönderilir.</small>
+        </p>
+      </div>
+    </div>
+
+    <!-- Footer Bottom -->
+    <div class="footer-bottom">
+      <div class="footer-bottom-container">
+        <p class="footer-copyright">
+          © {currentYear} Phuket Tatili. Tüm hakları saklıdır.
+        </p>
+        <div class="footer-location">
+          <span>📍 Phuket, Tayland</span>
+          <span>⏰ 7/24 Destek</span>
+        </div>
+        <div class="footer-lang">
+          <a href="?lang=tr" class="footer-lang-link active">TR</a>
+          <span>/</span>
+          <a href="?lang=en" class="footer-lang-link">EN</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+/* Footer Styles */
+.site-footer {
+  background: var(--wb-ink);
+  color: var(--wb-warm-white);
+  border-top: 1px solid var(--wb-line);
+  padding: 64px 0 32px;
+  margin-top: auto;
+}
+
+.footer-container {
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1.5fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 64px;
+}
+
+/* Brand Section */
+.footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer-brand-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+  font-family: var(--font-body);
+  font-weight: 500;
+}
+
+.footer-brand-desc {
+  color: var(--wb-olive);
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-width: 280px;
+  margin: 0;
+}
+
+/* Navigation Sections */
+.footer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer-nav-title {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--wb-warm-white);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.footer-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.footer-nav-link {
+  color: var(--wb-olive);
+  text-decoration: none;
+  font-size: 0.875rem;
+  transition: color 0.2s ease;
+  padding: 4px 0;
+}
+
+.footer-nav-link:hover {
+  color: var(--wb-clay);
+}
+
+.footer-nav-link.active {
+  color: var(--wb-clay);
+}
+
+/* Booking Section */
+.footer-booking {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.footer-booking-title {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--wb-warm-white);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.footer-booking-desc {
+  color: var(--wb-olive);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.footer-wa-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background: var(--wb-clay);
+  color: var(--wb-warm-white);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  justify-content: center;
+}
+
+.footer-wa-button:hover {
+  background: var(--wb-ink);
+  transform: translateY(-2px);
+}
+
+.whatsapp-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.footer-booking-note {
+  margin: 12px 0 0 0;
+  color: var(--wb-olive);
+  font-size: 0.75rem;
+}
+
+.footer-booking-note small {
+  color: var(--wb-line);
+}
+
+/* Footer Bottom */
+.footer-bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 24px;
+  margin-top: auto;
+}
+
+.footer-bottom-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.75rem;
+  color: var(--wb-olive);
+}
+
+.footer-copyright {
+  margin: 0;
+}
+
+.footer-location {
+  display: flex;
+  gap: 16px;
+}
+
+.footer-location span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer-lang {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.footer-lang-link {
+  color: var(--wb-olive);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+}
+
+.footer-lang-link:hover {
+  color: var(--wb-clay);
+  background: rgba(201, 107, 85, 0.1);
+}
+
+.footer-lang-link.active {
+  color: var(--wb-clay);
+  background: rgba(201, 107, 85, 0.2);
+  font-weight: 600;
+}
+
+/* Responsive Styles */
+@media (max-width: 1200px) {
+  .footer-grid {
+    grid-template-columns: 2fr 2fr;
+    gap: 32px;
+  }
+  
+  .footer-booking {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 960px) {
+  .footer-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .footer-bottom-container {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .footer-container {
+    padding: 0 16px;
+  }
+  
+  .footer-brand-desc {
+    max-width: 240px;
+  }
+}
+
+/* Focus Styles for Accessibility */
+.footer-nav-link:focus,
+.footer-lang-link:focus {
+  outline: 2px solid var(--wb-clay);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .site-footer .footer-bottom,
+  .footer-wa-button,
+  .footer-brand-link,
+  .footer-nav-link {
+    transition: none;
+  }
+}
+</style>

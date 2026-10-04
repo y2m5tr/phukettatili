@@ -1,0 +1,28 @@
+---
+const photos = [
+  { img: 'bay.webp', alt: 'Phuket körfezi', caption: 'Körfez Suları' },
+  { img: 'food.webp', alt: 'Tayland mutfağı', caption: 'Lezzetler' },
+  { img: 'couple.webp', alt: 'Tropikal plaj', caption: 'Plaj Keyfi' },
+  { img: 'railay.webp', alt: 'Railay sahili', caption: 'Railay Sahili' },
+];
+---
+
+<section class="pt-photo-strip" aria-label="Phuket atmosfer galerisi">
+  <div class="shell">
+    <div class="pt-photo-strip-inner">
+      {photos.map((p) => (
+        <figure class="pt-photo-strip-item">
+          <img
+            src={`/assets/${p.img}`}
+            alt={p.alt}
+            width="400"
+            height="300"
+            loading="lazy"
+            decoding="async"
+          />
+          <figcaption>{p.caption}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://phukettatili.com/sitemap-index.xml
+
+# Block search bots from internal paths
+Disallow: /api/
+Disallow: /.astro/
+
+# Crawl delay for polite bots
+Crawl-delay: 1

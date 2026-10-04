@@ -1,0 +1,507 @@
+---
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
+
+interface Props {
+  breadcrumbTitle?: string;
+  categoryLabel?: string;
+  categorySlug?: string;
+}
+
+const { breadcrumbTitle, categoryLabel, categorySlug } = Astro.props;
+const waUrl = buildWhatsAppUrl('Merhaba! Phuket turları hakkında bilgi almak istiyorum.');
+---
+
+<header class="site-header" id="site-header">
+  <div class="header-container wb-container">
+    <!-- Skip Link -->
+    <a class="skip-link" href="#main-content">Ana içeriğe atla</a>
+    
+    <!-- Logo/Brand -->
+    <a class="header-brand" href="/" aria-label="Phuket Tatili ana sayfa">
+      <img
+        class="header-logo-img"
+        src="/assets/logo-main.png"
+        alt="Phuket Tatili Logo"
+        width="180"
+        height="60"
+        decoding="async"
+        loading="eager"
+      />
+    </a>
+
+    <!-- Desktop Navigation -->
+    <nav class="main-nav" aria-label="Ana menü">
+      <a href="/" class="nav-link">Ana Sayfa</a>
+      <a href="/turlar/" class="nav-link">Turlar</a>
+      <a href="/tanitim/" class="nav-link">Tanıtım</a>
+      <a href="/turlar/" class="nav-link has-dropdown" id="services-dropdown-btn" aria-expanded="false" aria-controls="services-menu">
+        Hizmetler <svg width="10" height="6" viewBox="0 0 10 6" fill="none" style="margin-left:4px"><path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a href="/#neden-biz" class="nav-link">Neden Biz?</a>
+      <a href={waUrl} class="wb-button wb-button--primary btn-sm" style="border-radius: 99px; padding: 0.5rem 1.25rem; font-size: 0.875rem;" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp'tan yazın">
+        <img src="/assets/whatsapp-mark.svg" alt="" width="16" height="16" aria-hidden="true" loading="lazy" />
+        <span>Planını Oluştur</span>
+      </a>
+    </nav>
+
+    <!-- Mobile Menu Toggle -->
+    <button
+      class="mobile-menu-btn"
+      type="button"
+      aria-label="Menüyü aç"
+      aria-expanded="false"
+      aria-controls="mobile-nav"
+    >
+      <span class="mobile-menu-icon"></span>
+    </button>
+  </div>
+
+  <!-- Mobile Navigation Drawer -->
+  <nav id="mobile-nav" class="mobile-nav" aria-label="Mobil menü" hidden>
+    <a href="/" class="mobile-nav-link" data-close-menu>ANA SAYFA</a>
+    <a href="/turlar/" class="mobile-nav-link" data-close-menu>TURLAR</a>
+    <a href="/tanitim/" class="mobile-nav-link" data-close-menu>TANITIM FİLMİ</a>
+    
+    <details class="mobile-nav-section">
+      <summary class="mobile-nav-summary" data-toggle-menu>TUR HİZMETLERİ ▼</summary>
+      <div class="mobile-nav-sub">
+        <a href="/paketler/" class="mobile-nav-sublink" data-close-menu>Tatil Paketleri</a>
+        <a href="/oteller/" class="mobile-nav-sublink" data-close-menu>Oteller</a>
+        <a href="/transferler/" class="mobile-nav-sublink" data-close-menu>Transferler</a>
+        <a href="/vip-ozel/" class="mobile-nav-sublink" data-close-menu>VIP & Özel</a>
+      </div>
+    </details>
+    
+    <a href="/#neden-biz" class="mobile-nav-link" data-close-menu>NEDEN BİZ?</a>
+    
+    <a class="wb-button wb-button--primary mobile-wa-button" href={waUrl} target="_blank" rel="noopener noreferrer">
+      <img src="/assets/whatsapp-mark.svg" alt="" width="16" height="16" aria-hidden="true" loading="lazy" />
+      <span>WhatsApp'tan yazın</span>
+    </a>
+  </nav>
+</header>
+
+<!-- Breadcrumb -->
+{breadcrumbTitle && (
+  <nav class="breadcrumb" aria-label="Breadcrumb">
+    <div class="wb-container">
+      <a href="/">Ana sayfa</a>
+      <span class="breadcrumb-separator" aria-hidden="true">/</span>
+      {categoryLabel && categorySlug ? (
+        <>
+          <a href="/turlar/">Turlar</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <a href={`/tur-kategorisi/${categorySlug}/`}>{categoryLabel}</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current">{breadcrumbTitle}</span>
+        </>
+      ) : categoryLabel ? (
+        <>
+          <a href="/turlar/">Turlar</a>
+          <span class="breadcrumb-separator" aria-hidden="true">/</span>
+          <span class="breadcrumb-current">{categoryLabel}</span>
+        </>
+      ) : (
+        <span class="breadcrumb-current">{breadcrumbTitle}</span>
+      )}
+    </div>
+  </nav>
+)}
+
+<script is:inline>
+  const header = document.getElementById('site-header');
+  const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+  const mobileNav = document.getElementById('mobile-nav');
+  const servicesDropdownBtn = document.getElementById('services-dropdown-btn');
+  
+  // Mobile menu toggle
+  const toggleMenu = (open) => {
+    if (mobileMenuBtn) {
+      mobileMenuBtn.setAttribute('aria-expanded', String(open));
+      mobileMenuBtn.setAttribute('aria-label', open ? 'Menüyü kapat' : 'Menüyü aç');
+    }
+    if (mobileNav) {
+      mobileNav.hidden = !open;
+      mobileNav.classList.toggle('is-open', open);
+    }
+    if (open) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+  };
+
+  if (mobileMenuBtn && mobileNav) {
+    mobileMenuBtn.addEventListener('click', () => {
+      const isOpen = mobileMenuBtn.getAttribute('aria-expanded') === 'true';
+      toggleMenu(!isOpen);
+    });
+
+    // Close menu when clicking links
+    mobileNav.querySelectorAll('a[data-close-menu]').forEach(link => {
+      link.addEventListener('click', () => toggleMenu(false));
+    });
+    
+    // Toggle submenu
+    const submenuToggle = mobileNav.querySelector('[data-toggle-menu]');
+    if (submenuToggle) {
+      const submenu = submenuToggle.closest('details');
+      submenuToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        submenu.classList.toggle('open');
+      });
+    }
+  }
+</script>
+
+<style>
+/* Header Styles */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(253, 252, 250, 0.85); /* var(--wb-warm-white) transparentized */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) 0;
+}
+
+/* Brand/Logo */
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--wb-ink);
+  font-family: 'Playfair Display', var(--font-body);
+  font-size: 1.125rem;
+  letter-spacing: 0.02em;
+  transition: opacity 0.2s ease;
+}
+
+.header-brand:hover {
+  opacity: 0.8;
+}
+
+.header-logo-img {
+  height: 120px; /* Logomuzun boyutu 2 katına çıkarıldı */
+  width: auto;
+  object-fit: contain;
+  margin-top: 4px;
+}
+
+/* Desktop Navigation */
+.main-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+}
+
+.nav-link {
+  font-family: var(--font-body);
+  font-size: 0.9375rem; /* Biraz daha okunabilir font boyutu */
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--wb-body);
+  text-decoration: none;
+  padding: 6px 4px;
+  position: relative;
+  transition: color 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Hover Efekti (Apple stili minimalist) */
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--wb-clay);
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  border-radius: 2px;
+}
+
+.nav-link:hover {
+  color: var(--wb-ink);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.nav-link.active {
+  color: var(--wb-ink);
+  font-weight: 600;
+}
+
+.nav-link.active::after {
+  transform: scaleX(1);
+}
+  color: var(--wb-clay);
+.has-dropdown {
+  position: relative;
+}
+
+.mobile-menu-btn {
+  display: none;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 1px solid var(--wb-line);
+  background: var(--wb-warm-white);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 101;
+}
+
+.mobile-menu-btn:hover {
+  border-color: var(--wb-clay);
+}
+
+.mobile-menu-icon {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: var(--wb-ink);
+  border-radius: 2px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-icon::before,
+.mobile-menu-icon::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 2px;
+  background: var(--wb-ink);
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-btn[aria-expanded="true"] .mobile-menu-icon {
+  background: transparent;
+}
+
+.mobile-menu-btn[aria-expanded="true"] .mobile-menu-icon::before {
+  top: 0;
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.mobile-menu-btn[aria-expanded="true"] .mobile-menu-icon::after {
+  bottom: 0;
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Mobile Navigation */
+.mobile-nav {
+  position: fixed;
+  inset: 0;
+  background: var(--wb-sand);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 120px 32px 48px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-20px);
+  transition: all 0.3s ease;
+  overflow-y: auto;
+}
+
+.mobile-nav.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.mobile-nav-link,
+.mobile-nav-sublink {
+  font-family: var(--font-body);
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: var(--wb-ink);
+  text-decoration: none;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--wb-line);
+  transition: color 0.2s ease;
+}
+
+.mobile-nav-link:hover,
+.mobile-nav-sublink:hover {
+  color: var(--wb-clay);
+}
+
+.mobile-nav-section {
+  margin-top: 16px;
+}
+
+.mobile-nav-summary {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--wb-ink);
+  cursor: pointer;
+  padding: 12px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--wb-line);
+}
+
+.mobile-nav-summary::-webkit-details-marker {
+  display: none;
+}
+
+.mobile-nav-sub {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 16px;
+  padding-top: 8px;
+}
+
+.mobile-nav-sublink {
+  font-size: 0.9375rem;
+}
+
+.mobile-wa-button {
+  margin-top: 24px;
+  justify-content: center;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  background: var(--wb-warm-white);
+  border-bottom: 1px solid var(--wb-line);
+  padding: 12px 0;
+  font-size: 0.8125rem;
+  color: var(--wb-olive);
+  margin-top: 8px;
+}
+
+.breadcrumb .wb-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.breadcrumb a {
+  color: var(--wb-olive);
+  transition: color 0.2s ease;
+}
+
+.breadcrumb a:hover {
+  color: var(--wb-clay);
+}
+
+.breadcrumb-separator {
+  opacity: 0.5;
+}
+
+.breadcrumb-current {
+  color: var(--wb-ink);
+  font-weight: 500;
+}
+
+/* Skip Link */
+.skip-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 110;
+  transform: translateY(-200%);
+  padding: 0.75rem 1rem;
+  background: var(--wb-clay);
+  border-radius: var(--radius-sm);
+  color: var(--wb-warm-white);
+  font-weight: var(--font-weight-semibold);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* Responsive Styles */
+@media (max-width: 960px) {
+  .main-nav {
+    display: none;
+  }
+  
+  .mobile-menu-btn {
+    display: flex;
+  }
+  
+  .wb-button.wa-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .header-container {
+    padding-inline: 12px;
+  }
+  
+  .header-logo-img {
+    height: 96px;
+  }
+  
+  .mobile-nav {
+    padding: 120px 20px 32px;
+  }
+  
+  .mobile-nav-link,
+  .mobile-nav-sublink {
+    font-size: 1rem;
+  }
+  
+  .mobile-nav-summary {
+    font-size: 1rem;
+  }
+}
+
+/* Focus Styles for Accessibility */
+.nav-link:focus,
+.mobile-nav-link:focus,
+.mobile-nav-sublink:focus,
+.wb-button:focus,
+.mobile-menu-btn:focus {
+  outline: 2px solid var(--wb-clay);
+  outline-offset: 2px;
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .header-container,
+  .mobile-nav,
+  .mobile-nav-link,
+  .mobile-nav-sublink {
+    transition: none;
+  }
+  
+  .mobile-menu-icon,
+  .mobile-menu-icon::before,
+  .mobile-menu-icon::after {
+    transition: none;
+  }
+}
+</style>

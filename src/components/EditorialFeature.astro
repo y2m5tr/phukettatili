@@ -1,0 +1,68 @@
+---
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
+
+const waUrl = buildWhatsAppUrl('Phuket yerel tavsiyeleri');
+---
+
+<section class="editorial-feature">
+  <div class="feature-container">
+    <div class="feature-image">
+      <img src="/assets/railay.webp" alt="Krabi Railay kumsalından gördek Phuket" loading="lazy" />
+    </div>
+    <div class="feature-content">
+      <h2 class="feature-title h2-display">Yerel planı, Türkçe destekle</h2>
+      <p class="feature-text">
+        Phuket'in gizli cenilerini, en iyi yerlerinden vadede keyif dolu anlar yaratmak için yerel bilgilerden ibaret bir plan sunalım.
+      </p>
+      <p class="feature-text">
+        Arkadaşlarını, ailenizi veya kendinizi özel anlar için burada bulacağınız şehir içi atmosferle buluşturun.
+      </p>
+      <a href={waUrl} class="wb-button wb-button--primary">Planı başlat</a>
+    </div>
+  </div>
+</section>
+
+<style>
+.editorial-feature {
+  padding-block: var(--space-3xl);
+  background: var(--wb-sand);
+}
+
+.feature-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: var(--space-3xl);
+  max-width: 75rem;
+  margin-inline: auto;
+}
+
+.feature-image img {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-xl);
+  object-fit: cover;
+}
+
+.feature-title {
+  line-height: 1.15;
+}
+
+.feature-text {
+  font-size: 1.125rem;
+  color: var(--wb-olive);
+  line-height: 1.7;
+  margin: 0;
+}
+
+.feature-text:last-child {
+  margin-top: var(--space-lg);
+}
+
+@media (max-width: 768px) {
+  .feature-container {
+    grid-template-columns: 1fr;
+    gap: var(--space-2xl);
+  }
+}
+</style>

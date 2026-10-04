@@ -1,0 +1,134 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
+
+const waUrl = buildWhatsAppUrl('Tatil Planı ve Retro Tanıtım', 'Merhaba, sitenizdeki 1980-1990 retro karikatür tanıtım videosunu ve tatil planını inceledim. Phuket seyahatimi planlamak istiyorum.');
+
+const holidayDays = [
+  { day: '1. GÜN', badge: '🛬 VARIŞ & GECE HAYATI', title: 'Havalimanı Karşılama ➔ Otele VIP Transfer ➔ Bangla Road', desc: 'Phuket Havalimanı\'nda Türkçe isimli tabelayla karşılama. Klimalı VIP araçla otele geçiş ve dinlenme. Akşam Patong Bangla Road\'da neon ışıklar, canlı müzik, dans ve sokak lezzetleri.' },
+  { day: '2. GÜN', badge: '🏝️ TURKUAZ SULAR', title: 'Phi Phi Don, Maya Bay & Zümrüt Pileh Lagoon', desc: 'Sabah otelden transferle sürat teknesine biniş. Leonardo DiCaprio\'nun ünlü Maya Bay sahili, Pileh Lagoon lagününde yüzme ve rengarenk mercan resiflerinde şnorkel.' },
+  { day: '3. GÜN', badge: '🛶 MAĞARA VE SAFARİ', title: 'Phang Nga Körfezi & James Bond Adası', desc: 'Dev kireçtaşı kanyonları arasında deniz mağaralarında kano safarisi. 007 filminin ikonik mantar adası önünde çekimler ve Hong adasında gün batımı.' },
+  { day: '4. GÜN', badge: '🥥 DİNLENME VE ADALAR', title: 'Coral Island (Hey Adası) & Racha / Similan Adaları', desc: 'Bembeyaz pudra kumsal, şezlongda hindistan ceviziyle dinlenme, berrak turkuaz deniz ve sığ sularda rengarenk tropik balıklarla yüzme keyfi.' },
+  { day: '5. GÜN', badge: '🐘 DOĞA VE KÜLTÜR', title: 'Etik Fil Barınağı (Çamur Banyosu) & Şehir/Tapınak Turu', desc: 'Zincirsiz, %100 etik koruma alanında fillerle bağ kurma, ellerle meyve besleme ve çamur havuzunda banyo. Öğleden sonra Big Buddha ve tarihi Chalong Tapınağı ziyareti.' },
+  { day: '6. GÜN', badge: '⚓ VEDA & DÖNÜŞ', title: 'Özel Longtail / Katamaran Gün Batımı & Havalimanı Transferi', desc: 'Size özel geleneksel ahşap longtail veya VIP katamarinda romantik gün batımı turu. Ardından uçuş saitchine uygun olarak havalimanına VIP konforlu transfer.' },
+];
+---
+
+<Layout
+  title="1980-1990 Retro Karikatür Tanıtımı & Phuket Tatil Planı"
+  description="Havalimanından otele, Bangla Road'dan Phi Phi ve James Bond'a, mercan adalarından etik fil safarisine 6 günlük eksiksiz Phuket tatil planı ve retro karikatür filmi."
+>
+  <main class="shell" style="padding-top: 130px; padding-bottom: 90px;">
+    <!-- HEADER -->
+    <header style="max-width: 900px; margin-inline: auto; text-align: center; margin-bottom: 40px;">
+      <span class="wb-eyebrow" style="background: rgba(255, 225, 0, 0.2); color: #e6b800; border: 1px solid #ffd700; padding: 6px 18px; border-radius: 99px; font-size: 13px; font-weight: 800; display: inline-block; margin-bottom: 16px;">
+        🕹️ 1980-1990 NOSTALJİK ÇİZGİ FİLM TARZI • SIFIR FOTOĞRAF
+      </span>
+      <h1 style="font-size: clamp(34px, 5vw, 54px); font-family: 'Outfit', sans-serif; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 16px; color: var(--wb-ink);">
+        Phuket Tatil Planı & Retro Karikatür Filmi
+      </h1>
+      <p style="color: var(--wb-olive); font-size: 18px; line-height: 1.6;">
+        Havalimanından fil safarisine kadar gün gün adım adım planlanan tatil rotası; 80'ler ve 90'ların renkli çizgi roman ve arcade estetiğinde, <strong>yalnızca kodlarla</strong> çizildi.
+      </p>
+    </header>
+
+    <!-- FEATURED VIDEO: 1980-1990 RETRO CARTOON -->
+    <section style="max-width: 1040px; margin-inline: auto; background: #0f172a; border: 4px solid #ffe100; border-radius: 28px; padding: 24px; box-shadow: 0 30px 80px rgba(0,0,0,0.6); margin-bottom: 60px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <span style="background: #ff3282; color: #fff; font-weight: 800; font-size: 12px; padding: 5px 12px; border-radius: 8px; letter-spacing: 0.05em;">80'LER / 90'LAR ÇİZGİ FİLM</span>
+          <strong style="color: #ffffff; font-size: 22px; margin-left: 10px;">🕹️ Phuket Tatili Retro Karikatür Macerası</strong>
+        </div>
+        <span style="color: #00dcff; font-size: 14px; font-weight: 700; font-family: monospace;">1920x1080 Full HD • 36 Saniye • Chiptune/Synthwave SFX</span>
+      </div>
+
+      <div style="position: relative; border-radius: 20px; overflow: hidden; background: #000; aspect-ratio: 16 / 9; border: 3px solid rgba(255,255,255,0.2);">
+        <video
+          controls
+          playsinline
+          preload="metadata"
+          style="width: 100%; height: 100%; object-fit: cover; display: block;"
+        >
+          <source src="/assets/phuket-retro-karikatur.mp4" type="video/mp4" />
+          Tarayıcınız video etiketini desteklemiyor.
+        </video>
+      </div>
+
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding-top: 20px; gap: 14px;">
+        <p style="color: var(--wb-olive); font-size: 14px; margin: 0; max-width: 620px;">
+          Hiçbir fotoğraf kullanılmadı: Uçak, sörf minibüsü, Bangla Road neon tabelaları, zıplayan sürat teknesi, James Bond kano kayası, hindistan cevizli ada ve sevimli fil tamamen Python Pillow vektör kodlarıyla çizildi.
+        </p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <a
+            href="/assets/phuket-retro-karikatur.mp4"
+            download="phuket-retro-karikatur.mp4"
+            style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; background: rgba(255,255,255,0.08); border: 2px solid #ffe100; color: #ffe100; border-radius: 99px; font-size: 13px; font-weight: 800; text-decoration: none;"
+          >
+            ⬇ Retro Videoyu İndir (MP4)
+          </a>
+          <a
+            href={waUrl}
+            target="_blank"
+            rel="noopener"
+            style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; background: #25d366; color: #000; border-radius: 99px; font-size: 13px; font-weight: 800; text-decoration: none;"
+          >
+            WhatsApp'tan Bu Rotayı İste →
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHRONOLOGICAL HOLIDAY ITINERARY -->
+    <section style="max-width: 1040px; margin-inline: auto; margin-bottom: 70px;">
+      <div style="text-align: center; margin-bottom: 32px;">
+        <span class="wb-eyebrow" style="background: rgba(0, 220, 255, 0.12); color: #00dcff; border: 1px solid rgba(0, 220, 255, 0.3); padding: 5px 14px; border-radius: 99px; font-size: 12px; font-weight: 800;">
+          KUSURSUZ TATİL SIRALAMASI
+        </span>
+        <h2 style="font-size: 32px; font-family: 'Outfit', sans-serif; margin-top: 10px; color: var(--wb-ink);">
+          Adım Adım Kronolojik Phuket Tatil Planı
+        </h2>
+        <p style="color: var(--wb-olive); font-size: 16px;">
+          Havalimanından son güne kadar zamanı en verimli ve keyifli kullanan resmi rota akışı:
+        </p>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        {holidayDays.map((item) => (
+          <div style="display: flex; flex-wrap: wrap; background: var(--wb-warm-white); border: 1px solid var(--wb-line); border-radius: 20px; padding: 24px; gap: 20px; align-items: flex-start; transition: transform 0.2s;">
+            <div style="min-width: 140px;">
+              <span style="display: inline-block; font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; color: var(--wb-clay);">
+                {item.day}
+              </span>
+              <span style="display: block; font-size: 11px; font-weight: 800; color: var(--wb-clay); letter-spacing: 0.05em; margin-top: 4px;">
+                {item.badge}
+              </span>
+            </div>
+            <div style="flex: 1; min-width: 280px;">
+              <h3 style="color: var(--wb-ink); font-size: 18px; margin-top: 0; margin-bottom: 8px;">{item.title}</h3>
+              <p style="color: var(--wb-olive); font-size: 14px; line-height: 1.6; margin: 0;">{item.desc}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
+
+    <!-- ALTERNATIVE VIDEOS (ARCHIVE) -->
+    <section style="max-width: 1040px; margin-inline: auto;">
+      <h2 style="font-size: 24px; font-family: 'Outfit', sans-serif; margin-bottom: 20px; color: var(--wb-ink);">
+        Diğer Tanıtım Versiyonları
+      </h2>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px;">
+        <div style="background: var(--wb-warm-white); border: 1px solid var(--wb-line); border-radius: 18px; padding: 18px;">
+          <strong style="color: var(--wb-ink); font-size: 16px; display: block; margin-bottom: 8px;">🎨 Modern Çizgi Roman (35 sn)</strong>
+          <p style="color: var(--wb-olive); font-size: 13px; line-height: 1.5; margin-bottom: 12px;">Karakter diyalogları ve fotoğraf üzeri konuşma balonlarıyla tatil hikayesi.</p>
+          <a href="/assets/phuket-hikayesi-karikatur.mp4" download style="color: var(--wb-clay); font-size: 13px; font-weight: 700; text-decoration: none;">⬇ MP4 Olarak İndir →</a>
+        </div>
+        <div style="background: var(--wb-warm-white); border: 1px solid var(--wb-line); border-radius: 18px; padding: 18px;">
+          <strong style="color: var(--wb-ink); font-size: 16px; display: block; margin-bottom: 8px;">🎬 Sinematik Tanıtım Filmi (32 sn)</strong>
+          <p style="color: var(--wb-olive); font-size: 13px; line-height: 1.5; margin-bottom: 12px;">Ken Burns kamera hareketleri, cam efektli kartlar ve tropik marimba müziği.</p>
+          <a href="/assets/phuket-tatili-tanitim.mp4" download style="color: var(--wb-clay); font-size: 13px; font-weight: 700; text-decoration: none;">⬇ MP4 Olarak İndir →</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</Layout>

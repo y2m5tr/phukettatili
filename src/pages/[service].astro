@@ -1,0 +1,346 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { getCollection, type CollectionEntry } from 'astro:content';
+import { buildWhatsAppUrl } from '@/utils/whatsapp';
+
+export async function getStaticPaths() {
+  const services = await getCollection('services');
+  return services.map((svc: any) => ({
+    params: { service: svc.data.slug },
+    props: { service: svc },
+  }));
+}
+
+interface Props {
+  service: CollectionEntry<'services'>;
+}
+
+const { service } = Astro.props;
+const { data } = service;
+
+const waUrl = buildWhatsAppUrl(data.cta_context, data.cta_details);
+---
+
+<Layout
+  title={data.title}
+  description={data.intro}
+  image={`/assets/${data.media}`}
+  breadcrumbTitle={data.title}
+>
+  <!-- SERVICE HERO SECTION -->
+  <section class="wb-container section-lg">
+    <div class="service-layout">
+      <div class="service-content">
+        <span class="wb-eyebrow">{data.eyebrow}</span>
+        <h1 class="h1-display">{data.heading}</h1>
+        <p class="service-intro">
+          {data.intro}
+        </p>
+        <a href={waUrl} target="_blank" rel="noopener" class="wb-button wb-button--primary service-cta">
+          <img
+            src="/assets/whatsapp-mark.svg"
+            alt=""
+            width="18"
+            height="18"
+            aria-hidden="true"
+            loading="lazy"
+            decoding="async"
+          />
+          WhatsApp ile Teklif İste ↗
+        </a>
+      </div>
+
+      <div class="service-media">
+        <figure class="service-figure">
+          <img
+            src={`/assets/${data.media}`}
+            alt={data.media_alt}
+            width="640"
+            height="480"
+            loading="eager"
+            decoding="async"
+          />
+          <figcaption>{data.media_caption}</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICE OPTIONS -->
+  <section class="wb-container section">
+    <header class="section-header">
+      <span class="wb-eyebrow">Seçenekler & Yaklaşım</span>
+      <h2>Size En Uygun Planı Belirleyelim</h2>
+    </header>
+
+    <div class="service-options-grid">
+      {data.options.map((opt: any, i: number) => (
+        <div class="service-option">
+          <span class="service-option-number">0{i + 1}</span>
+          <h3>{opt.title}</h3>
+          <p>{opt.text}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS SECTION -->
+  <section class="section-lg service-how-it-works">
+    <div class="wb-container">
+      <div class="how-it-works-layout">
+        <div class="how-it-works-content">
+          <span class="wb-eyebrow">Teklif Hazırlığı</span>
+          <h2 class="h2-display">Hangi Bilgileri Paylaşmalısınız?</h2>
+          <p>
+            Size en doğru teklifi hızla sunabilmemiz için WhatsApp mesajınızda aşağıdaki detayları paylaşmanız yeterlidir:
+          </p>
+
+          <ul class="how-it-works-list">
+            {data.questions.map((q: string) => (
+              <li class="how-it-works-item">{q}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div class="how-it-works-cta">
+          <h3>Hemen İletişime Geçin</h3>
+          <p>Türkçe destek veren yerel ekibimiz talebinizi inceleyip müsaitlik ve fiyat detaylarını yazılı olarak iletecektir.</p>
+          <a href={waUrl} target="_blank" rel="noopener" class="wb-button wb-button--primary how-it-works-cta-button">
+            <img
+              src="/assets/whatsapp-mark.svg"
+              alt=""
+              width="18"
+              height="18"
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+            />
+            WhatsApp ile Başlat ↗
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+/* Service Page Styles */
+.service-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--space-3xl);
+  align-items: center;
+}
+
+.service-content h1 {
+  margin: 12px 0 16px;
+  font-size: clamp(34px, 4.5vw, 56px);
+  line-height: 1.2;
+}
+
+.service-intro {
+  font-size: 18px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  color: var(--wb-body);
+}
+
+.service-cta {
+  justify-content: center;
+  width: 100%;
+  min-width: 220px;
+}
+
+.service-media {
+  text-align: center;
+}
+
+.service-figure {
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  aspect-ratio: 4/3;
+}
+
+.service-figure img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.service-figure figcaption {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--wb-olive);
+  padding: 8px 12px;
+  background: var(--wb-warm-white);
+  text-align: center;
+}
+
+.service-options-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-lg);
+}
+
+.service-option {
+  background: var(--wb-warm-white);
+  border: 1px solid var(--wb-line);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+}
+
+.service-option-number {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--wb-clay);
+  display: block;
+}
+
+.service-option h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--wb-ink);
+}
+
+.service-option p {
+  font-size: 0.875rem;
+  color: var(--wb-olive);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.how-it-works-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3xl);
+  align-items: center;
+}
+
+.how-it-works-content h2 {
+  font-size: 1.75rem;
+  color: var(--wb-ink);
+  margin: 8px 0 12px;
+}
+
+.how-it-works-list {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+
+.how-it-works-item {
+  position: relative;
+  padding-left: 24px;
+  font-size: 0.9375rem;
+  color: var(--wb-ink);
+  font-weight: 500;
+}
+
+.how-it-works-item::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: var(--wb-clay);
+  font-weight: 700;
+}
+
+.how-it-works-cta {
+  background: var(--bg-subtle);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2xl);
+  border: 1px solid var(--wb-line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.how-it-works-cta h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--wb-ink);
+  margin: 0;
+}
+
+.how-it-works-cta p {
+  font-size: 0.875rem;
+  color: var(--wb-olive);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.how-it-works-cta-button {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Responsive Styles */
+@media (max-width: 1200px) {
+  .service-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .service-content {
+    text-align: center;
+  }
+  
+  .service-media {
+    margin-top: var(--space-3xl);
+  }
+}
+
+@media (max-width: 768px) {
+  .service-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .service-content {
+    text-align: center;
+  }
+  
+  .service-media {
+    margin-top: var(--space-3xl);
+  }
+  
+  .how-it-works-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .how-it-works-cta {
+    padding: var(--space-lg);
+  }
+}
+
+@media (max-width: 480px) {
+  .service-layout {
+    grid-template-columns: 1fr;
+  }
+  
+  .service-intro {
+    font-size: 1rem;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+  
+  .service-figure {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .service-layout,
+  .service-option,
+  .how-it-works-layout,
+  .how-it-works-cta {
+    transition: none;
+  }
+}</style>

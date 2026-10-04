@@ -1,0 +1,31 @@
+<style>
+  .directions { display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:18px; margin-top:24px; }
+  .direction { border:1px solid #ded7ca; border-radius:18px; overflow:hidden; background:#fffdf9; cursor:pointer; transition:transform .2s, box-shadow .2s; }
+  .direction:hover { transform:translateY(-4px); box-shadow:0 14px 35px rgba(16,28,45,.14); }
+  .visual { height:210px; padding:18px; position:relative; overflow:hidden; }
+  .a { background:#102c46; color:#f5f0e7; } .a:after { content:''; position:absolute; inset:60px -35px -65px 30px; background:#d66f55; border-radius:50% 50% 0 0; opacity:.9; }
+  .b { background:#f4ecdf; color:#172a39; } .b:after { content:''; position:absolute; width:170px; height:170px; right:-35px; bottom:-40px; border:25px solid #cf684e; border-radius:50%; }
+  .c { background:#1a2734; color:#fff; } .c:after { content:'PHUKET'; position:absolute; right:-5px; bottom:12px; font-size:48px; font-weight:900; letter-spacing:-4px; color:#e9a578; opacity:.82; }
+  .mock-nav { position:relative; z-index:1; display:flex; justify-content:space-between; font-size:10px; letter-spacing:.1em; }
+  .mock-title { position:relative; z-index:2; margin-top:50px; max-width:190px; font-family:Georgia,serif; font-size:30px; line-height:1; }
+  .mock-chip { position:absolute; z-index:3; bottom:20px; left:18px; padding:7px 11px; border-radius:99px; background:rgba(255,255,255,.18); font-size:10px; }
+  .body { padding:16px; } .body h3 { margin:0 0 8px; color:#102c46; } .body p { margin:0; color:#5c6570; font-size:13px; line-height:1.5; }
+  @media(max-width:700px){.directions{grid-template-columns:1fr}}
+</style>
+<h2>Yeni görsel yönü seçelim</h2>
+<p class="subtitle">Mevcut tasarımın sorunu: fazla bileşen, gereksiz kartlar ve dağınık hiyerarşi. Yeni tasarımda tek güçlü hero, net rota seçimi ve daha az ama kaliteli alan kullanılacak.</p>
+<div class="directions">
+  <article class="direction" data-choice="coastal-editorial" onclick="toggleSelect(this)">
+    <div class="visual a"><div class="mock-nav"><b>PHUKET TATİLİ</b><span>TURLAR · KONAKLAMA</span></div><div class="mock-title">Yolculuk bir rota ile başlar.</div><div class="mock-chip">Türkçe yerel concierge</div></div>
+    <div class="body"><h3>A — Coastal Editorial <span style="color:#cf684e">(önerim)</span></h3><p>Koyu lacivert yalnızca hero ve vurgu alanlarında; kemik beyaz zemin, mercan vurgular, bol fotoğraf ve sakin editoryal düzen.</p></div>
+  </article>
+  <article class="direction" data-choice="warm-boutique" onclick="toggleSelect(this)">
+    <div class="visual b"><div class="mock-nav"><b>PHUKET / 2026</b><span>MENÜ</span></div><div class="mock-title">Kendine ait bir ada günü.</div><div class="mock-chip" style="background:#cf684e;color:white">Turu bul</div></div>
+    <div class="body"><h3>B — Warm Boutique</h3><p>Daha sıcak ve davetkâr: kum, kil, koyu zeytin tonları; otel ve aile odaklı butik seyahat hissi.</p></div>
+  </article>
+  <article class="direction" data-choice="bold-travel-journal" onclick="toggleSelect(this)">
+    <div class="visual c"><div class="mock-nav"><b>PT / JOURNAL</b><span>01—26</span></div><div class="mock-title">Ada günlerini hatırla.</div><div class="mock-chip">Keşfet →</div></div>
+    <div class="body"><h3>C — Bold Travel Journal</h3><p>Büyük tipografi, asimetrik grid ve dergi estetiği. Daha karakterli; satış akışı yerine marka algısını öne çıkarır.</p></div>
+  </article>
+</div>
+<p class="subtitle" style="margin-top:20px">Kartlardan birini tıklayın veya mesajla A/B/C yazın. Sonra ana sayfa yerleşimini göstereceğim.</p>
