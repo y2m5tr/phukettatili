@@ -136,11 +136,12 @@ const waUrl = buildWhatsAppUrl('Tur Seçimi ve Planlama');
       const categoryMatch = activeCategory === 'all' || cardCategory === activeCategory || cardSub === activeCategory;
       const searchMatch = !searchQuery || title.includes(searchQuery) || excerpt.includes(searchQuery);
 
+      const wrapper = card.closest('.tour-card-wrapper') || card;
       if (categoryMatch && searchMatch) {
-        card.style.display = '';
+        (wrapper as HTMLElement).style.display = '';
         visibleCount++;
       } else {
-        card.style.display = 'none';
+        (wrapper as HTMLElement).style.display = 'none';
       }
     });
 
