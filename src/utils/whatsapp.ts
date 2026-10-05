@@ -1,7 +1,13 @@
 import { ENV } from '@/env';
+import generalSettings from '@/content/settings/general.json';
 
 export const DEFAULT_WHATSAPP_NUMBER = '66828950665';
-export const WHATSAPP_NUMBER = (ENV?.WHATSAPP_PHONE ? ENV.WHATSAPP_PHONE.replace(/[^0-9]/g, '') : '') || DEFAULT_WHATSAPP_NUMBER;
+
+// Öncelik: general.json -> ENV -> Default
+const cmsNumber = generalSettings.whatsapp_number ? generalSettings.whatsapp_number.replace(/[^0-9]/g, '') : null;
+const envNumber = ENV?.WHATSAPP_PHONE ? ENV.WHATSAPP_PHONE.replace(/[^0-9]/g, '') : null;
+
+export const WHATSAPP_NUMBER = cmsNumber || envNumber || DEFAULT_WHATSAPP_NUMBER;
 
 /**
  * Build a WhatsApp URL with pre-filled message

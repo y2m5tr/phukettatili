@@ -3,6 +3,7 @@ import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp.astro';
 import Tracking from '@/components/Tracking.astro';
+import generalSettings from '@/content/settings/general.json';
 import '@/styles/global.css';
 
 interface Props {
@@ -17,13 +18,15 @@ interface Props {
 
 const {
   title,
-  description = "Phuket'te Türkçe yerel destekle ada turları, özel yatlar, otel ve transfer planlaması. Rezervasyon için WhatsApp'ta bize ulaşın.",
+  description = generalSettings.site_description,
   image = "/assets/pileh.webp",
   breadcrumbTitle,
   categoryLabel,
   categorySlug,
   schema,
 } = Astro.props;
+
+const siteTitle = generalSettings.site_title || "Phuket Tatili";
 
 const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://phukettatili.netlify.app');
 const imageUrl = new URL(image, Astro.site || 'https://phukettatili.netlify.app').toString();
@@ -45,16 +48,16 @@ const defaultSchema = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title} — Phuket Tatili</title>
+    <title>{title} — {siteTitle}</title>
     <meta name="description" content={description} />
     <meta name="theme-color" content="#F5EFE6" />
     <meta name="color-scheme" content="light" />
     <link rel="canonical" href={canonicalURL} />
     
     <!-- Open Graph -->
-    <meta property="og:site_name" content="Phuket Tatili" />
+    <meta property="og:site_name" content={siteTitle} />
     <meta property="og:locale" content="tr_TR" />
-    <meta property="og:title" content={`${title} — Phuket Tatili`} />
+    <meta property="og:title" content={`${title} — ${siteTitle}`} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonicalURL} />
     <meta property="og:image" content={imageUrl} />
@@ -64,7 +67,7 @@ const defaultSchema = {
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={`${title} — Phuket Tatili`} />
+    <meta name="twitter:title" content={`${title} — ${siteTitle}`} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={imageUrl} />
     <meta name="twitter:site" content="@phukettatili" />

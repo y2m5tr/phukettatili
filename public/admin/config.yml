@@ -12,6 +12,50 @@ logo_url: https://phukettatili.com/assets/logo-favicon.png
 locale: "tr" # Yönetici panelini Türkçe yapar
 
 collections:
+  - name: "settings"
+    label: "Genel Ayarlar"
+    delete: false
+    editor:
+      preview: false
+    files:
+      - name: "general"
+        label: "Site Genel Ayarları"
+        file: "src/content/settings/general.json"
+        description: "WhatsApp numarası, SEO başlıkları ve sosyal medya hesapları"
+        fields:
+          - { label: "WhatsApp Numarası", name: "whatsapp_number", widget: "string", hint: "Sadece rakamlarla (Örn: 66828950665)" }
+          - { label: "Site Başlığı (SEO)", name: "site_title", widget: "string" }
+          - { label: "Site Açıklaması (SEO)", name: "site_description", widget: "text" }
+          - { label: "Instagram Linki", name: "instagram", widget: "string", required: false }
+          - { label: "İletişim E-Postası", name: "contact_email", widget: "string", required: false }
+
+  - name: "categories"
+    label: "Kategoriler"
+    folder: "src/content/categories"
+    create: true
+    extension: "json"
+    format: "json"
+    slug: "{{slug}}"
+    fields:
+      - { label: "Kategori Adı (İngilizce Slug)", name: "name", widget: "string", hint: "Örn: Island Tours" }
+      - { label: "Kategori Başlığı (Türkçe)", name: "label_tr", widget: "string", hint: "Örn: Ada Turları" }
+      - { label: "Kategori URL (Slug)", name: "slug", widget: "string", hint: "Örn: island-tours" }
+      - { label: "İkon (Emoji)", name: "icon", widget: "string", required: false }
+      - { label: "Kısa Açıklama", name: "short_desc", widget: "string", required: false }
+      - { label: "Uzun Açıklama", name: "description", widget: "text", required: false }
+      - { label: "Kapak Görseli", name: "hero_image", widget: "image", required: false }
+      - { label: "Sıralama", name: "order", widget: "number", value_type: "int", required: false }
+      - label: "Alt Rotalar (Çocuk Kategoriler)"
+        name: "children"
+        widget: "list"
+        required: false
+        fields:
+          - { label: "Rota Adı (İngilizce)", name: "name", widget: "string" }
+          - { label: "Rota Adı (Türkçe)", name: "label_tr", widget: "string" }
+          - { label: "URL (Slug)", name: "slug", widget: "string" }
+          - { label: "Açıklama", name: "description", widget: "text" }
+          - { label: "Görsel", name: "hero_image", widget: "image" }
+
   - name: "tours"
     label: "Turlar"
     folder: "src/content/tours"
