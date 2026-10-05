@@ -2,6 +2,7 @@
 import Header from '@/components/Header.astro';
 import Footer from '@/components/Footer.astro';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp.astro';
+import Tracking from '@/components/Tracking.astro';
 import '@/styles/global.css';
 
 interface Props {
@@ -88,6 +89,9 @@ const defaultSchema = {
     
     <!-- Netlify Identity Widget -->
     <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
+
+    <!-- Pazarlama Takip Kodları (Google & Meta) -->
+    <Tracking />
   </head>
   <body>
     <a class="skip-link" href="#main-content">Ana içeriğe atla</a>
