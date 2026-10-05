@@ -1,6 +1,15 @@
 # Dependencies
 node_modules/
 
+# Video files (çok büyük, GitHub'a yüklenmemeli)
+*.mp4
+public/assets/*.mp4
+
+# Eski geliştirme raporları ve scriptler
+.superpowers/
+scripts/
+docs/superpowers/
+
 # Build outputs
 dist/
 .astro/
