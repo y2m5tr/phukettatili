@@ -1,0 +1,25 @@
+{
+  "testimonials": [
+    {
+      "name": "Ayşe & Burak Yılmaz",
+      "type": "Balayı Çifti",
+      "tour": "Phi Phi & Maya Bay",
+      "text": "Phuket'teki ilk günümüzdü ve harika bir başlangıç yaptık. Hızlı botla adaları gezmek rüya gibiydi, yerel rehberlik ve transferler kusursuzdu.",
+      "stars": 5
+    },
+    {
+      "name": "Emre T.",
+      "type": "Arkadaş Grubu",
+      "tour": "Özel VIP Yat (Katamaran)",
+      "text": "Tüm gün özel yatımızda Phuket'in gizli koylarını keşfettik. Fiyat/performans olarak mükemmel bir deneyimdi. Kesinlikle herkese tavsiye ederim.",
+      "stars": 5
+    },
+    {
+      "name": "Selin & Mert",
+      "type": "Çift",
+      "tour": "James Bond Adası",
+      "text": "Harika bir gün geçirdik. Rehberimiz çok ilgiliydi ve yemekler de gayet lezzetliydi. Güvenilir ve profesyonel bir ekip.",
+      "stars": 5
+    }
+  ]
+}

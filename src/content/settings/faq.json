@@ -1,0 +1,16 @@
+{
+  "faq": [
+    {
+      "question": "Turlarınıza ulaşım dahil mi?",
+      "answer": "Evet, tüm standart grup turlarımızda otelinizden alınış ve bırakılış (belirli bölgeler için) fiyata dahildir."
+    },
+    {
+      "question": "Ödemeyi nasıl yapıyoruz?",
+      "answer": "Rezervasyon onayı için bir miktar ön ödeme alıyoruz (havale/eft). Kalan tutarı tur günü nakit olarak yapabilirsiniz."
+    },
+    {
+      "question": "Hava kötü olursa tur iptal edilir mi?",
+      "answer": "Güvenliğiniz bizim için en önemlisi. Liman başkanlığının kararıyla turlar iptal edilirse, ücretiniz iade edilir veya tur başka güne ertelenir."
+    }
+  ]
+}

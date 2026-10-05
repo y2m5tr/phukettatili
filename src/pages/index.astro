@@ -9,6 +9,7 @@ import TrustStrip from '@/components/TrustStrip.astro';
 import EditorialFeature from '@/components/EditorialFeature.astro';
 import Testimonials from '@/components/Testimonials.astro';
 import { getCollection } from 'astro:content';
+import faqData from '@/content/settings/faq.json';
 
 const allTours = await getCollection('tours');
 const featuredTours = allTours
@@ -106,51 +107,27 @@ const featuredTours = allTours
       </div>
       
       <div class="faq-grid">
-        <details class="faq-item">
-          <summary>Ödeme nasıl yapılır?</summary>
-          <p>Ödeme öncesinde tüm detaylar, dahil/hariç olanlar ve iptal şartları yazılı teklif olarak paylaşılır. Kapora ve kalan tutar, tedarikçinin şartlarına göre Phuket'e varışta veya banka/kart ile ödenir.</p>
-        </details>
-        
-        <details class="faq-item">
-          <summary>İptal ve hava koşulları politikası nedir?</summary>
-          <p>Hava muhalefeti veya deniz fırtınası nedeniyle liman idaresinin izin vermediği durumlarda tur ertelenir veya tedarikçi iade kuralları çerçevesinde ücret iadesi yapılır.</p>
-        </details>
-        
-        <details class="faq-item">
-          <summary>Turları nasıl planlayabilirim?</summary>
-          <p>Sitedeki "Hızlı Planını Kur" formunu doldurarak veya WhatsApp butonuna tıklayarak seyahat tarihlerinizi ve kişi sayınızı iletin; size en uygun gün planını hazırlayalım.</p>
-        </details>
+        {faqData.faq.map((faq: any) => (
+          <details class="faq-item">
+            <summary>{faq.question}</summary>
+            <p>{faq.answer}</p>
+          </details>
+        ))}
       </div>
     </div>
     
-    <script type="application/ld+json">
-    {
+    <script type="application/ld+json" set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "mainEntity": [{
+      "mainEntity": faqData.faq.map((faq: any) => ({
         "@type": "Question",
-        "name": "Ödeme nasıl yapılır?",
+        "name": faq.question,
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Ödeme öncesinde tüm detaylar, dahil/hariç olanlar ve iptal şartları yazılı teklif olarak paylaşılır. Kapora ve kalan tutar, tedarikçinin şartlarına göre Phuket'e varışta veya banka/kart ile ödenir."
+          "text": faq.answer
         }
-      }, {
-        "@type": "Question",
-        "name": "İptal ve hava koşulları politikası nedir?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Hava muhalefeti veya deniz fırtınası nedeniyle liman idaresinin izin vermediği durumlarda tur ertelenir veya tedarikçi iade kuralları çerçevesinde ücret iadesi yapılır."
-        }
-      }, {
-        "@type": "Question",
-        "name": "Turları nasıl planlayabilirim?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Sitedeki formunu doldurarak veya WhatsApp butonuna tıklayarak seyahat tarihlerinizi ve kişi sayınızı iletin; size en uygun gün planını hazırlayalım."
-        }
-      }]
-    }
-    </script>
+      }))
+    })} />
   </section>
 </Layout>
 

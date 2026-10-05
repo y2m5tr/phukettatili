@@ -1,27 +1,5 @@
 ---
-const reviews = [
-  {
-    name: "Ayşe & Burak Yılmaz",
-    type: "Balayı Çifti",
-    tour: "Phi Phi & Maya Bay",
-    text: "Phuket'teki ilk günümüzdü ve harika bir başlangıç yaptık. Hızlı botla adaları gezmek rüya gibiydi, yerel rehberlik ve transferler kusursuzdu.",
-    stars: 5,
-  },
-  {
-    name: "Emre T.",
-    type: "Arkadaş Grubu",
-    tour: "Özel VIP Yat (Katamaran)",
-    text: "Tüm gün özel yatımızda Phuket'in gizli koylarını keşfettik. Fiyat/performans olarak mükemmel bir deneyimdi. Kesinlikle herkese tavsiye ederim.",
-    stars: 5,
-  },
-  {
-    name: "Zeynep K.",
-    type: "Aile Seyahati",
-    tour: "Fil Safari & Macera",
-    text: "Çocuklarla birlikte katıldık, fillerle vakit geçirmek hayatımızın en güzel anılarından biri oldu. Türkçe iletişim kurabilmek bizi çok rahatlattı.",
-    stars: 5,
-  }
-];
+import reviews from '@/content/settings/testimonials.json';
 ---
 <section class="testimonials-section section">
   <div class="wb-container">
@@ -31,7 +9,7 @@ const reviews = [
     </div>
 
     <div class="testimonials-grid">
-      {reviews.map((review, i) => (
+      {reviews.testimonials.map((review: any, i: number) => (
         <div class="testimonial-card animate-fade-up" style={`animation-delay: ${i * 0.1}s;`}>
           <div class="testimonial-stars">
             {Array.from({ length: review.stars }).map(() => (
