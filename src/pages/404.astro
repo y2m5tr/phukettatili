@@ -1,37 +1,71 @@
 ---
 import Layout from '@/layouts/Layout.astro';
-import { buildWhatsAppUrl } from '@/utils/whatsapp';
+import { getCollection } from 'astro:content';
 
-const waUrl = buildWhatsAppUrl('Sayfa Bulunamadı - Yardım');
+const tours = await getCollection('tours');
+const popularTours = tours.filter(t => t.data.featured).slice(0, 3);
 ---
 
-<Layout
-  title="Sayfa Bulunamadı"
-  description="Aradığınız sayfa taşınmış veya silinmiş olabilir."
-  breadcrumbTitle="404"
+<Layout 
+  title="Sayfa Bulunamadı" 
+  description="Aradığınız sayfa bulunamadı."
 >
-  <section class="shell" style="padding-block: var(--space-4xl); text-align: center; max-width: 600px;">
-    <span class="wb-eyebrow" style="font-size: 14px;">Hata 404</span>
-    <h1 style="font-size: clamp(2.5rem, 5vw, 4rem); margin: 12px 0 20px; font-family: var(--font-display);">Sayfa Bulunamadı</h1>
-    <p style="font-size: 1.125rem; color: var(--wb-olive); line-height: 1.6; margin-bottom: 32px;">
-      Aradığınız rota veya sayfa adresi değişmiş olabilir. Ana sayfaya dönebilir veya turlarımızı inceleyebilirsiniz.
-    </p>
-
-    <div style="display: flex; gap: var(--space-md); justify-content: center; flex-wrap: wrap;">
-      <a class="wb-button wb-button--text" href="/">Ana Sayfaya Dön</a>
-      <a class="wb-button wb-button--text" href="/turlar/">Turları İncele</a>
-      <a class="wb-button wb-button--primary" href={waUrl} target="_blank" rel="noopener">
-        <img
-          src="/assets/whatsapp-mark.svg"
-          alt=""
-          width="18"
-          height="18"
-          aria-hidden="true"
-          loading="lazy"
-          decoding="async"
-        />
-        WhatsApp'tan Sor ↗
-      </a>
+  <section class="error-section">
+    <div class="wb-container">
+      <div class="error-content">
+        <h1 class="error-code">404</h1>
+        <h2 class="h2-display">Görünüşe göre rotadan çıktınız...</h2>
+        <p class="error-desc">
+          Aradığınız sayfayı bulamadık. Ya link değişmiş olabilir ya da tur yayından kaldırılmış olabilir. Endişelenmeyin, Phuket maceranız hala sizi bekliyor.
+        </p>
+        
+        <div class="error-actions">
+          <a href="/" class="wb-button wb-button--primary">Ana Sayfaya Dön</a>
+          <a href="/turlar/" class="wb-button wb-button--outline">Tüm Turları Keşfet</a>
+        </div>
+      </div>
     </div>
   </section>
 </Layout>
+
+<style>
+  .error-section {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-block: var(--space-4xl);
+    background: var(--wb-warm-white);
+  }
+
+  .error-content {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  .error-code {
+    font-size: clamp(6rem, 15vw, 12rem);
+    font-family: var(--font-display);
+    font-weight: 700;
+    color: var(--wb-clay);
+    line-height: 1;
+    margin-bottom: var(--space-md);
+    opacity: 0.2;
+  }
+
+  .error-desc {
+    color: var(--wb-ink);
+    opacity: 0.8;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    margin-bottom: var(--space-xl);
+  }
+
+  .error-actions {
+    display: flex;
+    gap: var(--space-md);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+</style>

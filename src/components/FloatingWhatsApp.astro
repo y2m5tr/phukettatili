@@ -65,7 +65,7 @@ const waUrl = buildWhatsAppUrl(context);
   padding: 14px 20px;
   background: var(--wb-clay);
   color: var(--wb-warm-white);
-  border-radius: var(--radius-sm);
+  border-radius: 99px;
   font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.05em;
@@ -76,12 +76,20 @@ const waUrl = buildWhatsAppUrl(context);
   z-index: 2;
   max-width: 280px;
   word-break: break-word;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 0 0 rgba(201, 107, 85, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(201, 107, 85, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 107, 85, 0); }
 }
 
 .wa-button:hover {
   background: var(--wb-ink);
   transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(201, 107, 85, 0.4);
+  animation: none;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
 .wa-button:active {
