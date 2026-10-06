@@ -115,7 +115,7 @@ const waUrl = buildWhatsAppUrl('Tur Seçimi ve Planlama');
   </section>
 </Layout>
 
-<script>
+<script>document.addEventListener("astro:page-load", () => {
   const searchInput = document.getElementById('tour-search') as HTMLInputElement;
   const filterButtons = document.querySelectorAll('#category-filter-buttons button');
   const cards = document.querySelectorAll('#tours-grid .tour-card') as NodeListOf<HTMLElement>;
@@ -166,7 +166,7 @@ const waUrl = buildWhatsAppUrl('Tur Seçimi ve Planlama');
 
   // Initial filter to show all tours
   filterTours();
-</script>
+});</script>
 
 <style>
 /* Archive-specific styles */

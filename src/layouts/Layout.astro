@@ -4,6 +4,7 @@ import Footer from '@/components/Footer.astro';
 import FloatingWhatsApp from '@/components/FloatingWhatsApp.astro';
 import Tracking from '@/components/Tracking.astro';
 import generalSettings from '@/content/settings/general.json';
+import { ViewTransitions } from 'astro:transitions';
 import '@/styles/global.css';
 
 interface Props {
@@ -52,6 +53,7 @@ const defaultSchema = {
     <meta name="description" content={description} />
     <meta name="theme-color" content="#F5EFE6" />
     <meta name="color-scheme" content="light" />
+    <ViewTransitions />
     <link rel="canonical" href={canonicalURL} />
     
     <!-- Open Graph -->

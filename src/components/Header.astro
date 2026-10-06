@@ -108,7 +108,7 @@ const waUrl = buildWhatsAppUrl('Merhaba! Phuket turları hakkında bilgi almak i
   </nav>
 )}
 
-<script is:inline>
+<script>document.addEventListener("astro:page-load", () => {
   const header = document.getElementById('site-header');
   const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
   const mobileNav = document.getElementById('mobile-nav');
@@ -153,7 +153,7 @@ const waUrl = buildWhatsAppUrl('Merhaba! Phuket turları hakkında bilgi almak i
       });
     }
   }
-</script>
+});</script>
 
 <style>
 /* Header Styles */
