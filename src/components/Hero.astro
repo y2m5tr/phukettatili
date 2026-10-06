@@ -1,18 +1,57 @@
 ---
 import { WHATSAPP_NUMBER } from '@/utils/whatsapp';
-import { Image } from 'astro:assets';
-import heroImg from '@/assets/pileh.webp';
+
+const heroSlides = [
+  { src: 'pileh.webp', alt: 'Turkuaz göllerden görülen Phuket adaları', badge: 'Ada Manzarası' },
+  { src: 'beachclub.webp', alt: 'Kumsalda keyifli vakit geçirme', badge: 'Plaj Keyfi' },
+  { src: 'yacht.webp', alt: 'Lüks özel yat turu', badge: 'VIP Deneyim' },
+  { src: 'family.webp', alt: 'Aileyle şirin tatil', badge: 'Aile Turu' },
+];
 ---
 
 <section class="hero">
   <div class="hero-container">
+    <div class="hero-slider-container">
+      <div id="hero-slider" class="hero-slider" aria-hidden="true">
+        {heroSlides.map((slide: { src: string; alt: string; badge: string }, index: number) => (
+          <div class={"hero-slide" + (index === 0 ? " active" : "")} data-index={index}>
+            <div class="hero-slide-badge">{slide.badge}</div>
+            <img 
+              src={`/assets/${slide.src}`} 
+              alt={slide.alt} 
+              loading={index === 0 ? "eager" : "lazy"} 
+            />
+          </div>
+        ))}
+      </div>
+      
+      <button id="prev-slide" class="slider-btn slider-btn--prev" aria-label="Önceki görsel">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="15" y1="18" x2="9" y2="6"></line>
+          <line x1="9" y1="18" x2="15" y2="6"></line>
+        </svg>
+      </button>
+      <button id="next-slide" class="slider-btn slider-btn--next" aria-label="Sonraki görsel">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+          <line x1="9" y1="18" x2="15" y2="6"></line>
+          <line x1="15" y1="18" x2="9" y2="6"></line>
+        </svg>
+      </button>
+      
+      <div id="slider-dots" class="slider-dots" role="tablist">
+        {heroSlides.map((_, index) => (
+          <button type="button" class={"slider-dot" + (index === 0 ? " active" : "")} data-index={index} aria-label={"Görsel " + (index + 1)} role="tab"></button>
+        ))}
+      </div>
+    </div>
+    
     <div class="hero-text">
       <span class="wb-eyebrow">Keyif dolu bir yolculuk</span>
       <h2 class="hero-title h1-display">Phuket, sizin ritminizde.</h2>
       <p class="hero-lead">
         Arkadaşlarını ve aileni topla. Ritminize göre Phuket'te Türkçe yerel destekle tatilinizi kurgulayın.
       </p>
-      <!-- SMART TOUR FINDER WIDGET -->
+      
       <div class="hero-finder animate-fade-up" style="animation-delay: 0.2s;">
         <div class="finder-glass">
           <div class="finder-group">
@@ -46,21 +85,74 @@ import heroImg from '@/assets/pileh.webp';
           </button>
         </div>
       </div>
-      <!-- END WIDGET -->
 
       <div class="hero-support animate-fade-up" style="animation-delay: 0.3s;">
         <img src="/assets/logo-favicon.png" alt="Türkçe yerel destek" width="20" height="20" loading="lazy" style="border-radius: 50%;" />
         <span>Phuket'te Türkçe yerel destek</span>
       </div>
     </div>
-    <div class="hero-image animate-fade-up" style="animation-delay: 0.4s;">
-      <Image src={heroImg} alt="Phuket adalarından görülen turkuaz sular" width={1200} height={900} format="webp" loading="eager" fetchpriority="high" />
-    </div>
   </div>
 </section>
 
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    const slider = document.getElementById('hero-slider');
+    const slides = document.querySelectorAll('.hero-slide');
+    const dots = document.querySelectorAll('.slider-dot');
+    const prevBtn = document.getElementById('prev-slide');
+    const nextBtn = document.getElementById('next-slide');
+    let currentSlide = 0;
+    
+    const showSlide = (slideIndex: number) => {
+      slides.forEach(slide => slide.classList.remove('active'));
+      dots.forEach(dot => dot.classList.remove('active'));
+      
+      let index = slideIndex;
+      if (index < 0) index = slides.length - 1;
+      if (index >= slides.length) index = 0;
+      
+      slides[index].classList.add('active');
+      dots[index].classList.add('active');
+      currentSlide = index;
+    };
+    
+    const nextSlide = () => showSlide(currentSlide + 1);
+    const prevSlide = () => showSlide(currentSlide - 1);
+    
+    prevBtn?.addEventListener('click', prevSlide);
+    nextBtn?.addEventListener('click', nextSlide);
+    
+    dots?.forEach((dot, index) => {
+      dot.addEventListener('click', () => showSlide(index));
+      dot.addEventListener('keydown', (e) => {
+        const event = e as KeyboardEvent;
+        if (event.key === 'Enter' || event.key === ' ') {
+          e.preventDefault();
+          showSlide(index);
+        }
+      });
+    });
+    
+    let autoSlide = setInterval(nextSlide, 6000);
+    
+    slider?.addEventListener('mouseenter', () => clearInterval(autoSlide));
+    slider?.addEventListener('mouseleave', () => {
+      autoSlide = setInterval(nextSlide, 6000);
+    });
+    
+    let startX = 0;
+    slider?.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    });
+    slider?.addEventListener('touchend', (e) => {
+      const endX = e.changedTouches[0].clientX;
+      const diff = startX - endX;
+      if (Math.abs(diff) > 50) {
+        if (diff > 0) nextSlide();
+        else prevSlide();
+      }
+    });
+    
     const btn = document.getElementById('finder-submit');
     if (!btn) return;
     
@@ -85,7 +177,117 @@ import heroImg from '@/assets/pileh.webp';
   background: var(--wb-warm-white);
 }
 
-/* SMART TOUR FINDER STYLES */
+.hero-slider-container {
+  position: relative;
+  margin-bottom: var(--space-3xl);
+}
+
+.hero-slider {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  height: 480px;
+}
+
+.hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.hero-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.hero-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-slide-badge {
+  position: absolute;
+  top: var(--space-lg);
+  left: var(--space-lg);
+  background: rgba(201, 107, 85, 0.9);
+  color: var(--wb-warm-white);
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  backdrop-filter: blur(8px);
+}
+
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.slider-btn:hover {
+  background: var(--wb-clay);
+  color: var(--wb-warm-white);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.slider-btn--prev { left: 1rem; }
+.slider-btn--next { right: 1rem; }
+
+.slider-btn svg {
+  stroke: var(--wb-ink);
+}
+
+.slider-btn:hover svg {
+  stroke: var(--wb-warm-white);
+}
+
+.slider-dots {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.slider-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.slider-dot:hover,
+.slider-dot.active {
+  background: var(--wb-clay);
+}
+
+.hero-text {
+  max-width: 45ch;
+}
+
 .hero-finder {
   margin-top: var(--space-xl);
 }
@@ -123,8 +325,8 @@ import heroImg from '@/assets/pileh.webp';
 .finder-group select,
 .finder-group input {
   padding: 0.6rem 0.75rem;
-  height: 48px; /* Her iki kutunun boyutunu eşitler */
-  box-sizing: border-box; /* Padding'in yüksekliği bozmasını engeller */
+  height: 48px;
+  box-sizing: border-box;
   border: 1px solid var(--wb-line);
   border-radius: var(--radius-md);
   background: var(--wb-warm-white);
@@ -161,8 +363,6 @@ import heroImg from '@/assets/pileh.webp';
     padding: var(--space-lg);
   }
 }
-/* END SMART FINDER */
-
 
 .hero-container {
   display: grid;
@@ -183,33 +383,6 @@ import heroImg from '@/assets/pileh.webp';
   max-width: 45ch;
   color: var(--wb-olive);
   line-height: 1.6;
-}
-
-.hero-actions {
-  display: flex;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
-  flex-wrap: wrap;
-}
-
-.hero-support {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-sm);
-  margin-top: var(--space-lg);
-  font-size: 0.875rem;
-  color: var(--wb-olive);
-}
-
-.hero-support img {
-  filter: brightness(0) invert(1);
-}
-
-.hero-image img {
-  width: 100%;
-  height: auto;
-  border-radius: var(--radius-xl);
-  object-fit: cover;
 }
 
 .wb-eyebrow {
@@ -234,6 +407,18 @@ import heroImg from '@/assets/pileh.webp';
 .h2-display { font-size: clamp(2rem, 4vw, 3rem); }
 .h3-display { font-size: clamp(1.5rem, 3vw, 2.25rem); }
 
+@media (max-width: 1024px) {
+  .hero-container {
+    grid-template-columns: 1fr;
+  }
+  .hero-text {
+    text-align: center;
+  }
+  .hero-slider {
+    height: 400px;
+  }
+}
+
 @media (max-width: 768px) {
   .hero-container {
     grid-template-columns: 1fr;
@@ -248,14 +433,16 @@ import heroImg from '@/assets/pileh.webp';
   .hero-container {
     gap: var(--space-lg);
   }
+  .hero-slider {
+    height: 320px;
+  }
   .h1-display {
     font-size: clamp(1.75rem, 4vw, 2.5rem);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .hero {
+  .hero-slide {
     transition: none;
   }
-}
-</style>
+}</style>
