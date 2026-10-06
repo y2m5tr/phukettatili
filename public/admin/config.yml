@@ -123,7 +123,8 @@ collections:
       - { label: "Alt Kategori", name: "subcategory", widget: "string", required: false }
       - { label: "Kategori Etiketi", name: "category_label", widget: "string", hint: "Örn: Phi Phi Adaları" }
       - { label: "Kısa Açıklama", name: "excerpt", widget: "text" }
-      - { label: "Görsel", name: "image", widget: "image" }
+      - { label: "Kapak Görseli", name: "image", widget: "image" }
+      - { label: "Galeri Görselleri (İsteğe Bağlı)", name: "gallery", widget: "list", field: { label: "Görsel", name: "image", widget: "image" }, required: false }
       - { label: "Fiyat Tipi", name: "price_type", widget: "select", options: ["fixed", "quote"], default: "quote" }
       - { label: "Fiyat (THB)", name: "price_thb", widget: "number", required: false }
       - { label: "Süre", name: "duration", widget: "string", default: "Tam gün" }

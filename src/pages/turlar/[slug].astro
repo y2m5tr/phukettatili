@@ -67,23 +67,49 @@ const schema = {
   categorySlug={data.category}
   schema={schema}
 >
-  <!-- TOUR HERO -->
-  <section class="tour-hero" style={`background-image: url('/assets/${data.image}');`}>
+  <!-- TOUR HERO (GALERİ VEYA TEK RESİM) -->
+  <section class="tour-hero">
+    <div class="tour-gallery-slider" id="tour-gallery-slider">
+      {data.gallery && data.gallery.length > 0 ? (
+        data.gallery.map((imgName: string, index: number) => (
+          <div class={`tour-gallery-slide ${index === 0 ? 'active' : ''}`}>
+            <img src={`/assets/${imgName}`} alt={`${data.title} - Görsel ${index + 1}`} loading={index === 0 ? "eager" : "lazy"} />
+          </div>
+        ))
+      ) : (
+        <div class="tour-gallery-slide active">
+          <img src={`/assets/${data.image}`} alt={data.title} loading="eager" />
+        </div>
+      )}
+      
+      {data.gallery && data.gallery.length > 1 && (
+        <>
+          <button class="slider-btn slider-btn--prev" id="prev-tour-slide" aria-label="Önceki Görsel">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 18L9 12L15 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <button class="slider-btn slider-btn--next" id="next-tour-slide" aria-label="Sonraki Görsel">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 18L15 12L9 6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="slider-dots" id="tour-slider-dots">
+            {data.gallery.map((_: any, index: number) => (
+              <button class={`slider-dot ${index === 0 ? 'active' : ''}`} aria-label={`Görsel ${index + 1}`}></button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+
+    <div class="tour-hero-overlay"></div>
+
     <div class="wb-container tour-hero__inner">
-      <a
-        href="/turlar/"
-        class="tour-hero-back"
-      >
-        ← Tüm Turlara Dön
-      </a>
-      
+      <a href="/turlar/" class="tour-hero-back">← Tüm Turlara Dön</a>
       <div class="tour-hero__kicker">{data.category_label}</div>
-      
       <h1 class="h1-display">{data.title}</h1>
-      
-      <p class="tour-hero-excerpt">
-        {data.excerpt}
-      </p>
+      <p class="tour-hero-excerpt">{data.excerpt}</p>
 
       <dl class="tour-meta">
         <div>
@@ -330,6 +356,59 @@ const schema = {
 
     if (dateInput) dateInput.addEventListener('change', updateWaLink);
     if (paxInput) paxInput.addEventListener('change', updateWaLink);
+    
+    // GALERİ SLIDER MANTIĞI
+    const slider = document.getElementById('tour-gallery-slider');
+    if (slider) {
+      const slides = slider.querySelectorAll('.tour-gallery-slide');
+      const dots = document.querySelectorAll('#tour-slider-dots .slider-dot');
+      const prevBtn = document.getElementById('prev-tour-slide');
+      const nextBtn = document.getElementById('next-tour-slide');
+      
+      if (slides.length > 1) {
+        let currentSlide = 0;
+        
+        const showSlide = (index: number) => {
+          slides.forEach(s => s.classList.remove('active'));
+          dots.forEach(d => d.classList.remove('active'));
+          
+          let newIndex = index;
+          if (newIndex < 0) newIndex = slides.length - 1;
+          if (newIndex >= slides.length) newIndex = 0;
+          
+          slides[newIndex].classList.add('active');
+          if (dots[newIndex]) dots[newIndex].classList.add('active');
+          currentSlide = newIndex;
+        };
+        
+        const nextSlide = () => showSlide(currentSlide + 1);
+        const prevSlide = () => showSlide(currentSlide - 1);
+        
+        prevBtn?.addEventListener('click', prevSlide);
+        nextBtn?.addEventListener('click', nextSlide);
+        
+        dots.forEach((dot, i) => {
+          dot.addEventListener('click', () => showSlide(i));
+        });
+        
+        // Touch Swipe
+        let startX = 0;
+        slider.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, {passive: true});
+        slider.addEventListener('touchend', (e) => {
+          const endX = e.changedTouches[0].clientX;
+          const diff = startX - endX;
+          if (Math.abs(diff) > 50) {
+            if (diff > 0) nextSlide();
+            else prevSlide();
+          }
+        });
+        
+        // Auto slide
+        let autoSlide = setInterval(nextSlide, 5000);
+        slider.addEventListener('mouseenter', () => clearInterval(autoSlide));
+        slider.addEventListener('mouseleave', () => autoSlide = setInterval(nextSlide, 5000));
+      }
+    }
   });
 </script>
 
@@ -337,8 +416,6 @@ const schema = {
 /* Tour Detail Styles */
 .tour-hero {
   position: relative;
-  background-size: cover;
-  background-position: center;
   min-height: 60vh;
   display: flex;
   align-items: center;
@@ -346,18 +423,97 @@ const schema = {
   overflow: hidden;
 }
 
-.tour-hero::before {
-  content: '';
+.tour-gallery-slider {
   position: absolute;
   inset: 0;
-  background: linear-gradient(rgba(23, 42, 57, 0.4), rgba(23, 42, 57, 0.6));
+  width: 100%;
+  height: 100%;
   z-index: 0;
+}
+
+.tour-gallery-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.tour-gallery-slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.tour-gallery-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tour-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(rgba(23, 42, 57, 0.4), rgba(23, 42, 57, 0.7));
+  z-index: 1;
 }
 
 .tour-hero__inner {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   max-width: 60ch;
+}
+
+.slider-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 10;
+}
+
+.slider-btn:hover {
+  background: rgba(255, 255, 255, 0.4);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.slider-btn--prev { left: var(--space-md); }
+.slider-btn--next { right: var(--space-md); }
+
+.slider-btn svg { stroke: var(--wb-warm-white); }
+
+.slider-dots {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.slider-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.slider-dot:hover,
+.slider-dot.active {
+  background: var(--wb-warm-white);
 }
 
 .tour-hero-back {

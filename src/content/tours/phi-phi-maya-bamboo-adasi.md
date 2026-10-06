@@ -5,6 +5,11 @@ subcategory: "phi-phi-islands"
 category_label: "Phi Phi Adaları"
 excerpt: "Turkuaz koylar, Maya Bay, Pileh Lagoon ve Bamboo Adası'nda gün boyu süren tropikal ada deneyimi."
 image: "pileh.webp"
+gallery:
+  - "pileh.webp"
+  - "beach.webp"
+  - "bay.webp"
+  - "underwater.webp"
 price_type: "quote"
 price_thb: null
 duration: "Tam gün"

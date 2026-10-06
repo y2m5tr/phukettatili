@@ -11,6 +11,7 @@ const toursCollection = defineCollection({
     category_label: z.string(),
     excerpt: z.string(),
     image: z.string().default('pileh.webp'),
+    gallery: z.array(z.string()).default([]),
     price_type: z.enum(['fixed', 'starting', 'quote']).default('quote'),
     price_thb: z.number().nullable().optional(),
     duration: z.string().default('Tam gün'),
