@@ -24,7 +24,7 @@
 <script>
   // Kur çevirici mantığı (Sabit kur veya API üzerinden)
   // Şimdilik API kullanımı olmadan günlük ortalama bir kur (örn: 1 THB = 0.95 TRY) ile başlayabilir veya exchangerate-api kullanabiliriz.
-  document.addEventListener('astro:page-load', async () => {
+  document.addEventListener('DOMContentLoaded', async () => {
     const thbInput = document.getElementById('thb-input') as HTMLInputElement;
     const tryInput = document.getElementById('try-input') as HTMLInputElement;
     const rateInfo = document.getElementById('exchange-rate-info') as HTMLDivElement;
