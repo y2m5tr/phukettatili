@@ -79,8 +79,21 @@ const servicesCollection = defineCollection({
   }),
 });
 
+const blogCollection = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
+  schema: z.object({
+    title: z.string(),
+    excerpt: z.string(),
+    cover_image: z.string().default('pileh.webp'),
+    date: z.date(),
+    author: z.string().default('Phuket Tatili Ekibi'),
+    featured: z.boolean().default(false),
+  }),
+});
+
 export const collections = {
   tours: toursCollection,
   categories: categoriesCollection,
   services: servicesCollection,
+  blog: blogCollection,
 };

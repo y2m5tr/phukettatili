@@ -112,6 +112,20 @@ collections:
       - { label: "WhatsApp Başlığı (Bağlam)", name: "cta_context", widget: "string" }
       - { label: "WhatsApp Mesajı Şablonu", name: "cta_details", widget: "text" }
 
+  - name: "blog"
+    label: "Gezi Rehberi (Blog)"
+    folder: "src/content/blog"
+    create: true
+    slug: "{{slug}}"
+    fields:
+      - { label: "Makale Başlığı", name: "title", widget: "string" }
+      - { label: "Kısa Açıklama (Özet)", name: "excerpt", widget: "text" }
+      - { label: "Kapak Fotoğrafı", name: "cover_image", widget: "image" }
+      - { label: "Yayın Tarihi", name: "date", widget: "datetime", date_format: "YYYY-MM-DD", time_format: false }
+      - { label: "Yazar", name: "author", widget: "string", default: "Phuket Tatili Ekibi" }
+      - { label: "Öne Çıkan Yazı Mı?", name: "featured", widget: "boolean", default: false, required: false }
+      - { label: "Makale İçeriği", name: "body", widget: "markdown" }
+
   - name: "tours"
     label: "Turlar"
     folder: "src/content/tours"

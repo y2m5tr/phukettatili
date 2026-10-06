@@ -1,0 +1,125 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const blogEntries = await getCollection('blog');
+  return blogEntries.map((entry: any) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+<Layout 
+  title={entry.data.title}
+  description={entry.data.excerpt}
+  image={`/assets/${entry.data.cover_image}`}
+  breadcrumbTitle={entry.data.title}
+  categoryLabel="Gezi Rehberi"
+  categorySlug="rehber"
+>
+  <article class="blog-article">
+    <div class="blog-hero" style={`background-image: linear-gradient(rgba(23, 42, 57, 0.4), rgba(23, 42, 57, 0.8)), url('/assets/${entry.data.cover_image}');`}>
+      <div class="wb-container blog-hero-inner">
+        <a href="/rehber/" class="back-link">← Rehbere Dön</a>
+        <div class="blog-meta">
+          <span>{entry.data.author}</span>
+          <span>•</span>
+          <span>{new Date(entry.data.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+        </div>
+        <h1 class="h1-display">{entry.data.title}</h1>
+      </div>
+    </div>
+    
+    <div class="wb-container blog-content-container">
+      <div class="blog-content prose">
+        <Content />
+      </div>
+    </div>
+  </article>
+</Layout>
+
+<style>
+.blog-hero {
+  padding-block: var(--space-4xl);
+  min-height: 50vh;
+  display: flex;
+  align-items: center;
+  background-size: cover;
+  background-position: center;
+  color: var(--wb-warm-white);
+}
+
+.blog-hero-inner {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.back-link {
+  color: var(--wb-warm-white);
+  text-decoration: underline;
+  text-decoration-color: rgba(255,255,255,0.5);
+  font-size: 0.875rem;
+  margin-bottom: var(--space-lg);
+  display: inline-block;
+}
+
+.blog-meta {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+  opacity: 0.9;
+  margin-bottom: var(--space-sm);
+  color: var(--wb-clay);
+  font-weight: 500;
+}
+
+.blog-content-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding-block: var(--space-2xl);
+}
+
+.prose {
+  color: var(--wb-ink);
+  line-height: 1.8;
+  font-size: 1.1rem;
+}
+
+.prose :global(h2) {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  color: var(--wb-ink);
+}
+
+.prose :global(h3) {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.prose :global(p) {
+  margin-bottom: 1.5rem;
+}
+
+.prose :global(ul), .prose :global(ol) {
+  margin-bottom: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.prose :global(li) {
+  margin-bottom: 0.5rem;
+}
+
+.prose :global(img) {
+  width: 100%;
+  border-radius: var(--radius-lg);
+  margin-block: 2rem;
+}
+</style>
