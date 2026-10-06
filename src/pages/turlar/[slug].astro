@@ -73,12 +73,12 @@ const schema = {
       {data.gallery && data.gallery.length > 0 ? (
         data.gallery.map((imgName: string, index: number) => (
           <div class={`tour-gallery-slide ${index === 0 ? 'active' : ''}`}>
-            <img src={`/assets/${imgName}`} alt={`${data.title} - Görsel ${index + 1}`} loading={index === 0 ? "eager" : "lazy"} />
+            <img src={`/assets/${imgName}`} alt={`${data.title} - Görsel ${index + 1}`} loading={index === 0 ? "eager" : "lazy"} data-lightbox="tour-gallery" />
           </div>
         ))
       ) : (
         <div class="tour-gallery-slide active">
-          <img src={`/assets/${data.image}`} alt={data.title} loading="eager" />
+          <img src={`/assets/${data.image}`} alt={data.title} loading="eager" data-lightbox="tour-gallery" />
         </div>
       )}
       

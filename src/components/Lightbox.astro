@@ -1,0 +1,237 @@
+---
+---
+<div id="wb-lightbox" class="wb-lightbox" aria-hidden="true">
+  <div class="wb-lightbox-overlay" id="wb-lightbox-close-bg"></div>
+  
+  <div class="wb-lightbox-content">
+    <button id="wb-lightbox-close" class="wb-lightbox-close" aria-label="Kapat">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
+    
+    <button id="wb-lightbox-prev" class="wb-lightbox-btn wb-lightbox-prev" aria-label="Önceki">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M15 18l-6-6 6-6"/>
+      </svg>
+    </button>
+    
+    <div class="wb-lightbox-img-wrapper">
+      <img id="wb-lightbox-img" src="" alt="Tam ekran görsel" />
+    </div>
+    
+    <button id="wb-lightbox-next" class="wb-lightbox-btn wb-lightbox-next" aria-label="Sonraki">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const lightbox = document.getElementById('wb-lightbox');
+    const lightboxImg = document.getElementById('wb-lightbox-img') as HTMLImageElement;
+    const btnClose = document.getElementById('wb-lightbox-close');
+    const btnCloseBg = document.getElementById('wb-lightbox-close-bg');
+    const btnPrev = document.getElementById('wb-lightbox-prev');
+    const btnNext = document.getElementById('wb-lightbox-next');
+    
+    if (!lightbox || !lightboxImg) return;
+
+    let currentGallery: HTMLImageElement[] = [];
+    let currentIndex = 0;
+
+    const openLightbox = (index: number) => {
+      currentIndex = index;
+      lightboxImg.src = currentGallery[currentIndex].src;
+      lightboxImg.alt = currentGallery[currentIndex].alt;
+      
+      lightbox.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden'; // Arka plan kaymasını engelle
+      
+      // Tek resimse okları gizle
+      const showArrows = currentGallery.length > 1;
+      if (btnPrev) btnPrev.style.display = showArrows ? 'flex' : 'none';
+      if (btnNext) btnNext.style.display = showArrows ? 'flex' : 'none';
+    };
+
+    const closeLightbox = () => {
+      lightbox.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      setTimeout(() => { lightboxImg.src = ''; }, 300); // animasyon bitimi
+    };
+
+    const nextImage = () => {
+      if (currentGallery.length <= 1) return;
+      currentIndex = (currentIndex + 1) % currentGallery.length;
+      openLightbox(currentIndex);
+    };
+
+    const prevImage = () => {
+      if (currentGallery.length <= 1) return;
+      currentIndex = (currentIndex - 1 + currentGallery.length) % currentGallery.length;
+      openLightbox(currentIndex);
+    };
+
+    // Tüm "data-lightbox" etiketli resimleri bul
+    const triggers = document.querySelectorAll('img[data-lightbox]');
+    
+    triggers.forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        const target = e.target as HTMLImageElement;
+        const galleryName = target.getAttribute('data-lightbox');
+        
+        // Aynı galeri adına sahip tüm resimleri topla
+        if (galleryName && galleryName !== 'true') {
+          currentGallery = Array.from(document.querySelectorAll(`img[data-lightbox="${galleryName}"]`));
+        } else {
+          currentGallery = [target]; // Tekil resim
+        }
+        
+        const index = currentGallery.indexOf(target);
+        openLightbox(index !== -1 ? index : 0);
+      });
+      
+      // Tıklanabilir olduğunu belli eden cursor eklentisi
+      (trigger as HTMLElement).style.cursor = 'zoom-in';
+    });
+
+    // Olay Dinleyicileri (Event Listeners)
+    btnClose?.addEventListener('click', closeLightbox);
+    btnCloseBg?.addEventListener('click', closeLightbox);
+    btnNext?.addEventListener('click', nextImage);
+    btnPrev?.addEventListener('click', prevImage);
+
+    // Klavye kontrolleri
+    document.addEventListener('keydown', (e) => {
+      if (lightbox.getAttribute('aria-hidden') === 'false') {
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowRight') nextImage();
+        if (e.key === 'ArrowLeft') prevImage();
+      }
+    });
+  });
+</script>
+
+<style>
+.wb-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.wb-lightbox[aria-hidden="false"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+.wb-lightbox-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 15, 20, 0.95);
+  backdrop-filter: blur(8px);
+  cursor: zoom-out;
+}
+
+.wb-lightbox-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.wb-lightbox-img-wrapper {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  pointer-events: auto;
+}
+
+.wb-lightbox-img-wrapper img {
+  max-width: 100%;
+  max-height: 90vh;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+  transform: scale(0.95);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.wb-lightbox[aria-hidden="false"] .wb-lightbox-img-wrapper img {
+  transform: scale(1);
+}
+
+.wb-lightbox-close {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.wb-lightbox-close:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.1);
+}
+
+.wb-lightbox-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.wb-lightbox-btn:hover {
+  background: rgba(255,255,255,0.2);
+  transform: translateY(-50%) scale(1.1);
+}
+
+.wb-lightbox-prev { left: 1.5rem; }
+.wb-lightbox-next { right: 1.5rem; }
+
+@media (max-width: 768px) {
+  .wb-lightbox-btn {
+    width: 44px;
+    height: 44px;
+  }
+  .wb-lightbox-prev { left: 0.5rem; }
+  .wb-lightbox-next { right: 0.5rem; }
+  .wb-lightbox-close { top: 1rem; right: 1rem; width: 40px; height: 40px; }
+  .wb-lightbox-img-wrapper { max-width: 100vw; }
+  .wb-lightbox-img-wrapper img { border-radius: 0; max-height: 80vh; }
+}
+</style>
