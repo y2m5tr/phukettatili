@@ -110,13 +110,13 @@ const waUrl = buildWhatsAppUrl('Merhaba! Phuket turları hakkında bilgi almak i
 )}
 
 <script>document.addEventListener("astro:page-load", () => {
-  const header = document.getElementById('site-header');
+  
   const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
   const mobileNav = document.getElementById('mobile-nav');
-  const servicesDropdownBtn = document.getElementById('services-dropdown-btn');
+  
   
   // Mobile menu toggle
-  const toggleMenu = (open) => {
+  const toggleMenu = (open: boolean) => {
     if (mobileMenuBtn) {
       mobileMenuBtn.setAttribute('aria-expanded', String(open));
       mobileMenuBtn.setAttribute('aria-label', open ? 'Menüyü kapat' : 'Menüyü aç');
@@ -143,14 +143,15 @@ const waUrl = buildWhatsAppUrl('Merhaba! Phuket turları hakkında bilgi almak i
       link.addEventListener('click', () => toggleMenu(false));
     });
     
-    // Toggle submenu
-    const submenuToggle = mobileNav.querySelector('[data-toggle-menu]');
+    const submenuToggle = mobileNav?.querySelector('[data-toggle-menu]');
     if (submenuToggle) {
       const submenu = submenuToggle.closest('details');
       submenuToggle.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        submenu.classList.toggle('open');
+        if (submenu) {
+          submenu.classList.toggle('open');
+        }
       });
     }
   }
