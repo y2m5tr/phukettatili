@@ -111,7 +111,7 @@ const schema = {
       <h1 class="h1-display">{data.title}</h1>
       <p class="tour-hero-excerpt">{data.excerpt}</p>
 
-      <dl class="tour-meta">
+      <dl class="tour-meta tour-hero-meta">
         <div>
           <dt>Süre</dt>
           <dd>{data.duration}</dd>
@@ -913,5 +913,13 @@ const schema = {
   .tour-layout {
     transition: none;
   }
+}
+
+/* Hero içindeki Süre/Fiyat gibi bilgileri aydınlık yapar */
+.tour-hero-meta dt {
+  color: rgba(255, 255, 255, 0.7) !important;
+}
+.tour-hero-meta dd {
+  color: var(--wb-warm-white) !important;
 }
 </style>
