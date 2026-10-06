@@ -106,33 +106,33 @@ const schema = {
     <div class="tour-hero-overlay"></div>
 
     <div class="wb-container tour-hero__inner">
-      <a href="/turlar/" class="tour-hero-back">← Tüm Turlara Dön</a>
-      <div class="tour-hero__kicker">{data.category_label}</div>
-      <h1 class="h1-display">{data.title}</h1>
-      <p class="tour-hero-excerpt">{data.excerpt}</p>
+      <a href="/turlar/" class="tour-hero-back" style="color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">← Tüm Turlara Dön</a>
+      <div class="tour-hero__kicker" style="color: #FFFFFF; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">{data.category_label}</div>
+      <h1 class="h1-display" style="color: #FFFFFF !important; text-shadow: 0 2px 4px rgba(0,0,0,0.8);">{data.title}</h1>
+      <p class="tour-hero-excerpt" style="color: #FFFFFF !important; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">{data.excerpt}</p>
 
-      <dl class="tour-meta tour-hero-meta">
+      <dl class="tour-meta tour-hero-meta" style="color: #FFFFFF;">
         <div>
-          <dt>Süre</dt>
-          <dd>{data.duration}</dd>
+          <dt style="color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Süre</dt>
+          <dd style="color: #FFFFFF !important; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">{data.duration}</dd>
         </div>
         <div>
-          <dt>Fiyat</dt>
-          <dd>{formattedPrice}</dd>
+          <dt style="color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Fiyat</dt>
+          <dd style="color: #FFFFFF !important; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">{formattedPrice}</dd>
         </div>
         <div>
-          <dt>Kategori</dt>
-          <dd>{data.category_label}</dd>
+          <dt style="color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Kategori</dt>
+          <dd style="color: #FFFFFF !important; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">{data.category_label}</dd>
         </div>
         {data.age_min && (
           <div>
-            <dt>Yaş Sınırı</dt>
-            <dd>{data.age_min}</dd>
+            <dt style="color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Yaş Sınırı</dt>
+            <dd style="color: #FFFFFF !important; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">{data.age_min}</dd>
           </div>
         )}
         {data.max_weight && (
           <div>
-            <dt>Maksimum Kilo</dt>
+            <dt style="color: rgba(255,255,255,0.9) !important; text-shadow: 0 1px 2px rgba(0,0,0,0.8);">Maksimum Kilo</dt>
             <dd>{data.max_weight} kg</dd>
           </div>
         )}
