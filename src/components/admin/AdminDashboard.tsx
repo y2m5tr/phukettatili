@@ -32,205 +32,212 @@ import {
   Star,
   Save,
   Check,
-  ChevronDown
+  ChevronDown,
+  BookOpen,
+  Car,
+  MessageSquareQuote,
+  LayoutTemplate
 } from 'lucide-react';
-import { initialBookings, type Booking, type TourItem } from '../../data/adminInitialData';
+import {
+  initialBookings,
+  type Booking,
+  type TourItem,
+  type FaqItem,
+  type TestimonialItem,
+  type ServiceItem,
+  type BlogItem
+} from '../../data/adminInitialData';
 
-const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v1';
-const STORAGE_KEY_TOURS = 'phuket_tatili_crm_tours_v1';
-const STORAGE_KEY_SITE = 'phuket_tatili_crm_site_settings_v1';
+const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v2';
+const STORAGE_KEY_TOURS = 'phuket_tatili_crm_tours_v2';
+const STORAGE_KEY_BLOGS = 'phuket_tatili_crm_blogs_v2';
+const STORAGE_KEY_SERVICES = 'phuket_tatili_crm_services_v2';
+const STORAGE_KEY_FAQS = 'phuket_tatili_crm_faqs_v2';
+const STORAGE_KEY_TESTIMONIALS = 'phuket_tatili_crm_testimonials_v2';
+const STORAGE_KEY_SITE = 'phuket_tatili_crm_site_settings_v2';
 const STORAGE_KEY_AUTH = 'phuket_tatili_admin_auth_v1';
 const ADMIN_PASSCODE = 'phuket2026';
-
-interface AdminDashboardProps {
-  initialTours: {
-    id: string;
-    title: string;
-    category: string;
-    categoryLabel?: string;
-    priceThb: number;
-    duration: string;
-    featured: boolean;
-    active?: boolean;
-    image: string;
-    excerpt?: string;
-  }[];
-}
 
 interface SiteSettingsState {
   whatsappNumber: string;
   email: string;
   siteTitle: string;
   instagramUrl: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroImage: string;
 }
 
-export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
-  // Authentication State
+interface AdminDashboardProps {
+  initialTours: TourItem[];
+  initialBlogs: BlogItem[];
+  initialServices: ServiceItem[];
+  initialFaqs: FaqItem[];
+  initialTestimonials: TestimonialItem[];
+  initialSiteSettings: SiteSettingsState;
+}
+
+export default function AdminDashboard({
+  initialTours,
+  initialBlogs,
+  initialServices,
+  initialFaqs,
+  initialTestimonials,
+  initialSiteSettings,
+}: AdminDashboardProps) {
+  // Auth State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [passcode, setPasscode] = useState<string>('');
   const [authError, setAuthError] = useState<string>('');
 
-  // Active Navigation Tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'tours' | 'whatsapp' | 'settings'>('overview');
+  // Active Tab
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'bookings' | 'tours' | 'blogs' | 'services' | 'faqs' | 'testimonials' | 'whatsapp' | 'settings'
+  >('overview');
 
-  // Bookings State
+  // 1. Bookings State
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
+  const [formData, setFormData] = useState<Partial<Booking>>({});
 
-  // Tours State (Full CRUD)
+  // 2. Tours State
   const [tours, setTours] = useState<TourItem[]>([]);
   const [tourSearchQuery, setTourSearchQuery] = useState<string>('');
   const [tourCategoryFilter, setTourCategoryFilter] = useState<string>('all');
   const [isTourModalOpen, setIsTourModalOpen] = useState<boolean>(false);
   const [editingTour, setEditingTour] = useState<TourItem | null>(null);
-  const [tourFormData, setTourFormData] = useState<Partial<TourItem>>({
-    title: '',
-    category: 'island-tours',
-    categoryLabel: 'Ada Turları',
-    priceThb: 3200,
-    duration: 'Tam Gün (08:00 - 17:00)',
-    featured: false,
-    active: true,
-    image: 'pileh.webp',
-  });
+  const [tourFormData, setTourFormData] = useState<Partial<TourItem>>({});
 
-  // Booking Modal State
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
-  const [formData, setFormData] = useState<Partial<Booking>>({
-    customerName: '',
-    phone: '',
-    email: '',
-    hotel: '',
-    roomNumber: '',
-    tourTitle: '',
-    tourDate: new Date().toISOString().split('T')[0],
-    pickupTime: '07:30',
-    adultCount: 2,
-    childCount: 0,
-    totalPriceThb: 6000,
-    paidAmountThb: 2000,
-    status: 'confirmed',
-    paymentStatus: 'partial',
-    specialNotes: '',
-  });
+  // 3. Blogs State
+  const [blogs, setBlogs] = useState<BlogItem[]>([]);
+  const [isBlogModalOpen, setIsBlogModalOpen] = useState<boolean>(false);
+  const [editingBlog, setEditingBlog] = useState<BlogItem | null>(null);
+  const [blogFormData, setBlogFormData] = useState<Partial<BlogItem>>({});
 
-  // Site Settings State
-  const [siteSettings, setSiteSettings] = useState<SiteSettingsState>({
-    whatsappNumber: '66828950665',
-    email: 'info@phukettatili.com',
-    siteTitle: 'Phuket Tatili',
-    instagramUrl: 'https://instagram.com/phukettatili',
-  });
+  // 4. Services State
+  const [services, setServices] = useState<ServiceItem[]>([]);
+  const [isServiceModalOpen, setIsServiceModalOpen] = useState<boolean>(false);
+  const [editingService, setEditingService] = useState<ServiceItem | null>(null);
+  const [serviceFormData, setServiceFormData] = useState<Partial<ServiceItem>>({});
+
+  // 5. FAQs State
+  const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [isFaqModalOpen, setIsFaqModalOpen] = useState<boolean>(false);
+  const [editingFaq, setEditingFaq] = useState<FaqItem | null>(null);
+  const [faqFormData, setFaqFormData] = useState<Partial<FaqItem>>({});
+
+  // 6. Testimonials State
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
+  const [isTestiModalOpen, setIsTestiModalOpen] = useState<boolean>(false);
+  const [editingTesti, setEditingTesti] = useState<TestimonialItem | null>(null);
+  const [testiFormData, setTestiFormData] = useState<Partial<TestimonialItem>>({});
+
+  // 7. Site Settings State
+  const [siteSettings, setSiteSettings] = useState<SiteSettingsState>(initialSiteSettings);
   const [settingsSaved, setSettingsSaved] = useState<boolean>(false);
 
-  // Load state on mount
+  // Initialize data on mount
   useEffect(() => {
     try {
       const auth = localStorage.getItem(STORAGE_KEY_AUTH);
-      if (auth === 'true') {
-        setIsAuthenticated(true);
-      }
-      
+      if (auth === 'true') setIsAuthenticated(true);
+
       // Load Bookings
       const savedBookings = localStorage.getItem(STORAGE_KEY_BOOKINGS);
-      if (savedBookings) {
-        setBookings(JSON.parse(savedBookings));
-      } else {
-        setBookings(initialBookings);
-        localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(initialBookings));
-      }
+      setBookings(savedBookings ? JSON.parse(savedBookings) : initialBookings);
 
       // Load Tours
       const savedTours = localStorage.getItem(STORAGE_KEY_TOURS);
-      if (savedTours) {
-        setTours(JSON.parse(savedTours));
-      } else {
-        const formatted: TourItem[] = initialTours.map((t) => ({
-          id: t.id,
-          title: t.title,
-          category: t.category,
-          categoryLabel: t.categoryLabel || t.category,
-          priceThb: t.priceThb,
-          duration: t.duration,
-          featured: t.featured,
-          active: true,
-          image: t.image,
-        }));
-        setTours(formatted);
-        localStorage.setItem(STORAGE_KEY_TOURS, JSON.stringify(formatted));
-      }
+      setTours(savedTours ? JSON.parse(savedTours) : initialTours);
 
-      // Load Site Settings
+      // Load Blogs
+      const savedBlogs = localStorage.getItem(STORAGE_KEY_BLOGS);
+      setBlogs(savedBlogs ? JSON.parse(savedBlogs) : initialBlogs);
+
+      // Load Services
+      const savedServices = localStorage.getItem(STORAGE_KEY_SERVICES);
+      setServices(savedServices ? JSON.parse(savedServices) : initialServices);
+
+      // Load FAQs
+      const savedFaqs = localStorage.getItem(STORAGE_KEY_FAQS);
+      setFaqs(savedFaqs ? JSON.parse(savedFaqs) : initialFaqs);
+
+      // Load Testimonials
+      const savedTestis = localStorage.getItem(STORAGE_KEY_TESTIMONIALS);
+      setTestimonials(savedTestis ? JSON.parse(savedTestis) : initialTestimonials);
+
+      // Load Settings
       const savedSettings = localStorage.getItem(STORAGE_KEY_SITE);
-      if (savedSettings) {
-        setSiteSettings(JSON.parse(savedSettings));
-      }
+      if (savedSettings) setSiteSettings(JSON.parse(savedSettings));
     } catch {
       setBookings(initialBookings);
+      setTours(initialTours);
     }
   }, []);
 
-  // Save Bookings to localStorage
-  const saveBookings = (newBookings: Booking[]) => {
-    setBookings(newBookings);
-    try {
-      localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(newBookings));
-    } catch (e) {
-      console.error(e);
-    }
+  // Save helpers
+  const saveBookings = (next: Booking[]) => {
+    setBookings(next);
+    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(next));
+  };
+  const saveTours = (next: TourItem[]) => {
+    setTours(next);
+    localStorage.setItem(STORAGE_KEY_TOURS, JSON.stringify(next));
+  };
+  const saveBlogs = (next: BlogItem[]) => {
+    setBlogs(next);
+    localStorage.setItem(STORAGE_KEY_BLOGS, JSON.stringify(next));
+  };
+  const saveServices = (next: ServiceItem[]) => {
+    setServices(next);
+    localStorage.setItem(STORAGE_KEY_SERVICES, JSON.stringify(next));
+  };
+  const saveFaqs = (next: FaqItem[]) => {
+    setFaqs(next);
+    localStorage.setItem(STORAGE_KEY_FAQS, JSON.stringify(next));
+  };
+  const saveTestimonials = (next: TestimonialItem[]) => {
+    setTestimonials(next);
+    localStorage.setItem(STORAGE_KEY_TESTIMONIALS, JSON.stringify(next));
   };
 
-  // Save Tours to localStorage
-  const saveTours = (newTours: TourItem[]) => {
-    setTours(newTours);
-    try {
-      localStorage.setItem(STORAGE_KEY_TOURS, JSON.stringify(newTours));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  // Login handler
+  // Auth
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (passcode === ADMIN_PASSCODE || passcode === 'admin123') {
       setIsAuthenticated(true);
       setAuthError('');
-      try {
-        localStorage.setItem(STORAGE_KEY_AUTH, 'true');
-      } catch {}
+      localStorage.setItem(STORAGE_KEY_AUTH, 'true');
     } else {
-      setAuthError('Hatalı yönetici şifresi! Lütfen tekrar deneyin.');
+      setAuthError('Hatalı yönetici şifresi!');
     }
   };
 
-  // Logout handler
   const handleLogout = () => {
     setIsAuthenticated(false);
-    try {
-      localStorage.removeItem(STORAGE_KEY_AUTH);
-    } catch {}
+    localStorage.removeItem(STORAGE_KEY_AUTH);
   };
 
   // Metrics
   const stats = useMemo(() => {
     const totalBookings = bookings.length;
-    const confirmedCount = bookings.filter(b => b.status === 'confirmed').length;
-    const pendingCount = bookings.filter(b => b.status === 'inquiry').length;
+    const confirmedCount = bookings.filter((b) => b.status === 'confirmed').length;
+    const pendingCount = bookings.filter((b) => b.status === 'inquiry').length;
     const totalRevenueThb = bookings
-      .filter(b => b.status !== 'cancelled')
+      .filter((b) => b.status !== 'cancelled')
       .reduce((acc, b) => acc + (b.totalPriceThb || 0), 0);
     const collectedRevenueThb = bookings
-      .filter(b => b.status !== 'cancelled')
+      .filter((b) => b.status !== 'cancelled')
       .reduce((acc, b) => acc + (b.paidAmountThb || 0), 0);
     const pendingCollectionThb = bookings
-      .filter(b => b.status !== 'cancelled')
+      .filter((b) => b.status !== 'cancelled')
       .reduce((acc, b) => acc + (b.remainingAmountThb || 0), 0);
     const totalGuests = bookings
-      .filter(b => b.status !== 'cancelled')
+      .filter((b) => b.status !== 'cancelled')
       .reduce((acc, b) => acc + (b.adultCount || 0) + (b.childCount || 0), 0);
 
     return {
@@ -244,42 +251,37 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     };
   }, [bookings]);
 
-  // Filtered Bookings
+  // Filters
   const filteredBookings = useMemo(() => {
-    return bookings.filter(b => {
-      const matchesSearch =
+    return bookings.filter((b) => {
+      const matchSearch =
         b.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         b.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
         b.hotel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.tourTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.id.toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
-      const matchesDate = !dateFilter || b.tourDate === dateFilter;
-
-      return matchesSearch && matchesStatus && matchesDate;
+        b.tourTitle.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchStatus = statusFilter === 'all' || b.status === statusFilter;
+      const matchDate = !dateFilter || b.tourDate === dateFilter;
+      return matchSearch && matchStatus && matchDate;
     });
   }, [bookings, searchQuery, statusFilter, dateFilter]);
 
-  // Filtered Tours
   const filteredTours = useMemo(() => {
-    return tours.filter(t => {
-      const matchesSearch = t.title.toLowerCase().includes(tourSearchQuery.toLowerCase());
-      const matchesCat = tourCategoryFilter === 'all' || t.category === tourCategoryFilter;
-      return matchesSearch && matchesCat;
+    return tours.filter((t) => {
+      const matchSearch = t.title.toLowerCase().includes(tourSearchQuery.toLowerCase());
+      const matchCat = tourCategoryFilter === 'all' || t.category === tourCategoryFilter;
+      return matchSearch && matchCat;
     });
   }, [tours, tourSearchQuery, tourCategoryFilter]);
 
-  // Booking Modal handlers
-  const handleOpenCreateModal = () => {
+  // Booking CRUD
+  const handleOpenCreateBooking = () => {
     setEditingBooking(null);
     setFormData({
       customerName: '',
       phone: '',
-      email: '',
       hotel: '',
       roomNumber: '',
-      tourTitle: tours[0]?.title || 'Phi Phi Adaları Turu',
+      tourTitle: tours[0]?.title || 'Phi Phi Adaları',
       tourDate: new Date().toISOString().split('T')[0],
       pickupTime: '07:30',
       adultCount: 2,
@@ -293,16 +295,15 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (booking: Booking) => {
-    setEditingBooking(booking);
-    setFormData(booking);
+  const handleOpenEditBooking = (b: Booking) => {
+    setEditingBooking(b);
+    setFormData(b);
     setIsModalOpen(true);
   };
 
   const handleDeleteBooking = (id: string, name: string) => {
-    if (window.confirm(`"${name}" adlı rezervasyonu silmek istediğinize emin misiniz?`)) {
-      const next = bookings.filter(b => b.id !== id);
-      saveBookings(next);
+    if (window.confirm(`"${name}" rezervasyonunu silmek istediğinize emin misiniz?`)) {
+      saveBookings(bookings.filter((b) => b.id !== id));
     }
   };
 
@@ -317,27 +318,24 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     else if (paid > 0) paymentStatus = 'partial';
 
     if (editingBooking) {
-      const updated: Booking[] = bookings.map(b => {
-        if (b.id === editingBooking.id) {
-          return {
-            ...b,
-            ...formData,
-            totalPriceThb: total,
-            paidAmountThb: paid,
-            remainingAmountThb: remaining,
-            paymentStatus: formData.paymentStatus || paymentStatus,
-          } as Booking;
-        }
-        return b;
-      });
+      const updated = bookings.map((b) =>
+        b.id === editingBooking.id
+          ? ({
+              ...b,
+              ...formData,
+              totalPriceThb: total,
+              paidAmountThb: paid,
+              remainingAmountThb: remaining,
+              paymentStatus,
+            } as Booking)
+          : b
+      );
       saveBookings(updated);
     } else {
-      const newId = `BK-${Math.floor(1000 + Math.random() * 9000)}`;
       const newBooking: Booking = {
-        id: newId,
+        id: `BK-${Math.floor(1000 + Math.random() * 9000)}`,
         customerName: formData.customerName || 'İsimsiz Misafir',
         phone: formData.phone || '',
-        email: formData.email,
         hotel: formData.hotel || 'Belirtilmedi',
         roomNumber: formData.roomNumber,
         tourId: formData.tourId || 'genel-tur',
@@ -359,7 +357,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     setIsModalOpen(false);
   };
 
-  // Tour Modal Handlers (CRUD)
+  // Tour CRUD
   const handleOpenCreateTour = () => {
     setEditingTour(null);
     setTourFormData({
@@ -370,27 +368,26 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
       duration: 'Tam Gün (08:00 - 17:00)',
       featured: false,
       active: true,
-      image: 'pileh.webp',
+      image: 'phuket_hero.webp',
+      excerpt: '',
     });
     setIsTourModalOpen(true);
   };
 
-  const handleOpenEditTour = (tour: TourItem) => {
-    setEditingTour(tour);
-    setTourFormData(tour);
+  const handleOpenEditTour = (t: TourItem) => {
+    setEditingTour(t);
+    setTourFormData(t);
     setIsTourModalOpen(true);
   };
 
   const handleDeleteTour = (id: string, title: string) => {
-    if (window.confirm(`"${title}" turunu listeden silmek istediğinize emin misiniz?`)) {
-      const next = tours.filter(t => t.id !== id);
-      saveTours(next);
+    if (window.confirm(`"${title}" turunu silmek istediğinize emin misiniz?`)) {
+      saveTours(tours.filter((t) => t.id !== id));
     }
   };
 
   const handleToggleTourFeatured = (id: string) => {
-    const next = tours.map(t => t.id === id ? { ...t, featured: !t.featured } : t);
-    saveTours(next);
+    saveTours(tours.map((t) => (t.id === id ? { ...t, featured: !t.featured } : t)));
   };
 
   const handleSubmitTour = (e: React.FormEvent) => {
@@ -398,20 +395,14 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     if (!tourFormData.title) return;
 
     if (editingTour) {
-      // Update
-      const updated = tours.map(t => {
-        if (t.id === editingTour.id) {
-          return {
-            ...t,
-            ...tourFormData,
-            priceThb: Number(tourFormData.priceThb) || 0,
-          } as TourItem;
-        }
-        return t;
-      });
-      saveTours(updated);
+      saveTours(
+        tours.map((t) =>
+          t.id === editingTour.id
+            ? ({ ...t, ...tourFormData, priceThb: Number(tourFormData.priceThb) || 0 } as TourItem)
+            : t
+        )
+      );
     } else {
-      // Create new
       const slug = tourFormData.title
         .toLowerCase()
         .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
@@ -420,36 +411,195 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
 
       const newTour: TourItem = {
         id: slug || `tur-${Date.now()}`,
-        title: tourFormData.title || 'Yeni Tur',
+        title: tourFormData.title,
         category: tourFormData.category || 'island-tours',
-        categoryLabel: tourFormData.category === 'island-tours' ? 'Ada Turları' :
-                       tourFormData.category === 'adventure-tours' ? 'Macera & Doğa' :
-                       tourFormData.category === 'entertainment-tours' ? 'Kültür & Şov' : 'Özel Yat & VIP',
+        categoryLabel:
+          tourFormData.category === 'island-tours'
+            ? 'Ada Turları'
+            : tourFormData.category === 'adventure-tours'
+            ? 'Macera & Doğa'
+            : tourFormData.category === 'entertainment-tours'
+            ? 'Kültür & Şov'
+            : 'VIP Yat & Özel',
         priceThb: Number(tourFormData.priceThb) || 0,
         duration: tourFormData.duration || 'Tam Gün',
         featured: Boolean(tourFormData.featured),
         active: true,
-        image: tourFormData.image || 'pileh.webp',
+        image: tourFormData.image || 'phuket_hero.webp',
+        excerpt: tourFormData.excerpt,
       };
       saveTours([newTour, ...tours]);
     }
     setIsTourModalOpen(false);
   };
 
-  // WhatsApp Link Generator
+  // Blog CRUD
+  const handleOpenCreateBlog = () => {
+    setEditingBlog(null);
+    setBlogFormData({
+      title: '',
+      excerpt: '',
+      cover_image: 'pileh.webp',
+      date: new Date().toISOString().split('T')[0],
+      author: 'Phuket Tatili Ekibi',
+      featured: false,
+    });
+    setIsBlogModalOpen(true);
+  };
+
+  const handleOpenEditBlog = (b: BlogItem) => {
+    setEditingBlog(b);
+    setBlogFormData(b);
+    setIsBlogModalOpen(true);
+  };
+
+  const handleDeleteBlog = (id: string, title: string) => {
+    if (window.confirm(`"${title}" yazısını silmek istediğinize emin misiniz?`)) {
+      saveBlogs(blogs.filter((b) => b.id !== id));
+    }
+  };
+
+  const handleSubmitBlog = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!blogFormData.title) return;
+    if (editingBlog) {
+      saveBlogs(blogs.map((b) => (b.id === editingBlog.id ? ({ ...b, ...blogFormData } as BlogItem) : b)));
+    } else {
+      const slug = blogFormData.title
+        .toLowerCase()
+        .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+        .replace(/[^a-z0-9]+/g, '-');
+      const newBlog: BlogItem = {
+        id: slug || `blog-${Date.now()}`,
+        title: blogFormData.title,
+        excerpt: blogFormData.excerpt || '',
+        cover_image: blogFormData.cover_image || 'pileh.webp',
+        date: blogFormData.date || new Date().toISOString().split('T')[0],
+        author: blogFormData.author || 'Phuket Tatili Ekibi',
+        featured: Boolean(blogFormData.featured),
+      };
+      saveBlogs([newBlog, ...blogs]);
+    }
+    setIsBlogModalOpen(false);
+  };
+
+  // Service CRUD
+  const handleOpenEditService = (s: ServiceItem) => {
+    setEditingService(s);
+    setServiceFormData(s);
+    setIsServiceModalOpen(true);
+  };
+
+  const handleSubmitService = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingService) return;
+    saveServices(
+      services.map((s) => (s.slug === editingService.slug ? ({ ...s, ...serviceFormData } as ServiceItem) : s))
+    );
+    setIsServiceModalOpen(false);
+  };
+
+  // FAQ CRUD
+  const handleOpenCreateFaq = () => {
+    setEditingFaq(null);
+    setFaqFormData({ question: '', answer: '' });
+    setIsFaqModalOpen(true);
+  };
+
+  const handleOpenEditFaq = (f: FaqItem) => {
+    setEditingFaq(f);
+    setFaqFormData(f);
+    setIsFaqModalOpen(true);
+  };
+
+  const handleDeleteFaq = (id: string) => {
+    if (window.confirm('Bu SSS sorusunu silmek istediğinize emin misiniz?')) {
+      saveFaqs(faqs.filter((f) => f.id !== id));
+    }
+  };
+
+  const handleSubmitFaq = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!faqFormData.question) return;
+    if (editingFaq) {
+      saveFaqs(faqs.map((f) => (f.id === editingFaq.id ? ({ ...f, ...faqFormData } as FaqItem) : f)));
+    } else {
+      const newFaq: FaqItem = {
+        id: `faq-${Date.now()}`,
+        question: faqFormData.question,
+        answer: faqFormData.answer || '',
+      };
+      saveFaqs([...faqs, newFaq]);
+    }
+    setIsFaqModalOpen(false);
+  };
+
+  // Testimonial CRUD
+  const handleOpenCreateTesti = () => {
+    setEditingTesti(null);
+    setTestiFormData({ name: '', type: 'Balayı Çifti', tour: 'Phi Phi & Maya Bay', stars: 5, text: '' });
+    setIsTestiModalOpen(true);
+  };
+
+  const handleOpenEditTesti = (t: TestimonialItem) => {
+    setEditingTesti(t);
+    setTestiFormData(t);
+    setIsTestiModalOpen(true);
+  };
+
+  const handleDeleteTesti = (id: string, name: string) => {
+    if (window.confirm(`"${name}" adlı yorumu silmek istediğinize emin misiniz?`)) {
+      saveTestimonials(testimonials.filter((t) => t.id !== id));
+    }
+  };
+
+  const handleSubmitTesti = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testiFormData.name) return;
+    if (editingTesti) {
+      saveTestimonials(
+        testimonials.map((t) => (t.id === editingTesti.id ? ({ ...t, ...testiFormData } as TestimonialItem) : t))
+      );
+    } else {
+      const newTesti: TestimonialItem = {
+        id: `testi-${Date.now()}`,
+        name: testiFormData.name,
+        type: testiFormData.type || 'Misafir',
+        tour: testiFormData.tour || 'Phuket Turu',
+        stars: Number(testiFormData.stars) || 5,
+        text: testiFormData.text || '',
+      };
+      saveTestimonials([newTesti, ...testimonials]);
+    }
+    setIsTestiModalOpen(false);
+  };
+
+  // Save Settings
+  const handleSaveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem(STORAGE_KEY_SITE, JSON.stringify(siteSettings));
+    setSettingsSaved(true);
+    setTimeout(() => setSettingsSaved(false), 2500);
+  };
+
+  // WhatsApp Message Link
   const createWhatsAppLink = (b: Booking, type: 'reminder' | 'confirm') => {
     const cleanPhone = b.phone.replace(/[^0-9]/g, '');
     let msg = '';
     if (type === 'reminder') {
-      msg = `Merhaba ${b.customerName} Bey/Hanım! 🌴 Phuket Tatili ekibinden yazıyoruz.\n\n` +
+      msg =
+        `Merhaba ${b.customerName} Bey/Hanım! 🌴 Phuket Tatili ekibinden yazıyoruz.\n\n` +
         `📅 Yarınki turunuz: *${b.tourTitle}*\n` +
         `⏰ Otelden Alınış Saati: *${b.pickupTime || '07:30'}*\n` +
         `📍 Otel: *${b.hotel}* ${b.roomNumber ? `(Oda: ${b.roomNumber})` : ''}\n` +
         `👥 Kişi Sayısı: *${b.adultCount} Yetişkin ${b.childCount ? `, ${b.childCount} Çocuk` : ''}*\n` +
-        (b.remainingAmountThb > 0 ? `💰 Kalan Ödeme: *${b.remainingAmountThb.toLocaleString()} THB* (Rehbere elden teslim edebilirsiniz).\n\n` : `\n`) +
+        (b.remainingAmountThb > 0
+          ? `💰 Kalan Ödeme: *${b.remainingAmountThb.toLocaleString()} THB* (Rehbere elden teslim edebilirsiniz).\n\n`
+          : `\n`) +
         `Lütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Harika bir gün dileriz! 🇹🇭`;
     } else {
-      msg = `Merhaba ${b.customerName}! 🏝️ Phuket Tatili rezervasyonunuz onaylanmıştır.\n\n` +
+      msg =
+        `Merhaba ${b.customerName}! 🏝️ Phuket Tatili rezervasyonunuz onaylanmıştır.\n\n` +
         `📋 Rezervasyon No: *${b.id}*\n` +
         `Tur: *${b.tourTitle}*\n` +
         `Tarih: *${b.tourDate}*\n` +
@@ -461,17 +611,12 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
   };
 
-  // Status Quick Change
-  const handleQuickStatusChange = (id: string, newStatus: Booking['status']) => {
-    const next = bookings.map(b => b.id === id ? { ...b, status: newStatus } : b);
-    saveBookings(next);
-  };
-
   // CSV Export
   const handleExportCSV = () => {
-    const headers = ['ID,Musteri,Telefon,Otel,Oda,Tur,Tarih,Saat,Yetiskin,Cocuk,ToplamTHB,OdenenTHB,KalanTHB,Durum,Notlar\n'];
-    const rows = bookings.map(b => 
-      `"${b.id}","${b.customerName}","${b.phone}","${b.hotel}","${b.roomNumber || ''}","${b.tourTitle}","${b.tourDate}","${b.pickupTime || ''}",${b.adultCount},${b.childCount},${b.totalPriceThb},${b.paidAmountThb},${b.remainingAmountThb},"${b.status}","${(b.specialNotes || '').replace(/"/g, '""')}"\n`
+    const headers = ['ID,Musteri,Telefon,Otel,Oda,Tur,Tarih,Saat,Yetiskin,Cocuk,ToplamTHB,OdenenTHB,KalanTHB,Durum\n'];
+    const rows = bookings.map(
+      (b) =>
+        `"${b.id}","${b.customerName}","${b.phone}","${b.hotel}","${b.roomNumber || ''}","${b.tourTitle}","${b.tourDate}","${b.pickupTime || ''}",${b.adultCount},${b.childCount},${b.totalPriceThb},${b.paidAmountThb},${b.remainingAmountThb},"${b.status}"\n`
     );
     const blob = new Blob([...headers, ...rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
@@ -483,18 +628,6 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     document.body.removeChild(link);
   };
 
-  // Save Settings
-  const handleSaveSettings = (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      localStorage.setItem(STORAGE_KEY_SITE, JSON.stringify(siteSettings));
-      setSettingsSaved(true);
-      setTimeout(() => setSettingsSaved(false), 2500);
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   // ----------------------------------------------------
   // LOGIN SCREEN
   // ----------------------------------------------------
@@ -503,7 +636,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-brand-primary to-slate-950 p-4">
         <div className="w-full max-w-md bg-white dark:bg-surface-2 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-8 sm:p-10 relative overflow-hidden">
           <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-accent via-emerald-400 to-teal-500"></div>
-          
+
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-brand-accent/10 text-brand-accent rounded-2xl flex items-center justify-center mx-auto mb-4 border border-brand-accent/20">
               <Compass className="w-8 h-8" />
@@ -512,7 +645,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
               Phuket Tatili Operasyon
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Yetkili Yönetici ve Acente Kontrol Paneli
+              Tam Kapsamlı Acente & İçerik Yönetim Platformu
             </p>
           </div>
 
@@ -564,11 +697,11 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
   }
 
   // ----------------------------------------------------
-  // AUTHENTICATED DASHBOARD
+  // AUTHENTICATED FULL DASHBOARD
   // ----------------------------------------------------
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
-      {/* Top Navigation Bar */}
+      {/* Top Header */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-surface-1/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -578,21 +711,21 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-serif font-bold text-lg sm:text-xl text-brand-primary dark:text-white leading-none">
-                  Phuket Tatili <span className="text-brand-accent italic font-sans text-sm font-semibold">Operasyon</span>
+                  Phuket Tatili <span className="text-brand-accent italic font-sans text-sm font-semibold">Yönetim & Operasyon</span>
                 </h1>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                  Canlı Sistem
+                  Tam Yetki
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 hidden sm:block">
-                Turizm, Müşteri & Rezervasyon Yönetim Platformu
+                Tüm Site İçeriği, Rezervasyonlar, Müşteriler ve Hizmetler
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <button
-              onClick={handleOpenCreateModal}
+              onClick={handleOpenCreateBooking}
               className="px-4 py-2.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-accent/20 transition-all flex items-center gap-1.5"
             >
               <Plus className="w-4 h-4" />
@@ -609,47 +742,95 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
           </div>
         </div>
 
-        {/* Tab Buttons */}
+        {/* 9-Tab Comprehensive Navigation Bar */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 overflow-x-auto border-t border-slate-100 dark:border-slate-800/60 py-2">
           <button
             onClick={() => setActiveTab('overview')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'overview'
                 ? 'bg-brand-primary text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <TrendingUp className="w-4 h-4" />
-            <span>Genel Bakış & Metrikler</span>
+            <span>Genel Bakış</span>
           </button>
 
           <button
             onClick={() => setActiveTab('bookings')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'bookings'
                 ? 'bg-brand-primary text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <Users className="w-4 h-4" />
-            <span>Müşteriler & Rezervasyonlar ({bookings.length})</span>
+            <span>Müşteriler & Rezervasyon ({bookings.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('tours')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'tours'
                 ? 'bg-brand-primary text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <Compass className="w-4 h-4" />
-            <span>Turlar & Fiyat Yönetimi ({tours.length})</span>
+            <span>Turlar & Fiyatlar ({tours.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('services')}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'services'
+                ? 'bg-brand-primary text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Car className="w-4 h-4" />
+            <span>Hizmetler (Transfer/VIP) ({services.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('blogs')}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'blogs'
+                ? 'bg-brand-primary text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            <span>Blog & Rehber ({blogs.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('faqs')}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'faqs'
+                ? 'bg-brand-primary text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <HelpCircle className="w-4 h-4" />
+            <span>SSS Soruları ({faqs.length})</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('testimonials')}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'testimonials'
+                ? 'bg-brand-primary text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <MessageSquareQuote className="w-4 h-4" />
+            <span>Yorumlar ({testimonials.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab('whatsapp')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'whatsapp'
                 ? 'bg-[#25D366] text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -661,23 +842,23 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
 
           <button
             onClick={() => setActiveTab('settings')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'settings'
                 ? 'bg-brand-primary text-white shadow-sm'
                 : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
             }`}
           >
             <Settings className="w-4 h-4" />
-            <span>Site & İletişim Ayarları</span>
+            <span>Site & Hero Ayarları</span>
           </button>
         </div>
       </header>
 
-      {/* Main Content Body */}
+      {/* Main Content */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         
         {/* ==================================================== */}
-        {/* TAB 1: OVERVIEW & METRICS */}
+        {/* TAB 1: OVERVIEW */}
         {/* ==================================================== */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
@@ -709,9 +890,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                 <div className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
                   {stats.collectedRevenueThb.toLocaleString()} <span className="text-base font-medium">THB</span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  Kasadaki peşinat / ön ödemeler
-                </p>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Kasadaki peşinat toplamı</p>
               </div>
 
               <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
@@ -724,9 +903,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                 <div className="text-3xl font-extrabold text-amber-600 dark:text-amber-400">
                   {stats.pendingCollectionThb.toLocaleString()} <span className="text-base font-medium">THB</span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  Tur günü otelde/teknede alınacak bakiye
-                </p>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Tur günü otelde/teknede alınacak</p>
               </div>
 
               <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
@@ -739,96 +916,76 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                 <div className="text-3xl font-extrabold text-purple-600 dark:text-purple-400">
                   {stats.totalGuests} <span className="text-base font-medium">Kişi</span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  Aktif rezervasyonlardaki toplam yolcu
-                </p>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Aktif yolcu sayısı</p>
               </div>
             </div>
 
-            {/* Upcoming Tours Alert */}
-            <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div>
-                  <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white flex items-center gap-2">
-                    <span>📅 Yaklaşan Tur Operasyonları</span>
-                  </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Önümüzdeki günlerde gerçekleşecek turlar ve misafirlerin otel transfer listesi
-                  </p>
-                </div>
+            {/* Quick Content Navigation Cards */}
+            <div>
+              <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white mb-4">
+                İçerik & Modül Kısayolları
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 <button
                   onClick={() => setActiveTab('bookings')}
-                  className="text-xs font-bold text-brand-accent hover:underline flex items-center gap-1 self-start sm:self-auto"
+                  className="p-5 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200/80 dark:border-slate-800 hover:border-brand-accent transition-all text-left group"
                 >
-                  <span>Tüm Rezervasyonları Gör</span>
-                  <ChevronRight className="w-4 h-4" />
+                  <Users className="w-6 h-6 text-brand-primary group-hover:scale-110 transition-transform mb-2" />
+                  <div className="font-bold text-sm text-slate-900 dark:text-white">Müşteriler</div>
+                  <div className="text-xs text-slate-400">{bookings.length} Kayıt</div>
                 </button>
-              </div>
 
-              <div className="space-y-3">
-                {bookings.slice(0, 4).map((b) => (
-                  <div
-                    key={b.id}
-                    className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/60 dark:border-slate-800 hover:border-brand-accent/40 transition-colors"
-                  >
-                    <div className="flex items-start sm:items-center gap-3.5">
-                      <div className="w-12 h-12 rounded-xl bg-brand-primary text-white flex flex-col items-center justify-center font-bold text-xs shrink-0">
-                        <span>{b.tourDate.split('-')[2]}</span>
-                        <span className="text-[9px] uppercase font-normal text-slate-300">
-                          {b.tourDate.split('-')[1]}. Ay
-                        </span>
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h3 className="font-bold text-sm text-slate-900 dark:text-white">
-                            {b.customerName}
-                          </h3>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            b.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300' :
-                            b.status === 'inquiry' ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300' :
-                            'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300'
-                          }`}>
-                            {b.status === 'confirmed' ? 'Onaylandı' : b.status === 'inquiry' ? 'Teklif' : b.status}
-                          </span>
-                        </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex flex-wrap items-center gap-2">
-                          <span className="font-medium text-brand-primary dark:text-slate-300">{b.tourTitle}</span>
-                          <span>·</span>
-                          <span className="flex items-center gap-1"><Building className="w-3 h-3" /> {b.hotel} {b.roomNumber ? `(${b.roomNumber})` : ''}</span>
-                          <span>·</span>
-                          <span className="flex items-center gap-1"><Clock className="w-3 h-3" /> Alınış: {b.pickupTime || '07:30'}</span>
-                        </p>
-                      </div>
-                    </div>
+                <button
+                  onClick={() => setActiveTab('tours')}
+                  className="p-5 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200/80 dark:border-slate-800 hover:border-brand-accent transition-all text-left group"
+                >
+                  <Compass className="w-6 h-6 text-emerald-500 group-hover:scale-110 transition-transform mb-2" />
+                  <div className="font-bold text-sm text-slate-900 dark:text-white">Turlar</div>
+                  <div className="text-xs text-slate-400">{tours.length} Tur</div>
+                </button>
 
-                    <div className="flex items-center gap-2 self-end md:self-auto">
-                      <a
-                        href={createWhatsAppLink(b, 'reminder')}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
-                        title="Otel Alınış Hatırlatması Gönder"
-                      >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span>Alınış Mesajı At</span>
-                      </a>
-                      <button
-                        onClick={() => handleOpenEditModal(b)}
-                        className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 transition-colors"
-                        title="Düzenle"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                <button
+                  onClick={() => setActiveTab('services')}
+                  className="p-5 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200/80 dark:border-slate-800 hover:border-brand-accent transition-all text-left group"
+                >
+                  <Car className="w-6 h-6 text-blue-500 group-hover:scale-110 transition-transform mb-2" />
+                  <div className="font-bold text-sm text-slate-900 dark:text-white">Hizmetler</div>
+                  <div className="text-xs text-slate-400">{services.length} Sayfa</div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('blogs')}
+                  className="p-5 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200/80 dark:border-slate-800 hover:border-brand-accent transition-all text-left group"
+                >
+                  <BookOpen className="w-6 h-6 text-purple-500 group-hover:scale-110 transition-transform mb-2" />
+                  <div className="font-bold text-sm text-slate-900 dark:text-white">Blog & Rehber</div>
+                  <div className="text-xs text-slate-400">{blogs.length} Yazı</div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('faqs')}
+                  className="p-5 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200/80 dark:border-slate-800 hover:border-brand-accent transition-all text-left group"
+                >
+                  <HelpCircle className="w-6 h-6 text-amber-500 group-hover:scale-110 transition-transform mb-2" />
+                  <div className="font-bold text-sm text-slate-900 dark:text-white">SSS Soruları</div>
+                  <div className="text-xs text-slate-400">{faqs.length} Soru</div>
+                </button>
+
+                <button
+                  onClick={() => setActiveTab('testimonials')}
+                  className="p-5 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200/80 dark:border-slate-800 hover:border-brand-accent transition-all text-left group"
+                >
+                  <MessageSquareQuote className="w-6 h-6 text-pink-500 group-hover:scale-110 transition-transform mb-2" />
+                  <div className="font-bold text-sm text-slate-900 dark:text-white">Yorumlar</div>
+                  <div className="text-xs text-slate-400">{testimonials.length} Yorum</div>
+                </button>
               </div>
             </div>
           </div>
         )}
 
         {/* ==================================================== */}
-        {/* TAB 2: BOOKINGS CRM TABLE */}
+        {/* TAB 2: BOOKINGS CRM */}
         {/* ==================================================== */}
         {activeTab === 'bookings' && (
           <div className="space-y-6">
@@ -841,7 +998,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Müşteri adı, otel, telefon veya tur ara..."
-                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-900 dark:text-white focus:outline-none"
                   />
                 </div>
 
@@ -856,36 +1013,18 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                   <option value="completed">🔵 Tamamlananlar</option>
                   <option value="cancelled">🔴 İptaller</option>
                 </select>
-
-                <input
-                  type="date"
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 focus:outline-none"
-                  title="Tur Tarihine Göre Filtrele"
-                />
-                {dateFilter && (
-                  <button
-                    onClick={() => setDateFilter('')}
-                    className="text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 underline"
-                  >
-                    Tarihi Sıfırla
-                  </button>
-                )}
               </div>
 
               <div className="flex items-center gap-2.5">
                 <button
                   onClick={handleExportCSV}
                   className="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors flex items-center gap-1.5"
-                  title="Excel / CSV Olarak İndir"
                 >
                   <Download className="w-4 h-4" />
                   <span>Dışa Aktar (CSV)</span>
                 </button>
-
                 <button
-                  onClick={handleOpenCreateModal}
+                  onClick={handleOpenCreateBooking}
                   className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold shadow-md shadow-brand-primary/20 transition-all flex items-center gap-1.5"
                 >
                   <Plus className="w-4 h-4" />
@@ -967,21 +1106,17 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                           </td>
 
                           <td className="py-4 px-5">
-                            <select
-                              value={b.status}
-                              onChange={(e) => handleQuickStatusChange(b.id, e.target.value as Booking['status'])}
-                              className={`text-xs font-bold py-1 px-2.5 rounded-lg border focus:outline-none ${
-                                b.status === 'confirmed' ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800' :
-                                b.status === 'inquiry' ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800' :
-                                b.status === 'completed' ? 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800' :
-                                'bg-red-50 text-red-800 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800'
+                            <span
+                              className={`text-xs font-bold py-1 px-2.5 rounded-lg border inline-block ${
+                                b.status === 'confirmed'
+                                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+                                  : b.status === 'inquiry'
+                                  ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'
+                                  : 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
                               }`}
                             >
-                              <option value="inquiry">🟡 Teklif Aşamasında</option>
-                              <option value="confirmed">🟢 Kesinleşti / Onay</option>
-                              <option value="completed">🔵 Tamamlandı</option>
-                              <option value="cancelled">🔴 İptal Edildi</option>
-                            </select>
+                              {b.status === 'confirmed' ? '🟢 Onaylandı' : b.status === 'inquiry' ? '🟡 Teklif' : b.status}
+                            </span>
                           </td>
 
                           <td className="py-4 px-5 text-right">
@@ -991,21 +1126,19 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors"
-                                title="WhatsApp Alınış Hatırlatması Gönder"
+                                title="Alınış Mesajı At"
                               >
                                 <MessageCircle className="w-4 h-4" />
                               </a>
                               <button
-                                onClick={() => handleOpenEditModal(b)}
+                                onClick={() => handleOpenEditBooking(b)}
                                 className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
-                                title="Düzenle"
                               >
                                 <Edit2 className="w-4 h-4" />
                               </button>
                               <button
                                 onClick={() => handleDeleteBooking(b.id, b.customerName)}
                                 className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
-                                title="Sil"
                               >
                                 <Trash2 className="w-4 h-4" />
                               </button>
@@ -1022,47 +1155,31 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
         )}
 
         {/* ==================================================== */}
-        {/* TAB 3: TOURS & PRICE MANAGEMENT (FULL CRUD) */}
+        {/* TAB 3: TOURS & PRICES */}
         {/* ==================================================== */}
         {activeTab === 'tours' && (
           <div className="space-y-6">
             <div className="bg-white dark:bg-surface-2 p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                  Turlar & Fiyat Yönetimi
+                  Turlar & Fiyat Yönetimi ({tours.length})
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Tur ekleyin, fiyatları ve süreleri güncelleyin, ana sayfada öne çıkarın veya silin.
+                  Tur ekleyin, kapak görselini seçin, fiyatları güncelleyin veya silin.
                 </p>
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <div className="relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
-                  <input
-                    type="text"
-                    value={tourSearchQuery}
-                    onChange={(e) => setTourSearchQuery(e.target.value)}
-                    placeholder="Tur adı ara..."
-                    className="pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
-                  />
-                </div>
-
-                <select
-                  value={tourCategoryFilter}
-                  onChange={(e) => setTourCategoryFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
-                >
-                  <option value="all">Tüm Kategoriler</option>
-                  <option value="island-tours">Ada Turları</option>
-                  <option value="adventure-tours">Macera & Doğa</option>
-                  <option value="entertainment-tours">Kültür & Şov</option>
-                  <option value="private-charters">VIP Yat & Özel</option>
-                </select>
-
+                <input
+                  type="text"
+                  value={tourSearchQuery}
+                  onChange={(e) => setTourSearchQuery(e.target.value)}
+                  placeholder="Tur ara..."
+                  className="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
+                />
                 <button
                   onClick={handleOpenCreateTour}
-                  className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 transition-all flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
                 >
                   <Plus className="w-4 h-4" />
                   <span>Yeni Tur Ekle</span>
@@ -1090,20 +1207,15 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                         {t.categoryLabel || t.category}
                       </span>
                     </div>
-
-                    <div className="absolute top-3 right-3 flex items-center gap-1.5">
-                      <button
-                        onClick={() => handleToggleTourFeatured(t.id)}
-                        className={`p-1.5 rounded-full text-xs font-bold transition-all ${
-                          t.featured
-                            ? 'bg-amber-500 text-white shadow-md'
-                            : 'bg-black/50 text-slate-300 hover:text-white'
-                        }`}
-                        title={t.featured ? 'Öne Çıkarılan (Kaldır)' : 'Öne Çıkar'}
-                      >
-                        <Star className="w-3.5 h-3.5 fill-current" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={() => handleToggleTourFeatured(t.id)}
+                      className={`absolute top-3 right-3 p-1.5 rounded-full text-xs font-bold transition-all ${
+                        t.featured ? 'bg-amber-500 text-white shadow-md' : 'bg-black/50 text-slate-300 hover:text-white'
+                      }`}
+                      title={t.featured ? 'Öne Çıkarılan' : 'Öne Çıkar'}
+                    >
+                      <Star className="w-3.5 h-3.5 fill-current" />
+                    </button>
                   </div>
 
                   <div className="p-5 flex-1 flex flex-col justify-between">
@@ -1129,7 +1241,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                         <button
                           onClick={() => handleOpenEditTour(t)}
                           className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
-                          title="Fiyat ve Detay Düzenle"
+                          title="Düzenle"
                         >
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
@@ -1138,14 +1250,14 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                           target="_blank"
                           rel="noopener noreferrer"
                           className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-accent hover:text-white transition-colors"
-                          title="Sitede İncele"
+                          title="Sitede Gör"
                         >
                           <Eye className="w-3.5 h-3.5" />
                         </a>
                         <button
                           onClick={() => handleDeleteTour(t.id, t.title)}
                           className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
-                          title="Turu Sil"
+                          title="Sil"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1159,7 +1271,271 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
         )}
 
         {/* ==================================================== */}
-        {/* TAB 4: WHATSAPP NOTIFICATION TEMPLATES */}
+        {/* TAB 4: SERVICES MANAGEMENT */}
+        {/* ==================================================== */}
+        {activeTab === 'services' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800">
+              <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
+                Hizmet Sayfaları Yönetimi ({services.length})
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Transferler, Oteller, Tatil Paketleri ve VIP Hizmetler sayfalarının başlık ve içeriklerini düzenleyin.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {services.map((s) => (
+                <div
+                  key={s.slug}
+                  className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-brand-accent">
+                        {s.eyebrow || 'Hizmet'}
+                      </span>
+                      <span className="font-mono text-xs text-slate-400">/{s.slug}</span>
+                    </div>
+                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">{s.title}</h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 line-clamp-3 leading-relaxed">
+                      {s.intro}
+                    </p>
+                  </div>
+
+                  <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <a
+                      href={`/${s.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs font-semibold text-brand-accent hover:underline flex items-center gap-1"
+                    >
+                      <Eye className="w-3.5 h-3.5" />
+                      <span>Sayfayı Canlı Gör</span>
+                    </a>
+                    <button
+                      onClick={() => handleOpenEditService(s)}
+                      className="px-4 py-2 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary/90 flex items-center gap-1.5"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                      <span>Düzenle</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB 5: BLOG ARTICLES */}
+        {/* ==================================================== */}
+        {activeTab === 'blogs' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
+                  Blog & Gezi Rehberi Yönetimi ({blogs.length})
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Yeni rehber yazısı ekleyin, kapak görsellerini ve özetlerini düzenleyin.
+                </p>
+              </div>
+              <button
+                onClick={handleOpenCreateBlog}
+                className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Yeni Yazı Ekle</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {blogs.map((b) => (
+                <div
+                  key={b.id}
+                  className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col"
+                >
+                  <div className="h-40 relative bg-slate-100 dark:bg-slate-900">
+                    <img
+                      src={`/assets/${b.cover_image}`}
+                      alt={b.title}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/pileh.webp';
+                      }}
+                    />
+                    <div className="absolute top-3 left-3">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white">
+                        {b.date}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-bold text-sm text-slate-900 dark:text-white line-clamp-1">{b.title}</h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{b.excerpt}</p>
+                    </div>
+
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                      <a
+                        href={`/blog/${b.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-brand-accent hover:underline flex items-center gap-1"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Oku</span>
+                      </a>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleOpenEditBlog(b)}
+                          className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteBlog(b.id, b.title)}
+                          className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB 6: FAQS */}
+        {/* ==================================================== */}
+        {activeTab === 'faqs' && (
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
+                  Sıkça Sorulan Sorular (FAQ) ({faqs.length})
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Ana sayfada yer alan SSS akordiyon sorularını ve cevaplarını yönetin.
+                </p>
+              </div>
+              <button
+                onClick={handleOpenCreateFaq}
+                className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Yeni Soru Ekle</span>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {faqs.map((f, idx) => (
+                <div
+                  key={f.id}
+                  className="bg-white dark:bg-surface-2 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-4"
+                >
+                  <div className="flex-1">
+                    <span className="text-[11px] font-bold text-brand-accent block mb-1">Soru #{idx + 1}</span>
+                    <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-1.5">{f.question}</h3>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{f.answer}</p>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      onClick={() => handleOpenEditFaq(f)}
+                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteFaq(f.id)}
+                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB 7: TESTIMONIALS */}
+        {/* ==================================================== */}
+        {activeTab === 'testimonials' && (
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
+                  Müşteri Yorumları ({testimonials.length})
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Ana sayfadaki gerçek tatilci yorumlarını, puanlarını ve çift isimlerini yönetin.
+                </p>
+              </div>
+              <button
+                onClick={handleOpenCreateTesti}
+                className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Yeni Yorum Ekle</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {testimonials.map((t) => (
+                <div
+                  key={t.id}
+                  className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center text-amber-400 gap-0.5">
+                        {Array.from({ length: t.stars || 5 }).map((_, i) => (
+                          <Star key={i} className="w-4 h-4 fill-current" />
+                        ))}
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                        {t.type}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 italic mb-4 leading-relaxed">
+                      "{t.text}"
+                    </p>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <div>
+                      <div className="font-bold text-xs text-slate-900 dark:text-white">{t.name}</div>
+                      <div className="text-[11px] text-brand-accent">{t.tour}</div>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleOpenEditTesti(t)}
+                        className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTesti(t.id, t.name)}
+                        className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB 8: WHATSAPP TEMPLATES */}
         {/* ==================================================== */}
         {activeTab === 'whatsapp' && (
           <div className="max-w-4xl mx-auto space-y-6">
@@ -1199,7 +1575,7 @@ Lütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Harika bir 
                   </div>
                 </div>
                 <p className="text-[11px] text-slate-400 mt-3">
-                  👉 Müşteriler sekmesindeki her satırın yanındaki yeşil WhatsApp butonuna basınca bu mesaj otomatik olarak dolar.
+                  👉 Müşteriler sekmesindeki her satırın yanındaki yeşil WhatsApp butonuna basınca bu mesaj otomatik dolar.
                 </p>
               </div>
 
@@ -1218,7 +1594,7 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                   </div>
                 </div>
                 <p className="text-[11px] text-slate-400 mt-3">
-                  👉 Tur tamamlandıktan sonra misafirden Google yorumu almak için idealdir.
+                  👉 Tur bittikten sonra misafirden Google yorumu almak için idealdir.
                 </p>
               </div>
             </div>
@@ -1226,32 +1602,31 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
         )}
 
         {/* ==================================================== */}
-        {/* TAB 5: SITE & CURRENCY SETTINGS */}
+        {/* TAB 9: SITE & HERO SETTINGS */}
         {/* ==================================================== */}
         {activeTab === 'settings' && (
           <div className="max-w-3xl mx-auto space-y-6">
             <div className="bg-white dark:bg-surface-2 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
               <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white mb-1">
-                Genel İletişim & Site Ayarları
+                Genel İletişim & Ana Sayfa (Hero) Ayarları
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-                Sitedeki iletişim numaralarını, WhatsApp hattını ve sosyal medya hesaplarını tek ekrandan güncelleyin.
+                WhatsApp hattını, site başlığını ve ana sayfanın en üstündeki karşılama metinlerini düzenleyin.
               </p>
 
               <form onSubmit={handleSaveSettings} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
-                      WhatsApp Hattı Numarası
+                      WhatsApp Numarası
                     </label>
                     <input
                       type="text"
                       value={siteSettings.whatsappNumber}
                       onChange={(e) => setSiteSettings({ ...siteSettings, whatsappNumber: e.target.value })}
-                      placeholder="66828950665"
                       className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                     />
-                    <span className="text-[11px] text-slate-400 mt-1 block">Başında + olmadan ülke koduyla</span>
+                    <span className="text-[11px] text-slate-400 mt-1 block">Ülke koduyla, örn: 66828950665</span>
                   </div>
 
                   <div>
@@ -1262,7 +1637,6 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                       type="email"
                       value={siteSettings.email}
                       onChange={(e) => setSiteSettings({ ...siteSettings, email: e.target.value })}
-                      placeholder="info@phukettatili.com"
                       className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                     />
                   </div>
@@ -1280,12 +1654,46 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                   />
                 </div>
 
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-3">
+                    Ana Sayfa Karşılama Alanı (Hero)
+                  </h3>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                        Büyük Başlık (Hero Title)
+                      </label>
+                      <input
+                        type="text"
+                        value={siteSettings.heroTitle}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, heroTitle: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                        Alt Açıklama (Hero Subtitle)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={siteSettings.heroSubtitle}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, heroSubtitle: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                      />
+                    </div>
+                  </div>
+                </div>
+
                 <div className="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
                   {settingsSaved ? (
                     <span className="text-emerald-600 font-bold text-xs flex items-center gap-1.5">
-                      <Check className="w-4 h-4" /> Ayarlar başarıyla kaydedildi!
+                      <Check className="w-4 h-4" /> Ayarlar kaydedildi!
                     </span>
-                  ) : <span />}
+                  ) : (
+                    <span />
+                  )}
 
                   <button
                     type="submit"
@@ -1303,105 +1711,79 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
       </main>
 
       {/* ==================================================== */}
-      {/* MODAL: CREATE / EDIT BOOKING */}
+      {/* MODAL 1: BOOKING */}
       {/* ==================================================== */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-surface-2 w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto p-6 sm:p-8">
             <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100 dark:border-slate-800">
               <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                {editingBooking ? 'Rezervasyonu Düzenle' : 'Yeni Müşteri & Rezervasyon Kaydı'}
+                {editingBooking ? 'Rezervasyonu Düzenle' : 'Yeni Rezervasyon Ekle'}
               </h2>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600"
-              >
-                ✕
-              </button>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 text-slate-400">✕</button>
             </div>
 
             <form onSubmit={handleSubmitBooking} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Müşteri Adı Soyadı *
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Müşteri Adı *</label>
                   <input
                     type="text"
                     required
                     value={formData.customerName || ''}
                     onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                    placeholder="Örn: Mehmet Özkan"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Telefon / WhatsApp *
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Telefon / WhatsApp *</label>
                   <input
                     type="text"
                     required
                     value={formData.phone || ''}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="Örn: +90 532 123 45 67"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Konaklanan Otel & Bölge *
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Otel & Bölge *</label>
                   <input
                     type="text"
                     required
                     value={formData.hotel || ''}
                     onChange={(e) => setFormData({ ...formData, hotel: e.target.value })}
-                    placeholder="Örn: Amari Phuket (Patong)"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Oda Numarası
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Oda Numarası</label>
                   <input
                     type="text"
                     value={formData.roomNumber || ''}
                     onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
-                    placeholder="Örn: 402 veya Villa 5"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Seçilen Tur *
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Tur Seçimi *</label>
                   <select
                     value={formData.tourTitle || ''}
                     onChange={(e) => setFormData({ ...formData, tourTitle: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   >
                     {tours.map((t) => (
-                      <option key={t.id} value={t.title}>
-                        {t.title}
-                      </option>
+                      <option key={t.id} value={t.title}>{t.title}</option>
                     ))}
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Tur Tarihi *
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Tur Tarihi *</label>
                   <input
                     type="date"
                     required
@@ -1414,22 +1796,16 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Otel Alınış Saati
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Otel Alınış Saati</label>
                   <input
                     type="text"
                     value={formData.pickupTime || ''}
                     onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
-                    placeholder="Örn: 07:30"
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Yetişkin Sayısı
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Yetişkin</label>
                   <input
                     type="number"
                     min="1"
@@ -1438,11 +1814,8 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Çocuk Sayısı
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Çocuk</label>
                   <input
                     type="number"
                     min="0"
@@ -1455,9 +1828,7 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Toplam Ücret (THB)
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Toplam Tutar (THB)</label>
                   <input
                     type="number"
                     value={formData.totalPriceThb || 0}
@@ -1465,11 +1836,8 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-bold"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Alınan Kapora (THB)
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Alınan Kapora (THB)</label>
                   <input
                     type="number"
                     value={formData.paidAmountThb || 0}
@@ -1477,51 +1845,34 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none text-emerald-600 font-bold"
                   />
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Rezervasyon Durumu
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Durum</label>
                   <select
                     value={formData.status || 'confirmed'}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as Booking['status'] })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-semibold"
                   >
-                    <option value="inquiry">🟡 Teklif Aşamasında</option>
-                    <option value="confirmed">🟢 Kesinleşti / Onay</option>
+                    <option value="inquiry">🟡 Teklif</option>
+                    <option value="confirmed">🟢 Onaylandı</option>
                     <option value="completed">🔵 Tamamlandı</option>
-                    <option value="cancelled">🔴 İptal Edildi</option>
+                    <option value="cancelled">🔴 İptal</option>
                   </select>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  Özel Notlar & Hatırlatmalar
-                </label>
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Özel Notlar</label>
                 <textarea
                   rows={2}
                   value={formData.specialNotes || ''}
                   onChange={(e) => setFormData({ ...formData, specialNotes: e.target.value })}
-                  placeholder="Vejetaryen yemek, bebek koltuğu, havalimanı iniş saati vb..."
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                 />
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Vazgeç
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold shadow-lg shadow-brand-primary/20"
-                >
-                  {editingBooking ? 'Güncelle' : 'Kaydet'}
-                </button>
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
+                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
               </div>
             </form>
           </div>
@@ -1529,7 +1880,7 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
       )}
 
       {/* ==================================================== */}
-      {/* MODAL: CREATE / EDIT TOUR (CRUD) */}
+      {/* MODAL 2: TOUR */}
       {/* ==================================================== */}
       {isTourModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -1538,34 +1889,24 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
               <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
                 {editingTour ? 'Turu Düzenle' : 'Yeni Tur Ekle'}
               </h2>
-              <button
-                onClick={() => setIsTourModalOpen(false)}
-                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600"
-              >
-                ✕
-              </button>
+              <button onClick={() => setIsTourModalOpen(false)} className="p-2 text-slate-400">✕</button>
             </div>
 
             <form onSubmit={handleSubmitTour} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  Tur Başlığı *
-                </label>
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Tur Başlığı *</label>
                 <input
                   type="text"
                   required
                   value={tourFormData.title || ''}
                   onChange={(e) => setTourFormData({ ...tourFormData, title: e.target.value })}
-                  placeholder="Örn: Phi Phi, Maya Bay ve Bamboo Adası"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Kategori *
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Kategori *</label>
                   <select
                     value={tourFormData.category || 'island-tours'}
                     onChange={(e) => setTourFormData({ ...tourFormData, category: e.target.value })}
@@ -1577,16 +1918,12 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                     <option value="private-charters">VIP Yat & Özel</option>
                   </select>
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Tur Süresi
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Tur Süresi</label>
                   <input
                     type="text"
                     value={tourFormData.duration || ''}
                     onChange={(e) => setTourFormData({ ...tourFormData, duration: e.target.value })}
-                    placeholder="Örn: Tam Gün (08:00 - 17:00)"
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   />
                 </div>
@@ -1594,22 +1931,16 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Kişi Başı Fiyat (THB)
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Fiyat (THB)</label>
                   <input
                     type="number"
                     value={tourFormData.priceThb || 0}
                     onChange={(e) => setTourFormData({ ...tourFormData, priceThb: Number(e.target.value) })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-bold"
                   />
-                  <span className="text-[11px] text-slate-400 mt-1 block">0 yazılırsa "Fiyat Teklifi Alın" görünür</span>
                 </div>
-
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Kapak Görseli *
-                  </label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Kapak Görseli *</label>
                   <select
                     value={tourFormData.image || 'phuket_hero.webp'}
                     onChange={(e) => setTourFormData({ ...tourFormData, image: e.target.value })}
@@ -1635,7 +1966,7 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                     className="w-16 h-12 object-cover rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm"
                   />
                   <div>
-                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Seçili Görsel Önizleme</span>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Görsel Önizleme</span>
                     <span className="text-xs font-mono font-semibold text-slate-800 dark:text-slate-200">
                       /assets/{tourFormData.image}
                     </span>
@@ -1657,25 +1988,223 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                 </label>
               </div>
 
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setIsTourModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Vazgeç
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold shadow-lg shadow-brand-primary/20"
-                >
-                  {editingTour ? 'Turu Güncelle' : 'Turu Ekle'}
-                </button>
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsTourModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
+                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* ==================================================== */}
+      {/* MODAL 3: BLOG */}
+      {/* ==================================================== */}
+      {isBlogModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-surface-2 w-full max-w-xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
+            <h2 className="text-xl font-bold font-serif mb-4">
+              {editingBlog ? 'Yazıyı Düzenle' : 'Yeni Blog / Rehber Yazısı'}
+            </h2>
+            <form onSubmit={handleSubmitBlog} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase mb-1">Yazı Başlığı *</label>
+                <input
+                  type="text"
+                  required
+                  value={blogFormData.title || ''}
+                  onChange={(e) => setBlogFormData({ ...blogFormData, title: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase mb-1">Kısa Özet *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={blogFormData.excerpt || ''}
+                  onChange={(e) => setBlogFormData({ ...blogFormData, excerpt: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-1">Yazar</label>
+                  <input
+                    type="text"
+                    value={blogFormData.author || ''}
+                    onChange={(e) => setBlogFormData({ ...blogFormData, author: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-1">Kapak Görseli</label>
+                  <select
+                    value={blogFormData.cover_image || 'pileh.webp'}
+                    onChange={(e) => setBlogFormData({ ...blogFormData, cover_image: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                  >
+                    <option value="pileh.webp">Pileh Lagoon</option>
+                    <option value="beach.webp">Plaj</option>
+                    <option value="longtail.webp">Longtail Tekne</option>
+                    <option value="culture.webp">Kültür</option>
+                    <option value="elephant.webp">Fil Koruma</option>
+                  </select>
+                </div>
+              </div>
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsBlogModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
+                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 4: SERVICE */}
+      {/* ==================================================== */}
+      {isServiceModalOpen && editingService && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-surface-2 w-full max-w-xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
+            <h2 className="text-xl font-bold font-serif mb-4">Hizmet Sayfasını Düzenle: {editingService.title}</h2>
+            <form onSubmit={handleSubmitService} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase mb-1">Başlık</label>
+                <input
+                  type="text"
+                  value={serviceFormData.title || ''}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, title: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase mb-1">Giriş Açıklaması</label>
+                <textarea
+                  rows={4}
+                  value={serviceFormData.intro || ''}
+                  onChange={(e) => setServiceFormData({ ...serviceFormData, intro: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                />
+              </div>
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsServiceModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
+                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 5: FAQ */}
+      {/* ==================================================== */}
+      {isFaqModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
+            <h2 className="text-xl font-bold font-serif mb-4">{editingFaq ? 'SSS Düzenle' : 'Yeni SSS Ekle'}</h2>
+            <form onSubmit={handleSubmitFaq} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase mb-1">Soru *</label>
+                <input
+                  type="text"
+                  required
+                  value={faqFormData.question || ''}
+                  onChange={(e) => setFaqFormData({ ...faqFormData, question: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase mb-1">Cevap *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={faqFormData.answer || ''}
+                  onChange={(e) => setFaqFormData({ ...faqFormData, answer: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                />
+              </div>
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsFaqModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
+                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 6: TESTIMONIAL */}
+      {/* ==================================================== */}
+      {isTestiModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
+            <h2 className="text-xl font-bold font-serif mb-4">{editingTesti ? 'Yorumu Düzenle' : 'Yeni Müşteri Yorumu'}</h2>
+            <form onSubmit={handleSubmitTesti} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-1">İsim Soyisim / Çift *</label>
+                  <input
+                    type="text"
+                    required
+                    value={testiFormData.name || ''}
+                    onChange={(e) => setTestiFormData({ ...testiFormData, name: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-1">Misafir Tipi</label>
+                  <input
+                    type="text"
+                    value={testiFormData.type || ''}
+                    onChange={(e) => setTestiFormData({ ...testiFormData, type: e.target.value })}
+                    placeholder="Balayı Çifti, Aile vb."
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-1">Katıldığı Tur</label>
+                  <input
+                    type="text"
+                    value={testiFormData.tour || ''}
+                    onChange={(e) => setTestiFormData({ ...testiFormData, tour: e.target.value })}
+                    placeholder="Phi Phi & Maya Bay"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-1">Puan (1-5)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="5"
+                    value={testiFormData.stars || 5}
+                    onChange={(e) => setTestiFormData({ ...testiFormData, stars: Number(e.target.value) })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none font-bold"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase mb-1">Yorum Metni *</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={testiFormData.text || ''}
+                  onChange={(e) => setTestiFormData({ ...testiFormData, text: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                />
+              </div>
+              <div className="pt-4 flex justify-end gap-3">
+                <button type="button" onClick={() => setIsTestiModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
+                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

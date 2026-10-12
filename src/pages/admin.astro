@@ -1,23 +1,82 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import AdminDashboard from '../components/admin/AdminDashboard';
+import faqData from '../content/settings/faq.json';
+import testimonialsData from '../content/settings/testimonials.json';
+import siteData from '../content/settings/site.json';
+import homeData from '../content/pages/home.json';
 import '../styles/global.css';
 
 export const prerender = true;
 
-// Fetch all tours from Astro Content collection
+// 1. Tours
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
 const initialTours = tours
   .sort((a, b) => a.data.order - b.data.order)
   .map((tour) => ({
     id: tour.id,
     title: tour.data.title,
-    category: tour.data.category_label || tour.data.category,
+    category: tour.data.category,
+    categoryLabel: tour.data.category_label || tour.data.category,
     priceThb: tour.data.price_thb || 0,
     duration: tour.data.duration || 'Tam Gün',
     featured: Boolean(tour.data.featured),
     image: tour.data.image || 'phuket_hero.webp',
+    excerpt: tour.data.excerpt || '',
   }));
+
+// 2. Blog Articles
+const blogs: CollectionEntry<'blog'>[] = await getCollection('blog');
+const initialBlogs = blogs.map((b) => ({
+  id: b.id,
+  title: b.data.title,
+  excerpt: b.data.excerpt || '',
+  cover_image: b.data.cover_image || 'pileh.webp',
+  date: b.data.date ? b.data.date.toISOString().split('T')[0] : '',
+  author: b.data.author || 'Phuket Tatili Ekibi',
+  featured: Boolean(b.data.featured),
+}));
+
+// 3. Services (Transfer, Otel, Paket, VIP)
+const services: CollectionEntry<'services'>[] = await getCollection('services');
+const initialServices = services
+  .sort((a, b) => (a.data.order || 0) - (b.data.order || 0))
+  .map((s) => ({
+    slug: s.data.slug,
+    title: s.data.title,
+    eyebrow: s.data.eyebrow || '',
+    heading: s.data.heading || '',
+    intro: s.data.intro || '',
+    media: s.data.media || 'longtail.webp',
+  }));
+
+// 4. FAQ
+const initialFaqs = (faqData?.faq || []).map((f: any, idx: number) => ({
+  id: `faq-${idx + 1}`,
+  question: f.question,
+  answer: f.answer,
+}));
+
+// 5. Testimonials
+const initialTestimonials = (testimonialsData?.testimonials || []).map((t: any, idx: number) => ({
+  id: `testi-${idx + 1}`,
+  name: t.name,
+  type: t.type,
+  tour: t.tour,
+  stars: t.stars || 5,
+  text: t.text,
+}));
+
+// 6. Site Settings & Home
+const initialSiteSettings = {
+  whatsappNumber: siteData?.whatsappNumber || '66828950665',
+  email: siteData?.email || 'info@phukettatili.com',
+  siteTitle: siteData?.siteTitle || 'Phuket Tatili',
+  instagramUrl: siteData?.instagramUrl || 'https://instagram.com/phukettatili',
+  heroTitle: homeData?.heroTitle || "Phuket'in Büyüsünü Keşfedin",
+  heroSubtitle: homeData?.heroSubtitle || "Size özel tasarlanmış turlar, gizli kalmış cennet koylar ve unutulmaz anılar için en doğru yerdesiniz.",
+  heroImage: homeData?.heroImage || 'phuket_hero.webp',
+};
 ---
 
 <!doctype html>
@@ -41,6 +100,14 @@ const initialTours = tours
     </style>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-brand-accent selection:text-white">
-    <AdminDashboard client:only="react" initialTours={initialTours} />
+    <AdminDashboard 
+      client:only="react" 
+      initialTours={initialTours}
+      initialBlogs={initialBlogs}
+      initialServices={initialServices}
+      initialFaqs={initialFaqs}
+      initialTestimonials={initialTestimonials}
+      initialSiteSettings={initialSiteSettings}
+    />
   </body>
 </html>

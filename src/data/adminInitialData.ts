@@ -30,6 +30,41 @@ export interface TourItem {
   featured: boolean;
   active: boolean;
   image: string;
+  excerpt?: string;
+}
+
+export interface FaqItem {
+  id: string;
+  question: string;
+  answer: string;
+}
+
+export interface TestimonialItem {
+  id: string;
+  name: string;
+  type: string;
+  tour: string;
+  stars: number;
+  text: string;
+}
+
+export interface ServiceItem {
+  slug: string;
+  title: string;
+  eyebrow?: string;
+  heading?: string;
+  intro?: string;
+  media?: string;
+}
+
+export interface BlogItem {
+  id: string;
+  title: string;
+  excerpt: string;
+  cover_image: string;
+  date: string;
+  author: string;
+  featured: boolean;
 }
 
 export const initialBookings: Booking[] = [
