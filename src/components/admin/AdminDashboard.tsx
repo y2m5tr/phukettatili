@@ -26,11 +26,19 @@ import {
   RefreshCw,
   Eye,
   SlidersHorizontal,
-  Download
+  Download,
+  Settings,
+  HelpCircle,
+  Star,
+  Save,
+  Check,
+  ChevronDown
 } from 'lucide-react';
-import { initialBookings, type Booking } from '../../data/adminInitialData';
+import { initialBookings, type Booking, type TourItem } from '../../data/adminInitialData';
 
 const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v1';
+const STORAGE_KEY_TOURS = 'phuket_tatili_crm_tours_v1';
+const STORAGE_KEY_SITE = 'phuket_tatili_crm_site_settings_v1';
 const STORAGE_KEY_AUTH = 'phuket_tatili_admin_auth_v1';
 const ADMIN_PASSCODE = 'phuket2026';
 
@@ -39,11 +47,23 @@ interface AdminDashboardProps {
     id: string;
     title: string;
     category: string;
+    categoryLabel?: string;
     priceThb: number;
     duration: string;
     featured: boolean;
+    active?: boolean;
     image: string;
+    excerpt?: string;
   }[];
+}
+
+interface SiteSettingsState {
+  whatsappNumber: string;
+  email: string;
+  siteTitle: string;
+  instagramUrl: string;
+  usdRate: number;
+  tryRate: number;
 }
 
 export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
@@ -53,7 +73,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
   const [authError, setAuthError] = useState<string>('');
 
   // Active Navigation Tab
-  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'tours' | 'whatsapp'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'bookings' | 'tours' | 'whatsapp' | 'settings'>('overview');
 
   // Bookings State
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -61,18 +81,33 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [dateFilter, setDateFilter] = useState<string>('');
 
-  // Modal State for New/Edit Booking
+  // Tours State (Full CRUD)
+  const [tours, setTours] = useState<TourItem[]>([]);
+  const [tourSearchQuery, setTourSearchQuery] = useState<string>('');
+  const [tourCategoryFilter, setTourCategoryFilter] = useState<string>('all');
+  const [isTourModalOpen, setIsTourModalOpen] = useState<boolean>(false);
+  const [editingTour, setEditingTour] = useState<TourItem | null>(null);
+  const [tourFormData, setTourFormData] = useState<Partial<TourItem>>({
+    title: '',
+    category: 'island-tours',
+    categoryLabel: 'Ada Turları',
+    priceThb: 3200,
+    duration: 'Tam Gün (08:00 - 17:00)',
+    featured: false,
+    active: true,
+    image: 'pileh.webp',
+  });
+
+  // Booking Modal State
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
-
-  // Form State
   const [formData, setFormData] = useState<Partial<Booking>>({
     customerName: '',
     phone: '',
     email: '',
     hotel: '',
     roomNumber: '',
-    tourTitle: initialTours[0]?.title || '',
+    tourTitle: '',
     tourDate: new Date().toISOString().split('T')[0],
     pickupTime: '07:30',
     adultCount: 2,
@@ -84,13 +119,26 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     specialNotes: '',
   });
 
-  // Check auth & load data from localStorage on mount
+  // Site Settings State
+  const [siteSettings, setSiteSettings] = useState<SiteSettingsState>({
+    whatsappNumber: '66828950665',
+    email: 'info@phukettatili.com',
+    siteTitle: 'Phuket Tatili',
+    instagramUrl: 'https://instagram.com/phukettatili',
+    usdRate: 36.5,
+    tryRate: 0.98,
+  });
+  const [settingsSaved, setSettingsSaved] = useState<boolean>(false);
+
+  // Load state on mount
   useEffect(() => {
     try {
       const auth = localStorage.getItem(STORAGE_KEY_AUTH);
       if (auth === 'true') {
         setIsAuthenticated(true);
       }
+      
+      // Load Bookings
       const savedBookings = localStorage.getItem(STORAGE_KEY_BOOKINGS);
       if (savedBookings) {
         setBookings(JSON.parse(savedBookings));
@@ -98,18 +146,54 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
         setBookings(initialBookings);
         localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(initialBookings));
       }
+
+      // Load Tours
+      const savedTours = localStorage.getItem(STORAGE_KEY_TOURS);
+      if (savedTours) {
+        setTours(JSON.parse(savedTours));
+      } else {
+        const formatted: TourItem[] = initialTours.map((t) => ({
+          id: t.id,
+          title: t.title,
+          category: t.category,
+          categoryLabel: t.categoryLabel || t.category,
+          priceThb: t.priceThb,
+          duration: t.duration,
+          featured: t.featured,
+          active: true,
+          image: t.image,
+        }));
+        setTours(formatted);
+        localStorage.setItem(STORAGE_KEY_TOURS, JSON.stringify(formatted));
+      }
+
+      // Load Site Settings
+      const savedSettings = localStorage.getItem(STORAGE_KEY_SITE);
+      if (savedSettings) {
+        setSiteSettings(JSON.parse(savedSettings));
+      }
     } catch {
       setBookings(initialBookings);
     }
   }, []);
 
-  // Save bookings to localStorage whenever they change
+  // Save Bookings to localStorage
   const saveBookings = (newBookings: Booking[]) => {
     setBookings(newBookings);
     try {
       localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(newBookings));
     } catch (e) {
-      console.error('LocalStorage save error:', e);
+      console.error(e);
+    }
+  };
+
+  // Save Tours to localStorage
+  const saveTours = (newTours: TourItem[]) => {
+    setTours(newTours);
+    try {
+      localStorage.setItem(STORAGE_KEY_TOURS, JSON.stringify(newTours));
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -135,7 +219,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     } catch {}
   };
 
-  // Calculations for Metrics
+  // Metrics
   const stats = useMemo(() => {
     const totalBookings = bookings.length;
     const confirmedCount = bookings.filter(b => b.status === 'confirmed').length;
@@ -181,7 +265,16 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     });
   }, [bookings, searchQuery, statusFilter, dateFilter]);
 
-  // Open modal for Create
+  // Filtered Tours
+  const filteredTours = useMemo(() => {
+    return tours.filter(t => {
+      const matchesSearch = t.title.toLowerCase().includes(tourSearchQuery.toLowerCase());
+      const matchesCat = tourCategoryFilter === 'all' || t.category === tourCategoryFilter;
+      return matchesSearch && matchesCat;
+    });
+  }, [tours, tourSearchQuery, tourCategoryFilter]);
+
+  // Booking Modal handlers
   const handleOpenCreateModal = () => {
     setEditingBooking(null);
     setFormData({
@@ -190,7 +283,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
       email: '',
       hotel: '',
       roomNumber: '',
-      tourTitle: initialTours[0]?.title || 'Phi Phi Adaları Turu',
+      tourTitle: tours[0]?.title || 'Phi Phi Adaları Turu',
       tourDate: new Date().toISOString().split('T')[0],
       pickupTime: '07:30',
       adultCount: 2,
@@ -204,14 +297,12 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     setIsModalOpen(true);
   };
 
-  // Open modal for Edit
   const handleOpenEditModal = (booking: Booking) => {
     setEditingBooking(booking);
     setFormData(booking);
     setIsModalOpen(true);
   };
 
-  // Delete booking
   const handleDeleteBooking = (id: string, name: string) => {
     if (window.confirm(`"${name}" adlı rezervasyonu silmek istediğinize emin misiniz?`)) {
       const next = bookings.filter(b => b.id !== id);
@@ -219,7 +310,6 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     }
   };
 
-  // Save Booking (Create or Update)
   const handleSubmitBooking = (e: React.FormEvent) => {
     e.preventDefault();
     const total = Number(formData.totalPriceThb) || 0;
@@ -231,7 +321,6 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     else if (paid > 0) paymentStatus = 'partial';
 
     if (editingBooking) {
-      // Update
       const updated: Booking[] = bookings.map(b => {
         if (b.id === editingBooking.id) {
           return {
@@ -247,7 +336,6 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
       });
       saveBookings(updated);
     } else {
-      // Create
       const newId = `BK-${Math.floor(1000 + Math.random() * 9000)}`;
       const newBooking: Booking = {
         id: newId,
@@ -257,7 +345,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
         hotel: formData.hotel || 'Belirtilmedi',
         roomNumber: formData.roomNumber,
         tourId: formData.tourId || 'genel-tur',
-        tourTitle: formData.tourTitle || initialTours[0]?.title || 'Phuket Turu',
+        tourTitle: formData.tourTitle || tours[0]?.title || 'Phuket Turu',
         tourDate: formData.tourDate || new Date().toISOString().split('T')[0],
         pickupTime: formData.pickupTime || '07:30',
         adultCount: Number(formData.adultCount) || 1,
@@ -275,8 +363,85 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     setIsModalOpen(false);
   };
 
-  // Generate WhatsApp message for customer
-  const createWhatsAppLink = (b: Booking, type: 'reminder' | 'confirm' | 'voucher') => {
+  // Tour Modal Handlers (CRUD)
+  const handleOpenCreateTour = () => {
+    setEditingTour(null);
+    setTourFormData({
+      title: '',
+      category: 'island-tours',
+      categoryLabel: 'Ada Turları',
+      priceThb: 3200,
+      duration: 'Tam Gün (08:00 - 17:00)',
+      featured: false,
+      active: true,
+      image: 'pileh.webp',
+    });
+    setIsTourModalOpen(true);
+  };
+
+  const handleOpenEditTour = (tour: TourItem) => {
+    setEditingTour(tour);
+    setTourFormData(tour);
+    setIsTourModalOpen(true);
+  };
+
+  const handleDeleteTour = (id: string, title: string) => {
+    if (window.confirm(`"${title}" turunu listeden silmek istediğinize emin misiniz?`)) {
+      const next = tours.filter(t => t.id !== id);
+      saveTours(next);
+    }
+  };
+
+  const handleToggleTourFeatured = (id: string) => {
+    const next = tours.map(t => t.id === id ? { ...t, featured: !t.featured } : t);
+    saveTours(next);
+  };
+
+  const handleSubmitTour = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!tourFormData.title) return;
+
+    if (editingTour) {
+      // Update
+      const updated = tours.map(t => {
+        if (t.id === editingTour.id) {
+          return {
+            ...t,
+            ...tourFormData,
+            priceThb: Number(tourFormData.priceThb) || 0,
+          } as TourItem;
+        }
+        return t;
+      });
+      saveTours(updated);
+    } else {
+      // Create new
+      const slug = tourFormData.title
+        .toLowerCase()
+        .replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ı/g, 'i').replace(/ö/g, 'o').replace(/ç/g, 'c')
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      const newTour: TourItem = {
+        id: slug || `tur-${Date.now()}`,
+        title: tourFormData.title || 'Yeni Tur',
+        category: tourFormData.category || 'island-tours',
+        categoryLabel: tourFormData.category === 'island-tours' ? 'Ada Turları' :
+                       tourFormData.category === 'adventure-tours' ? 'Macera & Doğa' :
+                       tourFormData.category === 'entertainment-tours' ? 'Kültür & Şov' : 'Özel Yat & VIP',
+        priceThb: Number(tourFormData.priceThb) || 0,
+        duration: tourFormData.duration || 'Tam Gün',
+        featured: Boolean(tourFormData.featured),
+        active: true,
+        image: tourFormData.image || 'pileh.webp',
+      };
+      saveTours([newTour, ...tours]);
+    }
+    setIsTourModalOpen(false);
+  };
+
+  // WhatsApp Link Generator
+  const createWhatsAppLink = (b: Booking, type: 'reminder' | 'confirm') => {
     const cleanPhone = b.phone.replace(/[^0-9]/g, '');
     let msg = '';
     if (type === 'reminder') {
@@ -300,13 +465,13 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
   };
 
-  // Quick Status change
+  // Status Quick Change
   const handleQuickStatusChange = (id: string, newStatus: Booking['status']) => {
     const next = bookings.map(b => b.id === id ? { ...b, status: newStatus } : b);
     saveBookings(next);
   };
 
-  // CSV Export for Accountant / Records
+  // CSV Export
   const handleExportCSV = () => {
     const headers = ['ID,Musteri,Telefon,Otel,Oda,Tur,Tarih,Saat,Yetiskin,Cocuk,ToplamTHB,OdenenTHB,KalanTHB,Durum,Notlar\n'];
     const rows = bookings.map(b => 
@@ -322,8 +487,20 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     document.body.removeChild(link);
   };
 
+  // Save Settings
+  const handleSaveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      localStorage.setItem(STORAGE_KEY_SITE, JSON.stringify(siteSettings));
+      setSettingsSaved(true);
+      setTimeout(() => setSettingsSaved(false), 2500);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   // ----------------------------------------------------
-  // LOGIN SCREEN IF NOT AUTHENTICATED
+  // LOGIN SCREEN
   // ----------------------------------------------------
   if (!isAuthenticated) {
     return (
@@ -471,7 +648,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
             }`}
           >
             <Compass className="w-4 h-4" />
-            <span>Aktif Turlar ({initialTours.length})</span>
+            <span>Turlar & Fiyat Yönetimi ({tours.length})</span>
           </button>
 
           <button
@@ -483,7 +660,19 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
             }`}
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Toplu Hatırlatma & Şablonlar</span>
+            <span>WhatsApp Şablonları</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap ${
+              activeTab === 'settings'
+                ? 'bg-brand-primary text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Settings className="w-4 h-4" />
+            <span>Site & Kur Ayarları</span>
           </button>
         </div>
       </header>
@@ -496,7 +685,6 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
         {/* ==================================================== */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
-            {/* Top Stat Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
               <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-3">
@@ -561,7 +749,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
               </div>
             </div>
 
-            {/* Upcoming Tours Alert & Quick Action */}
+            {/* Upcoming Tours Alert */}
             <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-8">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
                 <div>
@@ -648,7 +836,6 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
         {/* ==================================================== */}
         {activeTab === 'bookings' && (
           <div className="space-y-6">
-            {/* Action Bar (Search & Filter) */}
             <div className="bg-white dark:bg-surface-2 p-4 sm:p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex flex-1 items-center gap-3">
                 <div className="relative flex-1 max-w-md">
@@ -839,54 +1026,88 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
         )}
 
         {/* ==================================================== */}
-        {/* TAB 3: TOURS MANAGEMENT OVERVIEW */}
+        {/* TAB 3: TOURS & PRICE MANAGEMENT (FULL CRUD) */}
         {/* ==================================================== */}
         {activeTab === 'tours' && (
           <div className="space-y-6">
-            <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="bg-white dark:bg-surface-2 p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                  Sitede Yayında Olan Turlar
+                  Turlar & Fiyat Yönetimi
                 </h2>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Tur detaylarını, içerik metinlerini ve fotoğraflarını düzenlemek için Keystatic CMS'i de kullanabilirsiniz.
+                  Tur ekleyin, fiyatları ve süreleri güncelleyin, ana sayfada öne çıkarın veya silin.
                 </p>
               </div>
-              <a
-                href="/keystatic/collection/tours"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 rounded-xl bg-brand-primary text-white text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto hover:bg-brand-primary/90 transition-all"
-              >
-                <span>Keystatic'te Tur Düzenle</span>
-                <ChevronRight className="w-4 h-4" />
-              </a>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <input
+                    type="text"
+                    value={tourSearchQuery}
+                    onChange={(e) => setTourSearchQuery(e.target.value)}
+                    placeholder="Tur adı ara..."
+                    className="pl-9 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
+                  />
+                </div>
+
+                <select
+                  value={tourCategoryFilter}
+                  onChange={(e) => setTourCategoryFilter(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
+                >
+                  <option value="all">Tüm Kategoriler</option>
+                  <option value="island-tours">Ada Turları</option>
+                  <option value="adventure-tours">Macera & Doğa</option>
+                  <option value="entertainment-tours">Kültür & Şov</option>
+                  <option value="private-charters">VIP Yat & Özel</option>
+                </select>
+
+                <button
+                  onClick={handleOpenCreateTour}
+                  className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 transition-all flex items-center gap-1.5"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Yeni Tur Ekle</span>
+                </button>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {initialTours.map((t) => (
+              {filteredTours.map((t) => (
                 <div
                   key={t.id}
-                  className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col"
+                  className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col hover:border-brand-accent/50 transition-colors"
                 >
                   <div className="h-44 relative bg-slate-100 dark:bg-slate-900">
                     <img
                       src={`/assets/${t.image}`}
                       alt={t.title}
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/assets/phuket_hero.webp';
+                      }}
                     />
                     <div className="absolute top-3 left-3">
                       <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white border border-white/20">
-                        {t.category}
+                        {t.categoryLabel || t.category}
                       </span>
                     </div>
-                    {t.featured && (
-                      <div className="absolute top-3 right-3">
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500 text-white shadow-md flex items-center gap-1">
-                          <Sparkles className="w-3 h-3" /> Öne Çıkan
-                        </span>
-                      </div>
-                    )}
+
+                    <div className="absolute top-3 right-3 flex items-center gap-1.5">
+                      <button
+                        onClick={() => handleToggleTourFeatured(t.id)}
+                        className={`p-1.5 rounded-full text-xs font-bold transition-all ${
+                          t.featured
+                            ? 'bg-amber-500 text-white shadow-md'
+                            : 'bg-black/50 text-slate-300 hover:text-white'
+                        }`}
+                        title={t.featured ? 'Öne Çıkarılan (Kaldır)' : 'Öne Çıkar'}
+                      >
+                        <Star className="w-3.5 h-3.5 fill-current" />
+                      </button>
+                    </div>
                   </div>
 
                   <div className="p-5 flex-1 flex flex-col justify-between">
@@ -901,22 +1122,38 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
                     </div>
 
                     <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <div className="text-xs">
-                        <span className="text-slate-400 block text-[10px]">Fiyat Bilgisi:</span>
-                        <span className="font-bold text-slate-900 dark:text-white">
+                      <div>
+                        <span className="text-slate-400 block text-[10px]">Kişi Başı Ücret:</span>
+                        <span className="font-extrabold text-base text-brand-primary dark:text-white">
                           {t.priceThb > 0 ? `${t.priceThb.toLocaleString()} THB` : 'Teklif Alın'}
                         </span>
                       </div>
 
-                      <a
-                        href={`/turlar/${t.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1 transition-colors"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Sitede Gör</span>
-                      </a>
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          onClick={() => handleOpenEditTour(t)}
+                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
+                          title="Fiyat ve Detay Düzenle"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <a
+                          href={`/turlar/${t.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-accent hover:text-white transition-colors"
+                          title="Sitede İncele"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </a>
+                        <button
+                          onClick={() => handleDeleteTour(t.id, t.title)}
+                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
+                          title="Turu Sil"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -947,7 +1184,6 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {/* Template 1 */}
               <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between">
                 <div>
                   <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 mb-3">
@@ -971,7 +1207,6 @@ Lütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Harika bir 
                 </p>
               </div>
 
-              {/* Template 2 */}
               <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between">
                 <div>
                   <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 mb-3">
@@ -993,13 +1228,119 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
             </div>
           </div>
         )}
+
+        {/* ==================================================== */}
+        {/* TAB 5: SITE & CURRENCY SETTINGS */}
+        {/* ==================================================== */}
+        {activeTab === 'settings' && (
+          <div className="max-w-3xl mx-auto space-y-6">
+            <div className="bg-white dark:bg-surface-2 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white mb-1">
+                Genel İletişim & Canlı Kur Ayarları
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
+                Sitedeki iletişim numaralarını, WhatsApp hattını ve döviz kurlarını tek ekrandan güncelleyin.
+              </p>
+
+              <form onSubmit={handleSaveSettings} className="space-y-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                      WhatsApp Hattı Numarası
+                    </label>
+                    <input
+                      type="text"
+                      value={siteSettings.whatsappNumber}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, whatsappNumber: e.target.value })}
+                      placeholder="66828950665"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                    />
+                    <span className="text-[11px] text-slate-400 mt-1 block">Başında + olmadan ülke koduyla</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                      İletişim E-posta Adresi
+                    </label>
+                    <input
+                      type="email"
+                      value={siteSettings.email}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, email: e.target.value })}
+                      placeholder="info@phukettatili.com"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                      1 USD / THB Çarpanı
+                    </label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={siteSettings.usdRate}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, usdRate: Number(e.target.value) })}
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-bold"
+                    />
+                    <span className="text-[11px] text-slate-400 mt-1 block">1 Dolar = ~36.5 Baht</span>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                      1 THB / TL Çarpanı
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={siteSettings.tryRate}
+                      onChange={(e) => setSiteSettings({ ...siteSettings, tryRate: Number(e.target.value) })}
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-bold"
+                    />
+                    <span className="text-[11px] text-slate-400 mt-1 block">1 Baht = ~0.98 TL</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                    Instagram Profil Linki
+                  </label>
+                  <input
+                    type="url"
+                    value={siteSettings.instagramUrl}
+                    onChange={(e) => setSiteSettings({ ...siteSettings, instagramUrl: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                  />
+                </div>
+
+                <div className="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
+                  {settingsSaved ? (
+                    <span className="text-emerald-600 font-bold text-xs flex items-center gap-1.5">
+                      <Check className="w-4 h-4" /> Ayarlar başarıyla kaydedildi!
+                    </span>
+                  ) : <span />}
+
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-2"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>Ayarları Kaydet</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* ==================================================== */}
       {/* MODAL: CREATE / EDIT BOOKING */}
       {/* ==================================================== */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-surface-2 w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto p-6 sm:p-8">
             <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100 dark:border-slate-800">
               <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
@@ -1083,7 +1424,7 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                     onChange={(e) => setFormData({ ...formData, tourTitle: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   >
-                    {initialTours.map((t) => (
+                    {tours.map((t) => (
                       <option key={t.id} value={t.title}>
                         {t.title}
                       </option>
@@ -1214,6 +1555,132 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                   className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold shadow-lg shadow-brand-primary/20"
                 >
                   {editingBooking ? 'Güncelle' : 'Kaydet'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL: CREATE / EDIT TOUR (CRUD) */}
+      {/* ==================================================== */}
+      {isTourModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-surface-2 w-full max-w-xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto p-6 sm:p-8">
+            <div className="flex items-center justify-between pb-4 mb-6 border-b border-slate-100 dark:border-slate-800">
+              <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
+                {editingTour ? 'Turu Düzenle' : 'Yeni Tur Ekle'}
+              </h2>
+              <button
+                onClick={() => setIsTourModalOpen(false)}
+                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitTour} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                  Tur Başlığı *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={tourFormData.title || ''}
+                  onChange={(e) => setTourFormData({ ...tourFormData, title: e.target.value })}
+                  placeholder="Örn: Phi Phi, Maya Bay ve Bamboo Adası"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Kategori *
+                  </label>
+                  <select
+                    value={tourFormData.category || 'island-tours'}
+                    onChange={(e) => setTourFormData({ ...tourFormData, category: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                  >
+                    <option value="island-tours">Ada Turları</option>
+                    <option value="adventure-tours">Macera & Doğa</option>
+                    <option value="entertainment-tours">Kültür & Şovlar</option>
+                    <option value="private-charters">VIP Yat & Özel</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Tur Süresi
+                  </label>
+                  <input
+                    type="text"
+                    value={tourFormData.duration || ''}
+                    onChange={(e) => setTourFormData({ ...tourFormData, duration: e.target.value })}
+                    placeholder="Örn: Tam Gün (08:00 - 17:00)"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Kişi Başı Fiyat (THB)
+                  </label>
+                  <input
+                    type="number"
+                    value={tourFormData.priceThb || 0}
+                    onChange={(e) => setTourFormData({ ...tourFormData, priceThb: Number(e.target.value) })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-bold"
+                  />
+                  <span className="text-[11px] text-slate-400 mt-1 block">0 yazılırsa "Fiyat Teklifi Alın" görünür</span>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    Görsel Adı (public/assets/)
+                  </label>
+                  <input
+                    type="text"
+                    value={tourFormData.image || ''}
+                    onChange={(e) => setTourFormData({ ...tourFormData, image: e.target.value })}
+                    placeholder="pileh.webp"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={tourFormData.featured || false}
+                    onChange={(e) => setTourFormData({ ...tourFormData, featured: e.target.checked })}
+                    className="w-4 h-4 rounded text-brand-accent focus:ring-brand-accent"
+                  />
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    ⭐ Bu turu Ana Sayfada "Öne Çıkanlar" arasına ekle
+                  </span>
+                </label>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsTourModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold shadow-lg shadow-brand-primary/20"
+                >
+                  {editingTour ? 'Turu Güncelle' : 'Turu Ekle'}
                 </button>
               </div>
             </form>
