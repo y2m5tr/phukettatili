@@ -3,10 +3,10 @@ import { config, fields, collection, singleton } from '@keystatic/core';
 export default config({
   storage: process.env.NODE_ENV === 'development' 
     ? { kind: 'local' } 
-    : {
-        kind: 'github',
-        repo: 'y2m5tr/phukettatili2'
-      },
+    : { kind: 'cloud' },
+  cloud: {
+    project: 'phukettatili/phukettatili2',
+  },
   ui: {
     brand: {
       name: 'Phuket Tatili Yönetim Paneli',
