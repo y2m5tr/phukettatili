@@ -20,6 +20,11 @@ export interface Booking {
   createdAt: string;
 }
 
+export interface TourFaq {
+  q: string;
+  a: string;
+}
+
 export interface TourItem {
   id: string;
   title: string;
@@ -32,6 +37,21 @@ export interface TourItem {
   image: string;
   excerpt?: string;
   gallery?: string[];
+  included?: string[];
+  excluded?: string[];
+  program?: string[];
+  faq?: TourFaq[];
+  restrictions?: string[];
+  body?: string;
+}
+
+export interface MediaItem {
+  id: string;
+  title: string;
+  url: string;
+  type: 'system' | 'uploaded' | 'external';
+  size?: string;
+  createdAt: string;
 }
 
 export interface FaqItem {
