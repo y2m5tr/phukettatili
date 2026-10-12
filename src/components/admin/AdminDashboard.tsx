@@ -53,6 +53,7 @@ import {
 import {
   initialBookings,
   type Booking,
+  type BookingTourSchedule,
   type TourItem,
   type TourFaq,
   type FaqItem,
@@ -368,13 +369,20 @@ export default function AdminDashboard({
   // Filters
   const filteredBookings = useMemo(() => {
     return bookings.filter((b) => {
+      const q = searchQuery.toLowerCase();
       const matchSearch =
-        b.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.phone.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.hotel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        b.tourTitle.toLowerCase().includes(searchQuery.toLowerCase());
+        b.customerName.toLowerCase().includes(q) ||
+        b.phone.toLowerCase().includes(q) ||
+        b.hotel.toLowerCase().includes(q) ||
+        b.tourTitle.toLowerCase().includes(q) ||
+        (b.tours || []).some((t) => t.tourTitle.toLowerCase().includes(q));
+
       const matchStatus = statusFilter === 'all' || b.status === statusFilter;
-      const matchDate = !dateFilter || b.tourDate === dateFilter;
+      const matchDate =
+        !dateFilter ||
+        b.tourDate === dateFilter ||
+        (b.tours || []).some((t) => t.tourDate === dateFilter);
+
       return matchSearch && matchStatus && matchDate;
     });
   }, [bookings, searchQuery, statusFilter, dateFilter]);
@@ -390,17 +398,28 @@ export default function AdminDashboard({
   // Booking CRUD
   const handleOpenCreateBooking = () => {
     setEditingBooking(null);
+    const initialTourItem = tours[0];
+    const initialSchedule: BookingTourSchedule[] = [
+      {
+        tourTitle: initialTourItem?.title || 'Phi Phi, Maya Bay ve Bamboo Adası',
+        tourDate: new Date().toISOString().split('T')[0],
+        pickupTime: '07:30',
+        priceThb: initialTourItem?.priceThb || 3200,
+      },
+    ];
+
     setFormData({
       customerName: '',
       phone: '',
       hotel: '',
       roomNumber: '',
-      tourTitle: tours[0]?.title || 'Phi Phi Adaları',
+      tourTitle: initialTourItem?.title || 'Phi Phi Adaları',
       tourDate: new Date().toISOString().split('T')[0],
       pickupTime: '07:30',
+      tours: initialSchedule,
       adultCount: 2,
       childCount: 0,
-      totalPriceThb: 6400,
+      totalPriceThb: (initialTourItem?.priceThb || 3200) * 2,
       paidAmountThb: 2000,
       status: 'confirmed',
       paymentStatus: 'partial',
@@ -411,13 +430,29 @@ export default function AdminDashboard({
 
   const handleOpenEditBooking = (b: Booking) => {
     setEditingBooking(b);
-    setFormData(b);
+    const schedule: BookingTourSchedule[] =
+      b.tours && b.tours.length > 0
+        ? b.tours
+        : [
+            {
+              tourTitle: b.tourTitle,
+              tourDate: b.tourDate,
+              pickupTime: b.pickupTime || '07:30',
+              priceThb: Math.round(b.totalPriceThb / (b.adultCount || 1)),
+            },
+          ];
+
+    setFormData({
+      ...b,
+      tours: schedule,
+    });
     setIsModalOpen(true);
   };
 
   const handleDeleteBooking = (id: string, name: string) => {
     if (window.confirm(`"${name}" rezervasyonunu silmek istediğinize emin misiniz?`)) {
       saveBookings(bookings.filter((b) => b.id !== id));
+      showToast('Rezervasyon silindi.');
     }
   };
 
@@ -431,12 +466,37 @@ export default function AdminDashboard({
     if (paid >= total && total > 0) paymentStatus = 'paid';
     else if (paid > 0) paymentStatus = 'partial';
 
+    // Normalize tours schedule
+    const schedule: BookingTourSchedule[] =
+      formData.tours && formData.tours.length > 0
+        ? formData.tours
+        : [
+            {
+              tourTitle: formData.tourTitle || tours[0]?.title || 'Phuket Turu',
+              tourDate: formData.tourDate || new Date().toISOString().split('T')[0],
+              pickupTime: formData.pickupTime || '07:30',
+              priceThb: total,
+            },
+          ];
+
+    // Primary summary title
+    const primaryTourTitle =
+      schedule.length > 1
+        ? `${schedule[0].tourTitle} + ${schedule.length - 1} Tur`
+        : schedule[0].tourTitle;
+    const primaryTourDate = schedule[0].tourDate;
+    const primaryPickupTime = schedule[0].pickupTime || '07:30';
+
     if (editingBooking) {
       const updated = bookings.map((b) =>
         b.id === editingBooking.id
           ? ({
               ...b,
               ...formData,
+              tourTitle: primaryTourTitle,
+              tourDate: primaryTourDate,
+              pickupTime: primaryPickupTime,
+              tours: schedule,
               totalPriceThb: total,
               paidAmountThb: paid,
               remainingAmountThb: remaining,
@@ -445,6 +505,7 @@ export default function AdminDashboard({
           : b
       );
       saveBookings(updated);
+      showToast('Rezervasyon güncellendi!');
     } else {
       const newBooking: Booking = {
         id: `BK-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -452,10 +513,11 @@ export default function AdminDashboard({
         phone: formData.phone || '',
         hotel: formData.hotel || 'Belirtilmedi',
         roomNumber: formData.roomNumber,
-        tourId: formData.tourId || 'genel-tur',
-        tourTitle: formData.tourTitle || tours[0]?.title || 'Phuket Turu',
-        tourDate: formData.tourDate || new Date().toISOString().split('T')[0],
-        pickupTime: formData.pickupTime || '07:30',
+        tourId: formData.tourId || 'coklu-tur',
+        tourTitle: primaryTourTitle,
+        tourDate: primaryTourDate,
+        pickupTime: primaryPickupTime,
+        tours: schedule,
         adultCount: Number(formData.adultCount) || 1,
         childCount: Number(formData.childCount) || 0,
         totalPriceThb: total,
@@ -467,6 +529,7 @@ export default function AdminDashboard({
         createdAt: new Date().toISOString().split('T')[0],
       };
       saveBookings([newBooking, ...bookings]);
+      showToast('Yeni rezervasyon başarıyla eklendi!');
     }
     setIsModalOpen(false);
   };
@@ -839,23 +902,47 @@ export default function AdminDashboard({
   const createWhatsAppLink = (b: Booking, type: 'reminder' | 'confirm') => {
     const cleanPhone = b.phone.replace(/[^0-9]/g, '');
     let msg = '';
+    const hasMultipleTours = b.tours && b.tours.length > 1;
+
     if (type === 'reminder') {
+      const tourScheduleText = hasMultipleTours
+        ? b.tours!
+            .map(
+              (t, i) =>
+                `${i + 1}️⃣ *${t.tourTitle}*\n` +
+                `   📅 Tarih: *${t.tourDate}* | ⏰ Otelden Alınış: *${t.pickupTime || '07:30'}*`
+            )
+            .join('\n\n')
+        : `📅 Tur: *${b.tourTitle}*\n` +
+          `⏰ Otelden Alınış Saati: *${b.pickupTime || '07:30'}*`;
+
       msg =
-        `Merhaba ${b.customerName} Bey/Hanım! 🌴 Phuket Tatili ekibinden yazıyoruz.\n\n` +
-        `📅 Yarınki turunuz: *${b.tourTitle}*\n` +
-        `⏰ Otelden Alınış Saati: *${b.pickupTime || '07:30'}*\n` +
+        `Merhaba ${b.customerName} Bey/Hanım! 🌴 Phuket Tatili operasyon ekibinden yazıyoruz.\n\n` +
+        `Rezerve ettiğiniz tur programınız:\n\n` +
+        `${tourScheduleText}\n\n` +
         `📍 Otel: *${b.hotel}* ${b.roomNumber ? `(Oda: ${b.roomNumber})` : ''}\n` +
         `👥 Kişi Sayısı: *${b.adultCount} Yetişkin ${b.childCount ? `, ${b.childCount} Çocuk` : ''}*\n` +
         (b.remainingAmountThb > 0
           ? `💰 Kalan Ödeme: *${b.remainingAmountThb.toLocaleString()} THB* (Rehbere elden teslim edebilirsiniz).\n\n`
           : `\n`) +
-        `Lütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Harika bir gün dileriz! 🇹🇭`;
+        `Lütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Harika bir tatil dileriz! 🇹🇭`;
     } else {
+      const tourScheduleText = hasMultipleTours
+        ? b.tours!
+            .map(
+              (t, i) =>
+                `${i + 1}️⃣ *${t.tourTitle}*\n` +
+                `   📅 Tarih: *${t.tourDate}* ${t.pickupTime ? `| ⏰ Alınış: *${t.pickupTime}*` : ''}`
+            )
+            .join('\n')
+        : `Tur: *${b.tourTitle}*\n` +
+          `Tarih: *${b.tourDate}*`;
+
       msg =
         `Merhaba ${b.customerName}! 🏝️ Phuket Tatili rezervasyonunuz onaylanmıştır.\n\n` +
-        `📋 Rezervasyon No: *${b.id}*\n` +
-        `Tur: *${b.tourTitle}*\n` +
-        `Tarih: *${b.tourDate}*\n` +
+        `📋 Rezervasyon No: *${b.id}*\n\n` +
+        `Tur Programınız:\n${tourScheduleText}\n\n` +
+        `📍 Otel: *${b.hotel}*\n` +
         `Toplam Tutar: *${b.totalPriceThb.toLocaleString()} THB*\n` +
         `Ödenen Kapora: *${b.paidAmountThb.toLocaleString()} THB*\n` +
         `Kalan Tutar: *${b.remainingAmountThb.toLocaleString()} THB*\n\n` +
@@ -866,11 +953,14 @@ export default function AdminDashboard({
 
   // CSV Export
   const handleExportCSV = () => {
-    const headers = ['ID,Musteri,Telefon,Otel,Oda,Tur,Tarih,Saat,Yetiskin,Cocuk,ToplamTHB,OdenenTHB,KalanTHB,Durum\n'];
-    const rows = bookings.map(
-      (b) =>
-        `"${b.id}","${b.customerName}","${b.phone}","${b.hotel}","${b.roomNumber || ''}","${b.tourTitle}","${b.tourDate}","${b.pickupTime || ''}",${b.adultCount},${b.childCount},${b.totalPriceThb},${b.paidAmountThb},${b.remainingAmountThb},"${b.status}"\n`
-    );
+    const headers = ['ID,Musteri,Telefon,Otel,Oda,Turlar,Tarihler,Yetiskin,Cocuk,ToplamTHB,OdenenTHB,KalanTHB,Durum\n'];
+    const rows = bookings.map((b) => {
+      const toursSummary = (b.tours || [{ tourTitle: b.tourTitle, tourDate: b.tourDate }])
+        .map((t) => `${t.tourTitle} (${t.tourDate})`)
+        .join(' + ');
+      const datesSummary = (b.tours || [{ tourDate: b.tourDate }]).map((t) => t.tourDate).join('; ');
+      return `"${b.id}","${b.customerName}","${b.phone}","${b.hotel}","${b.roomNumber || ''}","${toursSummary}","${datesSummary}",${b.adultCount},${b.childCount},${b.totalPriceThb},${b.paidAmountThb},${b.remainingAmountThb},"${b.status}"\n`;
+    });
     const blob = new Blob([...headers, ...rows], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -1344,10 +1434,30 @@ export default function AdminDashboard({
                           </td>
 
                           <td className="py-4 px-5">
-                            <span className="font-semibold text-slate-900 dark:text-white block">{b.tourTitle}</span>
-                            <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">
-                              📅 {b.tourDate} {b.pickupTime ? `· ⏰ ${b.pickupTime}` : ''}
-                            </span>
+                            {b.tours && b.tours.length > 1 ? (
+                              <div className="space-y-1.5">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-brand-primary text-white shadow-2xs">
+                                  🌴 {b.tours.length} Farklı Tur Paketi
+                                </span>
+                                {b.tours.map((t, idx) => (
+                                  <div key={idx} className="text-xs">
+                                    <span className="font-semibold text-slate-900 dark:text-white block">
+                                      {idx + 1}. {t.tourTitle}
+                                    </span>
+                                    <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                                      📅 {t.tourDate} {t.pickupTime ? `· ⏰ ${t.pickupTime}` : ''} {t.priceThb ? `· ${t.priceThb.toLocaleString()} THB` : ''}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <>
+                                <span className="font-semibold text-slate-900 dark:text-white block">{b.tourTitle}</span>
+                                <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">
+                                  📅 {b.tourDate} {b.pickupTime ? `· ⏰ ${b.pickupTime}` : ''}
+                                </span>
+                              </>
+                            )}
                           </td>
 
                           <td className="py-4 px-5">
@@ -2291,53 +2401,210 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Tur Seçimi *</label>
-                  <select
-                    value={formData.tourTitle || ''}
-                    onChange={(e) => setFormData({ ...formData, tourTitle: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+              {/* Çoklu Tur & Tarih Programı */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-200">
+                      Rezerve Edilen Turlar & Tarihler ({(formData.tours || []).length} Tur)
+                    </label>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Aynı misafir için farklı günlerde gerçekleşecek birden fazla tur ekleyebilirsiniz.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const curTours = formData.tours || [];
+                      const lastTour = curTours[curTours.length - 1];
+                      let nextDate = new Date().toISOString().split('T')[0];
+                      if (lastTour?.tourDate) {
+                        const d = new Date(lastTour.tourDate);
+                        d.setDate(d.getDate() + 1);
+                        nextDate = d.toISOString().split('T')[0];
+                      }
+                      const nextTourItem = tours[curTours.length % tours.length] || tours[0];
+                      const updated: BookingTourSchedule[] = [
+                        ...curTours,
+                        {
+                          tourTitle: nextTourItem?.title || 'Phuket Turu',
+                          tourDate: nextDate,
+                          pickupTime: '07:30',
+                          priceThb: nextTourItem?.priceThb || 3200,
+                        },
+                      ];
+                      const adults = Number(formData.adultCount) || 1;
+                      const calculatedTotal = updated.reduce((acc, t) => acc + (t.priceThb || 0), 0) * adults;
+                      setFormData({
+                        ...formData,
+                        tours: updated,
+                        totalPriceThb: calculatedTotal > 0 ? calculatedTotal : formData.totalPriceThb,
+                      });
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all self-start sm:self-auto"
                   >
-                    {tours.map((t) => (
-                      <option key={t.id} value={t.title}>{t.title}</option>
-                    ))}
-                  </select>
+                    <Plus className="w-4 h-4" />
+                    <span>+ Başka Bir Tur & Tarih Ekle</span>
+                  </button>
                 </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Tur Tarihi *</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.tourDate || ''}
-                    onChange={(e) => setFormData({ ...formData, tourDate: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
-                  />
+
+                <div className="space-y-3 pt-1">
+                  {(formData.tours || []).map((tourSchedule, idx) => (
+                    <div
+                      key={idx}
+                      className="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs space-y-2.5 relative"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase bg-brand-primary text-white">
+                          #{idx + 1} Tur Programı
+                        </span>
+
+                        {(formData.tours || []).length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = (formData.tours || []).filter((_, i) => i !== idx);
+                              const adults = Number(formData.adultCount) || 1;
+                              const calculatedTotal = updated.reduce((acc, t) => acc + (t.priceThb || 0), 0) * adults;
+                              setFormData({
+                                ...formData,
+                                tours: updated,
+                                totalPriceThb: calculatedTotal > 0 ? calculatedTotal : formData.totalPriceThb,
+                              });
+                            }}
+                            className="text-slate-400 hover:text-red-500 p-1 text-xs font-bold transition-colors"
+                            title="Bu turu kaldır"
+                          >
+                            ✕ Turu Kaldır
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                        <div className="sm:col-span-5">
+                          <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                            Tur Adı *
+                          </label>
+                          <select
+                            value={tourSchedule.tourTitle}
+                            onChange={(e) => {
+                              const selectedTitle = e.target.value;
+                              const matchedTour = tours.find((t) => t.title === selectedTitle);
+                              const updated = (formData.tours || []).map((item, i) =>
+                                i === idx
+                                  ? {
+                                      ...item,
+                                      tourTitle: selectedTitle,
+                                      priceThb: matchedTour?.priceThb || item.priceThb,
+                                    }
+                                  : item
+                              );
+                              const adults = Number(formData.adultCount) || 1;
+                              const calculatedTotal = updated.reduce((acc, t) => acc + (t.priceThb || 0), 0) * adults;
+                              setFormData({
+                                ...formData,
+                                tours: updated,
+                                totalPriceThb: calculatedTotal > 0 ? calculatedTotal : formData.totalPriceThb,
+                              });
+                            }}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none font-medium"
+                          >
+                            {tours.map((t) => (
+                              <option key={t.id} value={t.title}>
+                                {t.title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="sm:col-span-3">
+                          <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                            Tur Tarihi *
+                          </label>
+                          <input
+                            type="date"
+                            required
+                            value={tourSchedule.tourDate}
+                            onChange={(e) => {
+                              const updated = (formData.tours || []).map((item, i) =>
+                                i === idx ? { ...item, tourDate: e.target.value } : item
+                              );
+                              setFormData({ ...formData, tours: updated });
+                            }}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none font-semibold"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                            Alınış Saati
+                          </label>
+                          <input
+                            type="text"
+                            placeholder="07:30"
+                            value={tourSchedule.pickupTime || ''}
+                            onChange={(e) => {
+                              const updated = (formData.tours || []).map((item, i) =>
+                                i === idx ? { ...item, pickupTime: e.target.value } : item
+                              );
+                              setFormData({ ...formData, tours: updated });
+                            }}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                            Fiyat (Kişi Başı THB)
+                          </label>
+                          <input
+                            type="number"
+                            value={tourSchedule.priceThb || 0}
+                            onChange={(e) => {
+                              const val = Number(e.target.value) || 0;
+                              const updated = (formData.tours || []).map((item, i) =>
+                                i === idx ? { ...item, priceThb: val } : item
+                              );
+                              const adults = Number(formData.adultCount) || 1;
+                              const calculatedTotal = updated.reduce((acc, t) => acc + (t.priceThb || 0), 0) * adults;
+                              setFormData({
+                                ...formData,
+                                tours: updated,
+                                totalPriceThb: calculatedTotal > 0 ? calculatedTotal : formData.totalPriceThb,
+                              });
+                            }}
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Otel Alınış Saati</label>
-                  <input
-                    type="text"
-                    value={formData.pickupTime || ''}
-                    onChange={(e) => setFormData({ ...formData, pickupTime: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Yetişkin</label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Yetişkin Sayısı</label>
                   <input
                     type="number"
                     min="1"
                     value={formData.adultCount || 1}
-                    onChange={(e) => setFormData({ ...formData, adultCount: Number(e.target.value) })}
+                    onChange={(e) => {
+                      const count = Number(e.target.value) || 1;
+                      const curTours = formData.tours || [];
+                      const calculatedTotal = curTours.reduce((acc, t) => acc + (t.priceThb || 0), 0) * count;
+                      setFormData({
+                        ...formData,
+                        adultCount: count,
+                        totalPriceThb: calculatedTotal > 0 ? calculatedTotal : formData.totalPriceThb,
+                      });
+                    }}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Çocuk</label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Çocuk Sayısı</label>
                   <input
                     type="number"
                     min="0"

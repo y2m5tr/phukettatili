@@ -1,3 +1,11 @@
+export interface BookingTourSchedule {
+  tourId?: string;
+  tourTitle: string;
+  tourDate: string;
+  pickupTime?: string;
+  priceThb?: number;
+}
+
 export interface Booking {
   id: string;
   customerName: string;
@@ -9,6 +17,7 @@ export interface Booking {
   tourTitle: string;
   tourDate: string;
   pickupTime?: string;
+  tours?: BookingTourSchedule[];
   adultCount: number;
   childCount: number;
   totalPriceThb: number;
