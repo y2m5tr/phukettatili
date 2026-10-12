@@ -4,7 +4,7 @@ category: "private-charters"
 subcategory: "speedboat"
 category_label: "Özel Rotalar"
 excerpt: "Çiftler, aileler ve özel arkadaş grupları için kişisel rotalı lüks yat ve seyir deneyimi."
-image: "couple.webp"
+image: "phuket_yacht.webp"
 price_type: "quote"
 price_thb: 0
 duration: "Tam gün / Gün batımı"

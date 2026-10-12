@@ -4,7 +4,7 @@ category: "adventure-tours"
 subcategory: "white-water-rafting"
 category_label: "Macera Turları"
 excerpt: "Dünyanın en eski yağmur ormanlarından birinde, zümrüt renkli göl üzerinde yüzen evler ve kano keşfi."
-image: "railay.webp"
+image: "longtail.webp"
 price_type: "quote"
 price_thb: 0
 duration: "Günübirlik / 2 Gün 1 Gece"

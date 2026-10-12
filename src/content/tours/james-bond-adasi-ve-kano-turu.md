@@ -4,7 +4,7 @@ category: "island-tours"
 subcategory: "james-bond-island"
 category_label: "James Bond Adası"
 excerpt: "Phang Nga Körfezi'nin kireçtaşı kayalıkları arasında deniz kanosu, mağara keşfi ve James Bond Adası molası."
-image: "bay.webp"
+image: "phuket_hero.webp"
 price_type: "quote"
 price_thb: 0
 duration: "Tam gün"

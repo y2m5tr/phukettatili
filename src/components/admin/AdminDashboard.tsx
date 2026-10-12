@@ -1608,17 +1608,40 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
 
                 <div>
                   <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Görsel Adı (public/assets/)
+                    Kapak Görseli *
                   </label>
-                  <input
-                    type="text"
-                    value={tourFormData.image || ''}
+                  <select
+                    value={tourFormData.image || 'phuket_hero.webp'}
                     onChange={(e) => setTourFormData({ ...tourFormData, image: e.target.value })}
-                    placeholder="pileh.webp"
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-mono"
-                  />
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-medium"
+                  >
+                    <option value="phuket_hero.webp">Phuket Hero (Plaj & Doğa)</option>
+                    <option value="pileh.webp">Pileh Lagoon (Zümrüt Lagün & Kayalar)</option>
+                    <option value="beach.webp">Beyaz Kumlu Ada Plajı</option>
+                    <option value="longtail.webp">Geleneksel Longtail Tekne</option>
+                    <option value="phuket_yacht.webp">Lüks Yat & Katamaran</option>
+                    <option value="elephant.webp">Etik Fil Koruma Alanı</option>
+                    <option value="culture.webp">Kültür, Gece & Sahne Şovları</option>
+                    <option value="phuket_transfer.webp">VIP Transfer & Araç</option>
+                  </select>
                 </div>
               </div>
+
+              {tourFormData.image && (
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+                  <img
+                    src={`/assets/${tourFormData.image}`}
+                    alt="Seçilen Görsel"
+                    className="w-16 h-12 object-cover rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm"
+                  />
+                  <div>
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">Seçili Görsel Önizleme</span>
+                    <span className="text-xs font-mono font-semibold text-slate-800 dark:text-slate-200">
+                      /assets/{tourFormData.image}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               <div className="pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">

@@ -4,7 +4,7 @@ category: "island-tours"
 subcategory: "similan-islands"
 category_label: "Similan Adaları"
 excerpt: "Andaman Denizi'nin en berrak suları, dev granit kayalıklar ve dünyaca ünlü mercan resifleri."
-image: "underwater.webp"
+image: "beach.webp"
 price_type: "quote"
 price_thb: 0
 duration: "Tam gün"
