@@ -48,7 +48,12 @@ import {
   X,
   Layers,
   ListChecks,
-  Info
+  Info,
+  Printer,
+  Ticket,
+  Briefcase,
+  Share2,
+  Wallet
 } from 'lucide-react';
 import {
   initialBookings,
@@ -131,7 +136,7 @@ export default function AdminDashboard({
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'bookings' | 'tours' | 'media' | 'blogs' | 'services' | 'faqs' | 'testimonials' | 'whatsapp' | 'settings'
+    'overview' | 'bookings' | 'transfers' | 'tours' | 'media' | 'blogs' | 'services' | 'faqs' | 'testimonials' | 'whatsapp' | 'settings'
   >('overview');
 
   // Toast Feedback
@@ -149,6 +154,14 @@ export default function AdminDashboard({
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [formData, setFormData] = useState<Partial<Booking>>({});
+
+  // Voucher / Ticket Modal State
+  const [voucherBooking, setVoucherBooking] = useState<Booking | null>(null);
+
+  // Driver Manifest & Operations State
+  const [manifestDate, setManifestDate] = useState<string>(
+    new Date().toISOString().split('T')[0]
+  );
 
   // 2. Tours State
   const [tours, setTours] = useState<TourItem[]>([]);
@@ -337,23 +350,32 @@ export default function AdminDashboard({
     localStorage.removeItem(STORAGE_KEY_AUTH);
   };
 
-  // Metrics
+  // Metrics & Profitability
   const stats = useMemo(() => {
     const totalBookings = bookings.length;
     const confirmedCount = bookings.filter((b) => b.status === 'confirmed').length;
     const pendingCount = bookings.filter((b) => b.status === 'inquiry').length;
-    const totalRevenueThb = bookings
-      .filter((b) => b.status !== 'cancelled')
-      .reduce((acc, b) => acc + (b.totalPriceThb || 0), 0);
-    const collectedRevenueThb = bookings
-      .filter((b) => b.status !== 'cancelled')
-      .reduce((acc, b) => acc + (b.paidAmountThb || 0), 0);
-    const pendingCollectionThb = bookings
-      .filter((b) => b.status !== 'cancelled')
-      .reduce((acc, b) => acc + (b.remainingAmountThb || 0), 0);
-    const totalGuests = bookings
-      .filter((b) => b.status !== 'cancelled')
-      .reduce((acc, b) => acc + (b.adultCount || 0) + (b.childCount || 0), 0);
+    const activeBookings = bookings.filter((b) => b.status !== 'cancelled');
+
+    const totalRevenueThb = activeBookings.reduce((acc, b) => acc + (b.totalPriceThb || 0), 0);
+    const collectedRevenueThb = activeBookings.reduce((acc, b) => acc + (b.paidAmountThb || 0), 0);
+    const pendingCollectionThb = activeBookings.reduce((acc, b) => acc + (b.remainingAmountThb || 0), 0);
+    const totalGuests = activeBookings.reduce((acc, b) => acc + (b.adultCount || 0) + (b.childCount || 0), 0);
+
+    // Calculate total cost (Tedarikçi Maliyeti)
+    const totalCostThb = activeBookings.reduce((acc, b) => {
+      if (b.costThb !== undefined && b.costThb !== null) {
+        return acc + b.costThb;
+      }
+      if (b.tours && b.tours.length > 0) {
+        const toursCost = b.tours.reduce((tAcc, t) => tAcc + (t.costThb || 0), 0) * (b.adultCount || 1);
+        return acc + toursCost;
+      }
+      return acc;
+    }, 0);
+
+    const netProfitThb = totalRevenueThb - totalCostThb;
+    const profitMarginPercent = totalRevenueThb > 0 ? Math.round((netProfitThb / totalRevenueThb) * 100) : 0;
 
     return {
       totalBookings,
@@ -363,6 +385,9 @@ export default function AdminDashboard({
       collectedRevenueThb,
       pendingCollectionThb,
       totalGuests,
+      totalCostThb,
+      netProfitThb,
+      profitMarginPercent,
     };
   }, [bookings]);
 
@@ -405,6 +430,9 @@ export default function AdminDashboard({
         tourDate: new Date().toISOString().split('T')[0],
         pickupTime: '07:30',
         priceThb: initialTourItem?.priceThb || 3200,
+        costThb: initialTourItem?.costThb || 1900,
+        supplier: initialTourItem?.supplier || 'Andaman Wave Master',
+        nationalParkFeeIncluded: false,
       },
     ];
 
@@ -420,6 +448,9 @@ export default function AdminDashboard({
       adultCount: 2,
       childCount: 0,
       totalPriceThb: (initialTourItem?.priceThb || 3200) * 2,
+      costThb: (initialTourItem?.costThb || 1900) * 2,
+      supplier: initialTourItem?.supplier || 'Andaman Wave Master',
+      nationalParkFeeIncluded: false,
       paidAmountThb: 2000,
       status: 'confirmed',
       paymentStatus: 'partial',
@@ -439,6 +470,9 @@ export default function AdminDashboard({
               tourDate: b.tourDate,
               pickupTime: b.pickupTime || '07:30',
               priceThb: Math.round(b.totalPriceThb / (b.adultCount || 1)),
+              costThb: b.costThb ? Math.round(b.costThb / (b.adultCount || 1)) : undefined,
+              supplier: b.supplier,
+              nationalParkFeeIncluded: b.nationalParkFeeIncluded,
             },
           ];
 
@@ -461,6 +495,7 @@ export default function AdminDashboard({
     const total = Number(formData.totalPriceThb) || 0;
     const paid = Number(formData.paidAmountThb) || 0;
     const remaining = Math.max(0, total - paid);
+    const adults = Number(formData.adultCount) || 1;
 
     let paymentStatus: Booking['paymentStatus'] = 'unpaid';
     if (paid >= total && total > 0) paymentStatus = 'paid';
@@ -476,8 +511,17 @@ export default function AdminDashboard({
               tourDate: formData.tourDate || new Date().toISOString().split('T')[0],
               pickupTime: formData.pickupTime || '07:30',
               priceThb: total,
+              costThb: formData.costThb ? Math.round(formData.costThb / adults) : 0,
+              supplier: formData.supplier,
+              nationalParkFeeIncluded: formData.nationalParkFeeIncluded,
             },
           ];
+
+    // Calculate total cost from schedule if available
+    const calculatedCost =
+      formData.costThb !== undefined
+        ? Number(formData.costThb)
+        : schedule.reduce((acc, t) => acc + (t.costThb || 0), 0) * adults;
 
     // Primary summary title
     const primaryTourTitle =
@@ -498,6 +542,7 @@ export default function AdminDashboard({
               pickupTime: primaryPickupTime,
               tours: schedule,
               totalPriceThb: total,
+              costThb: calculatedCost,
               paidAmountThb: paid,
               remainingAmountThb: remaining,
               paymentStatus,
@@ -518,11 +563,14 @@ export default function AdminDashboard({
         tourDate: primaryTourDate,
         pickupTime: primaryPickupTime,
         tours: schedule,
-        adultCount: Number(formData.adultCount) || 1,
+        adultCount: adults,
         childCount: Number(formData.childCount) || 0,
         totalPriceThb: total,
+        costThb: calculatedCost,
+        supplier: formData.supplier || schedule[0]?.supplier || 'Yerel Acente',
         paidAmountThb: paid,
         remainingAmountThb: remaining,
+        nationalParkFeeIncluded: formData.nationalParkFeeIncluded ?? false,
         status: (formData.status as Booking['status']) || 'confirmed',
         paymentStatus,
         specialNotes: formData.specialNotes,
@@ -629,6 +677,8 @@ export default function AdminDashboard({
                 ...t,
                 ...tourFormData,
                 priceThb: Number(tourFormData.priceThb) || 0,
+                costThb: Number(tourFormData.costThb) || 0,
+                supplier: tourFormData.supplier || '',
                 gallery: tourFormData.gallery || [],
                 included: tourFormData.included || [],
                 excluded: tourFormData.excluded || [],
@@ -661,6 +711,8 @@ export default function AdminDashboard({
             ? 'Kültür & Şov'
             : 'VIP Yat & Özel',
         priceThb: Number(tourFormData.priceThb) || 0,
+        costThb: Number(tourFormData.costThb) || 0,
+        supplier: tourFormData.supplier || '',
         duration: tourFormData.duration || 'Tam Gün',
         featured: Boolean(tourFormData.featured),
         active: true,
@@ -901,8 +953,9 @@ export default function AdminDashboard({
   // WhatsApp Message Link
   const createWhatsAppLink = (b: Booking, type: 'reminder' | 'confirm') => {
     const cleanPhone = b.phone.replace(/[^0-9]/g, '');
-    let msg = '';
-    const hasMultipleTours = b.tours && b.tours.length > 1;
+    const nationalParkWarning = b.nationalParkFeeIncluded === false
+      ? `\n⚠️ *Önemli Hatırlatma:* Millî Park Giriş Ücreti fiyata dahil değildir. Lütfen limanda ödenmek üzere yanınızda kişi başı nakit Baht (THB) hazır bulundurunuz.\n`
+      : '';
 
     if (type === 'reminder') {
       const tourScheduleText = hasMultipleTours
@@ -923,9 +976,10 @@ export default function AdminDashboard({
         `📍 Otel: *${b.hotel}* ${b.roomNumber ? `(Oda: ${b.roomNumber})` : ''}\n` +
         `👥 Kişi Sayısı: *${b.adultCount} Yetişkin ${b.childCount ? `, ${b.childCount} Çocuk` : ''}*\n` +
         (b.remainingAmountThb > 0
-          ? `💰 Kalan Ödeme: *${b.remainingAmountThb.toLocaleString()} THB* (Rehbere elden teslim edebilirsiniz).\n\n`
+          ? `💰 Kalan Ödeme: *${b.remainingAmountThb.toLocaleString()} THB* (Rehbere elden teslim edebilirsiniz).\n`
           : `\n`) +
-        `Lütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Harika bir tatil dileriz! 🇹🇭`;
+        nationalParkWarning +
+        `\nLütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Harika bir tatil dileriz! 🇹🇭`;
     } else {
       const tourScheduleText = hasMultipleTours
         ? b.tours!
@@ -945,8 +999,9 @@ export default function AdminDashboard({
         `📍 Otel: *${b.hotel}*\n` +
         `Toplam Tutar: *${b.totalPriceThb.toLocaleString()} THB*\n` +
         `Ödenen Kapora: *${b.paidAmountThb.toLocaleString()} THB*\n` +
-        `Kalan Tutar: *${b.remainingAmountThb.toLocaleString()} THB*\n\n` +
-        `Herhangi bir sorunuzda bu hat üzerinden dilediğiniz zaman bize ulaşabilirsiniz.`;
+        `Kalan Tutar: *${b.remainingAmountThb.toLocaleString()} THB*\n` +
+        nationalParkWarning +
+        `\nHerhangi bir sorunuzda bu hat üzerinden dilediğiniz zaman bize ulaşabilirsiniz.`;
     }
     return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
   };
@@ -1112,6 +1167,18 @@ export default function AdminDashboard({
           </button>
 
           <button
+            onClick={() => setActiveTab('transfers')}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'transfers'
+                ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400/50'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Car className="w-4 h-4" />
+            <span>🚐 Transfer & Şoför Listesi</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('tours')}
             className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
               activeTab === 'tours'
@@ -1217,61 +1284,90 @@ export default function AdminDashboard({
         {/* ==================================================== */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-              <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider">Toplam Rezervasyon</span>
-                  <div className="p-2.5 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
-                    <Calendar className="w-5 h-5" />
+            {/* Top Stat Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+              <div className="bg-white dark:bg-surface-2 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Rezervasyon</span>
+                  <div className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+                    <Calendar className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-slate-900 dark:text-white">
+                <div className="text-2xl font-extrabold text-slate-900 dark:text-white">
                   {stats.totalBookings}
                 </div>
-                <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                  <span className="text-emerald-600 font-semibold">{stats.confirmedCount} Kesinleşen</span>
+                <div className="mt-1 text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                  <span className="text-emerald-600 font-semibold">{stats.confirmedCount} Onay</span>
                   <span>·</span>
                   <span className="text-amber-600 font-semibold">{stats.pendingCount} Bekleyen</span>
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider">Tahsil Edilen Kapora</span>
-                  <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
-                    <CheckCircle2 className="w-5 h-5" />
+              <div className="bg-white dark:bg-surface-2 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Toplam Ciro</span>
+                  <div className="p-2 rounded-xl bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400">
+                    <DollarSign className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                  {stats.collectedRevenueThb.toLocaleString()} <span className="text-base font-medium">THB</span>
+                <div className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">
+                  {stats.totalRevenueThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Kasadaki peşinat toplamı</p>
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Toplam satış cirosu</p>
               </div>
 
-              <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider">Kalan Tahsilat (Sahada)</span>
-                  <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
-                    <Clock className="w-5 h-5" />
+              <div className="bg-white dark:bg-surface-2 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Tedarikçi Maliyeti</span>
+                  <div className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400">
+                    <Briefcase className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-amber-600 dark:text-amber-400">
-                  {stats.pendingCollectionThb.toLocaleString()} <span className="text-base font-medium">THB</span>
+                <div className="text-2xl font-extrabold text-rose-600 dark:text-rose-400">
+                  {stats.totalCostThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Tur günü otelde/teknede alınacak</p>
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Tekne & acente gideri</p>
               </div>
 
-              <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-3">
-                  <span className="text-xs font-bold uppercase tracking-wider">Toplam Misafir</span>
-                  <div className="p-2.5 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400">
-                    <Users className="w-5 h-5" />
+              <div className="bg-white dark:bg-surface-2 p-5 rounded-2xl border border-emerald-500/30 dark:border-emerald-600/30 bg-emerald-50/20 dark:bg-emerald-950/20 shadow-sm ring-1 ring-emerald-500/20">
+                <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-300 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Net Kâr (Kazanç)</span>
+                  <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                    <TrendingUp className="w-4 h-4" />
                   </div>
                 </div>
-                <div className="text-3xl font-extrabold text-purple-600 dark:text-purple-400">
-                  {stats.totalGuests} <span className="text-base font-medium">Kişi</span>
+                <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">
+                  {stats.netProfitThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
                 </div>
-                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">Aktif yolcu sayısı</p>
+                <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
+                  %{stats.profitMarginPercent} Kâr Marjı
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-surface-2 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Kasadaki Kapora</span>
+                  <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
+                  {stats.collectedRevenueThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Kasadaki peşinat</p>
+              </div>
+
+              <div className="bg-white dark:bg-surface-2 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider">Kalan (Sahada)</span>
+                  <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400">
+                    <Clock className="w-4 h-4" />
+                  </div>
+                </div>
+                <div className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">
+                  {stats.pendingCollectionThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
+                </div>
+                <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Otelde tahsil edilecek</p>
               </div>
             </div>
 
@@ -1496,6 +1592,13 @@ export default function AdminDashboard({
 
                           <td className="py-4 px-5 text-right">
                             <div className="flex items-center justify-end gap-1.5">
+                              <button
+                                onClick={() => setVoucherBooking(b)}
+                                className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
+                                title="Bilet / Voucher Kuponu Aç"
+                              >
+                                <Ticket className="w-4 h-4" />
+                              </button>
                               <a
                                 href={createWhatsAppLink(b, 'reminder')}
                                 target="_blank"
@@ -1528,6 +1631,342 @@ export default function AdminDashboard({
             </div>
           </div>
         )}
+
+        {/* ==================================================== */}
+        {/* TAB 2.5: TRANSFERS & DRIVER MANIFEST */}
+        {/* ==================================================== */}
+        {activeTab === 'transfers' && (() => {
+          // Flatten all scheduled tour pickups for the chosen date
+          interface PickupItem {
+            bookingId: string;
+            customerName: string;
+            phone: string;
+            hotel: string;
+            roomNumber?: string;
+            tourTitle: string;
+            pickupTime: string;
+            adultCount: number;
+            childCount: number;
+            remainingAmountThb: number;
+            specialNotes?: string;
+            supplier?: string;
+            status: string;
+          }
+
+          const dailyPickups: PickupItem[] = [];
+          bookings.forEach((b) => {
+            if (b.status === 'cancelled') return;
+
+            if (b.tours && b.tours.length > 0) {
+              b.tours.forEach((t) => {
+                if (t.tourDate === manifestDate) {
+                  dailyPickups.push({
+                    bookingId: b.id,
+                    customerName: b.customerName,
+                    phone: b.phone,
+                    hotel: b.hotel,
+                    roomNumber: b.roomNumber,
+                    tourTitle: t.tourTitle,
+                    pickupTime: t.pickupTime || '07:30',
+                    adultCount: b.adultCount,
+                    childCount: b.childCount,
+                    remainingAmountThb: b.remainingAmountThb,
+                    specialNotes: b.specialNotes,
+                    supplier: t.supplier || b.supplier,
+                    status: b.status,
+                  });
+                }
+              });
+            } else if (b.tourDate === manifestDate) {
+              dailyPickups.push({
+                bookingId: b.id,
+                customerName: b.customerName,
+                phone: b.phone,
+                hotel: b.hotel,
+                roomNumber: b.roomNumber,
+                tourTitle: b.tourTitle,
+                pickupTime: b.pickupTime || '07:30',
+                adultCount: b.adultCount,
+                childCount: b.childCount,
+                remainingAmountThb: b.remainingAmountThb,
+                specialNotes: b.specialNotes,
+                supplier: b.supplier,
+                status: b.status,
+              });
+            }
+          });
+
+          // Sort pickups chronologically by pickupTime
+          dailyPickups.sort((a, b) => a.pickupTime.localeCompare(b.pickupTime));
+
+          const totalDailyPassengers = dailyPickups.reduce(
+            (acc, p) => acc + p.adultCount + p.childCount,
+            0
+          );
+
+          // Generate clipboard text for drivers / suppliers
+          const handleCopyManifest = () => {
+            if (dailyPickups.length === 0) {
+              showToast('Seçilen tarihte transfer kaydı bulunmuyor.');
+              return;
+            }
+            const dateStr = new Date(manifestDate).toLocaleDateString('tr-TR', {
+              day: 'numeric',
+              month: 'long',
+              year: 'numeric',
+            });
+            const textLines = [
+              `🚐 *PHUKET TATİLİ - GÜNLÜK TRANSFER & OPERASYON LİSTESİ*`,
+              `📅 *Tarih:* ${dateStr}`,
+              `👥 *Toplam Yolcu:* ${totalDailyPassengers} Kişi (${dailyPickups.length} Transfer)`,
+              `───────────────────────────────`,
+              ...dailyPickups.map((p, idx) => {
+                const guests = `${p.adultCount} Yetişkin${p.childCount > 0 ? ` + ${p.childCount} Çocuk` : ''}`;
+                const remainingText =
+                  p.remainingAmountThb > 0
+                    ? ` ⚠️ Tahsil Edilecek: *${p.remainingAmountThb.toLocaleString()} THB*`
+                    : ` ✅ Ödendi`;
+                return (
+                  `${idx + 1}️⃣ ⏰ *${p.pickupTime}* — *${p.hotel}* ${p.roomNumber ? `(Oda: ${p.roomNumber})` : ''}\n` +
+                  `   👤 Misafir: *${p.customerName}* (${guests})\n` +
+                  `   📞 Tel: ${p.phone}\n` +
+                  `   🏝️ Tur: *${p.tourTitle}*` +
+                  (p.supplier ? ` [${p.supplier}]` : '') +
+                  `\n   💰 Durum:${remainingText}` +
+                  (p.specialNotes ? `\n   📝 Not: ${p.specialNotes}` : '') +
+                  `\n`
+                );
+              }),
+              `───────────────────────────────`,
+              `🇹🇭 Phuket Tatili Operasyon Merkezi`,
+            ];
+
+            navigator.clipboard.writeText(textLines.join('\n'));
+            showToast('Transfer listesi WhatsApp için panoya kopyalandı! 📋');
+          };
+
+          return (
+            <div className="space-y-6">
+              {/* Header Card */}
+              <div className="bg-white dark:bg-surface-2 p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                      <Car className="w-5 h-5" />
+                    </span>
+                    <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
+                      Günlük Transfer & Şoför Dağıtım Listesi
+                    </h2>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Şoförlere ve yerel transfer firmalarına iletilecek saat sıralı alınış listesi.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Quick Date Shortcuts */}
+                  <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-900 p-1 rounded-xl">
+                    <button
+                      type="button"
+                      onClick={() => setManifestDate(new Date().toISOString().split('T')[0])}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                        manifestDate === new Date().toISOString().split('T')[0]
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      }`}
+                    >
+                      Bugün
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const d = new Date();
+                        d.setDate(d.getDate() + 1);
+                        setManifestDate(d.toISOString().split('T')[0]);
+                      }}
+                      className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900"
+                    >
+                      Yarın
+                    </button>
+                  </div>
+
+                  {/* Date Input */}
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={manifestDate}
+                      onChange={(e) => setManifestDate(e.target.value)}
+                      className="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold text-slate-900 dark:text-white focus:outline-none"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyManifest}
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all"
+                  >
+                    <Copy className="w-4 h-4" />
+                    <span>Şoför İçin Kopyala</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Summary Badges */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-surface-2 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[11px] font-bold uppercase text-slate-400 block">Seçilen Tarih</span>
+                  <span className="text-base font-bold text-slate-900 dark:text-white mt-0.5 block">
+                    {new Date(manifestDate).toLocaleDateString('tr-TR', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </span>
+                </div>
+
+                <div className="bg-white dark:bg-surface-2 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[11px] font-bold uppercase text-slate-400 block">Transfer Sayısı</span>
+                  <span className="text-base font-bold text-emerald-600 mt-0.5 block">
+                    {dailyPickups.length} Araç Alınışı
+                  </span>
+                </div>
+
+                <div className="bg-white dark:bg-surface-2 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[11px] font-bold uppercase text-slate-400 block">Taşınacak Yolcu</span>
+                  <span className="text-base font-bold text-purple-600 mt-0.5 block">
+                    {totalDailyPassengers} Misafir
+                  </span>
+                </div>
+
+                <div className="bg-white dark:bg-surface-2 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[11px] font-bold uppercase text-slate-400 block">Sahada Kalan Tahsilat</span>
+                  <span className="text-base font-bold text-amber-600 mt-0.5 block">
+                    {dailyPickups
+                      .reduce((acc, p) => acc + p.remainingAmountThb, 0)
+                      .toLocaleString()}{' '}
+                    THB
+                  </span>
+                </div>
+              </div>
+
+              {/* Manifest Table */}
+              <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs sm:text-sm">
+                    <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200/80 dark:border-slate-800 uppercase text-[11px] tracking-wider">
+                      <tr>
+                        <th className="py-4 px-5">⏰ Alınış Saati</th>
+                        <th className="py-4 px-5">📍 Otel & Oda</th>
+                        <th className="py-4 px-5">👤 Misafir & Telefon</th>
+                        <th className="py-4 px-5">👥 Kişi</th>
+                        <th className="py-4 px-5">🏝️ Tur & Tedarikçi</th>
+                        <th className="py-4 px-5">💰 Tahsilat Durumu</th>
+                        <th className="py-4 px-5 text-right">İşlem</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                      {dailyPickups.length === 0 ? (
+                        <tr>
+                          <td colSpan={7} className="py-14 text-center text-slate-400">
+                            <Car className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700 mb-2" />
+                            <p className="font-semibold text-slate-600 dark:text-slate-400">
+                              Bu tarihte planlanmış herhangi bir transfer veya tur bulunamadı.
+                            </p>
+                            <p className="text-xs text-slate-400 mt-1">
+                              Yukarıdan başka bir tarih seçebilir veya rezervasyon ekleyebilirsiniz.
+                            </p>
+                          </td>
+                        </tr>
+                      ) : (
+                        dailyPickups.map((p, idx) => (
+                          <tr
+                            key={`${p.bookingId}-${idx}`}
+                            className="hover:bg-slate-50/60 dark:hover:bg-slate-900/30 transition-colors"
+                          >
+                            <td className="py-4 px-5 font-mono text-sm font-extrabold text-brand-primary dark:text-brand-accent">
+                              ⏰ {p.pickupTime}
+                            </td>
+
+                            <td className="py-4 px-5">
+                              <span className="font-bold text-slate-900 dark:text-white block">
+                                {p.hotel}
+                              </span>
+                              {p.roomNumber && (
+                                <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                                  Oda: {p.roomNumber}
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="py-4 px-5">
+                              <span className="font-semibold text-slate-900 dark:text-white block">
+                                {p.customerName}
+                              </span>
+                              <a
+                                href={`https://wa.me/${p.phone.replace(/[^0-9]/g, '')}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-emerald-600 hover:underline inline-flex items-center gap-1 mt-0.5"
+                              >
+                                <Phone className="w-3 h-3" /> {p.phone}
+                              </a>
+                            </td>
+
+                            <td className="py-4 px-5">
+                              <span className="font-bold">{p.adultCount} Yetişkin</span>
+                              {p.childCount > 0 && (
+                                <span className="text-xs text-slate-500 block">
+                                  +{p.childCount} Çocuk
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="py-4 px-5">
+                              <span className="font-semibold text-slate-900 dark:text-white block">
+                                {p.tourTitle}
+                              </span>
+                              {p.supplier && (
+                                <span className="text-[11px] text-slate-400 block mt-0.5">
+                                  Tedarikçi: {p.supplier}
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="py-4 px-5">
+                              {p.remainingAmountThb > 0 ? (
+                                <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 inline-block">
+                                  Alınacak: {p.remainingAmountThb.toLocaleString()} THB
+                                </span>
+                              ) : (
+                                <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 inline-block">
+                                  ✓ Tamamı Ödendi
+                                </span>
+                              )}
+                            </td>
+
+                            <td className="py-4 px-5 text-right">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const target = bookings.find((b) => b.id === p.bookingId);
+                                  if (target) setVoucherBooking(target);
+                                }}
+                                className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
+                                title="Bilet / Voucher Kuponu Aç"
+                              >
+                                <Ticket className="w-4 h-4" />
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ==================================================== */}
         {/* TAB 3: TOURS & PRICES */}
@@ -2617,7 +3056,7 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Toplam Tutar (THB)</label>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Toplam Satış Tutarı (THB)</label>
                   <input
                     type="number"
                     value={formData.totalPriceThb || 0}
@@ -2646,6 +3085,63 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                     <option value="completed">🔵 Tamamlandı</option>
                     <option value="cancelled">🔴 İptal</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Cost & Supplier & Profit Row */}
+              <div className="p-4 rounded-2xl bg-rose-50/40 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-rose-800 dark:text-rose-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Briefcase className="w-3.5 h-3.5" />
+                    Tedarikçi Maliyeti & Kârlılık Hesabı
+                  </span>
+                  {Number(formData.totalPriceThb || 0) > 0 && (
+                    <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">
+                      Net Kâr: {Math.max(0, Number(formData.totalPriceThb || 0) - Number(formData.costThb || 0)).toLocaleString()} THB
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Tedarikçi Firma / Tekne Sahibi
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Örn: Andaman Wave Master, Royal Phuket Marina vb."
+                      value={formData.supplier || ''}
+                      onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Toplam Alış / Maliyet Gideri (THB)
+                    </label>
+                    <input
+                      type="number"
+                      placeholder="Tekneye ödenecek toplam tutar"
+                      value={formData.costThb || 0}
+                      onChange={(e) => setFormData({ ...formData, costThb: Number(e.target.value) })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs font-bold text-rose-600 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 border-t border-rose-200/60 dark:border-rose-900/30">
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.nationalParkFeeIncluded ?? false}
+                      onChange={(e) => setFormData({ ...formData, nationalParkFeeIncluded: e.target.checked })}
+                      className="w-4 h-4 rounded text-brand-accent focus:ring-brand-accent"
+                    />
+                    <span className="text-xs text-slate-700 dark:text-slate-300 font-semibold">
+                      Millî Park Giriş Harcı Fiyata DAHİLDİR (İşaretlenmezse WhatsApp ve kuponda misafire limanda nakit hazırlaması hatırlatılır)
+                    </span>
+                  </label>
                 </div>
               </div>
 
@@ -2822,7 +3318,7 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                        Kişi Başı Fiyat (THB)
+                        Kişi Başı Satış Fiyatı (THB)
                       </label>
                       <input
                         type="number"
@@ -2844,6 +3340,36 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                         placeholder="Tur kartında görünecek 1-2 cümlelik tanıtım..."
                         className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
                       />
+                    </div>
+                  </div>
+
+                  {/* Supplier & Cost in Tour Editor */}
+                  <div className="p-4 rounded-2xl bg-rose-50/40 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                        Tedarikçi Firma / Tekne Operatörü
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Örn: Andaman Wave Master, Sea Angel vb."
+                        value={tourFormData.supplier || ''}
+                        onChange={(e) => setTourFormData({ ...tourFormData, supplier: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                        Kişi Başı Alış / Maliyet Tutarı (THB)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="Acente maliyet tutarı"
+                        value={tourFormData.costThb || 0}
+                        onChange={(e) => setTourFormData({ ...tourFormData, costThb: Number(e.target.value) })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs font-bold text-rose-600 focus:outline-none"
+                      />
+                      <span className="text-[10px] text-slate-400 mt-1 block">Rezervasyonlarda otomatik kâr hesaplamasında kullanılır.</span>
                     </div>
                   </div>
 
@@ -4050,6 +4576,234 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
               >
                 Kapak Olarak Ata
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 10: OFFICIAL TOUR VOUCHER / DIGITAL TICKET */}
+      {/* ==================================================== */}
+      {voucherBooking && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md overflow-y-auto print:p-0 print:bg-white print:static">
+          <div className="bg-white text-slate-900 w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto print:border-none print:shadow-none print:rounded-none">
+            {/* Action Bar (Hidden in Print) */}
+            <div className="p-4 bg-slate-900 text-white flex items-center justify-between print:hidden">
+              <div className="flex items-center gap-2">
+                <Ticket className="w-5 h-5 text-brand-accent" />
+                <span className="font-bold text-sm">Resmî Tur & Rezervasyon Kuponu (Voucher)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.print()}
+                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Yazdır / PDF Kaydet</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVoucherBooking(null)}
+                  className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Voucher Paper */}
+            <div className="p-6 sm:p-8 space-y-6 bg-white" id="printableVoucher">
+              {/* Voucher Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-6 gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-serif font-black text-xl shadow-md">
+                    PT
+                  </div>
+                  <div>
+                    <h1 className="font-serif font-black text-xl text-brand-primary tracking-tight">
+                      PHUKET TATİLİ
+                    </h1>
+                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      Resmî Tur Seyahat Kuponu · Tour Voucher
+                    </p>
+                  </div>
+                </div>
+
+                <div className="sm:text-right">
+                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-block">
+                    ✓ ONAYLI REZERVASYON
+                  </span>
+                  <div className="text-xs text-slate-500 font-mono mt-1">
+                    Kupon No: <span className="font-bold text-slate-900">{voucherBooking.id}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400">
+                    Düzenlenme: {new Date().toLocaleDateString('tr-TR')}
+                  </div>
+                </div>
+              </div>
+
+              {/* Guest & Hotel Information Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
+                    Misafir Bilgisi / Guest Name
+                  </span>
+                  <span className="font-extrabold text-base text-slate-900 block mt-0.5">
+                    {voucherBooking.customerName}
+                  </span>
+                  <span className="text-xs text-slate-600 block mt-0.5">
+                    📞 {voucherBooking.phone}
+                  </span>
+                  <span className="text-xs font-semibold text-slate-700 block mt-1">
+                    👥 {voucherBooking.adultCount} Yetişkin
+                    {voucherBooking.childCount > 0 ? ` + ${voucherBooking.childCount} Çocuk` : ''}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
+                    Otel & Alınış Konumu / Pickup Location
+                  </span>
+                  <span className="font-extrabold text-base text-brand-primary block mt-0.5">
+                    📍 {voucherBooking.hotel}
+                  </span>
+                  {voucherBooking.roomNumber && (
+                    <span className="text-xs font-bold text-slate-700 block mt-0.5">
+                      Oda No: {voucherBooking.roomNumber}
+                    </span>
+                  )}
+                  <span className="text-[11px] text-slate-500 block mt-1">
+                    Lütfen transfer saatinde otel ana lobisinde hazır bulununuz.
+                  </span>
+                </div>
+              </div>
+
+              {/* Scheduled Tours Itinerary */}
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
+                  <Compass className="w-4 h-4 text-brand-accent" />
+                  Tur Programı & Günlük Transfer Saatleri / Itinerary
+                </h3>
+
+                <div className="space-y-2.5">
+                  {(voucherBooking.tours && voucherBooking.tours.length > 0
+                    ? voucherBooking.tours
+                    : [
+                        {
+                          tourTitle: voucherBooking.tourTitle,
+                          tourDate: voucherBooking.tourDate,
+                          pickupTime: voucherBooking.pickupTime,
+                          priceThb: voucherBooking.totalPriceThb,
+                        },
+                      ]
+                  ).map((t, idx) => (
+                    <div
+                      key={idx}
+                      className="p-4 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="w-7 h-7 rounded-xl bg-brand-primary/10 text-brand-primary font-bold text-xs flex items-center justify-center shrink-0">
+                          {idx + 1}
+                        </span>
+                        <div>
+                          <h4 className="font-bold text-sm text-slate-900">
+                            {t.tourTitle}
+                          </h4>
+                          <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500">
+                            <span className="font-semibold text-slate-700">
+                              📅 Tarih: {t.tourDate}
+                            </span>
+                            <span>·</span>
+                            <span className="font-extrabold text-brand-primary bg-brand-primary/5 px-2 py-0.5 rounded-md">
+                              ⏰ Alınış: {t.pickupTime || '07:30'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 self-start sm:self-auto">
+                        Tam Gün Tur
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Financial & Payment Summary */}
+              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
+                    Ödeme & Tahsilat Durumu
+                  </span>
+                  <div className="flex items-baseline gap-2 mt-1">
+                    <span className="text-xl font-black text-slate-900">
+                      {voucherBooking.totalPriceThb.toLocaleString()} THB
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      (Ödenen: {voucherBooking.paidAmountThb.toLocaleString()} THB)
+                    </span>
+                  </div>
+                </div>
+
+                <div className="sm:text-right">
+                  {voucherBooking.remainingAmountThb > 0 ? (
+                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
+                      <span className="text-[10px] font-bold uppercase text-amber-700 block">
+                        Tur Günü Ödenecek Bakiye
+                      </span>
+                      <span className="text-lg font-black text-amber-600 block">
+                        {voucherBooking.remainingAmountThb.toLocaleString()} THB
+                      </span>
+                    </div>
+                  ) : (
+                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+                      <span className="text-xs font-extrabold text-emerald-700 flex items-center gap-1 justify-end">
+                        <CheckCircle2 className="w-4 h-4" /> ÖDEMENİN TAMAMI ALINMIŞTIR
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Important Instructions & National Park Fee Notice */}
+              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-950 space-y-2">
+                <div className="font-bold flex items-center gap-1.5 text-amber-900">
+                  <Info className="w-4 h-4 text-amber-600" />
+                  Önemli Tur Kuralları & Yanınızda Bulunması Gerekenler:
+                </div>
+                <ul className="list-disc pl-5 space-y-1 text-[11px] text-amber-900/90 leading-relaxed">
+                  <li>
+                    Lütfen tur sabahı belirtilen alınış saatinde otelinizin ana lobisinde hazır bulununuz.
+                  </li>
+                  <li>
+                    Yanınızda havlu, güneş kremi, güneş gözlüğü, mayo ve su geçirmez telefon kılıfı bulundurmanız önerilir.
+                  </li>
+                  {voucherBooking.nationalParkFeeIncluded === false ? (
+                    <li className="font-bold text-amber-950">
+                      ⚠️ Millî Park Giriş Ücreti fiyata dahil değildir. Lütfen limanda resmi gişeye ödenmek üzere yanınızda kişi başı nakit Baht (THB) hazır bulundurunuz.
+                    </li>
+                  ) : (
+                    <li>Millî park giriş ücretleri fiyata dahildir.</li>
+                  )}
+                  {voucherBooking.specialNotes && (
+                    <li className="font-semibold text-slate-800">
+                      Özel Talep: {voucherBooking.specialNotes}
+                    </li>
+                  )}
+                </ul>
+              </div>
+
+              {/* Footer Emergency Contact */}
+              <div className="pt-4 border-t flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 gap-2">
+                <div>
+                  <span className="font-bold text-slate-800">Phuket Tatili 7/24 Türkçe Operasyon:</span>{' '}
+                  +66 82 895 0665
+                </div>
+                <div className="text-[11px] text-slate-400">
+                  www.phukettatili.com · info@phukettatili.com
+                </div>
+              </div>
             </div>
           </div>
         </div>

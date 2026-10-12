@@ -4,6 +4,9 @@ export interface BookingTourSchedule {
   tourDate: string;
   pickupTime?: string;
   priceThb?: number;
+  costThb?: number;
+  supplier?: string;
+  nationalParkFeeIncluded?: boolean;
 }
 
 export interface Booking {
@@ -21,8 +24,11 @@ export interface Booking {
   adultCount: number;
   childCount: number;
   totalPriceThb: number;
+  costThb?: number;
+  supplier?: string;
   paidAmountThb: number;
   remainingAmountThb: number;
+  nationalParkFeeIncluded?: boolean;
   status: 'inquiry' | 'confirmed' | 'completed' | 'cancelled';
   paymentStatus: 'unpaid' | 'partial' | 'paid' | 'refunded';
   specialNotes?: string;
@@ -40,6 +46,8 @@ export interface TourItem {
   category: string;
   categoryLabel: string;
   priceThb: number;
+  costThb?: number;
+  supplier?: string;
   duration: string;
   featured: boolean;
   active: boolean;
@@ -109,11 +117,25 @@ export const initialBookings: Booking[] = [
     tourTitle: 'Phi Phi, Maya Bay ve Bamboo Adası',
     tourDate: '2026-11-15',
     pickupTime: '07:30',
+    tours: [
+      {
+        tourTitle: 'Phi Phi, Maya Bay ve Bamboo Adası',
+        tourDate: '2026-11-15',
+        pickupTime: '07:30',
+        priceThb: 3200,
+        costThb: 1900,
+        supplier: 'Andaman Wave Master',
+        nationalParkFeeIncluded: false,
+      },
+    ],
     adultCount: 2,
     childCount: 0,
     totalPriceThb: 6400,
+    costThb: 3800,
+    supplier: 'Andaman Wave Master',
     paidAmountThb: 2400,
     remainingAmountThb: 4000,
+    nationalParkFeeIncluded: false,
     status: 'confirmed',
     paymentStatus: 'partial',
     specialNotes: 'Balayı çifti. Tekne ön tarafında oturmak istiyorlar. Vejetaryen öğle yemeği.',
@@ -130,11 +152,25 @@ export const initialBookings: Booking[] = [
     tourTitle: 'James Bond Adası ve Kano Turu',
     tourDate: '2026-11-16',
     pickupTime: '08:15',
+    tours: [
+      {
+        tourTitle: 'James Bond Adası ve Kano Turu',
+        tourDate: '2026-11-16',
+        pickupTime: '08:15',
+        priceThb: 2800,
+        costThb: 1700,
+        supplier: 'Phang Nga Discovery',
+        nationalParkFeeIncluded: true,
+      },
+    ],
     adultCount: 3,
     childCount: 1,
     totalPriceThb: 11200,
+    costThb: 6800,
+    supplier: 'Phang Nga Discovery',
     paidAmountThb: 11200,
     remainingAmountThb: 0,
+    nationalParkFeeIncluded: true,
     status: 'confirmed',
     paymentStatus: 'paid',
     specialNotes: 'Ödemenin tamamı havale ile peşin alındı. Çocuk için can yeleği hazır edilecek.',
@@ -150,11 +186,25 @@ export const initialBookings: Booking[] = [
     tourTitle: 'Moonlight Lüks Özel Yat Kiralama',
     tourDate: '2026-11-18',
     pickupTime: '13:00',
+    tours: [
+      {
+        tourTitle: 'Moonlight Lüks Özel Yat Kiralama',
+        tourDate: '2026-11-18',
+        pickupTime: '13:00',
+        priceThb: 45000,
+        costThb: 30000,
+        supplier: 'Blue Voyage Charters',
+        nationalParkFeeIncluded: true,
+      },
+    ],
     adultCount: 2,
     childCount: 0,
     totalPriceThb: 45000,
+    costThb: 30000,
+    supplier: 'Blue Voyage Charters',
     paidAmountThb: 15000,
     remainingAmountThb: 30000,
+    nationalParkFeeIncluded: true,
     status: 'confirmed',
     paymentStatus: 'partial',
     specialNotes: 'Gün batımı özel şampanya ve meyve ikramı talep edildi.',
