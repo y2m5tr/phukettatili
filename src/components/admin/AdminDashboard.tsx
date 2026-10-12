@@ -62,8 +62,6 @@ interface SiteSettingsState {
   email: string;
   siteTitle: string;
   instagramUrl: string;
-  usdRate: number;
-  tryRate: number;
 }
 
 export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
@@ -125,8 +123,6 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
     email: 'info@phukettatili.com',
     siteTitle: 'Phuket Tatili',
     instagramUrl: 'https://instagram.com/phukettatili',
-    usdRate: 36.5,
-    tryRate: 0.98,
   });
   const [settingsSaved, setSettingsSaved] = useState<boolean>(false);
 
@@ -672,7 +668,7 @@ export default function AdminDashboard({ initialTours }: AdminDashboardProps) {
             }`}
           >
             <Settings className="w-4 h-4" />
-            <span>Site & Kur Ayarları</span>
+            <span>Site & İletişim Ayarları</span>
           </button>
         </div>
       </header>
@@ -1236,10 +1232,10 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
           <div className="max-w-3xl mx-auto space-y-6">
             <div className="bg-white dark:bg-surface-2 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
               <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white mb-1">
-                Genel İletişim & Canlı Kur Ayarları
+                Genel İletişim & Site Ayarları
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-                Sitedeki iletişim numaralarını, WhatsApp hattını ve döviz kurlarını tek ekrandan güncelleyin.
+                Sitedeki iletişim numaralarını, WhatsApp hattını ve sosyal medya hesaplarını tek ekrandan güncelleyin.
               </p>
 
               <form onSubmit={handleSaveSettings} className="space-y-5">
@@ -1269,36 +1265,6 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                       placeholder="info@phukettatili.com"
                       className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                     />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
-                      1 USD / THB Çarpanı
-                    </label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={siteSettings.usdRate}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, usdRate: Number(e.target.value) })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-bold"
-                    />
-                    <span className="text-[11px] text-slate-400 mt-1 block">1 Dolar = ~36.5 Baht</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
-                      1 THB / TL Çarpanı
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={siteSettings.tryRate}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, tryRate: Number(e.target.value) })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-bold"
-                    />
-                    <span className="text-[11px] text-slate-400 mt-1 block">1 Baht = ~0.98 TL</span>
                   </div>
                 </div>
 
