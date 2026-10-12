@@ -1,0 +1,20 @@
+{
+  "customerName": "Ahmet Yılmaz",
+  "phone": "+90 532 111 22 33",
+  "email": "ahmet@example.com",
+  "hotel": "Amari Phuket (Patong)",
+  "roomNumber": "304",
+  "status": "confirmed",
+  "tourDate": "2026-11-15",
+  "bookedTours": [
+    "phi-phi-maya-ve-bamboo-adasi",
+    "phuket-havalimani-vip-transfer"
+  ],
+  "adultCount": 2,
+  "childCount": 1,
+  "totalPriceThb": 7500,
+  "paidAmountThb": 2500,
+  "remainingAmountThb": 5000,
+  "paymentStatus": "partial",
+  "specialNotes": "Otelden sabah 07:30'da alınacak. Çocuk için can yeleği talep edildi. Vejetaryen öğle yemeği."
+}

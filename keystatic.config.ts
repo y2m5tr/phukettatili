@@ -7,7 +7,101 @@ export default config({
         kind: 'github',
         repo: 'y2m5tr/phukettatili2'
       },
+  ui: {
+    brand: {
+      name: 'Phuket Tatili Yönetim Paneli',
+    },
+    navigation: {
+      '📊 Müşteri & Rezervasyon Takibi': ['customers'],
+      '🏝️ Turizm & İçerik Yönetimi': ['tours', 'blog', 'services'],
+      '⚙️ Site Ayarları & Sayfalar': ['siteSettings', 'homeFaq', 'testimonials'],
+    },
+  },
   collections: {
+    /* ----------------------------------------------------
+       1. MÜŞTERİ, REZERVASYON VE ÜCRET TAKİBİ (CRM PANELİ)
+       ---------------------------------------------------- */
+    customers: collection({
+      label: 'Müşteri & Rezervasyon Kayıtları',
+      slugField: 'customerName',
+      path: 'src/content/customers/*',
+      format: { data: 'json' },
+      schema: {
+        customerName: fields.slug({
+          name: { label: 'Müşteri Adı Soyadı (Örn: Ahmet Yılmaz)' }
+        }),
+        phone: fields.text({
+          label: 'Telefon / WhatsApp Numarası (Örn: +90 532 ...)'
+        }),
+        email: fields.text({
+          label: 'E-posta Adresi (İsteğe bağlı)'
+        }),
+        hotel: fields.text({
+          label: 'Konakladığı Otel & Bölge (Örn: Amari Phuket / Patong)'
+        }),
+        roomNumber: fields.text({
+          label: 'Oda Numarası'
+        }),
+        status: fields.select({
+          label: 'Rezervasyon Durumu',
+          options: [
+            { label: '🟡 Talep Alındı / Teklif Aşamasında', value: 'inquiry' },
+            { label: '🟢 Kesinleşti / Onaylandı', value: 'confirmed' },
+            { label: '🔵 Tamamlandı (Tur Bitti)', value: 'completed' },
+            { label: '🔴 İptal Edildi', value: 'cancelled' },
+          ],
+          defaultValue: 'confirmed',
+        }),
+        tourDate: fields.date({
+          label: 'Tur / Hizmet Tarihi'
+        }),
+        bookedTours: fields.array(
+          fields.text({ label: 'Tur Adı veya Kodu' }),
+          {
+            label: 'Alınan Turlar ve Hizmetler',
+            itemLabel: props => props.value,
+          }
+        ),
+        adultCount: fields.integer({
+          label: 'Yetişkin Sayısı',
+          defaultValue: 2,
+        }),
+        childCount: fields.integer({
+          label: 'Çocuk Sayısı (0 ise boş bırakın)',
+          defaultValue: 0,
+        }),
+        totalPriceThb: fields.integer({
+          label: 'Toplam Tur Ücreti (THB)',
+          defaultValue: 0,
+        }),
+        paidAmountThb: fields.integer({
+          label: 'Alınan Ön Ödeme / Kapora (THB)',
+          defaultValue: 0,
+        }),
+        remainingAmountThb: fields.integer({
+          label: 'Kalan Tahsil Edilecek Tutar (THB)',
+          defaultValue: 0,
+        }),
+        paymentStatus: fields.select({
+          label: 'Ödeme Durumu',
+          options: [
+            { label: '⏳ Ödeme Bekleniyor (Ödenmedi)', value: 'unpaid' },
+            { label: '💳 Kısmi Ödeme Alındı (Kapora Var)', value: 'partial' },
+            { label: '✅ Tamamı Ödendi', value: 'paid' },
+            { label: '🔄 İade Edildi', value: 'refunded' },
+          ],
+          defaultValue: 'partial',
+        }),
+        specialNotes: fields.text({
+          label: 'Yöneticiye Özel Önemli Notlar (Uçuş saatleri, transfer saati, özel istekler, alerjiler vb.)',
+          multiline: true,
+        }),
+      },
+    }),
+
+    /* ----------------------------------------------------
+       2. TURLAR KOLEKSİYONU
+       ---------------------------------------------------- */
     tours: collection({
       label: 'Turlar (Tours)',
       slugField: 'title',
@@ -78,6 +172,9 @@ export default config({
       },
     }),
 
+    /* ----------------------------------------------------
+       3. BLOG & REHBER KOLEKSİYONU
+       ---------------------------------------------------- */
     blog: collection({
       label: 'Blog & Gezi Rehberi',
       slugField: 'title',
@@ -98,6 +195,9 @@ export default config({
       },
     }),
 
+    /* ----------------------------------------------------
+       4. HİZMETLER (SERVICES) KOLEKSİYONU
+       ---------------------------------------------------- */
     services: collection({
       label: 'Hizmetler (Transfer, Otel, VIP)',
       slugField: 'slug',
