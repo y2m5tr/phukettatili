@@ -31,6 +31,7 @@ export interface TourItem {
   active: boolean;
   image: string;
   excerpt?: string;
+  gallery?: string[];
 }
 
 export interface FaqItem {

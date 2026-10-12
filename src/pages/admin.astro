@@ -9,7 +9,7 @@ import '../styles/global.css';
 
 export const prerender = true;
 
-// 1. Tours
+// 1. Tours — gallery dahil (panelde 'Turdan Fotoğraflar' yönetimi için)
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
 const initialTours = tours
   .sort((a, b) => a.data.order - b.data.order)
@@ -21,8 +21,10 @@ const initialTours = tours
     priceThb: tour.data.price_thb || 0,
     duration: tour.data.duration || 'Tam Gün',
     featured: Boolean(tour.data.featured),
+    active: true,
     image: tour.data.image || 'phuket_hero.webp',
     excerpt: tour.data.excerpt || '',
+    gallery: tour.data.gallery || [],
   }));
 
 // 2. Blog Articles
@@ -77,6 +79,27 @@ const initialSiteSettings = {
   heroSubtitle: homeData?.heroSubtitle || "Size özel tasarlanmış turlar, gizli kalmış cennet koylar ve unutulmaz anılar için en doğru yerdesiniz.",
   heroImage: homeData?.heroImage || 'phuket_hero.webp',
 };
+
+// 7. Görsel envanteri — paneldeki 'Turdan Fotoğraflar' (galeri) seçimi için mevcut kapak görselleri
+const availableImages: string[] = [
+  'phuket_hero.webp',
+  'phuket_yacht.webp',
+  'pileh.webp',
+  'beach.webp',
+  'beachclub.webp',
+  'couple.webp',
+  'family.webp',
+  'longtail.webp',
+  'railay.webp',
+  'bay.webp',
+  'elephant.webp',
+  'underwater.webp',
+  'culture.webp',
+  'food.webp',
+  'phuket_transfer.webp',
+  'phuket_tours.webp',
+  'phuket_culture.webp',
+];
 ---
 
 <!doctype html>
@@ -108,6 +131,7 @@ const initialSiteSettings = {
       initialFaqs={initialFaqs}
       initialTestimonials={initialTestimonials}
       initialSiteSettings={initialSiteSettings}
+      availableImages={availableImages}
     />
   </body>
 </html>

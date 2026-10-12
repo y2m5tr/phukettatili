@@ -56,7 +56,9 @@ const STORAGE_KEY_FAQS = 'phuket_tatili_crm_faqs_v2';
 const STORAGE_KEY_TESTIMONIALS = 'phuket_tatili_crm_testimonials_v2';
 const STORAGE_KEY_SITE = 'phuket_tatili_crm_site_settings_v2';
 const STORAGE_KEY_AUTH = 'phuket_tatili_admin_auth_v1';
-const ADMIN_PASSCODE = 'phuket2026';
+// Şifre build'de bundle'a gömülmez — sadece sunucuda/CI'da tutulur.
+// ADMIN_PASSCODE env değişkeni yoksa varsayılan şifre etkin DEĞİLDİR.
+const ADMIN_PASSCODE = import.meta.env.ADMIN_PASSCODE || '';
 
 interface SiteSettingsState {
   whatsappNumber: string;
@@ -75,7 +77,29 @@ interface AdminDashboardProps {
   initialFaqs: FaqItem[];
   initialTestimonials: TestimonialItem[];
   initialSiteSettings: SiteSettingsState;
+  availableImages?: string[];
 }
+
+// Panelin görsel seçiminde sunacağı varsayılan envanter (prop gelmezse)
+const DEFAULT_AVAILABLE_IMAGES = [
+  'phuket_hero.webp',
+  'phuket_yacht.webp',
+  'pileh.webp',
+  'beach.webp',
+  'beachclub.webp',
+  'couple.webp',
+  'family.webp',
+  'longtail.webp',
+  'railay.webp',
+  'bay.webp',
+  'elephant.webp',
+  'underwater.webp',
+  'culture.webp',
+  'food.webp',
+  'phuket_transfer.webp',
+  'phuket_tours.webp',
+  'phuket_culture.webp',
+];
 
 export default function AdminDashboard({
   initialTours,
@@ -84,6 +108,7 @@ export default function AdminDashboard({
   initialFaqs,
   initialTestimonials,
   initialSiteSettings,
+  availableImages = DEFAULT_AVAILABLE_IMAGES,
 }: AdminDashboardProps) {
   // Auth State
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -208,12 +233,12 @@ export default function AdminDashboard({
   // Auth
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode === ADMIN_PASSCODE || passcode === 'admin123') {
+    if (ADMIN_PASSCODE && passcode === ADMIN_PASSCODE) {
       setIsAuthenticated(true);
       setAuthError('');
       localStorage.setItem(STORAGE_KEY_AUTH, 'true');
     } else {
-      setAuthError('Hatalı yönetici şifresi!');
+      setAuthError(ADMIN_PASSCODE ? 'Hatalı yönetici şifresi!' : 'Panel henüz yapılandırılmamış. Sunucu yöneticisi ADMIN_PASSCODE ortam değişkenini tanımlamalı.');
     }
   };
 
@@ -370,6 +395,7 @@ export default function AdminDashboard({
       active: true,
       image: 'phuket_hero.webp',
       excerpt: '',
+      gallery: [],
     });
     setIsTourModalOpen(true);
   };
@@ -427,6 +453,7 @@ export default function AdminDashboard({
         active: true,
         image: tourFormData.image || 'phuket_hero.webp',
         excerpt: tourFormData.excerpt,
+        gallery: tourFormData.gallery || [],
       };
       saveTours([newTour, ...tours]);
     }
@@ -666,7 +693,7 @@ export default function AdminDashboard({
                 <Lock className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
               </div>
               <p className="text-[11px] text-slate-400 mt-1.5">
-                Varsayılan şifre: <code className="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded text-brand-accent">phuket2026</code>
+                Şifrenizi operasyon yöneticinizden alabilirsiniz.
               </p>
             </div>
 
@@ -1974,6 +2001,87 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                 </div>
               )}
 
+              {/* Turdan Fotoğraflar (Galeri) Yönetimi */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between mb-3">
+                  <div>
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                      Turdan Fotoğraflar (Galeri)
+                    </span>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Tur sayfasının alt kısmında "Galeri" bölümünde görünecek fotoğraflar
+                    </p>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-brand-primary text-white">
+                    {(tourFormData.gallery || []).length} Fotoğraf
+                  </span>
+                </div>
+
+                {/* Mevcut galeri önizlemeleri */}
+                {(tourFormData.gallery || []).length > 0 && (
+                  <div className="grid grid-cols-4 sm:grid-cols-5 gap-2.5 mb-4">
+                    {(tourFormData.gallery || []).map((img, idx) => (
+                      <div key={`${img}-${idx}`} className="relative group">
+                        <img
+                          src={`/assets/${img}`}
+                          alt={`Galeri ${idx + 1}`}
+                          className="w-full h-16 object-cover rounded-xl border border-slate-300 dark:border-slate-700"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTourFormData({
+                              ...tourFormData,
+                              gallery: (tourFormData.gallery || []).filter((_, i) => i !== idx),
+                            })
+                          }
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold shadow-md opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Fotoğrafı kaldır"
+                        >
+                          ✕
+                        </button>
+                        {idx === 0 && (
+                          <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-black/70 text-white text-[9px] font-bold">
+                            İlk
+                          </span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Fotoğraf ekleme seçimi */}
+                <div className="flex items-center gap-2">
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const selected = e.target.value;
+                      if (selected && !(tourFormData.gallery || []).includes(selected)) {
+                        setTourFormData({
+                          ...tourFormData,
+                          gallery: [...(tourFormData.gallery || []), selected],
+                        });
+                      }
+                      e.target.value = '';
+                    }}
+                    className="flex-1 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                  >
+                    <option value="">+ Fotoğraf seçin ve ekleyin...</option>
+                    {availableImages.map((img) => (
+                      <option key={img} value={img}>
+                        {img}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {(tourFormData.gallery || []).length === 0 && (
+                  <p className="text-[11px] text-slate-400 mt-3">
+                    Galeri boş: tur sayfasında fotoğraf bölümü görünmez.
+                  </p>
+                )}
+              </div>
+
               <div className="pt-2">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
@@ -1983,7 +2091,7 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                     className="w-4 h-4 rounded text-brand-accent focus:ring-brand-accent"
                   />
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                    ⭐ Bu turu Ana Sayfada "Öne Çıkanlar" arasına ekle
+                    Bu turu Ana Sayfada "Öne Çıkanlar" arasına ekle
                   </span>
                 </label>
               </div>
@@ -2038,21 +2146,41 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Kapak Görseli</label>
-                  <select
-                    value={blogFormData.cover_image || 'pileh.webp'}
-                    onChange={(e) => setBlogFormData({ ...blogFormData, cover_image: e.target.value })}
+                  <label className="block text-xs font-bold uppercase mb-1">Tarih</label>
+                  <input
+                    type="date"
+                    value={blogFormData.date || ''}
+                    onChange={(e) => setBlogFormData({ ...blogFormData, date: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                  >
-                    <option value="pileh.webp">Pileh Lagoon</option>
-                    <option value="beach.webp">Plaj</option>
-                    <option value="longtail.webp">Longtail Tekne</option>
-                    <option value="culture.webp">Kültür</option>
-                    <option value="elephant.webp">Fil Koruma</option>
-                  </select>
+                  />
                 </div>
               </div>
-              <div className="pt-4 flex justify-end gap-3">
+              <div>
+                <label className="block text-xs font-bold uppercase mb-1">Kapak Görseli</label>
+                <select
+                  value={blogFormData.cover_image || 'pileh.webp'}
+                  onChange={(e) => setBlogFormData({ ...blogFormData, cover_image: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                >
+                  {availableImages.map((img) => (
+                    <option key={img} value={img}>{img}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="pt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={blogFormData.featured || false}
+                    onChange={(e) => setBlogFormData({ ...blogFormData, featured: e.target.checked })}
+                    className="w-4 h-4 rounded text-brand-accent"
+                  />
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                    Öne çıkarılan yazı yap
+                  </span>
+                </label>
+              </div>
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsBlogModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
                 <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
               </div>
@@ -2064,30 +2192,41 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
       {/* ==================================================== */}
       {/* MODAL 4: SERVICE */}
       {/* ==================================================== */}
-      {isServiceModalOpen && editingService && (
+      {isServiceModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-surface-2 w-full max-w-xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
-            <h2 className="text-xl font-bold font-serif mb-4">Hizmet Sayfasını Düzenle: {editingService.title}</h2>
+            <h2 className="text-xl font-bold font-serif mb-4">Hizmet Sayfasını Düzenle</h2>
             <form onSubmit={handleSubmitService} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase mb-1">Başlık</label>
-                <input
-                  type="text"
-                  value={serviceFormData.title || ''}
-                  onChange={(e) => setServiceFormData({ ...serviceFormData, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-1">Üst Etiket (Eyebrow)</label>
+                  <input
+                    type="text"
+                    value={serviceFormData.eyebrow || ''}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, eyebrow: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold uppercase mb-1">Ana Başlık (Heading)</label>
+                  <input
+                    type="text"
+                    value={serviceFormData.heading || ''}
+                    onChange={(e) => setServiceFormData({ ...serviceFormData, heading: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                  />
+                </div>
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase mb-1">Giriş Açıklaması</label>
+                <label className="block text-xs font-bold uppercase mb-1">Giriş Metni (Intro)</label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={serviceFormData.intro || ''}
                   onChange={(e) => setServiceFormData({ ...serviceFormData, intro: e.target.value })}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
                 />
               </div>
-              <div className="pt-4 flex justify-end gap-3">
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
                 <button type="button" onClick={() => setIsServiceModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
                 <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
               </div>
@@ -2102,7 +2241,9 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
       {isFaqModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
-            <h2 className="text-xl font-bold font-serif mb-4">{editingFaq ? 'SSS Düzenle' : 'Yeni SSS Ekle'}</h2>
+            <h2 className="text-xl font-bold font-serif mb-4">
+              {editingFaq ? 'Soruyu Düzenle' : 'Yeni SSS Sorusu'}
+            </h2>
             <form onSubmit={handleSubmitFaq} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold uppercase mb-1">Soru *</label>
@@ -2117,7 +2258,7 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
               <div>
                 <label className="block text-xs font-bold uppercase mb-1">Cevap *</label>
                 <textarea
-                  rows={3}
+                  rows={4}
                   required
                   value={faqFormData.answer || ''}
                   onChange={(e) => setFaqFormData({ ...faqFormData, answer: e.target.value })}
@@ -2139,11 +2280,13 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
       {isTestiModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
-            <h2 className="text-xl font-bold font-serif mb-4">{editingTesti ? 'Yorumu Düzenle' : 'Yeni Müşteri Yorumu'}</h2>
+            <h2 className="text-xl font-bold font-serif mb-4">
+              {editingTesti ? 'Yorumu Düzenle' : 'Yeni Müşteri Yorumu'}
+            </h2>
             <form onSubmit={handleSubmitTesti} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1">İsim Soyisim / Çift *</label>
+                  <label className="block text-xs font-bold uppercase mb-1">İsim *</label>
                   <input
                     type="text"
                     required
@@ -2153,43 +2296,42 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Misafir Tipi</label>
+                  <label className="block text-xs font-bold uppercase mb-1">Tip (Çift / Aile...)</label>
                   <input
                     type="text"
                     value={testiFormData.type || ''}
                     onChange={(e) => setTestiFormData({ ...testiFormData, type: e.target.value })}
-                    placeholder="Balayı Çifti, Aile vb."
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Katıldığı Tur</label>
+                  <label className="block text-xs font-bold uppercase mb-1">Hangi Tur</label>
                   <input
                     type="text"
                     value={testiFormData.tour || ''}
                     onChange={(e) => setTestiFormData({ ...testiFormData, tour: e.target.value })}
-                    placeholder="Phi Phi & Maya Bay"
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase mb-1">Puan (1-5)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="5"
+                  <select
                     value={testiFormData.stars || 5}
                     onChange={(e) => setTestiFormData({ ...testiFormData, stars: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none font-bold"
-                  />
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
+                  >
+                    {[5, 4, 3, 2, 1].map((n) => (
+                      <option key={n} value={n}>{n} Yıldız</option>
+                    ))}
+                  </select>
                 </div>
               </div>
               <div>
                 <label className="block text-xs font-bold uppercase mb-1">Yorum Metni *</label>
                 <textarea
-                  rows={3}
+                  rows={4}
                   required
                   value={testiFormData.text || ''}
                   onChange={(e) => setTestiFormData({ ...testiFormData, text: e.target.value })}
@@ -2204,7 +2346,6 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
           </div>
         </div>
       )}
-
     </div>
   );
 }
