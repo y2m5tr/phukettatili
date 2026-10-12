@@ -53,7 +53,9 @@ import {
   Ticket,
   Briefcase,
   Share2,
-  Wallet
+  Wallet,
+  Cloud,
+  Wifi
 } from 'lucide-react';
 import {
   initialBookings,
@@ -67,6 +69,12 @@ import {
   type BlogItem,
   type MediaItem
 } from '../../data/adminInitialData';
+import {
+  supabase,
+  isSupabaseConfigured,
+  bookingToRow,
+  rowToBooking
+} from '../../lib/supabase';
 
 const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v2';
 const STORAGE_KEY_TOURS = 'phuket_tatili_crm_tours_v2';
@@ -145,6 +153,9 @@ export default function AdminDashboard({
     setToastMessage(msg);
     setTimeout(() => setToastMessage(''), 3000);
   };
+
+  // Cloud Database Sync State
+  const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
 
   // 1. Bookings State
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -288,6 +299,81 @@ export default function AdminDashboard({
       // Load Settings
       const savedSettings = localStorage.getItem(STORAGE_KEY_SITE);
       if (savedSettings) setSiteSettings(JSON.parse(savedSettings));
+
+      // ☁️ Supabase Cloud Database Synchronizer
+      if (isSupabaseConfigured && supabase) {
+        supabase
+          .from('bookings')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .then(({ data, error }) => {
+            if (!error && data) {
+              setIsCloudConnected(true);
+              if (data.length > 0) {
+                const cloudBookings = data.map(rowToBooking);
+                setBookings(cloudBookings);
+                localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(cloudBookings));
+              } else {
+                // Table exists but empty: seed initial bookings
+                const rows = initialBookings.map(bookingToRow);
+                supabase.from('bookings').insert(rows).then(() => {
+                  console.log('Varsayılan rezervasyonlar Supabase veritabanına aktarıldı.');
+                });
+              }
+            } else if (error) {
+              console.warn('Supabase rezervasyon bildirim:', error.message);
+            }
+          })
+          .catch((err) => {
+            console.warn('Supabase bağlantı hatası:', err);
+          });
+
+        // Canlı Senkronizasyon (Realtime Websocket)
+        const channel = supabase
+          .channel('realtime_bookings_crm')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'bookings' },
+            (payload) => {
+              setIsCloudConnected(true);
+              if (payload.eventType === 'INSERT') {
+                const newB = rowToBooking(payload.new);
+                setBookings((prev) => {
+                  const filtered = prev.filter((b) => b.id !== newB.id);
+                  const nextList = [newB, ...filtered];
+                  localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(nextList));
+                  return nextList;
+                });
+                showToast(`🔔 Canlı Rezervasyon: ${newB.customerName} eklendi!`);
+              } else if (payload.eventType === 'UPDATE') {
+                const updatedB = rowToBooking(payload.new);
+                setBookings((prev) => {
+                  const nextList = prev.map((b) => (b.id === updatedB.id ? updatedB : b));
+                  localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(nextList));
+                  return nextList;
+                });
+              } else if (payload.eventType === 'DELETE') {
+                const deletedId = (payload.old as any)?.id;
+                if (deletedId) {
+                  setBookings((prev) => {
+                    const nextList = prev.filter((b) => b.id !== deletedId);
+                    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(nextList));
+                    return nextList;
+                  });
+                }
+              }
+            }
+          )
+          .subscribe((status) => {
+            if (status === 'SUBSCRIBED') {
+              setIsCloudConnected(true);
+            }
+          });
+
+        return () => {
+          supabase.removeChannel(channel);
+        };
+      }
     } catch {
       setBookings(initialBookings);
       setTours(initialTours);
@@ -487,6 +573,17 @@ export default function AdminDashboard({
     if (window.confirm(`"${name}" rezervasyonunu silmek istediğinize emin misiniz?`)) {
       saveBookings(bookings.filter((b) => b.id !== id));
       showToast('Rezervasyon silindi.');
+
+      // ☁️ Sync delete with Supabase
+      if (isSupabaseConfigured && supabase) {
+        supabase
+          .from('bookings')
+          .delete()
+          .eq('id', id)
+          .then(({ error }) => {
+            if (error) console.warn('Supabase delete error:', error.message);
+          });
+      }
     }
   };
 
@@ -551,6 +648,19 @@ export default function AdminDashboard({
       );
       saveBookings(updated);
       showToast('Rezervasyon güncellendi!');
+
+      // ☁️ Sync update with Supabase
+      if (isSupabaseConfigured && supabase) {
+        const target = updated.find((b) => b.id === editingBooking.id);
+        if (target) {
+          supabase
+            .from('bookings')
+            .upsert(bookingToRow(target))
+            .then(({ error }) => {
+              if (error) console.warn('Supabase upsert error:', error.message);
+            });
+        }
+      }
     } else {
       const newBooking: Booking = {
         id: `BK-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -578,6 +688,16 @@ export default function AdminDashboard({
       };
       saveBookings([newBooking, ...bookings]);
       showToast('Yeni rezervasyon başarıyla eklendi!');
+
+      // ☁️ Sync insert with Supabase
+      if (isSupabaseConfigured && supabase) {
+        supabase
+          .from('bookings')
+          .insert(bookingToRow(newBooking))
+          .then(({ error }) => {
+            if (error) console.warn('Supabase insert error:', error.message);
+          });
+      }
     }
     setIsModalOpen(false);
   };
@@ -1114,6 +1234,17 @@ export default function AdminDashboard({
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
                   Tam Yetki
                 </span>
+                {isCloudConnected ? (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-300 dark:border-teal-700 flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
+                    Bulut Canlı (Supabase)
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-300 dark:border-slate-700 flex items-center gap-1">
+                    <Cloud className="w-3 h-3 text-slate-400" />
+                    Yerel Mod
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 hidden sm:block">
                 Tüm Site İçeriği, Rezervasyonlar, Müşteriler ve Hizmetler
