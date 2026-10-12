@@ -15,46 +15,55 @@ export default config({
       format: { contentField: 'content' },
       schema: {
         title: fields.slug({ name: { label: 'Başlık' } }),
-        category: fields.text({ label: 'Kategori (Örn: island-tours)' }),
+        category: fields.select({
+          label: 'Kategori',
+          options: [
+            { label: 'Ada Turları (island-tours)', value: 'island-tours' },
+            { label: 'Macera & Doğa (adventure-tours)', value: 'adventure-tours' },
+            { label: 'Kültür & Sahne Şovları (entertainment-tours)', value: 'entertainment-tours' },
+            { label: 'Özel Kiralama & VIP Yat (private-charters)', value: 'private-charters' },
+          ],
+          defaultValue: 'island-tours',
+        }),
         subcategory: fields.text({ label: 'Alt Kategori (İsteğe Bağlı)' }),
         category_label: fields.text({ label: 'Kategori Etiketi (Örn: Ada Turları)' }),
         excerpt: fields.text({ label: 'Kısa Açıklama', multiline: true }),
-        image: fields.text({ label: 'Kapak Fotoğrafı Adı (Örn: phuket_tours.jpg)' }),
+        image: fields.text({ label: 'Kapak Fotoğrafı Adı (Örn: pileh.webp veya assets/ klasöründen)' }),
         gallery: fields.array(
-          fields.text({ label: 'Galeri Fotoğraf Adı (Örn: plaj.jpg)' }),
+          fields.text({ label: 'Galeri Fotoğraf Adı (Örn: maya_bay.webp)' }),
           { label: 'Tur İçi Fotoğraf Galerisi', itemLabel: props => props.value }
         ),
         price_type: fields.text({ label: 'Fiyat Tipi (Örn: quote)' }),
-        price_thb: fields.integer({ label: 'Fiyat (THB)' }),
-        duration: fields.text({ label: 'Süre (Örn: Tam Gün)' }),
-        featured: fields.checkbox({ label: 'Öne Çıkan Tur mu?', defaultValue: false }),
-        order: fields.integer({ label: 'Sıralama', defaultValue: 100 }),
+        price_thb: fields.integer({ label: 'Fiyat (THB) - 0 ise "Fiyat Teklifi Alın" görünür' }),
+        duration: fields.text({ label: 'Süre (Örn: Tam Gün, 08:00 - 17:00)' }),
+        featured: fields.checkbox({ label: 'Ana Sayfada Öne Çıkarılsın mı?', defaultValue: false }),
+        order: fields.integer({ label: 'Sıralama Önceliği (Küçük sayılar önce çıkar)', defaultValue: 100 }),
         
         program: fields.array(
-          fields.text({ label: 'Program Adımı' }),
+          fields.text({ label: 'Program Adımı (Örn: 07:30 - Otelden Alınış)' }),
           { label: 'Tur Programı (Zaman Çizelgesi)', itemLabel: props => props.value }
         ),
         
         included: fields.array(
-          fields.text({ label: 'Dahil Olanlar' }),
-          { label: 'Dahil Olanlar', itemLabel: props => props.value }
+          fields.text({ label: 'Dahil Olan Madde' }),
+          { label: 'Fiyata Dahil Olanlar (Yeşil Tikler)', itemLabel: props => props.value }
         ),
         
         excluded: fields.array(
-          fields.text({ label: 'Dahil Olmayanlar' }),
-          { label: 'Dahil Olmayanlar', itemLabel: props => props.value }
+          fields.text({ label: 'Dahil Olmayan Madde' }),
+          { label: 'Fiyata Dahil Olmayanlar (Kırmızı Çarpılar)', itemLabel: props => props.value }
         ),
         
         faq: fields.array(
           fields.object({
             q: fields.text({ label: 'Soru' }),
-            a: fields.text({ label: 'Cevap' }),
+            a: fields.text({ label: 'Cevap', multiline: true }),
           }),
-          { label: 'Sıkça Sorulan Sorular', itemLabel: props => props.fields.q.value }
+          { label: 'Tura Özel Sıkça Sorulan Sorular', itemLabel: props => props.fields.q.value }
         ),
         
         restrictions: fields.array(
-          fields.text({ label: 'Kısıtlama' }),
+          fields.text({ label: 'Kısıtlama / Sağlık Uyarısı' }),
           { label: 'Kısıtlamalar (Restrictions)', itemLabel: props => props.value }
         ),
         age_min: fields.text({ label: 'Minimum Yaş' }),
@@ -63,62 +72,112 @@ export default config({
         verified_by: fields.text({ label: 'Doğrulayan' }),
 
         content: fields.markdoc({
-          label: 'Tur Detay İçeriği',
+          label: 'Tur Detaylı Açıklama Metni (Markdown)',
           extension: 'md',
         }),
       },
     }),
+
     blog: collection({
-      label: 'Blog & Rehber (Articles)',
+      label: 'Blog & Gezi Rehberi',
       slugField: 'title',
       path: 'src/content/blog/*',
       format: { contentField: 'content' },
       schema: {
-        title: fields.slug({ name: { label: 'Başlık' } }),
-        excerpt: fields.text({ label: 'Kısa Özet', multiline: true }),
-        cover_image: fields.text({ label: 'Kapak Görseli (Örn: beach.webp)' }),
+        title: fields.slug({ name: { label: 'Yazı Başlığı' } }),
+        excerpt: fields.text({ label: 'Kısa Özet (Google Arama & Kart Açıklaması)', multiline: true }),
+        cover_image: fields.text({ label: 'Kapak Görseli Adı (Örn: pileh.webp)' }),
         date: fields.date({ label: 'Yayın Tarihi' }),
-        author: fields.text({ label: 'Yazar', defaultValue: 'Phuket Tatili Ekibi' }),
-        featured: fields.checkbox({ label: 'Öne Çıkarılan Yazı mı?', defaultValue: false }),
+        author: fields.text({ label: 'Yazar Adı', defaultValue: 'Phuket Tatili Ekibi' }),
+        featured: fields.checkbox({ label: 'Öne Çıkarılsın mı?', defaultValue: false }),
         related_tour: fields.text({ label: 'İlgili Tur ID (Örn: phi-phi-maya-ve-bamboo-adasi)' }),
         content: fields.markdoc({
-          label: 'Yazı İçeriği',
+          label: 'Blog Yazı İçeriği (Markdown)',
           extension: 'md',
         }),
       },
     }),
+
+    services: collection({
+      label: 'Hizmetler (Transfer, Otel, VIP)',
+      slugField: 'slug',
+      path: 'src/content/services/*',
+      format: { data: 'json' },
+      schema: {
+        title: fields.text({ label: 'Hizmet Başlığı' }),
+        slug: fields.slug({ name: { label: 'Sayfa URL (Slug)' } }),
+        menu_label: fields.text({ label: 'Menü Etiketi' }),
+        eyebrow: fields.text({ label: 'Üst Başlık Rozeti (Örn: Havalimanı · Otel)' }),
+        heading: fields.text({ label: 'Büyük Başlık' }),
+        intro: fields.text({ label: 'Giriş Açıklaması', multiline: true }),
+        media: fields.text({ label: 'Kapak Görseli (Örn: longtail.webp)' }),
+        media_alt: fields.text({ label: 'Görsel Açıklaması (Alt text)' }),
+        options: fields.array(
+          fields.object({
+            title: fields.text({ label: 'Seçenek Başlığı' }),
+            text: fields.text({ label: 'Açıklama', multiline: true }),
+          }),
+          { label: 'Hizmet Seçenekleri / Paketleri', itemLabel: props => props.fields.title.value }
+        ),
+        questions: fields.array(
+          fields.text({ label: 'Soru / Talep Bilgisi' }),
+          { label: 'Müşteriden İstenen Bilgiler', itemLabel: props => props.value }
+        ),
+        order: fields.integer({ label: 'Sıralama Önceliği', defaultValue: 10 }),
+      },
+    }),
   },
+
   singletons: {
     siteSettings: singleton({
-      label: 'Site Ayarları',
+      label: 'Site Genel Ayarları & İletişim',
       path: 'src/content/settings/site',
       format: { data: 'json' },
       schema: {
-        siteTitle: fields.text({ label: 'Site Başlığı', defaultValue: 'Phuket Tatili' }),
-        whatsappNumber: fields.text({ label: 'WhatsApp Numarası', defaultValue: '66828950665' }),
+        siteTitle: fields.text({ label: 'Site Marka Başlığı', defaultValue: 'Phuket Tatili' }),
+        whatsappNumber: fields.text({ label: 'WhatsApp Numarası (Ülke koduyla, örn: 66828950665)', defaultValue: '66828950665' }),
         email: fields.text({ label: 'İletişim E-posta Adresi', defaultValue: 'info@phukettatili.com' }),
-        facebookUrl: fields.text({ label: 'Facebook URL' }),
-        instagramUrl: fields.text({ label: 'Instagram URL' }),
+        instagramUrl: fields.text({ label: 'Instagram Profil Linki', defaultValue: 'https://instagram.com/phukettatili' }),
+        facebookUrl: fields.text({ label: 'Facebook Sayfa Linki' }),
       },
     }),
-    homePage: singleton({
-      label: 'Ana Sayfa (Home)',
-      path: 'src/content/pages/home',
+
+    homeFaq: singleton({
+      label: 'Ana Sayfa SSS (FAQ)',
+      path: 'src/content/settings/faq',
       format: { data: 'json' },
       schema: {
-        heroTitle: fields.text({ label: 'Hero Başlığı', defaultValue: 'Lüks ve Ayrıcalıklı Phuket Deneyimi' }),
-        heroSubtitle: fields.text({ label: 'Hero Alt Başlığı', defaultValue: 'Günübirlik ada turlarından özel VIP rotalara kadar Phuket\'i bizimle keşfedin.' }),
-        heroImage: fields.text({ label: 'Hero Kapak Fotoğrafı', defaultValue: 'phuket_hero.jpg' }),
+        faq: fields.array(
+          fields.object({
+            question: fields.text({ label: 'Soru' }),
+            answer: fields.text({ label: 'Cevap', multiline: true }),
+          }),
+          {
+            label: 'Sıkça Sorulan Sorular Listesi',
+            itemLabel: props => props.fields.question.value,
+          }
+        ),
       },
     }),
-    aboutPage: singleton({
-      label: 'Hakkımızda Sayfası',
-      path: 'src/content/pages/about',
-      format: { contentField: 'content' },
+
+    testimonials: singleton({
+      label: 'Müşteri Yorumları (Testimonials)',
+      path: 'src/content/settings/testimonials',
+      format: { data: 'json' },
       schema: {
-        title: fields.text({ label: 'Sayfa Başlığı' }),
-        image: fields.text({ label: 'Kapak Fotoğrafı' }),
-        content: fields.markdoc({ label: 'Sayfa İçeriği', extension: 'md' }),
+        testimonials: fields.array(
+          fields.object({
+            name: fields.text({ label: 'Misafir Adı / Çift Adı (Örn: Ayşe & Burak)' }),
+            type: fields.text({ label: 'Misafir Tipi (Örn: Balayı Çifti, Aile)' }),
+            tour: fields.text({ label: 'Katıldığı Tur (Örn: Phi Phi & Maya Bay)' }),
+            stars: fields.integer({ label: 'Puan / Yıldız (1-5)', defaultValue: 5 }),
+            text: fields.text({ label: 'Yorum Metni', multiline: true }),
+          }),
+          {
+            label: 'Müşteri Yorumları Listesi',
+            itemLabel: props => `${props.fields.name.value} (${props.fields.tour.value})`,
+          }
+        ),
       },
     }),
   },
