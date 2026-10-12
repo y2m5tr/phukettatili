@@ -1,8 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Booking } from '../data/adminInitialData';
 
-const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl =
+  (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_SUPABASE_URL) ||
+  (typeof process !== 'undefined' && process.env?.PUBLIC_SUPABASE_URL) ||
+  'https://xiyuozntwoqibvwivkms.supabase.co';
+
+const supabaseAnonKey =
+  (typeof import.meta !== 'undefined' && import.meta.env?.PUBLIC_SUPABASE_ANON_KEY) ||
+  (typeof process !== 'undefined' && process.env?.PUBLIC_SUPABASE_ANON_KEY) ||
+  'sb_publishable_hG4NUSXvRtW_Xd_Yp4aWRA_EBMdmJlc';
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
