@@ -30,3 +30,9 @@ pnpm-debug.log*
 
 # Scratch scripts
 scratch/
+
+# Local agent tools & skills
+.agents/
+.hermes/
+skills/
+skills-lock.json

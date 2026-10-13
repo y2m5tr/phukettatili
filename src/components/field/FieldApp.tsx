@@ -35,7 +35,6 @@ import { initialBookings, type Booking, type TourItem, detectHotelZone } from '.
 import QrScannerModal from './QrScannerModal';
 import BoardingPassModal from '../shared/BoardingPassModal';
 
-const PASSCODE_STORAGE_KEY = 'phuket_field_auth_v1';
 const CREW_NAME_STORAGE_KEY = 'phuket_field_crew_name';
 const LOCAL_BOOKINGS_KEY = 'phuket_bookings_cache_v1';
 
@@ -97,19 +96,18 @@ interface FieldScheduleItem {
 
 interface Props {
   initialTours?: TourItem[];
-  defaultPasscode?: string;
   managerPhone?: string;
 }
 
 export default function FieldApp({
   initialTours = [],
-  defaultPasscode = 'phuket2026',
   managerPhone = '66828950665',
 }: Props) {
-  // 1. Kimlik Doğrulama
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [passcode, setPasscode] = useState('');
-  const [authError, setAuthError] = useState('');
+  // 1. Kimlik — erişim yetkisi sunucuda doğrulanır (src/middleware.ts).
+  // Buradaki durum yalnızca "vardiya hangi isimle açıldı" bilgisini tutar;
+  // manifesto ve WhatsApp raporlarında görevli adı olarak kullanılır.
+  const [isShiftStarted, setIsShiftStarted] = useState<boolean>(false);
+  const [identityError, setIdentityError] = useState('');
   const [crewName, setCrewName] = useState<string>('Rehber Ekibi');
 
   // 2. Navigasyon & Filtreler
@@ -156,10 +154,6 @@ export default function FieldApp({
   // Başlangıç: localStorage kontrolü
   useEffect(() => {
     try {
-      const savedAuth = localStorage.getItem(PASSCODE_STORAGE_KEY);
-      if (savedAuth === 'true') {
-        setIsAuthenticated(true);
-      }
       const savedCrew = localStorage.getItem(CREW_NAME_STORAGE_KEY);
       if (savedCrew) setCrewName(savedCrew);
 
@@ -184,8 +178,6 @@ export default function FieldApp({
 
   // Supabase Veritabanı ve Realtime Senkronizasyonu
   useEffect(() => {
-    if (!isAuthenticated) return;
-
     const db = isSupabaseConfigured ? supabase : null;
     if (!db) {
       console.log('Saha modu: Supabase bağlı değil, yerel veriyle çalışılıyor.');
@@ -261,7 +253,7 @@ export default function FieldApp({
     return () => {
       db.removeChannel(channel);
     };
-  }, [isAuthenticated]);
+  }, []);
 
   // Yeni tur seçilince varsayılan fiyatı hesapla
   useEffect(() => {
@@ -277,30 +269,33 @@ export default function FieldApp({
     setTimeout(() => setToastMessage(null), 3500);
   };
 
-  // Login handler
-  const handleLogin = (e: React.FormEvent) => {
+  // Vardiya başlatma — erişim yetkisi sunucuda doğrulandığı için burada
+  // şifre sorulmaz; yalnızca manifestoda görünecek görevli adı alınır.
+  const handleStartShift = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passcode.trim() === defaultPasscode || passcode.trim() === '2026') {
-      setIsAuthenticated(true);
-      setAuthError('');
-      try {
-        localStorage.setItem(PASSCODE_STORAGE_KEY, 'true');
-      } catch {
-        // ignore
-      }
-      showToast('🇹🇭 Saha Operasyon Paneline Giriş Yapıldı');
-    } else {
-      setAuthError('Hatalı PIN veya Şifre! Lütfen ofis yetkilisi ile görüşün.');
+    const name = crewName.trim();
+    if (name.length < 2) {
+      setIdentityError('Lütfen manifestoda görünecek adınızı yazın (en az 2 karakter).');
+      return;
     }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
+    setIdentityError('');
     try {
-      localStorage.removeItem(PASSCODE_STORAGE_KEY);
+      localStorage.setItem(CREW_NAME_STORAGE_KEY, name);
     } catch {
       // ignore
     }
+    setIsShiftStarted(true);
+    showToast(`🇹🇭 Vardiya açıldı — ${name}`);
+  };
+
+  // Çıkış: sunucudaki imzalı oturum çerezini siler, giriş ekranına döner.
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/ops-login', { method: 'DELETE' });
+    } catch {
+      // Ağ hatası olsa da kullanıcıyı giriş ekranına gönder
+    }
+    window.location.href = '/ops-login?next=/ekip';
   };
 
   // Manuel Yenileme
@@ -769,9 +764,11 @@ export default function FieldApp({
   };
 
   // -------------------------------------------------------------------------------------------
-  // GİRİŞ EKRANI (PIN / Passcode Koruması)
+  // VARDİYA BAŞLATMA EKRANI
+  // Erişim yetkisi sunucuda doğrulandı (middleware). Burada yalnızca
+  // manifestoda ve ofis raporlarında görünecek görevli adı alınır.
   // -------------------------------------------------------------------------------------------
-  if (!isAuthenticated) {
+  if (!isShiftStarted) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-center items-center px-4 py-8">
         <div className="w-full max-w-sm">
@@ -788,61 +785,44 @@ export default function FieldApp({
             </p>
           </div>
 
-          {/* PIN Formu */}
+          {/* Vardiya Formu */}
           <div className="bg-slate-900/90 backdrop-blur-xl border border-slate-800 rounded-3xl p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <span className="text-xs text-slate-400 font-medium flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-amber-400" />
-                Çalışan Girişi
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                Oturum Doğrulandı
               </span>
               <span className="text-[10px] uppercase font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">
                 PWA Mobil
               </span>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={handleStartShift} className="space-y-4">
               <div>
-                <label className="block text-xs text-slate-300 mb-1.5 font-medium">
+                <label htmlFor="crew-name" className="block text-xs text-slate-300 mb-1.5 font-medium">
                   Rehber / Şoför Adı
                 </label>
                 <input
+                  id="crew-name"
                   type="text"
                   value={crewName}
                   onChange={(e) => {
                     setCrewName(e.target.value);
-                    try {
-                      localStorage.setItem(CREW_NAME_STORAGE_KEY, e.target.value);
-                    } catch {
-                      // ignore
-                    }
+                    setIdentityError('');
                   }}
                   placeholder="Örn: Rehber Deniz"
+                  autoFocus
                   className="w-full px-4 py-3 rounded-2xl bg-slate-950/70 border border-slate-700/80 text-white text-sm focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400 transition-all placeholder-slate-500"
                 />
+                <p className="mt-1.5 text-[11px] text-slate-500">
+                  Bu ad manifestoda ve ofise giden WhatsApp raporlarında görünür.
+                </p>
               </div>
 
-              <div>
-                <label className="block text-xs text-slate-300 mb-1.5 font-medium">
-                  Operasyon PIN Kodu
-                </label>
-                <input
-                  type="password"
-                  inputMode="numeric"
-                  autoComplete="current-password"
-                  value={passcode}
-                  onChange={(e) => {
-                    setPasscode(e.target.value);
-                    setAuthError('');
-                  }}
-                  placeholder="••••"
-                  className="w-full px-4 py-3.5 rounded-2xl bg-slate-950/70 border border-slate-700/80 text-white text-center text-xl tracking-[0.4em] font-mono focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-400/50 transition-all placeholder:tracking-normal placeholder:text-sm placeholder:text-slate-500"
-                />
-              </div>
-
-              {authError && (
+              {identityError && (
                 <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
-                  <span>{authError}</span>
+                  <span>{identityError}</span>
                 </div>
               )}
 
@@ -850,21 +830,19 @@ export default function FieldApp({
                 type="submit"
                 className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm tracking-wide shadow-lg shadow-amber-500/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
               >
-                <span>Operasyona Başla</span>
+                <span>Vardiyayı Başlat</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </form>
 
             <div className="mt-6 pt-4 border-t border-slate-800 text-center">
-              <p className="text-[11px] text-slate-500">
-                Varsayılan PIN: <span className="text-slate-400 font-mono">2026</span> veya <span className="text-slate-400 font-mono">phuket2026</span>
-              </p>
-              <a
-                href="/admin"
-                className="inline-block mt-2 text-xs text-amber-400/80 hover:text-amber-300 underline"
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="text-xs text-slate-400 hover:text-slate-200 underline transition-colors"
               >
-                Masaüstü Yönetici Paneline Git →
-              </a>
+                Oturumu Kapat (Çıkış Yap)
+              </button>
             </div>
           </div>
         </div>

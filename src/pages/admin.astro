@@ -7,7 +7,10 @@ import siteData from '../content/settings/site.json';
 import homeData from '../content/pages/home.json';
 import '../styles/global.css';
 
-export const prerender = true;
+// Sunucu tarafında render edilir: /admin adresine gelen istek önce
+// src/middleware.ts içindeki oturum kontrolünden geçer. Prerender edilirse
+// middleware atlanır ve tüm CRM verisi statik HTML olarak herkese açık olur.
+export const prerender = false;
 
 // 1. Tours — gallery ve tüm operasyonel ayrıntılar dahil
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');

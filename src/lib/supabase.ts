@@ -48,6 +48,14 @@ export function bookingToRow(b: Booking) {
     status: b.status,
     payment_status: b.paymentStatus,
     special_notes: b.specialNotes || null,
+    // Operasyon alanları: araç/şoför ataması + saha pickup takibi.
+    // Bunlar taşınmazsa ofisteki hat planlaması buluta yazılmaz ve
+    // saha uygulaması atamayı göremez.
+    pickup_status: b.pickupStatus || null,
+    picked_up_at: b.pickedUpAt || null,
+    assigned_vehicle: b.assignedVehicle || null,
+    assigned_driver: b.assignedDriver || null,
+    hotel_zone: b.hotelZone || null,
     created_at: b.createdAt || new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -78,6 +86,11 @@ export function rowToBooking(r: any): Booking {
     status: r.status,
     paymentStatus: r.payment_status,
     specialNotes: r.special_notes || undefined,
+    pickupStatus: r.pickup_status || undefined,
+    pickedUpAt: r.picked_up_at || undefined,
+    assignedVehicle: r.assigned_vehicle || undefined,
+    assignedDriver: r.assigned_driver || undefined,
+    hotelZone: r.hotel_zone || undefined,
     createdAt: r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
   };
 }

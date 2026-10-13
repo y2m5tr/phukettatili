@@ -12,7 +12,11 @@ import markdoc from '@astrojs/markdoc';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://phukettatili.com',
-  output: 'static',
+  // 'server' + varsayılan prerender: tüm pazarlama sayfaları build sırasında
+  // statik üretilir (output: 'static' ile aynı davranış). Yalnızca
+  // `export const prerender = false` diyen /admin, /ekip ve /ops-login
+  // sunucu fonksiyonu olarak çalışır — middleware oturum kontrolü için şart.
+  output: 'server',
   adapter: vercel(),
   trailingSlash: 'ignore',
   vite: {

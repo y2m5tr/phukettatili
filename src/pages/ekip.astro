@@ -4,7 +4,10 @@ import FieldApp from '../components/field/FieldApp';
 import siteData from '../content/settings/site.json';
 import '../styles/global.css';
 
-export const prerender = true;
+// Sunucu tarafında render edilir: /ekip adresine gelen istek önce
+// src/middleware.ts içindeki oturum kontrolünden geçer. Prerender edilirse
+// middleware çalışmaz ve sayfa içeriği herkese açık statik dosya olur.
+export const prerender = false;
 
 // Turlar - sahada hızlı satış için liste
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
@@ -72,7 +75,6 @@ const managerPhone = siteData?.whatsappNumber || '66828950665';
       client:only="react"
       initialTours={initialTours}
       managerPhone={managerPhone}
-      defaultPasscode="phuket2026"
     />
   </body>
 </html>

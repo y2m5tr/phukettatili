@@ -45,6 +45,22 @@ export interface Booking {
   createdAt: string;
 }
 
+/**
+ * Phuket otel bölgeleri — araç hat planlamasında ve manifesto gruplamasında
+ * kullanılır. detectHotelZone() bu değerleri döndürür.
+ */
+export const HOTEL_ZONES = [
+  'Patong & Kalim',
+  'Kata & Karon',
+  'Kamala',
+  'Bang Tao & Surin',
+  'Rawai & Chalong',
+  'Cape Panwa',
+  'Phuket Town',
+  'Kuzey / Havalimanı',
+  'Genel Phuket',
+] as const;
+
 export function detectHotelZone(hotel: string): string {
   const h = (hotel || '').toLowerCase();
   if (h.includes('patong') || h.includes('kalim') || h.includes('tri trang')) return 'Patong & Kalim';
@@ -56,6 +72,32 @@ export function detectHotelZone(hotel: string): string {
   if (h.includes('phuket town') || h.includes('old town') || h.includes('şehir')) return 'Phuket Town';
   if (h.includes('maikhao') || h.includes('nai yang') || h.includes('havalimanı')) return 'Kuzey / Havalimanı';
   return 'Genel Phuket';
+}
+
+/** Araç tipi — filo kaydı. */
+export type VehicleKind = 'minibus' | 'vip' | 'speedboat' | 'other';
+
+/** Minibüs / VIP araç / tekne kaydı. Eskiden kodda sabit yazılıydı. */
+export interface VehicleItem {
+  id: string;
+  label: string;
+  zone?: string;
+  plateNo?: string;
+  capacity: number;
+  kind: VehicleKind;
+  active: boolean;
+}
+
+/** Şoför / rehber kadrosu. */
+export interface DriverItem {
+  id: string;
+  fullName: string;
+  phone?: string;
+  role: 'driver' | 'guide' | 'both';
+  licenseNo?: string;
+  vehicleId?: string;
+  active: boolean;
+  notes?: string;
 }
 
 export interface TourFaq {
@@ -251,5 +293,64 @@ export const initialBookings: Booking[] = [
     paymentStatus: 'unpaid',
     specialNotes: 'WhatsApp üzerinden bilgi verildi, dönüş bekleniyor.',
     createdAt: '2026-10-12',
+  },
+];
+
+/**
+ * Varsayılan filo. Eskiden transfer sekmesindeki <select> içinde sabit
+ * yazılıydı; artık panelden yönetilebilir bir kayıt listesi.
+ */
+export const initialVehicles: VehicleItem[] = [
+  {
+    id: 'veh-minibus-1',
+    label: 'Minibüs 1 (Patong & Kalim)',
+    zone: 'Patong & Kalim',
+    capacity: 10,
+    kind: 'minibus',
+    active: true,
+  },
+  {
+    id: 'veh-minibus-2',
+    label: 'Minibüs 2 (Kata & Karon)',
+    zone: 'Kata & Karon',
+    capacity: 10,
+    kind: 'minibus',
+    active: true,
+  },
+  {
+    id: 'veh-minibus-3',
+    label: 'Minibüs 3 (Bang Tao & Kamala)',
+    zone: 'Bang Tao & Kamala',
+    capacity: 10,
+    kind: 'minibus',
+    active: true,
+  },
+  {
+    id: 'veh-vip',
+    label: 'VIP Özel Araç',
+    zone: 'Genel Phuket',
+    capacity: 4,
+    kind: 'vip',
+    active: true,
+  },
+];
+
+/** Varsayılan kadro — panelden düzenlenir. */
+export const initialDrivers: DriverItem[] = [
+  {
+    id: 'drv-deniz',
+    fullName: 'Deniz Yılmaz',
+    role: 'guide',
+    phone: '+66 82 895 0665',
+    vehicleId: 'veh-minibus-1',
+    active: true,
+  },
+  {
+    id: 'drv-somchai',
+    fullName: 'Somchai P.',
+    role: 'driver',
+    phone: '+66 81 234 5678',
+    vehicleId: 'veh-minibus-2',
+    active: true,
   },
 ];

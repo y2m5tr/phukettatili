@@ -15,12 +15,9 @@ import {
   Building,
   CheckCircle2,
   Clock,
-  AlertCircle,
   XCircle,
   FileText,
-  Lock,
   LogOut,
-  ChevronRight,
   Sparkles,
   MapPin,
   RefreshCw,
@@ -61,18 +58,22 @@ import {
 } from 'lucide-react';
 import {
   initialBookings,
+  initialVehicles,
+  initialDrivers,
   type Booking,
   type BookingTourSchedule,
   type TourItem,
-  type TourFaq,
   type FaqItem,
   type TestimonialItem,
   type ServiceItem,
   type BlogItem,
   type MediaItem,
+  type VehicleItem,
+  type DriverItem,
   detectHotelZone
 } from '../../data/adminInitialData';
 import BoardingPassModal from '../shared/BoardingPassModal';
+import FleetManager from './FleetManager';
 import {
   supabase,
   isSupabaseConfigured,
@@ -88,8 +89,8 @@ const STORAGE_KEY_FAQS = 'phuket_tatili_crm_faqs_v2';
 const STORAGE_KEY_TESTIMONIALS = 'phuket_tatili_crm_testimonials_v2';
 const STORAGE_KEY_SITE = 'phuket_tatili_crm_site_settings_v2';
 const STORAGE_KEY_MEDIA = 'phuket_tatili_crm_media_v2';
-const STORAGE_KEY_AUTH = 'phuket_tatili_admin_auth_v1';
-const ADMIN_PASSCODE = import.meta.env.ADMIN_PASSCODE || '';
+const STORAGE_KEY_VEHICLES = 'phuket_tatili_crm_vehicles_v1';
+const STORAGE_KEY_DRIVERS = 'phuket_tatili_crm_drivers_v1';
 
 interface SiteSettingsState {
   whatsappNumber: string;
@@ -141,14 +142,14 @@ export default function AdminDashboard({
   initialSiteSettings,
   availableImages = DEFAULT_AVAILABLE_IMAGES,
 }: AdminDashboardProps) {
-  // Auth State
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [passcode, setPasscode] = useState<string>('');
-  const [authError, setAuthError] = useState<string>('');
+  // Kimlik doğrulama sunucu tarafında yapılır (src/middleware.ts).
+  // Bu bileşen yalnızca yetkili isteklerde render edildiği için
+  // client'ta şifre tutulmaz; çıkış da sunucuya bırakılır.
+  const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
 
   // Active Tab
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'bookings' | 'transfers' | 'tours' | 'media' | 'blogs' | 'services' | 'faqs' | 'testimonials' | 'whatsapp' | 'settings'
+    'overview' | 'bookings' | 'transfers' | 'fleet' | 'tours' | 'media' | 'blogs' | 'services' | 'faqs' | 'testimonials' | 'whatsapp' | 'settings'
   >('overview');
 
   // Toast Feedback
@@ -177,6 +178,20 @@ export default function AdminDashboard({
   const [manifestDate, setManifestDate] = useState<string>(
     new Date().toISOString().split('T')[0]
   );
+
+  // 1.5 Fleet & Crew State (araç filosu + şoför/rehber kadrosu)
+  const [vehicles, setVehicles] = useState<VehicleItem[]>([]);
+  const [drivers, setDrivers] = useState<DriverItem[]>([]);
+
+  const saveVehicles = (next: VehicleItem[]) => {
+    setVehicles(next);
+    localStorage.setItem(STORAGE_KEY_VEHICLES, JSON.stringify(next));
+  };
+
+  const saveDrivers = (next: DriverItem[]) => {
+    setDrivers(next);
+    localStorage.setItem(STORAGE_KEY_DRIVERS, JSON.stringify(next));
+  };
 
   // 2. Tours State
   const [tours, setTours] = useState<TourItem[]>([]);
@@ -263,9 +278,6 @@ export default function AdminDashboard({
   // Initialize data on mount
   useEffect(() => {
     try {
-      const auth = localStorage.getItem(STORAGE_KEY_AUTH);
-      if (auth === 'true') setIsAuthenticated(true);
-
       // Load Bookings
       const savedBookings = localStorage.getItem(STORAGE_KEY_BOOKINGS);
       setBookings(savedBookings ? JSON.parse(savedBookings) : initialBookings);
@@ -273,6 +285,13 @@ export default function AdminDashboard({
       // Load Tours
       const savedTours = localStorage.getItem(STORAGE_KEY_TOURS);
       setTours(savedTours ? JSON.parse(savedTours) : initialTours);
+
+      // Load Fleet & Crew (araç filosu + şoför/rehber kadrosu)
+      const savedVehicles = localStorage.getItem(STORAGE_KEY_VEHICLES);
+      setVehicles(savedVehicles ? JSON.parse(savedVehicles) : initialVehicles);
+
+      const savedDrivers = localStorage.getItem(STORAGE_KEY_DRIVERS);
+      setDrivers(savedDrivers ? JSON.parse(savedDrivers) : initialDrivers);
 
       // Load Media
       const savedMedia = localStorage.getItem(STORAGE_KEY_MEDIA);
@@ -425,22 +444,15 @@ export default function AdminDashboard({
     return Array.from(set);
   }, [availableImages, mediaList]);
 
-  // Auth: accept phuket2026, admin123, or ADMIN_PASSCODE
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const clean = passcode.trim();
-    if (clean === 'phuket2026' || clean === 'admin123' || (ADMIN_PASSCODE && clean === ADMIN_PASSCODE)) {
-      setIsAuthenticated(true);
-      setAuthError('');
-      localStorage.setItem(STORAGE_KEY_AUTH, 'true');
-    } else {
-      setAuthError('Hatalı yönetici şifresi! Lütfen geçerli şifreyi giriniz.');
+  // Çıkış: sunucudaki imzalı oturum çerezini siler, sonra giriş ekranına döner.
+  const handleLogout = async () => {
+    setIsSigningOut(true);
+    try {
+      await fetch('/api/ops-login', { method: 'DELETE' });
+    } catch {
+      // Ağ hatası olsa da kullanıcıyı giriş ekranına gönder
     }
-  };
-
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem(STORAGE_KEY_AUTH);
+    window.location.href = '/ops-login?next=/admin';
   };
 
   // Metrics & Profitability
@@ -709,10 +721,17 @@ export default function AdminDashboard({
     setIsModalOpen(false);
   };
 
-  const handleAssignVehicleToBooking = async (
+  /**
+   * Bir rezervasyonun (veya çoklu tur programındaki tek bir turun)
+   * araç/şoför atamasını günceller; localStorage'a yazar ve Supabase'e senkronlar.
+   *
+   * `tourIndex >= 0` ise atama ilgili tur kalemine, değilse rezervasyonun
+   * kendisine yazılır (tek turlu kayıtlar için).
+   */
+  const applyAssignment = async (
     bookingId: string,
     tourIndex: number,
-    vehicle: string
+    patch: Partial<Pick<BookingTourSchedule, 'assignedVehicle' | 'assignedDriver'>>
   ) => {
     const target = bookings.find((b) => b.id === bookingId);
     if (!target) return;
@@ -720,13 +739,10 @@ export default function AdminDashboard({
     const full = { ...target };
     if (tourIndex >= 0 && full.tours && full.tours[tourIndex]) {
       const nextTours = [...full.tours];
-      nextTours[tourIndex] = {
-        ...nextTours[tourIndex],
-        assignedVehicle: vehicle,
-      };
+      nextTours[tourIndex] = { ...nextTours[tourIndex], ...patch };
       full.tours = nextTours;
     } else {
-      full.assignedVehicle = vehicle;
+      Object.assign(full, patch);
     }
 
     const updated = bookings.map((b) => (b.id === bookingId ? full : b));
@@ -738,11 +754,41 @@ export default function AdminDashboard({
       try {
         await db.from('bookings').update(bookingToRow(full)).eq('id', full.id);
       } catch (err) {
-        console.warn('Supabase araç atama hatası:', err);
+        console.warn('Supabase atama senkron hatası:', err);
       }
     }
 
-    showToast(`🚐 ${full.customerName} için hat atandı: ${vehicle}`);
+    return full;
+  };
+
+  const handleAssignVehicleToBooking = async (
+    bookingId: string,
+    tourIndex: number,
+    vehicle: string
+  ) => {
+    const full = await applyAssignment(bookingId, tourIndex, { assignedVehicle: vehicle });
+    if (full) showToast(`🚐 ${full.customerName} için hat atandı: ${vehicle}`);
+  };
+
+  const handleAssignDriverToBooking = async (
+    bookingId: string,
+    tourIndex: number,
+    driverId: string
+  ) => {
+    // Boş seçim = atamayı kaldır
+    const driverName = driverId
+      ? drivers.find((d) => d.id === driverId)?.fullName
+      : undefined;
+    const full = await applyAssignment(bookingId, tourIndex, {
+      assignedDriver: driverId || undefined,
+    });
+    if (full) {
+      showToast(
+        driverName
+          ? `🧑‍✈️ ${full.customerName} için görevli atandı: ${driverName}`
+          : `ℹ️ ${full.customerName} için görevli ataması kaldırıldı.`
+      );
+    }
   };
 
   // Tour CRUD
@@ -1193,75 +1239,9 @@ export default function AdminDashboard({
   };
 
   // ----------------------------------------------------
-  // LOGIN SCREEN
+  // PANEL — kimlik doğrulama sunucuda (src/middleware.ts).
+  // Bu bileşen yalnızca geçerli oturumu olan isteklerde render edilir.
   // ----------------------------------------------------
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-brand-primary to-slate-950 p-4">
-        <div className="w-full max-w-md bg-white dark:bg-surface-2 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-8 sm:p-10 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-brand-accent via-emerald-400 to-teal-500"></div>
-
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-brand-accent/10 text-brand-accent rounded-2xl flex items-center justify-center mx-auto mb-4 border border-brand-accent/20">
-              <Compass className="w-8 h-8" />
-            </div>
-            <h1 className="text-2xl font-bold font-serif text-slate-900 dark:text-white">
-              Phuket Tatili Operasyon
-            </h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              Tam Kapsamlı Acente & İçerik Yönetim Platformu
-            </p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-5">
-            <div>
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-2">
-                Yönetici Şifresi
-              </label>
-              <div className="relative">
-                <input
-                  type="password"
-                  value={passcode}
-                  onChange={(e) => setPasscode(e.target.value)}
-                  placeholder="Şifrenizi giriniz..."
-                  className="w-full px-4 py-3.5 pl-11 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50"
-                  autoFocus
-                />
-                <Lock className="w-5 h-5 text-slate-400 absolute left-3.5 top-3.5" />
-              </div>
-              <p className="text-[11px] text-slate-400 mt-1.5">
-                Şifrenizi operasyon yöneticinizden alabilirsiniz.
-              </p>
-            </div>
-
-            {authError && (
-              <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-xs flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{authError}</span>
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="w-full py-3.5 px-4 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white font-bold text-sm shadow-xl shadow-brand-primary/20 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2"
-            >
-              <span>Panele Güvenli Giriş Yap</span>
-              <ChevronRight className="w-4 h-4" />
-            </button>
-          </form>
-
-          <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800 text-center">
-            <a href="/" className="text-xs text-brand-accent hover:underline font-semibold">
-              ← Web Sitesine Geri Dön
-            </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // ----------------------------------------------------
-  // AUTHENTICATED FULL DASHBOARD
   // ----------------------------------------------------
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
@@ -1365,6 +1345,18 @@ export default function AdminDashboard({
           >
             <Car className="w-4 h-4" />
             <span>🚐 Transfer & Şoför Listesi</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('fleet')}
+            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              activeTab === 'fleet'
+                ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-400/50'
+                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <Bus className="w-4 h-4" />
+            <span>🚙 Filo & Kadro</span>
           </button>
 
           <button
@@ -1841,6 +1833,7 @@ export default function AdminDashboard({
             supplier?: string;
             status: string;
             assignedVehicle?: string;
+            assignedDriver?: string;
             hotelZone: string;
             tourIndex: number;
           }
@@ -1867,6 +1860,7 @@ export default function AdminDashboard({
                     supplier: t.supplier || b.supplier,
                     status: b.status,
                     assignedVehicle: t.assignedVehicle || b.assignedVehicle || 'Atanmadı',
+                    assignedDriver: t.assignedDriver || b.assignedDriver,
                     hotelZone: b.hotelZone || t.hotelZone || detectHotelZone(b.hotel),
                     tourIndex: tIdx,
                   });
@@ -1888,6 +1882,7 @@ export default function AdminDashboard({
                 supplier: b.supplier,
                 status: b.status,
                 assignedVehicle: b.assignedVehicle || 'Atanmadı',
+                assignedDriver: b.assignedDriver,
                 hotelZone: b.hotelZone || detectHotelZone(b.hotel),
                 tourIndex: -1,
               });
@@ -2056,6 +2051,7 @@ export default function AdminDashboard({
                         <th className="py-4 px-5">⏰ Alınış Saati</th>
                         <th className="py-4 px-5">📍 Otel & Oda</th>
                         <th className="py-4 px-5">🚐 Hat & Minibüs</th>
+                        <th className="py-4 px-5">🧑‍✈️ Şoför / Rehber</th>
                         <th className="py-4 px-5">👤 Misafir & Telefon</th>
                         <th className="py-4 px-5">👥 Kişi</th>
                         <th className="py-4 px-5">🏝️ Tur & Tedarikçi</th>
@@ -2107,18 +2103,62 @@ export default function AdminDashboard({
                                     e.target.value
                                   )
                                 }
-                                className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-accent"
+                                className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-accent max-w-[190px]"
                               >
                                 <option value="Atanmadı">Hat Atanmadı</option>
-                                <option value="Minibüs 1 (Patong & Kalim)">🚐 Minibüs 1 (Patong & Kalim)</option>
-                                <option value="Minibüs 2 (Kata & Karon)">🚐 Minibüs 2 (Kata & Karon)</option>
-                                <option value="Minibüs 3 (Bang Tao & Kamala)">🚐 Minibüs 3 (Bang Tao & Kamala)</option>
-                                <option value="VIP Özel Araç">⭐ VIP Özel Araç</option>
+                                {vehicles.filter((v) => v.active).map((v) => (
+                                  <option key={v.id} value={v.label}>
+                                    {v.kind === 'vip' ? '⭐' : v.kind === 'speedboat' ? '🚤' : '🚐'} {v.label}
+                                  </option>
+                                ))}
+                                {p.assignedVehicle &&
+                                  p.assignedVehicle !== 'Atanmadı' &&
+                                  !vehicles.some((v) => v.label === p.assignedVehicle) && (
+                                    <option value={p.assignedVehicle}>{p.assignedVehicle}</option>
+                                  )}
                               </select>
                               <div className="text-[10px] text-sky-500 font-semibold mt-1 flex items-center gap-1">
                                 <MapPin className="w-3 h-3" />
                                 <span>{p.hotelZone}</span>
                               </div>
+                            </td>
+
+                            <td className="py-4 px-5">
+                              <select
+                                value={p.assignedDriver || ''}
+                                onChange={(e) =>
+                                  handleAssignDriverToBooking(
+                                    p.bookingId,
+                                    p.tourIndex,
+                                    e.target.value
+                                  )
+                                }
+                                className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-accent max-w-[170px]"
+                              >
+                                <option value="">Görevli Atanmadı</option>
+                                {drivers.filter((d) => d.active).map((d) => (
+                                  <option key={d.id} value={d.id}>
+                                    {d.role === 'guide' ? '🗣️' : d.role === 'both' ? '⭐' : '🚐'} {d.fullName}
+                                  </option>
+                                ))}
+                                {p.assignedDriver &&
+                                  !drivers.some((d) => d.id === p.assignedDriver) && (
+                                    <option value={p.assignedDriver}>{p.assignedDriver}</option>
+                                  )}
+                              </select>
+                              {(() => {
+                                const d = drivers.find((drv) => drv.id === p.assignedDriver);
+                                return d?.phone ? (
+                                  <a
+                                    href={`https://wa.me/${d.phone.replace(/[^0-9]/g, '')}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] text-emerald-600 hover:underline block mt-1"
+                                  >
+                                    📞 {d.phone}
+                                  </a>
+                                ) : null;
+                              })()}
                             </td>
 
                             <td className="py-4 px-5">
@@ -2190,6 +2230,19 @@ export default function AdminDashboard({
             </div>
           );
         })()}
+
+        {/* ==================================================== */}
+        {/* TAB 2.6: FLEET & CREW (Araç Filosu + Şoför/Rehber Kadrosu) */}
+        {/* ==================================================== */}
+        {activeTab === 'fleet' && (
+          <FleetManager
+            vehicles={vehicles}
+            drivers={drivers}
+            onSaveVehicles={saveVehicles}
+            onSaveDrivers={saveDrivers}
+            showToast={showToast}
+          />
+        )}
 
         {/* ==================================================== */}
         {/* TAB 3: TOURS & PRICES */}
