@@ -1,0 +1,19 @@
+{
+  "name": "Phuket Tatili Saha & Rehber",
+  "short_name": "Saha Ekibi",
+  "description": "Phuket Tatili Rehber, Şoför ve Saha Operasyon Uygulaması",
+  "start_url": "/ekip",
+  "scope": "/ekip",
+  "display": "standalone",
+  "background_color": "#09121f",
+  "theme_color": "#09121f",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

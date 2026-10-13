@@ -55,6 +55,7 @@ import {
   Share2,
   Wallet,
   Cloud,
+  Smartphone,
   Wifi
 } from 'lucide-react';
 import {
@@ -1259,6 +1260,18 @@ export default function AdminDashboard({
           </div>
 
           <div className="flex items-center gap-3">
+            <a
+              href="/ekip"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-sm"
+              title="Rehber & Saha Ekibi Mobil Uygulamasını Aç"
+            >
+              <Smartphone className="w-4 h-4 text-amber-500" />
+              <span className="hidden sm:inline">📱 Saha / Rehber Uygulaması</span>
+              <span className="sm:hidden">Saha</span>
+            </a>
+
             <button
               onClick={handleOpenCreateBooking}
               className="px-4 py-2.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-accent/20 transition-all flex items-center gap-1.5"

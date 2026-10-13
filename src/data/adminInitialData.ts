@@ -7,6 +7,8 @@ export interface BookingTourSchedule {
   costThb?: number;
   supplier?: string;
   nationalParkFeeIncluded?: boolean;
+  pickupStatus?: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show';
+  pickedUpAt?: string;
 }
 
 export interface Booking {
@@ -30,6 +32,8 @@ export interface Booking {
   remainingAmountThb: number;
   nationalParkFeeIncluded?: boolean;
   status: 'inquiry' | 'confirmed' | 'completed' | 'cancelled';
+  pickupStatus?: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show';
+  pickedUpAt?: string;
   paymentStatus: 'unpaid' | 'partial' | 'paid' | 'refunded';
   specialNotes?: string;
   createdAt: string;
