@@ -9,6 +9,9 @@ export interface BookingTourSchedule {
   nationalParkFeeIncluded?: boolean;
   pickupStatus?: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show';
   pickedUpAt?: string;
+  assignedVehicle?: string;
+  assignedDriver?: string;
+  hotelZone?: string;
 }
 
 export interface Booking {
@@ -34,9 +37,25 @@ export interface Booking {
   status: 'inquiry' | 'confirmed' | 'completed' | 'cancelled';
   pickupStatus?: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show';
   pickedUpAt?: string;
+  assignedVehicle?: string;
+  assignedDriver?: string;
+  hotelZone?: string;
   paymentStatus: 'unpaid' | 'partial' | 'paid' | 'refunded';
   specialNotes?: string;
   createdAt: string;
+}
+
+export function detectHotelZone(hotel: string): string {
+  const h = (hotel || '').toLowerCase();
+  if (h.includes('patong') || h.includes('kalim') || h.includes('tri trang')) return 'Patong & Kalim';
+  if (h.includes('karon') || h.includes('kata')) return 'Kata & Karon';
+  if (h.includes('kamala')) return 'Kamala';
+  if (h.includes('bang tao') || h.includes('laguna') || h.includes('surin')) return 'Bang Tao & Surin';
+  if (h.includes('rawai') || h.includes('nai harn') || h.includes('chalong')) return 'Rawai & Chalong';
+  if (h.includes('panwa') || h.includes('cape panwa')) return 'Cape Panwa';
+  if (h.includes('phuket town') || h.includes('old town') || h.includes('şehir')) return 'Phuket Town';
+  if (h.includes('maikhao') || h.includes('nai yang') || h.includes('havalimanı')) return 'Kuzey / Havalimanı';
+  return 'Genel Phuket';
 }
 
 export interface TourFaq {

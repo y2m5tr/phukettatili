@@ -56,6 +56,7 @@ import {
   Wallet,
   Cloud,
   Smartphone,
+  Bus,
   Wifi
 } from 'lucide-react';
 import {
@@ -68,8 +69,10 @@ import {
   type TestimonialItem,
   type ServiceItem,
   type BlogItem,
-  type MediaItem
+  type MediaItem,
+  detectHotelZone
 } from '../../data/adminInitialData';
+import BoardingPassModal from '../shared/BoardingPassModal';
 import {
   supabase,
   isSupabaseConfigured,
@@ -704,6 +707,42 @@ export default function AdminDashboard({
       }
     }
     setIsModalOpen(false);
+  };
+
+  const handleAssignVehicleToBooking = async (
+    bookingId: string,
+    tourIndex: number,
+    vehicle: string
+  ) => {
+    const target = bookings.find((b) => b.id === bookingId);
+    if (!target) return;
+
+    const full = { ...target };
+    if (tourIndex >= 0 && full.tours && full.tours[tourIndex]) {
+      const nextTours = [...full.tours];
+      nextTours[tourIndex] = {
+        ...nextTours[tourIndex],
+        assignedVehicle: vehicle,
+      };
+      full.tours = nextTours;
+    } else {
+      full.assignedVehicle = vehicle;
+    }
+
+    const updated = bookings.map((b) => (b.id === bookingId ? full : b));
+    setBookings(updated);
+    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
+
+    const db = isSupabaseConfigured ? supabase : null;
+    if (db) {
+      try {
+        await db.from('bookings').update(bookingToRow(full)).eq('id', full.id);
+      } catch (err) {
+        console.warn('Supabase araç atama hatası:', err);
+      }
+    }
+
+    showToast(`🚐 ${full.customerName} için hat atandı: ${vehicle}`);
   };
 
   // Tour CRUD
@@ -1801,6 +1840,9 @@ export default function AdminDashboard({
             specialNotes?: string;
             supplier?: string;
             status: string;
+            assignedVehicle?: string;
+            hotelZone: string;
+            tourIndex: number;
           }
 
           const dailyPickups: PickupItem[] = [];
@@ -1808,7 +1850,7 @@ export default function AdminDashboard({
             if (b.status === 'cancelled') return;
 
             if (b.tours && b.tours.length > 0) {
-              b.tours.forEach((t) => {
+              b.tours.forEach((t, tIdx) => {
                 if (t.tourDate === manifestDate) {
                   dailyPickups.push({
                     bookingId: b.id,
@@ -1824,6 +1866,9 @@ export default function AdminDashboard({
                     specialNotes: b.specialNotes,
                     supplier: t.supplier || b.supplier,
                     status: b.status,
+                    assignedVehicle: t.assignedVehicle || b.assignedVehicle || 'Atanmadı',
+                    hotelZone: b.hotelZone || t.hotelZone || detectHotelZone(b.hotel),
+                    tourIndex: tIdx,
                   });
                 }
               });
@@ -1842,6 +1887,9 @@ export default function AdminDashboard({
                 specialNotes: b.specialNotes,
                 supplier: b.supplier,
                 status: b.status,
+                assignedVehicle: b.assignedVehicle || 'Atanmadı',
+                hotelZone: b.hotelZone || detectHotelZone(b.hotel),
+                tourIndex: -1,
               });
             }
           });
@@ -2007,6 +2055,7 @@ export default function AdminDashboard({
                       <tr>
                         <th className="py-4 px-5">⏰ Alınış Saati</th>
                         <th className="py-4 px-5">📍 Otel & Oda</th>
+                        <th className="py-4 px-5">🚐 Hat & Minibüs</th>
                         <th className="py-4 px-5">👤 Misafir & Telefon</th>
                         <th className="py-4 px-5">👥 Kişi</th>
                         <th className="py-4 px-5">🏝️ Tur & Tedarikçi</th>
@@ -2017,7 +2066,7 @@ export default function AdminDashboard({
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {dailyPickups.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="py-14 text-center text-slate-400">
+                          <td colSpan={8} className="py-14 text-center text-slate-400">
                             <Car className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700 mb-2" />
                             <p className="font-semibold text-slate-600 dark:text-slate-400">
                               Bu tarihte planlanmış herhangi bir transfer veya tur bulunamadı.
@@ -2046,6 +2095,30 @@ export default function AdminDashboard({
                                   Oda: {p.roomNumber}
                                 </span>
                               )}
+                            </td>
+
+                            <td className="py-4 px-5">
+                              <select
+                                value={p.assignedVehicle || 'Atanmadı'}
+                                onChange={(e) =>
+                                  handleAssignVehicleToBooking(
+                                    p.bookingId,
+                                    p.tourIndex,
+                                    e.target.value
+                                  )
+                                }
+                                className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-accent"
+                              >
+                                <option value="Atanmadı">Hat Atanmadı</option>
+                                <option value="Minibüs 1 (Patong & Kalim)">🚐 Minibüs 1 (Patong & Kalim)</option>
+                                <option value="Minibüs 2 (Kata & Karon)">🚐 Minibüs 2 (Kata & Karon)</option>
+                                <option value="Minibüs 3 (Bang Tao & Kamala)">🚐 Minibüs 3 (Bang Tao & Kamala)</option>
+                                <option value="VIP Özel Araç">⭐ VIP Özel Araç</option>
+                              </select>
+                              <div className="text-[10px] text-sky-500 font-semibold mt-1 flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                <span>{p.hotelZone}</span>
+                              </div>
                             </td>
 
                             <td className="py-4 px-5">
@@ -4732,231 +4805,15 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
       )}
 
       {/* ==================================================== */}
-      {/* MODAL 10: OFFICIAL TOUR VOUCHER / DIGITAL TICKET */}
+      {/* MODAL 10: OFFICIAL TOUR VOUCHER / DIGITAL TICKET (QR BOARDING PASS) */}
       {/* ==================================================== */}
       {voucherBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md overflow-y-auto print:p-0 print:bg-white print:static">
-          <div className="bg-white text-slate-900 w-full max-w-2xl rounded-3xl shadow-2xl border border-slate-200 overflow-hidden my-auto print:border-none print:shadow-none print:rounded-none">
-            {/* Action Bar (Hidden in Print) */}
-            <div className="p-4 bg-slate-900 text-white flex items-center justify-between print:hidden">
-              <div className="flex items-center gap-2">
-                <Ticket className="w-5 h-5 text-brand-accent" />
-                <span className="font-bold text-sm">Resmî Tur & Rezervasyon Kuponu (Voucher)</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold flex items-center gap-1.5 transition-colors"
-                >
-                  <Printer className="w-3.5 h-3.5" />
-                  <span>Yazdır / PDF Kaydet</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setVoucherBooking(null)}
-                  className="p-1.5 text-slate-400 hover:text-white rounded-lg transition-colors"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Printable Voucher Paper */}
-            <div className="p-6 sm:p-8 space-y-6 bg-white" id="printableVoucher">
-              {/* Voucher Header */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b pb-6 gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-brand-primary text-white flex items-center justify-center font-serif font-black text-xl shadow-md">
-                    PT
-                  </div>
-                  <div>
-                    <h1 className="font-serif font-black text-xl text-brand-primary tracking-tight">
-                      PHUKET TATİLİ
-                    </h1>
-                    <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                      Resmî Tur Seyahat Kuponu · Tour Voucher
-                    </p>
-                  </div>
-                </div>
-
-                <div className="sm:text-right">
-                  <span className="px-3 py-1 rounded-full text-xs font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-block">
-                    ✓ ONAYLI REZERVASYON
-                  </span>
-                  <div className="text-xs text-slate-500 font-mono mt-1">
-                    Kupon No: <span className="font-bold text-slate-900">{voucherBooking.id}</span>
-                  </div>
-                  <div className="text-[10px] text-slate-400">
-                    Düzenlenme: {new Date().toLocaleDateString('tr-TR')}
-                  </div>
-                </div>
-              </div>
-
-              {/* Guest & Hotel Information Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200">
-                <div>
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
-                    Misafir Bilgisi / Guest Name
-                  </span>
-                  <span className="font-extrabold text-base text-slate-900 block mt-0.5">
-                    {voucherBooking.customerName}
-                  </span>
-                  <span className="text-xs text-slate-600 block mt-0.5">
-                    📞 {voucherBooking.phone}
-                  </span>
-                  <span className="text-xs font-semibold text-slate-700 block mt-1">
-                    👥 {voucherBooking.adultCount} Yetişkin
-                    {voucherBooking.childCount > 0 ? ` + ${voucherBooking.childCount} Çocuk` : ''}
-                  </span>
-                </div>
-
-                <div>
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
-                    Otel & Alınış Konumu / Pickup Location
-                  </span>
-                  <span className="font-extrabold text-base text-brand-primary block mt-0.5">
-                    📍 {voucherBooking.hotel}
-                  </span>
-                  {voucherBooking.roomNumber && (
-                    <span className="text-xs font-bold text-slate-700 block mt-0.5">
-                      Oda No: {voucherBooking.roomNumber}
-                    </span>
-                  )}
-                  <span className="text-[11px] text-slate-500 block mt-1">
-                    Lütfen transfer saatinde otel ana lobisinde hazır bulununuz.
-                  </span>
-                </div>
-              </div>
-
-              {/* Scheduled Tours Itinerary */}
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-1.5">
-                  <Compass className="w-4 h-4 text-brand-accent" />
-                  Tur Programı & Günlük Transfer Saatleri / Itinerary
-                </h3>
-
-                <div className="space-y-2.5">
-                  {(voucherBooking.tours && voucherBooking.tours.length > 0
-                    ? voucherBooking.tours
-                    : [
-                        {
-                          tourTitle: voucherBooking.tourTitle,
-                          tourDate: voucherBooking.tourDate,
-                          pickupTime: voucherBooking.pickupTime,
-                          priceThb: voucherBooking.totalPriceThb,
-                        },
-                      ]
-                  ).map((t, idx) => (
-                    <div
-                      key={idx}
-                      className="p-4 rounded-2xl border border-slate-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-2xs"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="w-7 h-7 rounded-xl bg-brand-primary/10 text-brand-primary font-bold text-xs flex items-center justify-center shrink-0">
-                          {idx + 1}
-                        </span>
-                        <div>
-                          <h4 className="font-bold text-sm text-slate-900">
-                            {t.tourTitle}
-                          </h4>
-                          <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-slate-500">
-                            <span className="font-semibold text-slate-700">
-                              📅 Tarih: {t.tourDate}
-                            </span>
-                            <span>·</span>
-                            <span className="font-extrabold text-brand-primary bg-brand-primary/5 px-2 py-0.5 rounded-md">
-                              ⏰ Alınış: {t.pickupTime || '07:30'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-slate-100 text-slate-700 self-start sm:self-auto">
-                        Tam Gün Tur
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Financial & Payment Summary */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <span className="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">
-                    Ödeme & Tahsilat Durumu
-                  </span>
-                  <div className="flex items-baseline gap-2 mt-1">
-                    <span className="text-xl font-black text-slate-900">
-                      {voucherBooking.totalPriceThb.toLocaleString()} THB
-                    </span>
-                    <span className="text-xs text-slate-500">
-                      (Ödenen: {voucherBooking.paidAmountThb.toLocaleString()} THB)
-                    </span>
-                  </div>
-                </div>
-
-                <div className="sm:text-right">
-                  {voucherBooking.remainingAmountThb > 0 ? (
-                    <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-200">
-                      <span className="text-[10px] font-bold uppercase text-amber-700 block">
-                        Tur Günü Ödenecek Bakiye
-                      </span>
-                      <span className="text-lg font-black text-amber-600 block">
-                        {voucherBooking.remainingAmountThb.toLocaleString()} THB
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
-                      <span className="text-xs font-extrabold text-emerald-700 flex items-center gap-1 justify-end">
-                        <CheckCircle2 className="w-4 h-4" /> ÖDEMENİN TAMAMI ALINMIŞTIR
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Important Instructions & National Park Fee Notice */}
-              <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-amber-950 space-y-2">
-                <div className="font-bold flex items-center gap-1.5 text-amber-900">
-                  <Info className="w-4 h-4 text-amber-600" />
-                  Önemli Tur Kuralları & Yanınızda Bulunması Gerekenler:
-                </div>
-                <ul className="list-disc pl-5 space-y-1 text-[11px] text-amber-900/90 leading-relaxed">
-                  <li>
-                    Lütfen tur sabahı belirtilen alınış saatinde otelinizin ana lobisinde hazır bulununuz.
-                  </li>
-                  <li>
-                    Yanınızda havlu, güneş kremi, güneş gözlüğü, mayo ve su geçirmez telefon kılıfı bulundurmanız önerilir.
-                  </li>
-                  {voucherBooking.nationalParkFeeIncluded === false ? (
-                    <li className="font-bold text-amber-950">
-                      ⚠️ Millî Park Giriş Ücreti fiyata dahil değildir. Lütfen limanda resmi gişeye ödenmek üzere yanınızda kişi başı nakit Baht (THB) hazır bulundurunuz.
-                    </li>
-                  ) : (
-                    <li>Millî park giriş ücretleri fiyata dahildir.</li>
-                  )}
-                  {voucherBooking.specialNotes && (
-                    <li className="font-semibold text-slate-800">
-                      Özel Talep: {voucherBooking.specialNotes}
-                    </li>
-                  )}
-                </ul>
-              </div>
-
-              {/* Footer Emergency Contact */}
-              <div className="pt-4 border-t flex flex-col sm:flex-row sm:items-center justify-between text-xs text-slate-500 gap-2">
-                <div>
-                  <span className="font-bold text-slate-800">Phuket Tatili 7/24 Türkçe Operasyon:</span>{' '}
-                  +66 82 895 0665
-                </div>
-                <div className="text-[11px] text-slate-400">
-                  www.phukettatili.com · info@phukettatili.com
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <BoardingPassModal
+          booking={voucherBooking}
+          tourIndex={0}
+          managerPhone={siteSettings.whatsappNumber}
+          onClose={() => setVoucherBooking(null)}
+        />
       )}
 
       {/* ==================================================== */}

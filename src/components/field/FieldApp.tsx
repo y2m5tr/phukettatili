@@ -25,10 +25,15 @@ import {
   Sparkles,
   ArrowRight,
   X,
+  Camera,
+  Ticket,
+  Bus,
   CreditCard,
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured, bookingToRow, rowToBooking } from '../../lib/supabase';
-import { initialBookings, type Booking, type TourItem } from '../../data/adminInitialData';
+import { initialBookings, type Booking, type TourItem, detectHotelZone } from '../../data/adminInitialData';
+import QrScannerModal from './QrScannerModal';
+import BoardingPassModal from '../shared/BoardingPassModal';
 
 const PASSCODE_STORAGE_KEY = 'phuket_field_auth_v1';
 const CREW_NAME_STORAGE_KEY = 'phuket_field_crew_name';
@@ -84,6 +89,9 @@ interface FieldScheduleItem {
   specialNotes?: string;
   pickupStatus: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show';
   pickedUpAt?: string;
+  assignedVehicle?: string;
+  assignedDriver?: string;
+  hotelZone?: string;
   fullBooking: Booking;
 }
 
@@ -109,6 +117,11 @@ export default function FieldApp({
   const [selectedDate, setSelectedDate] = useState<string>(getPhuketToday());
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [vehicleFilter, setVehicleFilter] = useState<string>('all');
+
+  // QR Tarayıcı & Biniş Kartı Modalları
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState<boolean>(false);
+  const [boardingPassModalItem, setBoardingPassModalItem] = useState<{ booking: Booking; tourIndex: number } | null>(null);
 
   // 3. Veri & Çevrimiçi Durum
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
@@ -361,6 +374,9 @@ export default function FieldApp({
               specialNotes: b.specialNotes,
               pickupStatus: t.pickupStatus || b.pickupStatus || 'pending',
               pickedUpAt: t.pickedUpAt || b.pickedUpAt,
+              assignedVehicle: t.assignedVehicle || b.assignedVehicle || 'Atanmadı',
+              assignedDriver: t.assignedDriver || b.assignedDriver,
+              hotelZone: b.hotelZone || t.hotelZone || detectHotelZone(b.hotel),
               fullBooking: b,
             });
           }
@@ -390,6 +406,9 @@ export default function FieldApp({
             specialNotes: b.specialNotes,
             pickupStatus: b.pickupStatus || 'pending',
             pickedUpAt: b.pickedUpAt,
+            assignedVehicle: b.assignedVehicle || 'Atanmadı',
+            assignedDriver: b.assignedDriver,
+            hotelZone: b.hotelZone || detectHotelZone(b.hotel),
             fullBooking: b,
           });
         }
@@ -411,8 +430,15 @@ export default function FieldApp({
           item.hotel.toLowerCase().includes(q) ||
           item.tourTitle.toLowerCase().includes(q) ||
           item.phone.includes(q) ||
+          (item.assignedVehicle && item.assignedVehicle.toLowerCase().includes(q)) ||
+          (item.hotelZone && item.hotelZone.toLowerCase().includes(q)) ||
           (item.roomNumber && item.roomNumber.toLowerCase().includes(q));
         if (!match) return false;
+      }
+
+      // Araç / Hat filtresi
+      if (vehicleFilter !== 'all' && item.assignedVehicle !== vehicleFilter) {
+        return false;
       }
 
       // Durum filtresi
@@ -426,7 +452,7 @@ export default function FieldApp({
 
       return true;
     });
-  }, [scheduleItems, searchQuery, statusFilter]);
+  }, [scheduleItems, searchQuery, statusFilter, vehicleFilter]);
 
   // İstatistik Sayaçları
   const stats = useMemo(() => {
@@ -514,6 +540,81 @@ export default function FieldApp({
       showToast(`⚠️ ${item.customerName} NO-SHOW işaretlendi`);
     } else {
       showToast(`Durum güncellendi: ${newStatus}`);
+    }
+  };
+
+  // Mevcut rotadaki araçlar listesi
+  const availableVehicles = useMemo(() => {
+    const list = new Set<string>();
+    scheduleItems.forEach((i) => {
+      if (i.assignedVehicle && i.assignedVehicle !== 'Atanmadı') {
+        list.add(i.assignedVehicle);
+      }
+    });
+    return Array.from(list);
+  }, [scheduleItems]);
+
+  // QR Kod Kamera Okuma Başarısı
+  const handleQrScanSuccess = (scannedBookingId: string, tourIndex: number) => {
+    const cleanId = scannedBookingId.trim().toUpperCase();
+    const found = bookings.find((b) => b.id.toUpperCase() === cleanId || b.id.toUpperCase().includes(cleanId));
+    if (!found) {
+      showToast(`⚠️ Rezervasyon bulunamadı: ${cleanId}`);
+      return;
+    }
+
+    const nowTime = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    const full = { ...found };
+
+    if (full.tours && full.tours[tourIndex]) {
+      const nextTours = [...full.tours];
+      nextTours[tourIndex] = {
+        ...nextTours[tourIndex],
+        pickupStatus: 'picked_up',
+        pickedUpAt: nowTime,
+      };
+      full.tours = nextTours;
+    } else {
+      full.pickupStatus = 'picked_up';
+      full.pickedUpAt = nowTime;
+    }
+
+    updateBookingRecord(full);
+    showToast(`🎉 QR Binişi Onaylandı: ${full.customerName} (${nowTime})`);
+
+    // Eğer misafirin kalan ödemesi varsa, doğrudan tahsilat modalını aç
+    if (full.remainingAmountThb > 0) {
+      setTimeout(() => {
+        const scheduleItem: FieldScheduleItem = {
+          key: `${full.id}-qr`,
+          bookingId: full.id,
+          customerName: full.customerName,
+          phone: full.phone,
+          hotel: full.hotel,
+          roomNumber: full.roomNumber,
+          tourTitle: full.tourTitle,
+          tourId: full.tourId,
+          tourDate: full.tourDate,
+          pickupTime: full.pickupTime || '07:30',
+          tourIndex,
+          adultCount: full.adultCount,
+          childCount: full.childCount,
+          totalPriceThb: full.totalPriceThb,
+          paidAmountThb: full.paidAmountThb,
+          remainingAmountThb: full.remainingAmountThb,
+          paymentStatus: full.paymentStatus,
+          nationalParkFeeIncluded: full.nationalParkFeeIncluded ?? false,
+          specialNotes: full.specialNotes,
+          pickupStatus: 'picked_up',
+          pickedUpAt: nowTime,
+          assignedVehicle: full.assignedVehicle,
+          assignedDriver: full.assignedDriver,
+          hotelZone: full.hotelZone || detectHotelZone(full.hotel),
+          fullBooking: full,
+        };
+        setCashModalItem(scheduleItem);
+        setCollectedAmountInput(String(full.remainingAmountThb));
+      }, 700);
     }
   };
 
@@ -805,6 +906,15 @@ export default function FieldApp({
           {/* Durum & Yenile */}
           <div className="flex items-center gap-2">
             <button
+              onClick={() => setIsQrScannerOpen(true)}
+              className="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1 shadow-md shadow-amber-500/20 active:scale-95 transition-all"
+              title="QR Biniş Kartı Okut"
+            >
+              <Camera className="w-3.5 h-3.5" />
+              <span>QR Tara</span>
+            </button>
+
+            <button
               onClick={handleRefresh}
               disabled={isRefreshing}
               aria-label="Yenile"
@@ -975,6 +1085,38 @@ export default function FieldApp({
                 </button>
               )}
             </div>
+
+            {/* Hat / Minibüs Filtresi */}
+            {availableVehicles.length > 0 && (
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-[11px] pt-1 border-t border-slate-800/40">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold shrink-0 flex items-center gap-1">
+                  <Bus className="w-3 h-3 text-sky-400" /> Hat:
+                </span>
+                <button
+                  onClick={() => setVehicleFilter('all')}
+                  className={`px-2.5 py-0.5 rounded-lg text-[11px] font-medium shrink-0 transition-all ${
+                    vehicleFilter === 'all'
+                      ? 'bg-sky-500 text-slate-950 font-bold'
+                      : 'bg-slate-900 text-slate-400 border border-slate-800'
+                  }`}
+                >
+                  Tüm Hatlar
+                </button>
+                {availableVehicles.map((v) => (
+                  <button
+                    key={v}
+                    onClick={() => setVehicleFilter(v)}
+                    className={`px-2.5 py-0.5 rounded-lg text-[11px] font-medium shrink-0 transition-all ${
+                      vehicleFilter === v
+                        ? 'bg-sky-500 text-slate-950 font-bold'
+                        : 'bg-slate-900 text-sky-400 border border-slate-800'
+                    }`}
+                  >
+                    {v}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Manifest Başlığı */}
@@ -1087,6 +1229,14 @@ export default function FieldApp({
                           </span>
                         )}
                       </div>
+
+                      {/* Hat / Minibüs & Bölge */}
+                      <div className="mt-1 flex items-center gap-1.5 text-[11px] text-sky-400 font-medium">
+                        <Bus className="w-3 h-3 text-sky-400 shrink-0" />
+                        <span className="font-semibold">{item.assignedVehicle !== 'Atanmadı' ? item.assignedVehicle : 'Hat Atanmadı'}</span>
+                        <span className="text-slate-600">•</span>
+                        <span className="text-slate-400">{item.hotelZone}</span>
+                      </div>
                     </div>
 
                     {/* Finansal Durum & Millî Park Hatırlatması */}
@@ -1170,6 +1320,20 @@ export default function FieldApp({
                       >
                         <MessageSquare className="w-3.5 h-3.5" />
                         <span>Lobi WP</span>
+                      </button>
+
+                      {/* Biniş Kartı & QR Voucher */}
+                      <button
+                        onClick={() =>
+                          setBoardingPassModalItem({
+                            booking: item.fullBooking,
+                            tourIndex: item.tourIndex >= 0 ? item.tourIndex : 0,
+                          })
+                        }
+                        title="Biniş Kartı & QR Kod"
+                        className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-amber-400 font-semibold text-xs flex items-center justify-center active:scale-95 transition-all"
+                      >
+                        <Ticket className="w-4 h-4" />
                       </button>
 
                       {/* Alındı Yoklama Butonu */}
@@ -1655,6 +1819,23 @@ export default function FieldApp({
           </button>
         </div>
       </nav>
+
+      {/* QR Kod Tarayıcı Modal */}
+      <QrScannerModal
+        isOpen={isQrScannerOpen}
+        onClose={() => setIsQrScannerOpen(false)}
+        onScanResult={handleQrScanSuccess}
+      />
+
+      {/* Biniş Kartı & QR Voucher Modal */}
+      {boardingPassModalItem && (
+        <BoardingPassModal
+          booking={boardingPassModalItem.booking}
+          tourIndex={boardingPassModalItem.tourIndex}
+          managerPhone={managerPhone}
+          onClose={() => setBoardingPassModalItem(null)}
+        />
+      )}
     </div>
   );
 }
