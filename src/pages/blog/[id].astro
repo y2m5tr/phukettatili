@@ -1,7 +1,6 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import FadeIn from '../../components/ui/FadeIn';
 import BlogRelatedTour from '../../components/BlogRelatedTour.astro';
 import siteSettings from '../../content/settings/site.json';
 
@@ -110,14 +109,13 @@ const schemas: Record<string, unknown>[] = [
     </div>
 
     <div class="relative z-20 max-w-4xl mx-auto px-4 w-full">
-      <FadeIn client:load direction="up">
-        <a href="/blog" class="inline-flex items-center text-brand-accent text-sm font-semibold mb-3 hover:underline">
-          ← Tüm Rehber Yazıları
-        </a>
-        <h1 class="text-3xl md:text-5xl text-white font-serif font-bold mb-4 drop-shadow-md">
-          {post.data.title}
-        </h1>
-        <div class="flex flex-wrap items-center gap-4 text-slate-300 text-xs md:text-sm">
+      <a href="/blog" class="inline-flex items-center text-brand-accent text-sm font-semibold mb-3 hover:underline">
+        ← Tüm Rehber Yazıları
+      </a>
+      <h1 class="text-3xl md:text-5xl text-white font-serif font-bold mb-4 drop-shadow-md">
+        {post.data.title}
+      </h1>
+      <div class="flex flex-wrap items-center gap-4 text-slate-300 text-xs md:text-sm">
           <span class="flex items-center gap-1.5 font-medium text-white">
             <svg class="w-4 h-4 text-brand-accent shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
             {authorName}
@@ -131,7 +129,6 @@ const schemas: Record<string, unknown>[] = [
             </span>
           )}
         </div>
-      </FadeIn>
     </div>
   </section>
 

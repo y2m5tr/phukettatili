@@ -301,11 +301,14 @@ export default function AdminDashboard({
       if (savedSettings) setSiteSettings(JSON.parse(savedSettings));
 
       // ☁️ Supabase Cloud Database Synchronizer
-      if (isSupabaseConfigured && supabase) {
-        supabase
-          .from('bookings')
-          .select('*')
-          .order('created_at', { ascending: false })
+      const db = isSupabaseConfigured ? supabase : null;
+      if (db) {
+        Promise.resolve(
+          db
+            .from('bookings')
+            .select('*')
+            .order('created_at', { ascending: false })
+        )
           .then(({ data, error }) => {
             if (!error && data) {
               setIsCloudConnected(true);
@@ -316,7 +319,7 @@ export default function AdminDashboard({
               } else {
                 // Table exists but empty: seed initial bookings
                 const rows = initialBookings.map(bookingToRow);
-                supabase.from('bookings').insert(rows).then(() => {
+                void Promise.resolve(db.from('bookings').insert(rows)).then(() => {
                   console.log('Varsayılan rezervasyonlar Supabase veritabanına aktarıldı.');
                 });
               }
@@ -324,12 +327,12 @@ export default function AdminDashboard({
               console.warn('Supabase rezervasyon bildirim:', error.message);
             }
           })
-          .catch((err) => {
+          .catch((err: unknown) => {
             console.warn('Supabase bağlantı hatası:', err);
           });
 
         // Canlı Senkronizasyon (Realtime Websocket)
-        const channel = supabase
+        const channel = db
           .channel('realtime_bookings_crm')
           .on(
             'postgres_changes',
@@ -371,7 +374,7 @@ export default function AdminDashboard({
           });
 
         return () => {
-          supabase.removeChannel(channel);
+          db.removeChannel(channel);
         };
       }
     } catch {
@@ -1073,9 +1076,12 @@ export default function AdminDashboard({
   // WhatsApp Message Link
   const createWhatsAppLink = (b: Booking, type: 'reminder' | 'confirm') => {
     const cleanPhone = b.phone.replace(/[^0-9]/g, '');
+    const hasMultipleTours = Boolean(b.tours && b.tours.length > 1);
     const nationalParkWarning = b.nationalParkFeeIncluded === false
       ? `\n⚠️ *Önemli Hatırlatma:* Millî Park Giriş Ücreti fiyata dahil değildir. Lütfen limanda ödenmek üzere yanınızda kişi başı nakit Baht (THB) hazır bulundurunuz.\n`
       : '';
+
+    let msg: string;
 
     if (type === 'reminder') {
       const tourScheduleText = hasMultipleTours

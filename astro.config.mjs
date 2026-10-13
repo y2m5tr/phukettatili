@@ -23,6 +23,7 @@ export default defineConfig({
     keystatic(),
     markdoc(),
     sitemap({
+      filter: (page) => !page.includes('/admin'),
       i18n: {
         defaultLocale: 'tr',
         locales: {
