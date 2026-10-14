@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Users,
   Calendar,
@@ -54,7 +54,9 @@ import {
   Cloud,
   Smartphone,
   Bus,
-  Wifi
+  Wifi,
+  Navigation,
+  ShieldCheck,
 } from 'lucide-react';
 import {
   initialBookings,
@@ -70,15 +72,21 @@ import {
   type MediaItem,
   type VehicleItem,
   type DriverItem,
+  type PassengerItem,
   detectHotelZone
 } from '../../data/adminInitialData';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
+import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
+import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
 import {
-  supabase,
+  generateMultiStopMapUrl,
+  getSingleHotelMapUrl,
+  detectDeparturePier,
+} from '../../lib/maps';
+import {
   isSupabaseConfigured,
-  bookingToRow,
-  rowToBooking
+  subscribeBookingsSignal,
 } from '../../lib/supabase';
 
 const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v2';
@@ -91,6 +99,50 @@ const STORAGE_KEY_SITE = 'phuket_tatili_crm_site_settings_v2';
 const STORAGE_KEY_MEDIA = 'phuket_tatili_crm_media_v2';
 const STORAGE_KEY_VEHICLES = 'phuket_tatili_crm_vehicles_v1';
 const STORAGE_KEY_DRIVERS = 'phuket_tatili_crm_drivers_v1';
+
+/* ---------------------------------------------------------------------------
+   PANEL MENÜSÜ — tek kaynak
+   Sekmeler üç iş grubuna ayrılır: Operasyon (bugün sahada ne oluyor),
+   İçerik (sitede ne görünüyor), Sistem (iletişim + ayarlar).
+   Bir sekme eklemek için yalnızca buraya bir satır yazmak yeterlidir;
+   JSX'te tekrarlanan buton bloğu yoktur.
+   ------------------------------------------------------------------------- */
+
+export type AdminTab =
+  | 'overview' | 'bookings' | 'transfers' | 'fleet'
+  | 'tours' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
+  | 'whatsapp' | 'settings';
+
+interface NavItem {
+  id: AdminTab;
+  /** Kısa, tek kelimelik etiket — hepsi aynı uzunlukta, göz tarar. */
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  /** Sayaç yalnızca iş değiştiren sekmelerde gösterilir (gürültü azaltma). */
+  showCount?: boolean;
+}
+
+/* ---------------------------------------------------------------------------
+   PANEL MENÜSÜ — tek kaynak.
+   Düz liste: grup başlığı, ayraç, renk çeşitliliği YOK (bilinçli — 12 sekme
+   renklenince kalabalık, tek renk olunca taranabilir). Sıra = kullanım
+   sıklığı: günlük operasyon solda, nadir ayarlar sağda.
+   Sekme eklemek için buraya bir satır yazmak yeterlidir.
+   ------------------------------------------------------------------------- */
+const NAV_ITEMS: NavItem[] = [
+  { id: 'overview',   label: 'Özet',      icon: TrendingUp },
+  { id: 'bookings',   label: 'Rezervasyon', icon: Users, showCount: true },
+  { id: 'transfers',  label: 'Transfer',  icon: Car },
+  { id: 'fleet',      label: 'Filo',      icon: Bus },
+  { id: 'tours',      label: 'Turlar',    icon: Compass },
+  { id: 'media',      label: 'Medya',     icon: Image },
+  { id: 'services',   label: 'Hizmetler', icon: Briefcase },
+  { id: 'blogs',      label: 'Blog',      icon: BookOpen },
+  { id: 'faqs',       label: 'SSS',       icon: HelpCircle },
+  { id: 'testimonials', label: 'Yorumlar', icon: MessageSquareQuote },
+  { id: 'whatsapp',   label: 'WhatsApp',  icon: MessageCircle },
+  { id: 'settings',   label: 'Ayarlar',   icon: Settings },
+];
 
 interface SiteSettingsState {
   whatsappNumber: string;
@@ -129,8 +181,8 @@ const DEFAULT_AVAILABLE_IMAGES = [
   'culture.webp',
   'food.webp',
   'phuket_transfer.webp',
-  'phuket_tours.webp',
   'phuket_culture.webp',
+  'yacht.webp',
 ];
 
 export default function AdminDashboard({
@@ -147,10 +199,24 @@ export default function AdminDashboard({
   // client'ta şifre tutulmaz; çıkış da sunucuya bırakılır.
   const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<
-    'overview' | 'bookings' | 'transfers' | 'fleet' | 'tours' | 'media' | 'blogs' | 'services' | 'faqs' | 'testimonials' | 'whatsapp' | 'settings'
-  >('overview');
+  // Active Tab — son seçim localStorage'da tutulur; sayfa yenilense bile
+  // kullanıcı kaldığı bölüme döner (operasyonda sık yenileme yapılır).
+  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = window.localStorage.getItem('ptt_admin_active_tab') as AdminTab | null;
+        if (saved && NAV_ITEMS.some((i) => i.id === saved)) return saved;
+      } catch { /* gizli mod / kota: sessizce varsayılana düş */ }
+    }
+    return 'overview';
+  });
+  useEffect(() => {
+    try { window.localStorage.setItem('ptt_admin_active_tab', activeTab); } catch { /* yok say */ }
+  }, [activeTab]);
+
+  // Menü şeridi: dar ekranda kaydırılabilir. Aktif sekme seçilince
+  // görünür alana otomatik kaydırılır (scrollIntoView).
+  const navRef = useRef<HTMLDivElement>(null);
 
   // Toast Feedback
   const [toastMessage, setToastMessage] = useState<string>('');
@@ -173,6 +239,48 @@ export default function AdminDashboard({
 
   // Voucher / Ticket Modal State
   const [voucherBooking, setVoucherBooking] = useState<Booking | null>(null);
+
+  // WhatsApp Automation Templates Modal
+  const [whatsAppModalBooking, setWhatsAppModalBooking] = useState<Booking | null>(null);
+
+  // Marine Police Manifest Modal
+  const [isPoliceManifestOpen, setIsPoliceManifestOpen] = useState<boolean>(false);
+
+  // Yolcu pasaport bilgilerini günceller (deniz polisi / sigorta manifestosu).
+  // localStorage + Supabase'e yazılır: sahadaki rehber manifestoyu teknede
+  // çıkardığı için bu verinin buluta gitmesi şart.
+  const handleUpdateBookingPassengers = async (
+    bookingId: string,
+    passengers: PassengerItem[]
+  ) => {
+    const target = bookings.find((b) => b.id === bookingId);
+    if (!target) return;
+
+    const full: Booking = { ...target, passengers };
+    const updated = bookings.map((b) => (b.id === bookingId ? full : b));
+
+    setBookings(updated);
+    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
+
+    // Bulut yazımı /api/bookings üzerinden (oturum cookie'si ile).
+    // Sunucu servis rolüyle yazar ve sinyal yayınlar.
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(full),
+      });
+      if (!res.ok) {
+        showToast('⚠️ Kaydedildi ama buluta yazılamadı.');
+        return;
+      }
+    } catch {
+      showToast('⚠️ Kaydedildi ama buluta yazılamadı.');
+      return;
+    }
+
+    showToast('✅ Yolcu pasaport bilgileri kaydedildi.');
+  };
 
   // Driver Manifest & Operations State
   const [manifestDate, setManifestDate] = useState<string>(
@@ -250,6 +358,56 @@ export default function AdminDashboard({
   const [siteSettings, setSiteSettings] = useState<SiteSettingsState>(initialSiteSettings);
   const [settingsSaved, setSettingsSaved] = useState<boolean>(false);
 
+  /* -------------------------------------------------------------------------
+     Menü: tek düz liste, sayısını yalnızca tek sekmede (Rezervasyon)
+     gösteriyoruz — 7 sekmede birden sayı = gürültü.
+     ------------------------------------------------------------------------- */
+  const bookingsCount = bookings.length;
+  const activeNavItem: NavItem | undefined = useMemo(
+    () => NAV_ITEMS.find((i) => i.id === activeTab),
+    [activeTab],
+  );
+
+  /** Klavye ile menüde gezinme: [ = önceki sekme, ] = sonraki sekme. */
+  const isAnyModalOpen =
+    isModalOpen ||
+    Boolean(voucherBooking) ||
+    Boolean(whatsAppModalBooking) ||
+    isPoliceManifestOpen ||
+    isTourModalOpen ||
+    isAddMediaModalOpen ||
+    Boolean(assignMediaModal) ||
+    Boolean(selectedLightboxMedia) ||
+    isBlogModalOpen ||
+    isServiceModalOpen ||
+    isFaqModalOpen ||
+    isTestiModalOpen;
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== '[' && e.key !== ']') return;
+      if (isAnyModalOpen) return; // Form/modal açıkken sekme değiştirme
+      // Kullanıcı bir alana yazıyorken kısayol çalışmasın
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+
+      const idx = NAV_ITEMS.findIndex((i) => i.id === activeTab);
+      if (idx === -1) return;
+      const next = e.key === ']' ? (idx + 1) % NAV_ITEMS.length : (idx - 1 + NAV_ITEMS.length) % NAV_ITEMS.length;
+      setActiveTab(NAV_ITEMS[next].id);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [activeTab, isAnyModalOpen]);
+
+  /** Sekme değişince aktif butonu görünür alana kaydır. */
+  useEffect(() => {
+    if (!navRef.current) return;
+    const active = navRef.current.querySelector<HTMLElement>('[data-nav-active="true"]');
+    active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [activeTab]);
+
   // Helper for universal image URL resolution
   const getImageUrl = (img?: string): string => {
     if (!img) return '/assets/phuket_hero.webp';
@@ -323,88 +481,53 @@ export default function AdminDashboard({
       const savedSettings = localStorage.getItem(STORAGE_KEY_SITE);
       if (savedSettings) setSiteSettings(JSON.parse(savedSettings));
 
-      // ☁️ Supabase Cloud Database Synchronizer
-      const db = isSupabaseConfigured ? supabase : null;
-      if (db) {
-        Promise.resolve(
-          db
-            .from('bookings')
-            .select('*')
-            .order('created_at', { ascending: false })
-        )
-          .then(({ data, error }) => {
-            if (!error && data) {
-              setIsCloudConnected(true);
-              if (data.length > 0) {
-                const cloudBookings = data.map(rowToBooking);
-                setBookings(cloudBookings);
-                localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(cloudBookings));
-              } else {
-                // Table exists but empty: seed initial bookings
-                const rows = initialBookings.map(bookingToRow);
-                void Promise.resolve(db.from('bookings').insert(rows)).then(() => {
-                  console.log('Varsayılan rezervasyonlar Supabase veritabanına aktarıldı.');
-                });
-              }
-            } else if (error) {
-              console.warn('Supabase rezervasyon bildirim:', error.message);
-            }
-          })
-          .catch((err: unknown) => {
-            console.warn('Supabase bağlantı hatası:', err);
-          });
-
-        // Canlı Senkronizasyon (Realtime Websocket)
-        const channel = db
-          .channel('realtime_bookings_crm')
-          .on(
-            'postgres_changes',
-            { event: '*', schema: 'public', table: 'bookings' },
-            (payload) => {
-              setIsCloudConnected(true);
-              if (payload.eventType === 'INSERT') {
-                const newB = rowToBooking(payload.new);
-                setBookings((prev) => {
-                  const filtered = prev.filter((b) => b.id !== newB.id);
-                  const nextList = [newB, ...filtered];
-                  localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(nextList));
-                  return nextList;
-                });
-                showToast(`🔔 Canlı Rezervasyon: ${newB.customerName} eklendi!`);
-              } else if (payload.eventType === 'UPDATE') {
-                const updatedB = rowToBooking(payload.new);
-                setBookings((prev) => {
-                  const nextList = prev.map((b) => (b.id === updatedB.id ? updatedB : b));
-                  localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(nextList));
-                  return nextList;
-                });
-              } else if (payload.eventType === 'DELETE') {
-                const deletedId = (payload.old as any)?.id;
-                if (deletedId) {
-                  setBookings((prev) => {
-                    const nextList = prev.filter((b) => b.id !== deletedId);
-                    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(nextList));
-                    return nextList;
-                  });
-                }
-              }
-            }
-          )
-          .subscribe((status) => {
-            if (status === 'SUBSCRIBED') {
-              setIsCloudConnected(true);
-            }
-          });
-
-        return () => {
-          db.removeChannel(channel);
-        };
-      }
+      // ☁️ Bulut verisi: tablo erişimi /api/bookings üzerinden (oturum
+      // cookie'si ile). Client Supabase anahtarı tabloyu okuyamaz — RLS kapalı.
+      void fetchBookingsFromServer(true);
     } catch {
       setBookings(initialBookings);
       setTours(initialTours);
     }
   }, []);
+
+  /**
+   * Bulut verisini /api/bookings üzerinden çeker ve state + localStorage
+   * cache'ini tazeler. silent=true iken hata durumunda toast gösterilmez.
+   */
+  const fetchBookingsFromServer = useCallback(async (silent = false): Promise<void> => {
+    try {
+      const res = await fetch('/api/bookings');
+      if (!res.ok) {
+        if (!silent) showToast('⚠️ Bulut verisi alınamadı.');
+        setIsCloudConnected(false);
+        return;
+      }
+      const payload = (await res.json()) as { bookings?: Booking[] };
+      if (Array.isArray(payload.bookings)) {
+        if (payload.bookings.length > 0) {
+          setBookings(payload.bookings);
+          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(payload.bookings));
+        }
+        setIsCloudConnected(true);
+      }
+    } catch {
+      setIsCloudConnected(false);
+    }
+  }, []);
+
+  /**
+   * Canlı senkronizasyon: sunucunun "bookings değişti" Broadcast sinyalini
+   * dinler. Sinyal veri taşımaz; veri her seferinde /api/bookings üzerinden
+   * yeniden çekilir. Abonelik self:false ile kurulur — kendi yazmamızın
+   * yankısı bize geri dönmez.
+   */
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    const unsubscribe = subscribeBookingsSignal(() => {
+      void fetchBookingsFromServer(true);
+    });
+    return unsubscribe;
+  }, [isSupabaseConfigured, fetchBookingsFromServer]);
 
   // Save helpers
   const saveBookings = (next: Booking[]) => {
@@ -593,16 +716,14 @@ export default function AdminDashboard({
       saveBookings(bookings.filter((b) => b.id !== id));
       showToast('Rezervasyon silindi.');
 
-      // ☁️ Sync delete with Supabase
-      if (isSupabaseConfigured && supabase) {
-        supabase
-          .from('bookings')
-          .delete()
-          .eq('id', id)
-          .then(({ error }) => {
-            if (error) console.warn('Supabase delete error:', error.message);
-          });
-      }
+      // Bulut silmesi /api/bookings üzerinden. Silme yalnızca admin
+      // oturumuyla yapılabilir (API tarafında guard 'admin' ister).
+      void fetch(`/api/bookings?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).then(
+        (res) => {
+          if (!res.ok) console.warn('Bulut silme hatası:', res.status);
+        },
+        (err) => console.warn('Bulut silme hatası:', err)
+      );
     }
   };
 
@@ -668,17 +789,19 @@ export default function AdminDashboard({
       saveBookings(updated);
       showToast('Rezervasyon güncellendi!');
 
-      // ☁️ Sync update with Supabase
-      if (isSupabaseConfigured && supabase) {
-        const target = updated.find((b) => b.id === editingBooking.id);
-        if (target) {
-          supabase
-            .from('bookings')
-            .upsert(bookingToRow(target))
-            .then(({ error }) => {
-              if (error) console.warn('Supabase upsert error:', error.message);
-            });
-        }
+      // Bulut yazımı /api/bookings üzerinden (oturum cookie'si ile).
+      const target = updated.find((b) => b.id === editingBooking.id);
+      if (target) {
+        void fetch('/api/bookings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(target),
+        }).then(
+          (res) => {
+            if (!res.ok) console.warn('Bulut güncelleme hatası:', res.status);
+          },
+          (err) => console.warn('Bulut güncelleme hatası:', err)
+        );
       }
     } else {
       const newBooking: Booking = {
@@ -708,15 +831,17 @@ export default function AdminDashboard({
       saveBookings([newBooking, ...bookings]);
       showToast('Yeni rezervasyon başarıyla eklendi!');
 
-      // ☁️ Sync insert with Supabase
-      if (isSupabaseConfigured && supabase) {
-        supabase
-          .from('bookings')
-          .insert(bookingToRow(newBooking))
-          .then(({ error }) => {
-            if (error) console.warn('Supabase insert error:', error.message);
-          });
-      }
+      // Bulut yazımı /api/bookings üzerinden (oturum cookie'si ile).
+      void fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBooking),
+      }).then(
+        (res) => {
+          if (!res.ok) console.warn('Bulut ekleme hatası:', res.status);
+        },
+        (err) => console.warn('Bulut ekleme hatası:', err)
+      );
     }
     setIsModalOpen(false);
   };
@@ -749,13 +874,16 @@ export default function AdminDashboard({
     setBookings(updated);
     localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
 
-    const db = isSupabaseConfigured ? supabase : null;
-    if (db) {
-      try {
-        await db.from('bookings').update(bookingToRow(full)).eq('id', full.id);
-      } catch (err) {
-        console.warn('Supabase atama senkron hatası:', err);
-      }
+    // Bulut yazımı /api/bookings üzerinden.
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(full),
+      });
+      if (!res.ok) console.warn('Bulut atama senkron hatası:', res.status);
+    } catch (err) {
+      console.warn('Bulut atama senkron hatası:', err);
     }
 
     return full;
@@ -1272,8 +1400,13 @@ export default function AdminDashboard({
                   </span>
                 )}
               </div>
+              {/* Aktif bölüm — kullanıcının nerede olduğunu söyler. */}
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 hidden sm:block">
-                Tüm Site İçeriği, Rezervasyonlar, Müşteriler ve Hizmetler
+                <span className="font-bold text-slate-700 dark:text-slate-200">
+                  {activeNavItem?.label ?? 'Genel Bakış'}
+                </span>
+                <span className="mx-1.5">·</span>
+                <span>Rezervasyon, transfer ve site içerik yönetimi</span>
               </p>
             </div>
           </div>
@@ -1287,7 +1420,7 @@ export default function AdminDashboard({
               title="Rehber & Saha Ekibi Mobil Uygulamasını Aç"
             >
               <Smartphone className="w-4 h-4 text-amber-500" />
-              <span className="hidden sm:inline">📱 Saha / Rehber Uygulaması</span>
+              <span className="hidden sm:inline">Saha / Rehber Uygulaması</span>
               <span className="sm:hidden">Saha</span>
             </a>
 
@@ -1309,152 +1442,47 @@ export default function AdminDashboard({
           </div>
         </div>
 
-        {/* 9-Tab Comprehensive Navigation Bar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 overflow-x-auto border-t border-slate-100 dark:border-slate-800/60 py-2">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'overview'
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <TrendingUp className="w-4 h-4" />
-            <span>Genel Bakış</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('bookings')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'bookings'
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Users className="w-4 h-4" />
-            <span>Müşteriler & Rezervasyon ({bookings.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('transfers')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'transfers'
-                ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-400/50'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Car className="w-4 h-4" />
-            <span>🚐 Transfer & Şoför Listesi</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('fleet')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'fleet'
-                ? 'bg-sky-600 text-white shadow-sm ring-2 ring-sky-400/50'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Bus className="w-4 h-4" />
-            <span>🚙 Filo & Kadro</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('tours')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'tours'
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Compass className="w-4 h-4" />
-            <span>Turlar & Fiyatlar ({tours.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('media')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'media'
-                ? 'bg-brand-primary text-white shadow-sm ring-2 ring-brand-accent/50'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Image className="w-4 h-4 text-brand-accent" />
-            <span>Medya & Fotoğraflar ({mediaList.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('services')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'services'
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Car className="w-4 h-4" />
-            <span>Hizmetler (Transfer/VIP) ({services.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('blogs')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'blogs'
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>Blog & Rehber ({blogs.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('faqs')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'faqs'
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <HelpCircle className="w-4 h-4" />
-            <span>SSS Soruları ({faqs.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('testimonials')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'testimonials'
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <MessageSquareQuote className="w-4 h-4" />
-            <span>Yorumlar ({testimonials.length})</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('whatsapp')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'whatsapp'
-                ? 'bg-[#25D366] text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <MessageCircle className="w-4 h-4" />
-            <span>WhatsApp Şablonları</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('settings')}
-            className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              activeTab === 'settings'
-                ? 'bg-brand-primary text-white shadow-sm'
-                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-            }`}
-          >
-            <Settings className="w-4 h-4" />
-            <span>Site & Hero Ayarları</span>
-          </button>
-        </div>
+        {/* Panel menüsü — düz, tek renk, kompakt. Tek kaynak: NAV_ITEMS.
+            Sıra = kullanım sıklığı. Klavye: [ önceki sekme, ] sonraki sekme. */}
+        <nav
+          ref={navRef}
+          aria-label="Panel menüsü"
+          className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 flex items-center gap-1 border-t border-slate-100 dark:border-slate-800/60 py-2 overflow-x-auto"
+        >
+          {NAV_ITEMS.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            const count = item.showCount ? bookingsCount : undefined;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setActiveTab(item.id)}
+                data-nav-active={isActive ? 'true' : undefined}
+                aria-current={isActive ? 'page' : undefined}
+                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${
+                  isActive
+                    ? 'bg-brand-primary text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                <span>{item.label}</span>
+                {typeof count === 'number' && count > 0 && (
+                  <span
+                    className={`rounded-md px-1.5 py-0.5 text-[10px] font-black leading-none tabular-nums ${
+                      isActive
+                        ? 'bg-white/25 text-white'
+                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
       </header>
 
       {/* Main Content */}
@@ -1780,15 +1808,14 @@ export default function AdminDashboard({
                               >
                                 <Ticket className="w-4 h-4" />
                               </button>
-                              <a
-                                href={createWhatsAppLink(b, 'reminder')}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                              <button
+                                type="button"
+                                onClick={() => setWhatsAppModalBooking(b)}
                                 className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors"
-                                title="Alınış Mesajı At"
+                                title="WhatsApp Şablonları & Otomatik Mesaj"
                               >
                                 <MessageCircle className="w-4 h-4" />
-                              </a>
+                              </button>
                               <button
                                 onClick={() => handleOpenEditBooking(b)}
                                 className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
@@ -2001,6 +2028,32 @@ export default function AdminDashboard({
                     <Copy className="w-4 h-4" />
                     <span>Şoför İçin Kopyala</span>
                   </button>
+
+                  {dailyPickups.length > 0 && (
+                    <a
+                      href={generateMultiStopMapUrl(
+                        dailyPickups.map((p) => p.hotel),
+                        detectDeparturePier(dailyPickups[0]?.tourTitle)
+                      )}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-sky-600/20 flex items-center gap-1.5 transition-all"
+                      title="Günün tüm otellerini ardışık Google Maps rotası olarak aç"
+                    >
+                      <Navigation className="w-4 h-4" />
+                      <span>🗺️ Çoklu Rota (Maps)</span>
+                    </a>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPoliceManifestOpen(true)}
+                    className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-indigo-600/20 flex items-center gap-1.5 transition-all"
+                    title="Tayland Deniz Polisi & Millî Park Yolcu Manifestosu"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    <span>🛂 Deniz Polisi Manifestosu</span>
+                  </button>
                 </div>
               </div>
 
@@ -2208,17 +2261,39 @@ export default function AdminDashboard({
                             </td>
 
                             <td className="py-4 px-5 text-right">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const target = bookings.find((b) => b.id === p.bookingId);
-                                  if (target) setVoucherBooking(target);
-                                }}
-                                className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
-                                title="Bilet / Voucher Kuponu Aç"
-                              >
-                                <Ticket className="w-4 h-4" />
-                              </button>
+                              <div className="flex items-center justify-end gap-1.5">
+                                <a
+                                  href={getSingleHotelMapUrl(p.hotel)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-colors"
+                                  title="Otele Google Harita Navigasyonu Aç"
+                                >
+                                  <Navigation className="w-4 h-4" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const target = bookings.find((b) => b.id === p.bookingId);
+                                    if (target) setWhatsAppModalBooking(target);
+                                  }}
+                                  className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white transition-colors"
+                                  title="WhatsApp Şablonları & Hazır Mesajlar"
+                                >
+                                  <MessageCircle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const target = bookings.find((b) => b.id === p.bookingId);
+                                    if (target) setVoucherBooking(target);
+                                  }}
+                                  className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
+                                  title="Bilet / Voucher Kuponu Aç"
+                                >
+                                  <Ticket className="w-4 h-4" />
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -4866,6 +4941,33 @@ Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle p
           tourIndex={0}
           managerPhone={siteSettings.whatsappNumber}
           onClose={() => setVoucherBooking(null)}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 11: WHATSAPP AUTOMATION TEMPLATES */}
+      {/* ==================================================== */}
+      {whatsAppModalBooking && (
+        <WhatsAppTemplatesModal
+          booking={whatsAppModalBooking}
+          managerPhone={siteSettings.whatsappNumber}
+          onClose={() => setWhatsAppModalBooking(null)}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 12: THAI MARINE POLICE & PASSENGER MANIFEST */}
+      {/* ==================================================== */}
+      {isPoliceManifestOpen && (
+        <MarinePoliceManifestModal
+          date={manifestDate}
+          bookings={bookings.filter(
+            (b) =>
+              b.tourDate === manifestDate ||
+              b.tours?.some((t) => t.tourDate === manifestDate)
+          )}
+          onUpdatePassengers={handleUpdateBookingPassengers}
+          onClose={() => setIsPoliceManifestOpen(false)}
         />
       )}
 

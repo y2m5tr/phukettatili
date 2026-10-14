@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { getSecret } from 'astro:env/server';
 
 /**
  * Operasyon paneli oturum yönetimi — SADECE SUNUCU TARAFINDA çalışır.
@@ -22,14 +23,44 @@ function signingSecret(): string {
 }
 
 /**
- * Yönetici şifresi. Vercel'de ortam değişkeni olarak runtime'da okunur,
- * build çıktısına gömülmez.
+ * Yönetici şifresi — yalnızca sunucu tarafında, RUNTIME'da okunur.
+ *
+ * Okuma sırası:
+ * 1. `astro:env/server` → `getSecret('ADMIN_PASSCODE')`. Bu, astro.config.mjs
+ *    içindeki `env.schema` ile `secret: true` olarak tanımlıdır; Astro local'de
+ *    .env'i okur, production'da ortam değişkenini runtime'da alır ve değeri
+ *    BUILD ÇIKTISINA GÖMMEZ. Doğru mekanizma budur.
+ * 2. `process.env.ADMIN_PASSCODE` — yedek (ör. doğrudan Node ile çalıştırma).
+ *
+ * ⚠️ `import.meta.env` KULLANILMAMALI: Vite bu ifadeyi derleme sırasında
+ * .env'deki değerle birebir değiştirir (inline eder). Sonuçta şifre bundle'a
+ * düz metin gömülür ve sunucuda değiştirildiğinde bile eski değer geçerli kalır.
+ *
+ * Bilinçli olarak yedek/varsayılan şifre YOKTUR: ADMIN_PASSCODE tanımlı
+ * değilse panel kilitli kalır (fail-closed). Sessizce bilinen bir şifreyle
+ * açılan panel, kilitli panelden çok daha tehlikelidir — çünkü fark edilmez.
  */
 export function readPasscode(): string {
-  return process.env.ADMIN_PASSCODE || (import.meta as any).env?.ADMIN_PASSCODE || '';
+  try {
+    const secret = getSecret('ADMIN_PASSCODE');
+    if (typeof secret === 'string' && secret.trim().length > 0) {
+      return secret.trim();
+    }
+  } catch {
+    // Şema yüklenemediyse (ör. test ortamı) process.env'e düş
+  }
+
+  const envVal = process.env.ADMIN_PASSCODE;
+  if (typeof envVal === 'string' && envVal.trim().length > 0) {
+    return envVal.trim();
+  }
+  return '';
 }
 
-/** Şifre tanımlı mı? Değilse paneller kilitli kalır (fail-closed). */
+/**
+ * Şifre tanımlı mı? Değilse paneller kilitli kalır ve giriş sayfası
+ * kullanıcıya ne yapması gerektiğini söyler.
+ */
 export function isAuthConfigured(): boolean {
   return readPasscode().length > 0;
 }

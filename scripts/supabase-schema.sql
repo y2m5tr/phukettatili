@@ -5,6 +5,14 @@
 -- Bu dosya IDEMPOTENT'tir: her satır "IF NOT EXISTS" ile korunur, yani
 -- tablo zaten varsa veya bazı kolonlar mevcutsa hiçbir şeyi bozmadan
 -- eksikleri tamamlar. Tekrar tekrar çalıştırmak güvenlidir.
+--
+-- ⚠️ DEPLOY SIRASI — ÖNEMLİ ⚠️
+-- Bu SQL'i ÖNCE çalıştırın, kodu SONRA deploy edin.
+-- `bookingToRow()` artık passengers / assigned_vehicle / assigned_driver /
+-- hotel_zone / pickup_status / picked_up_at kolonlarını gönderiyor.
+-- Bu kolonlar tabloda YOKSA Supabase "column does not exist" hatası verir ve
+-- TÜM rezervasyon yazma/güncelleme işlemleri patlar (çalışan CRM bozulur).
+-- Sıra: 1) SQL'i çalıştır  2) kodu deploy et  3) ADMIN_PASSCODE env'ini ayarla
 -- =============================================================================
 
 -- -----------------------------------------------------------------------------
@@ -45,6 +53,12 @@ alter table public.bookings add column if not exists picked_up_at timestamptz;
 alter table public.bookings add column if not exists assigned_vehicle text;
 alter table public.bookings add column if not exists assigned_driver text;
 alter table public.bookings add column if not exists hotel_zone text;
+
+-- Yolcu pasaport bilgileri (deniz polisi / sigorta manifestosu).
+-- ⚠️ Bu kolon KİŞİSEL VERİ tutar: pasaport no, ad, doğum tarihi, uyruk.
+-- RLS anon'a tamamen kapalıdır; veri yalnızca /api/* üzerinden oturumlu
+-- isteklerle, sunucuda servis rolü anahtarıyla erişilebilir.
+alter table public.bookings add column if not exists passengers jsonb not null default '[]'::jsonb;
 
 -- Manifesto ve günlük rapor sorguları tarih + duruma göre filtreliyor.
 create index if not exists idx_bookings_tour_date on public.bookings (tour_date);
@@ -153,16 +167,19 @@ insert into public.vehicles (id, label, zone, capacity, kind) values
 on conflict (id) do nothing;
 
 -- -----------------------------------------------------------------------------
--- 8. ERİŞİM POLİTİKALARI
--- Site yalnızca ANON anahtarını kullanıyor (client tarafı), yani bu politikalar
--- olmadan hiçbir okuma/yazma çalışmaz.
+-- 8. ERİŞİM POLİTİKALARI — SIKILAŞTIRILMIŞ
 --
--- ⚠️ NOT: anon anahtarı tarayıcıya iner, dolayısıyla bu politikalarla
--- bookings tablosunu okuyan HERKES tüm müşteri verisini görebilir.
--- Paneller middleware ile korunuyor ama Supabase kendi başına korunmuyor.
--- Üretimde önerilen: RLS'i yalnızca authenticated role'e açmak ve
--- anon'a sadece kısıtlı görünüm vermek. Aşağıdaki sürüm mevcut kodla
--- çalışması için açık bırakılmıştır.
+-- MİMARİ DEĞİŞİKLİK: tablo erişimi tamamen sunucu tarafına taşındı.
+-- Paneller veriyi /api/bookings üzerinden alır; API route'ları servis
+-- rolü anahtarıyla (RLS bypass) yazar. Client'taki anon/publishable
+-- anahtar yalnızca veri taşımayan Broadcast sinyal kanalına bağlanır.
+--
+-- SONUÇ: anon role'üne TABLO erişimi gerekmediği için aşağıdaki
+-- politikalar anon'u tamamen kapatır. Eski "%s_anon_all" politikaları
+-- düşürülür — bu satır eski açık kurulumu düzeltir.
+--
+-- Not: servis rolü anahtarı RLS'e tabi değildir; authenticated role'ü
+-- kullanılmadığı için ona da politika açılmaz (default deny).
 -- -----------------------------------------------------------------------------
 alter table public.bookings    enable row level security;
 alter table public.vehicles    enable row level security;
@@ -170,6 +187,7 @@ alter table public.drivers     enable row level security;
 alter table public.crew_shifts enable row level security;
 alter table public.cash_entries enable row level security;
 
+-- Eski açık politikaları kaldır (idempotent).
 do $$
 declare
   t text;
@@ -177,9 +195,10 @@ begin
   foreach t in array array['bookings','vehicles','drivers','crew_shifts','cash_entries']
   loop
     execute format('drop policy if exists "%s_anon_all" on public.%I', t, t);
-    execute format(
-      'create policy "%s_anon_all" on public.%I for all to anon using (true) with check (true)',
-      t, t
-    );
   end loop;
 end $$;
+
+-- Yeni politikalar: anon'a HİÇBİR erişim yok. Anon'dan gelen tablo
+-- isteği (select/insert/update/delete) "row-level security" varsayılan
+-- reddiyle döner. Sinyal kanalı (broadcast) RLS'e tabi değildir ve
+-- çalışmaya devam eder.

@@ -1,4 +1,18 @@
-import { createClient } from '@supabase/supabase-js';
+/**
+ * CLIENT tarafı Supabase modülü.
+ *
+ * GÜVENLİK MODELİ (bu proje için):
+ * - Tablo verisine erişim YOK. Tüm okuma/yazma /api/bookings üzerinden,
+ *   oturum cookie'si ile, sunucuda servis rolü anahtarıyla yapılır.
+ * - Bu istemcinin tek görevi realtime WEBSOCKET'ine bağlanıp payload'sız
+ *   "bookings değişti" sinyalini dinlemektir. RLS anon'a kapalı olduğu
+ *   için anon anahtarla tablo okunamaz — anahtar yalnızca sinyal
+ *   dinleyebilir.
+ * - bookingToRow/rowToBooking dönüşümleri hem server (API route) hem
+ *   client (localStorage cache) tarafından kullanılır; bu yüzden
+ *   burada kalırlar. Veri erişimi taşınmadı, yalnızca dönüşüm.
+ */
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Booking } from '../data/adminInitialData';
 
 const supabaseUrl =
@@ -13,7 +27,12 @@ const supabaseAnonKey =
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
 
-export const supabase = isSupabaseConfigured
+/**
+ * Sinyal dinleme istemcisi. Tablo erişimi için DEĞİL — yalnızca
+ * Broadcast kanalına abone olmak için. `.from()` çağrıları RLS
+ * tarafından reddedilir (bilinçli davranış).
+ */
+export const supabase: SupabaseClient | null = isSupabaseConfigured
   ? createClient(supabaseUrl, supabaseAnonKey, {
       realtime: {
         params: {
@@ -22,6 +41,27 @@ export const supabase = isSupabaseConfigured
       },
     })
   : null;
+
+/** Sunucunun yayınladığı "bookings değişti" sinyal kanalının adı. */
+export const BOOKINGS_SIGNAL_CHANNEL = 'bookings-changed';
+
+/**
+ * Veri yenileme sinyaline abone olur. Sinyal geldiğinde callback
+ * çağrılır; callback veriyi /api/bookings üzerinden çeker.
+ * Temizleme fonksiyonu döner.
+ */
+export function subscribeBookingsSignal(
+  onSignal: () => void
+): () => void {
+  if (!supabase) return () => undefined;
+  const channel = supabase
+    .channel(BOOKINGS_SIGNAL_CHANNEL, { config: { broadcast: { self: false } } })
+    .on('broadcast', { event: 'changed' }, () => onSignal())
+    .subscribe();
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}
 
 // Database Schema Helper: converts local Booking interface to Supabase table row
 export function bookingToRow(b: Booking) {
@@ -56,6 +96,10 @@ export function bookingToRow(b: Booking) {
     assigned_vehicle: b.assignedVehicle || null,
     assigned_driver: b.assignedDriver || null,
     hotel_zone: b.hotelZone || null,
+    // Yolcu pasaport bilgileri (deniz polisi / sigorta manifestosu).
+    // Taşınmazsa manifestoda girilen pasaportlar buluta yazılmaz ve
+    // sayfa yenilenince kaybolur.
+    passengers: b.passengers || [],
     created_at: b.createdAt || new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -91,6 +135,9 @@ export function rowToBooking(r: any): Booking {
     assignedVehicle: r.assigned_vehicle || undefined,
     assignedDriver: r.assigned_driver || undefined,
     hotelZone: r.hotel_zone || undefined,
-    createdAt: r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    passengers: Array.isArray(r.passengers) ? r.passengers : undefined,
+    createdAt: r.created_at
+      ? new Date(r.created_at).toISOString().split('T')[0]
+      : new Date().toISOString().split('T')[0],
   };
 }

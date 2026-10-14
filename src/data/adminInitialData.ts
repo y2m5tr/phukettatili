@@ -14,6 +14,14 @@ export interface BookingTourSchedule {
   hotelZone?: string;
 }
 
+export interface PassengerItem {
+  fullName: string;
+  passportNo?: string;
+  nationality?: string;
+  birthDate?: string;
+  gender?: 'M' | 'F';
+}
+
 export interface Booking {
   id: string;
   customerName: string;
@@ -42,6 +50,7 @@ export interface Booking {
   hotelZone?: string;
   paymentStatus: 'unpaid' | 'partial' | 'paid' | 'refunded';
   specialNotes?: string;
+  passengers?: PassengerItem[];
   createdAt: string;
 }
 
@@ -204,6 +213,10 @@ export const initialBookings: Booking[] = [
     status: 'confirmed',
     paymentStatus: 'partial',
     specialNotes: 'Balayı çifti. Tekne ön tarafında oturmak istiyorlar. Vejetaryen öğle yemeği.',
+    passengers: [
+      { fullName: 'Ahmet Yılmaz', passportNo: 'U14285910', nationality: 'TÜRKİYE (TUR)', birthDate: '1988-05-14', gender: 'M' },
+      { fullName: 'Ayşe Yılmaz', passportNo: 'U99283411', nationality: 'TÜRKİYE (TUR)', birthDate: '1990-11-20', gender: 'F' },
+    ],
     createdAt: '2026-10-10',
   },
   {
@@ -239,6 +252,12 @@ export const initialBookings: Booking[] = [
     status: 'confirmed',
     paymentStatus: 'paid',
     specialNotes: 'Ödemenin tamamı havale ile peşin alındı. Çocuk için can yeleği hazır edilecek.',
+    passengers: [
+      { fullName: 'Burak Demir', passportNo: 'U88392011', nationality: 'TÜRKİYE (TUR)', birthDate: '1985-02-10', gender: 'M' },
+      { fullName: 'Zeynep Demir', passportNo: 'U77329102', nationality: 'TÜRKİYE (TUR)', birthDate: '1987-09-18', gender: 'F' },
+      { fullName: 'Kaan Demir', passportNo: 'U44120938', nationality: 'TÜRKİYE (TUR)', birthDate: '1962-04-05', gender: 'M' },
+      { fullName: 'Mina Demir (Çocuk)', passportNo: 'U11029384', nationality: 'TÜRKİYE (TUR)', birthDate: '2019-06-12', gender: 'F' },
+    ],
     createdAt: '2026-10-11',
   },
   {

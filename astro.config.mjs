@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig } from 'astro/config';
+import { defineConfig, envField } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
 import tailwindcss from '@tailwindcss/vite';
@@ -19,6 +19,36 @@ export default defineConfig({
   output: 'server',
   adapter: vercel(),
   trailingSlash: 'ignore',
+  env: {
+    schema: {
+      // `secret: true` => değer build çıktısına INLINE EDİLMEZ, runtime'da
+      // okunur. Local'de .env'den, Vercel'de ortam değişkeninden gelir.
+      // Böylece şifre bundle'a sızmaz ve sunucuda değiştirilebilir kalır.
+      ADMIN_PASSCODE: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+
+      // Servis rolü anahtarı RLS'i BYPASS EDER. Asla client'a inmemeli:
+      // `context: 'server'` + `access: 'secret'` ikilisi bunu derleme
+      // zamanında garanti eder. Yalnızca /api/* route'ları kullanır.
+      SUPABASE_SERVICE_ROLE_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+
+      // Supabase proje URL'si — public bilgi ama sunucu tarafında tutarlı
+      // okunsun diye şemada tanımlı (secret: build çıktısına gömülmez).
+      // Değişken adı PUBLIC_SUPABASE_URL — .env ve client tarafıyla aynı.
+      PUBLIC_SUPABASE_URL: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+    },
+  },
   vite: {
     plugins: [tailwindcss()]
   },
@@ -27,7 +57,12 @@ export default defineConfig({
     keystatic(),
     markdoc(),
     sitemap({
-      filter: (page) => !page.includes('/admin') && !page.includes('/ekip'),
+      // Operasyon yüzeyleri noindex — sitemap'e girmeleri Google için
+      // çelişkili sinyal üretir (sitemap "önemli" der, meta "indeksleme" der).
+      filter: (page) =>
+        !page.includes('/admin') &&
+        !page.includes('/ekip') &&
+        !page.includes('/ops-login'),
       i18n: {
         defaultLocale: 'tr',
         locales: {

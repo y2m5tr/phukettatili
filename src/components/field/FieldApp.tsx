@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo, useTransition } from 'react';
+import React, { useState, useEffect, useMemo, useTransition, useCallback } from 'react';
 import {
   MapPin,
   Clock,
   Phone,
   MessageSquare,
+  MessageCircle,
   Navigation,
   CheckCircle2,
   AlertTriangle,
@@ -30,10 +31,13 @@ import {
   Bus,
   CreditCard,
 } from 'lucide-react';
-import { supabase, isSupabaseConfigured, bookingToRow, rowToBooking } from '../../lib/supabase';
-import { initialBookings, type Booking, type TourItem, detectHotelZone } from '../../data/adminInitialData';
+import { isSupabaseConfigured, subscribeBookingsSignal } from '../../lib/supabase';
+import { initialBookings, type Booking, type TourItem, type PassengerItem, detectHotelZone } from '../../data/adminInitialData';
+import { generateMultiStopMapUrl, detectDeparturePier, getSingleHotelMapUrl } from '../../lib/maps';
 import QrScannerModal from './QrScannerModal';
 import BoardingPassModal from '../shared/BoardingPassModal';
+import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
+import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
 
 const CREW_NAME_STORAGE_KEY = 'phuket_field_crew_name';
 const LOCAL_BOOKINGS_KEY = 'phuket_bookings_cache_v1';
@@ -121,6 +125,10 @@ export default function FieldApp({
   const [isQrScannerOpen, setIsQrScannerOpen] = useState<boolean>(false);
   const [boardingPassModalItem, setBoardingPassModalItem] = useState<{ booking: Booking; tourIndex: number } | null>(null);
 
+  // WhatsApp Otomasyon Şablonları & Polis Manifestosu Modalları
+  const [whatsAppModalItem, setWhatsAppModalItem] = useState<Booking | null>(null);
+  const [isPoliceManifestOpen, setIsPoliceManifestOpen] = useState<boolean>(false);
+
   // 3. Veri & Çevrimiçi Durum
   const [bookings, setBookings] = useState<Booking[]>(initialBookings);
   const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
@@ -176,84 +184,55 @@ export default function FieldApp({
     };
   }, []);
 
+  /**
+   * Bulut verisi: tablo erişimi /api/bookings üzerinden (oturum cookie'si
+   * ile — /ekip oturumu). Canlılık için sunucunun "bookings değişti"
+   * Broadcast sinyali dinlenir; sinyal veri taşımaz, veri her seferinde
+   * API üzerinden yeniden çekilir.
+   */
+  const fetchBookingsFromServer = useCallback(async (): Promise<void> => {
+    try {
+      const res = await fetch('/api/bookings');
+      if (!res.ok) {
+        setIsCloudConnected(false);
+        return;
+      }
+      const payload = (await res.json()) as { bookings?: Booking[] };
+      if (Array.isArray(payload.bookings) && payload.bookings.length > 0) {
+        setBookings(payload.bookings);
+        setIsCloudConnected(true);
+        try {
+          localStorage.setItem(LOCAL_BOOKINGS_KEY, JSON.stringify(payload.bookings));
+        } catch {
+          // ignore
+        }
+      } else {
+        setIsCloudConnected(true);
+      }
+    } catch {
+      // Çevrimdışı / ağ hatası: yerel cache ile devam (saha senaryosu).
+      setIsCloudConnected(false);
+    }
+  }, []);
+
   // Supabase Veritabanı ve Realtime Senkronizasyonu
   useEffect(() => {
-    const db = isSupabaseConfigured ? supabase : null;
-    if (!db) {
+    if (!isSupabaseConfigured) {
       console.log('Saha modu: Supabase bağlı değil, yerel veriyle çalışılıyor.');
       return;
     }
 
     // İlk çekme
-    Promise.resolve(
-      db
-        .from('bookings')
-        .select('*')
-        .order('created_at', { ascending: false })
-    )
-      .then(({ data, error }) => {
-        if (!error && data && data.length > 0) {
-          const loaded = data.map(rowToBooking);
-          setBookings(loaded);
-          setIsCloudConnected(true);
-          try {
-            localStorage.setItem(LOCAL_BOOKINGS_KEY, JSON.stringify(loaded));
-          } catch {
-            // ignore
-          }
-        } else {
-          setIsCloudConnected(true);
-        }
-      })
-      .catch(() => {
-        setIsCloudConnected(false);
-      });
+    void fetchBookingsFromServer();
 
-    // Realtime Dinleme (Ofisteki değişiklikler anında rehberin ekranına düşer)
-    const channel = db
-      .channel('field_crew_realtime')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'bookings' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newRow = rowToBooking(payload.new);
-            setBookings((prev) => {
-              if (prev.some((b) => b.id === newRow.id)) return prev;
-              const next = [newRow, ...prev];
-              try {
-                localStorage.setItem(LOCAL_BOOKINGS_KEY, JSON.stringify(next));
-              } catch {
-                // ignore
-              }
-              return next;
-            });
-            showToast(`🔔 Yeni Rezervasyon: ${newRow.customerName}`);
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedRow = rowToBooking(payload.new);
-            setBookings((prev) => {
-              const next = prev.map((b) => (b.id === updatedRow.id ? updatedRow : b));
-              try {
-                localStorage.setItem(LOCAL_BOOKINGS_KEY, JSON.stringify(next));
-              } catch {
-                // ignore
-              }
-              return next;
-            });
-          } else if (payload.eventType === 'DELETE') {
-            const deletedId = (payload.old as { id: string })?.id;
-            if (deletedId) {
-              setBookings((prev) => prev.filter((b) => b.id !== deletedId));
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      db.removeChannel(channel);
-    };
-  }, []);
+    // Canlı senkronizasyon: ofisteki değişiklikler sinyalle bildirilir,
+    // veri API üzerinden yeniden çekilir (RLS anon'a kapalı olduğu için
+    // postgres_changes kullanılmaz).
+    const unsubscribe = subscribeBookingsSignal(() => {
+      void fetchBookingsFromServer();
+    });
+    return unsubscribe;
+  }, [isSupabaseConfigured, fetchBookingsFromServer]);
 
   // Yeni tur seçilince varsayılan fiyatı hesapla
   useEffect(() => {
@@ -301,18 +280,11 @@ export default function FieldApp({
   // Manuel Yenileme
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    const db = isSupabaseConfigured ? supabase : null;
-    if (db) {
-      try {
-        const { data } = await db.from('bookings').select('*').order('created_at', { ascending: false });
-        if (data) {
-          const loaded = data.map(rowToBooking);
-          setBookings(loaded);
-          setIsCloudConnected(true);
-          localStorage.setItem(LOCAL_BOOKINGS_KEY, JSON.stringify(loaded));
-          showToast('✅ Veriler bulut ile senkronize edildi');
-        }
-      } catch {
+    if (isSupabaseConfigured) {
+      await fetchBookingsFromServer();
+      if (isCloudConnected) {
+        showToast('✅ Veriler bulut ile senkronize edildi');
+      } else {
         showToast('⚠️ İnternet bağlantısı zayıf, yerel veriler korunuyor');
       }
     } else {
@@ -490,16 +462,26 @@ export default function FieldApp({
       });
     });
 
-    // 2. Supabase Cloud Sync
-    const db = isSupabaseConfigured ? supabase : null;
-    if (db) {
-      try {
-        const row = bookingToRow(updatedBooking);
-        await db.from('bookings').update(row).eq('id', updatedBooking.id);
-      } catch (err) {
-        console.warn('Supabase güncelleme hatası:', err);
-      }
+    // 2. Bulut yazımı /api/bookings üzerinden (oturum cookie'si ile).
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedBooking),
+      });
+      if (!res.ok) console.warn('Bulut güncelleme hatası:', res.status);
+    } catch (err) {
+      console.warn('Bulut güncelleme hatası:', err);
     }
+  };
+
+  // Pasaport & Manifesto Bilgisi Güncelleme
+  const handleUpdateBookingPassengers = (bookingId: string, passengers: PassengerItem[]) => {
+    const target = bookings.find((b) => b.id === bookingId);
+    if (!target) return;
+    const updated = { ...target, passengers };
+    updateBookingRecord(updated);
+    showToast('✅ Yolcu pasaport bilgileri kaydedildi.');
   };
 
   // Yoklama Durumunu Güncelle (Alındı, Bekleniyor, No-Show)
@@ -691,14 +673,16 @@ export default function FieldApp({
       });
     });
 
-    const db = isSupabaseConfigured ? supabase : null;
-    if (db) {
-      try {
-        const row = bookingToRow(newBooking);
-        await db.from('bookings').insert([row]);
-      } catch (err) {
-        console.warn('Supabase rezervasyon ekleme hatası:', err);
-      }
+    // Bulut yazımı /api/bookings üzerinden (oturum cookie'si ile).
+    try {
+      const res = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBooking),
+      });
+      if (!res.ok) console.warn('Bulut ekleme hatası:', res.status);
+    } catch (err) {
+      console.warn('Bulut ekleme hatası:', err);
     }
 
     setIsSubmittingBooking(false);
@@ -1097,18 +1081,45 @@ export default function FieldApp({
             )}
           </div>
 
-          {/* Manifest Başlığı */}
-          <div className="flex items-center justify-between text-xs text-slate-400 px-1 pt-1">
-            <span>
+          {/* Manifest Başlığı & Saha Operasyon Aksiyonları */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-400 px-1 pt-1">
+            <span className="font-semibold text-slate-300">
               {formatDateDisplay(selectedDate)} Manifestosu ({filteredSchedule.length} Kayıt)
             </span>
-            <button
-              onClick={sendDayEndReportToManager}
-              className="text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 active:scale-95"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>Günü Raporla</span>
-            </button>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {filteredSchedule.length > 0 && (
+                <a
+                  href={generateMultiStopMapUrl(
+                    filteredSchedule.map((i) => i.hotel),
+                    detectDeparturePier(filteredSchedule[0]?.tourTitle)
+                  )}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-2.5 py-1 rounded-xl bg-sky-600/20 hover:bg-sky-600/30 text-sky-300 border border-sky-500/30 font-bold text-xs flex items-center gap-1 active:scale-95 transition-all"
+                  title="Günün tüm otellerini ardışık Google Maps rotası olarak aç"
+                >
+                  <Navigation className="w-3.5 h-3.5" />
+                  <span>🗺️ Çoklu Rota</span>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsPoliceManifestOpen(true)}
+                className="px-2.5 py-1 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-300 border border-indigo-500/30 font-bold text-xs flex items-center gap-1 active:scale-95 transition-all"
+                title="Tayland Deniz Polisi & Millî Park Yolcu Manifestosu"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>🛂 Polis Manifestosu</span>
+              </button>
+              <button
+                type="button"
+                onClick={sendDayEndReportToManager}
+                className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-semibold flex items-center gap-1 active:scale-95 transition-all"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Raporla</span>
+              </button>
+            </div>
           </div>
 
           {/* LİSTE / KARTLAR */}
@@ -1273,35 +1284,40 @@ export default function FieldApp({
                     {/* BUTONLAR & SAHA AKSİYONLARI */}
                     <div className="p-3 bg-slate-950/80 flex items-center gap-2">
                       {/* Harita */}
-                      <button
-                        onClick={() => openGoogleMaps(item.hotel)}
+                      <a
+                        href={getSingleHotelMapUrl(item.hotel)}
+                        target="_blank"
+                        rel="noopener noreferrer"
                         aria-label="Google Maps'te Aç"
                         className="flex-1 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all"
                       >
                         <Navigation className="w-3.5 h-3.5 text-sky-400" />
                         <span>Harita</span>
-                      </button>
+                      </a>
 
                       {/* Telefon */}
                       <a
                         href={`tel:${item.phone.replace(/[^0-9+]/g, '')}`}
-                        className="flex-1 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                        className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-emerald-400 font-semibold text-xs flex items-center justify-center active:scale-95 transition-all"
+                        title="Telefonla Ara"
                       >
                         <Phone className="w-3.5 h-3.5 text-emerald-400" />
-                        <span>Ara</span>
                       </a>
 
-                      {/* WhatsApp */}
+                      {/* WhatsApp Şablonları */}
                       <button
-                        onClick={() => openWhatsApp(item.phone, 'lobby', item)}
-                        className="flex-1 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-emerald-400 font-semibold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all"
+                        type="button"
+                        onClick={() => setWhatsAppModalItem(item.fullBooking)}
+                        className="px-2.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-emerald-400 font-semibold text-xs flex items-center justify-center gap-1 active:scale-95 transition-all"
+                        title="WhatsApp Şablonları & Hazır Mesaj Motoru"
                       >
-                        <MessageSquare className="w-3.5 h-3.5" />
-                        <span>Lobi WP</span>
+                        <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Şablonlar</span>
                       </button>
 
                       {/* Biniş Kartı & QR Voucher */}
                       <button
+                        type="button"
                         onClick={() =>
                           setBoardingPassModalItem({
                             booking: item.fullBooking,
@@ -1812,6 +1828,29 @@ export default function FieldApp({
           tourIndex={boardingPassModalItem.tourIndex}
           managerPhone={managerPhone}
           onClose={() => setBoardingPassModalItem(null)}
+        />
+      )}
+
+      {/* WhatsApp Otomasyon Şablonları & Hazır Mesaj Motoru */}
+      {whatsAppModalItem && (
+        <WhatsAppTemplatesModal
+          booking={whatsAppModalItem}
+          managerPhone={managerPhone}
+          onClose={() => setWhatsAppModalItem(null)}
+        />
+      )}
+
+      {/* Tayland Deniz Polisi & Millî Park Yolcu Manifestosu */}
+      {isPoliceManifestOpen && (
+        <MarinePoliceManifestModal
+          date={selectedDate}
+          bookings={bookings.filter(
+            (b) =>
+              b.tourDate === selectedDate ||
+              b.tours?.some((t) => t.tourDate === selectedDate)
+          )}
+          onUpdatePassengers={handleUpdateBookingPassengers}
+          onClose={() => setIsPoliceManifestOpen(false)}
         />
       )}
     </div>
