@@ -3,7 +3,6 @@ import {
   MapPin,
   Clock,
   Phone,
-  MessageSquare,
   MessageCircle,
   Navigation,
   CheckCircle2,
@@ -15,7 +14,6 @@ import {
   Share2,
   RefreshCw,
   LogOut,
-  Lock,
   ChevronRight,
   Check,
   Building,
@@ -697,25 +695,6 @@ export default function FieldApp({
     // Manifestoya dön
     setSelectedDate(newTourDate);
     setActiveTab('schedule');
-  };
-
-  // WhatsApp Hızlı Mesaj Linki Oluşturucu
-  const openWhatsApp = (phone: string, template: 'lobby' | 'reminder' | 'custom', item: FieldScheduleItem) => {
-    const cleanPhone = phone.replace(/[^0-9]/g, '');
-    let msg = '';
-    if (template === 'lobby') {
-      msg = `Merhaba ${item.customerName} Bey/Hanım! 🌴 Phuket Tatili transfer aracımız şu anda *${item.hotel}* ana lobisinde sizi beklemektedir. Şoförümüz/rehberimiz hazırdır. İyi yolculuklar dileriz! 🇹🇭`;
-    } else if (template === 'reminder') {
-      msg = `Merhaba ${item.customerName}! 🏝️ Bugünkü *${item.tourTitle}* turunuz için lobiden alınış saatiniz: *${item.pickupTime}*. Lütfen belirtilen saatte hazır bulununuz.`;
-    }
-    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
-    window.open(url, '_blank');
-  };
-
-  // Google Maps Otel Açıcı
-  const openGoogleMaps = (hotel: string) => {
-    const query = encodeURIComponent(`${hotel} Phuket Thailand`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
   };
 
   // Gün Sonu WhatsApp Raporu

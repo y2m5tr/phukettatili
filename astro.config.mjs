@@ -62,7 +62,8 @@ export default defineConfig({
       filter: (page) =>
         !page.includes('/admin') &&
         !page.includes('/ekip') &&
-        !page.includes('/ops-login'),
+        !page.includes('/ops-login') &&
+        !page.includes('/bilet'),
       i18n: {
         defaultLocale: 'tr',
         locales: {

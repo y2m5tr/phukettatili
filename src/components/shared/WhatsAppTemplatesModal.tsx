@@ -38,6 +38,8 @@ export default function WhatsAppTemplatesModal({
     }`;
     const pickupTime = booking.pickupTime || '07:30';
 
+    const displayPhone = managerPhone.startsWith('+') ? managerPhone : `+${managerPhone}`;
+
     switch (tpl) {
       case 'pre_tour_reminder':
         return `🌴 *PHUKET TATİLİ — TUR & TRANSFER HATIRLATMASI* 🌴
@@ -52,12 +54,13 @@ Yarın katılacağınız *${booking.tourTitle}* turumuz için transfer detaylar�
 🚐 *Tahsis Edilen Hat:* ${booking.assignedVehicle || 'VIP Minibüs'}
 👥 *Kişi Sayısı:* ${paxStr}
 ${booking.remainingAmountThb > 0 ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${booking.remainingAmountThb.toLocaleString()} THB (Nakit Baht)` : '✓ *Ödeme Durumu:* Tamamı Ödenmiştir'}
+🎫 *Canlı Biletiniz & Alınış Takibi:* https://phukettatili.com/bilet/${booking.id}
 
 ⚠️ *Önemli Hatırlatmalar:*
 • Lütfen sabah belirtilen saatte otelinizin *ana lobisinde* hazır bulununuz.
 • Yanınızda havlu, güneş kremi, güneş gözlüğü, mayo ve su geçirmez telefon kılıfı bulundurmanız tavsiye edilir.
 ${booking.nationalParkFeeIncluded === false ? '• Millî Park giriş harcı limanda resmi gişeye ödenmek üzere nakit Baht gerektirir.\n' : ''}
-📞 *7/24 Türkçe Saha Operasyon:* +66 82 895 0665
+📞 *7/24 Türkçe Saha Operasyon:* ${displayPhone}
 Harika bir gün dileriz! 🇹🇭✨`;
 
       case 'driver_arrived':
@@ -67,8 +70,9 @@ Sayın *${booking.customerName}*, günaydın!
 
 *${booking.assignedVehicle || 'VIP Transfer'}* aracımız ve görevlimiz şu an *${booking.hotel}* ana lobisine ulaşmıştır ve sizi beklemektedir.
 
+🎫 *Dijital Biniş Kartınız:* https://phukettatili.com/bilet/${booking.id}
 Lütfen otel ana lobisine geçiş yaparak aracımıza binebilirsiniz.
-Şoförümüzle buluşmada sorun yaşarsanız bize hemen yazabilirsiniz: +66 82 895 0665
+Şoförümüzle buluşmada sorun yaşarsanız bize hemen yazabilirsiniz: ${displayPhone}
 
 Keyifli turlar dileriz! 🌴🌊`;
 
@@ -106,7 +110,7 @@ Deneyiminizi 1 dakikanızı ayırarak Google Haritalar profilimizde paylaşarak 
 ⭐ *Google Yorum Linkimiz:* https://g.page/r/phukettatili/review
 
 Phuket'teki sonraki günleriniz için her türlü transfer, restoran ve tur desteğinde yanınızdayız!
-Whatsapp: +66 82 895 0665`;
+Whatsapp: ${displayPhone}`;
 
       default:
         return '';

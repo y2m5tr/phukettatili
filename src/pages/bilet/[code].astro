@@ -1,0 +1,126 @@
+---
+export const prerender = false;
+
+import GuestTicketPortal from '../../components/guest/GuestTicketPortal';
+import { initialBookings, type Booking } from '../../data/adminInitialData';
+import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../lib/server/supabaseAdmin';
+import { rowToBooking } from '../../lib/supabase';
+import siteSettings from '../../content/settings/site.json';
+
+const codeParam = (Astro.params.code || '').trim();
+const cleanCode = codeParam.toUpperCase();
+
+let booking: Booking | null = null;
+
+// 1. Önce Supabase Bulut Veritabanından Sorgula
+if (isSupabaseAdminConfigured()) {
+  const db = getSupabaseAdmin();
+  if (db && cleanCode) {
+    try {
+      const { data, error } = await db
+        .from('bookings')
+        .select('*')
+        .ilike('id', cleanCode)
+        .maybeSingle();
+
+      if (!error && data) {
+        booking = rowToBooking(data);
+      }
+    } catch (err) {
+      console.warn('Bilet portalı bulut sorgulama hatası:', err);
+    }
+  }
+}
+
+// 2. Bulutta bulunamadıysa veya çevrimdışıysa yerel verilerden sorgula
+if (!booking && cleanCode) {
+  const found = initialBookings.find(
+    (b) => b.id.toUpperCase() === cleanCode || b.id.toUpperCase().includes(cleanCode)
+  );
+  if (found) {
+    booking = found;
+  }
+}
+
+const managerPhone = siteSettings?.whatsappNumber || '66828950665';
+---
+
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>
+      {booking ? `${booking.tourTitle} - Biniş Kartı | Phuket Tatili` : 'Rezervasyon Sorgulama | Phuket Tatili'}
+    </title>
+    <!-- Misafir gizliliği için arama motorlarına kapatılır -->
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#020617" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
+    {booking ? (
+      <GuestTicketPortal client:load booking={booking} managerPhone={managerPhone} />
+    ) : (
+      <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 text-center shadow-2xl">
+          <div class="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-400 mx-auto flex items-center justify-center font-serif text-2xl font-bold mb-4">
+            PT
+          </div>
+          <h1 class="text-xl font-bold font-serif text-white">
+            Rezervasyon Bulunamadı
+          </h1>
+          <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+            <span class="font-mono font-bold text-amber-400">"{codeParam}"</span> kodlu rezervasyon kaydı bulunamadı. Lütfen size iletilen onay mesajındaki rezervasyon kodunuzu kontrol ediniz.
+          </p>
+
+          <form class="mt-6 space-y-3" id="bilet-search-form">
+            <div class="relative">
+              <input
+                id="code-input"
+                type="text"
+                placeholder="Örn: BK-1001"
+                class="w-full px-4 py-3 rounded-2xl bg-slate-950 border border-slate-800 text-center font-mono font-bold text-sm text-white uppercase tracking-wider focus:outline-none focus:border-amber-500"
+                autofocus
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              class="w-full py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition-colors shadow-lg shadow-amber-500/20"
+            >
+              Bileti Sorgula
+            </button>
+          </form>
+
+          <script is:inline>
+            document.getElementById('bilet-search-form')?.addEventListener('submit', (e) => {
+              e.preventDefault();
+              const input = document.getElementById('code-input');
+              const val = input ? input.value.trim() : '';
+              if (val) window.location.href = '/bilet/' + encodeURIComponent(val);
+            });
+          </script>
+
+          <div class="mt-6 pt-5 border-t border-slate-800/80 text-xs text-slate-500">
+            Yardıma mı ihtiyacınız var?{" "}
+            <a
+              href={`https://wa.me/${managerPhone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent('Merhaba, tur rezervasyonum hakkında bilgi almak istiyorum.')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-emerald-400 hover:underline font-bold"
+            >
+              WhatsApp Destek Hattı
+            </a>
+          </div>
+        </div>
+      </div>
+    )}
+  </body>
+</html>

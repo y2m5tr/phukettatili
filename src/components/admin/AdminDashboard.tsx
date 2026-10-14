@@ -57,6 +57,8 @@ import {
   Wifi,
   Navigation,
   ShieldCheck,
+  Zap,
+  ChevronRight,
 } from 'lucide-react';
 import {
   initialBookings,
@@ -77,6 +79,7 @@ import {
 } from '../../data/adminInitialData';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
+import SupplierSettlementManager from './SupplierSettlementManager';
 import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
 import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
 import {
@@ -109,40 +112,183 @@ const STORAGE_KEY_DRIVERS = 'phuket_tatili_crm_drivers_v1';
    ------------------------------------------------------------------------- */
 
 export type AdminTab =
-  | 'overview' | 'bookings' | 'transfers' | 'fleet'
+  | 'overview' | 'bookings' | 'transfers' | 'settlements' | 'fleet'
   | 'tours' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
   | 'whatsapp' | 'settings';
 
-interface NavItem {
+export type NavCategory = 'operations' | 'content' | 'system' | 'all';
+
+export interface NavItem {
   id: AdminTab;
-  /** Kısa, tek kelimelik etiket — hepsi aynı uzunlukta, göz tarar. */
   label: string;
+  shortLabel?: string;
+  category: 'operations' | 'content' | 'system';
   icon: React.ComponentType<{ className?: string }>;
-  /** Sayaç yalnızca iş değiştiren sekmelerde gösterilir (gürültü azaltma). */
+  description: string;
+  hotkey?: string;
   showCount?: boolean;
 }
 
-/* ---------------------------------------------------------------------------
-   PANEL MENÜSÜ — tek kaynak.
-   Düz liste: grup başlığı, ayraç, renk çeşitliliği YOK (bilinçli — 12 sekme
-   renklenince kalabalık, tek renk olunca taranabilir). Sıra = kullanım
-   sıklığı: günlük operasyon solda, nadir ayarlar sağda.
-   Sekme eklemek için buraya bir satır yazmak yeterlidir.
-   ------------------------------------------------------------------------- */
-const NAV_ITEMS: NavItem[] = [
-  { id: 'overview',   label: 'Özet',      icon: TrendingUp },
-  { id: 'bookings',   label: 'Rezervasyon', icon: Users, showCount: true },
-  { id: 'transfers',  label: 'Transfer',  icon: Car },
-  { id: 'fleet',      label: 'Filo',      icon: Bus },
-  { id: 'tours',      label: 'Turlar',    icon: Compass },
-  { id: 'media',      label: 'Medya',     icon: Image },
-  { id: 'services',   label: 'Hizmetler', icon: Briefcase },
-  { id: 'blogs',      label: 'Blog',      icon: BookOpen },
-  { id: 'faqs',       label: 'SSS',       icon: HelpCircle },
-  { id: 'testimonials', label: 'Yorumlar', icon: MessageSquareQuote },
-  { id: 'whatsapp',   label: 'WhatsApp',  icon: MessageCircle },
-  { id: 'settings',   label: 'Ayarlar',   icon: Settings },
+export interface NavCategoryDef {
+  id: NavCategory;
+  label: string;
+  shortLabel: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description: string;
+}
+
+export const NAV_CATEGORIES: NavCategoryDef[] = [
+  {
+    id: 'operations',
+    label: 'Operasyon & Finans',
+    shortLabel: 'Operasyon',
+    icon: Zap,
+    description: 'Günlük rezervasyon, transfer, filo ve hakediş yönetimi',
+  },
+  {
+    id: 'content',
+    label: 'Web & İçerik',
+    shortLabel: 'İçerik',
+    icon: Compass,
+    description: 'Turlar, medya, blog, hizmetler ve vitrin yönetimi',
+  },
+  {
+    id: 'system',
+    label: 'Sistem & Ayarlar',
+    shortLabel: 'Sistem',
+    icon: Settings,
+    description: 'WhatsApp şablonları ve site ayarları',
+  },
+  {
+    id: 'all',
+    label: 'Tüm Menü',
+    shortLabel: 'Tümü',
+    icon: Layers,
+    description: 'Tüm yönetim modüllerini tek bakışta gör',
+  },
 ];
+
+export const NAV_ITEMS: NavItem[] = [
+  // ⚡ OPERASYON & FİNANS (Günlük Kullanım)
+  {
+    id: 'overview',
+    label: 'Genel Bakış',
+    shortLabel: 'Özet',
+    category: 'operations',
+    icon: TrendingUp,
+    description: 'Günlük ciro, doluluk ve operasyonel özet',
+    hotkey: '1',
+  },
+  {
+    id: 'bookings',
+    label: 'Rezervasyonlar',
+    shortLabel: 'Rezervasyon',
+    category: 'operations',
+    icon: Users,
+    description: 'Misafir kayıtları, biletler ve durum takibi',
+    hotkey: '2',
+    showCount: true,
+  },
+  {
+    id: 'transfers',
+    label: 'Transferler',
+    shortLabel: 'Transfer',
+    category: 'operations',
+    icon: Car,
+    description: 'Havalimanı & otel alma/bırakma manifestosu',
+    hotkey: '3',
+  },
+  {
+    id: 'settlements',
+    label: 'Hakediş & Kâr',
+    shortLabel: 'Hakediş',
+    category: 'operations',
+    icon: DollarSign,
+    description: 'Tedarikçi ödemeleri, kâr marjı ve mutabakat ekstresi',
+    hotkey: '4',
+  },
+  {
+    id: 'fleet',
+    label: 'Filo & Şoförler',
+    shortLabel: 'Filo',
+    category: 'operations',
+    icon: Bus,
+    description: 'Minibüsler, şoförler ve araç rotalama',
+    hotkey: '5',
+  },
+
+  // 🌐 WEB & İÇERİK (CMS)
+  {
+    id: 'tours',
+    label: 'Turlar & Fiyatlar',
+    shortLabel: 'Turlar',
+    category: 'content',
+    icon: Compass,
+    description: 'Tur programları, fiyatlandırma ve içerikler',
+  },
+  {
+    id: 'media',
+    label: 'Medya Galerisi',
+    shortLabel: 'Medya',
+    category: 'content',
+    icon: Image,
+    description: 'Görseller, fotoğraf kütüphanesi ve afişler',
+  },
+  {
+    id: 'services',
+    label: 'Hizmetler',
+    shortLabel: 'Hizmetler',
+    category: 'content',
+    icon: Briefcase,
+    description: 'VIP karşılama, yat kiralama ve özel hizmetler',
+  },
+  {
+    id: 'blogs',
+    label: 'Blog Yazıları',
+    shortLabel: 'Blog',
+    category: 'content',
+    icon: BookOpen,
+    description: 'Rehber yazıları ve gezi makaleleri',
+  },
+  {
+    id: 'faqs',
+    label: 'Sıkça Sorulanlar',
+    shortLabel: 'SSS',
+    category: 'content',
+    icon: HelpCircle,
+    description: 'Phuket tatili ve tur SSS maddeleri',
+  },
+  {
+    id: 'testimonials',
+    label: 'Müşteri Yorumları',
+    shortLabel: 'Yorumlar',
+    category: 'content',
+    icon: MessageSquareQuote,
+    description: 'Misafir değerlendirmeleri ve referanslar',
+  },
+
+  // ⚙️ İLETİŞİM & SİSTEM
+  {
+    id: 'whatsapp',
+    label: 'WhatsApp Şablonları',
+    shortLabel: 'WhatsApp',
+    category: 'system',
+    icon: MessageCircle,
+    description: 'Misafir ve şoför otomatik hazır mesaj metinleri',
+  },
+  {
+    id: 'settings',
+    label: 'Site Ayarları',
+    shortLabel: 'Ayarlar',
+    category: 'system',
+    icon: Settings,
+    description: 'Telefon, e-posta, sosyal medya ve genel ayarlar',
+  },
+];
+
+export const PRIMARY_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'operations');
+export const CMS_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'content');
+export const SYSTEM_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'system');
 
 interface SiteSettingsState {
   whatsappNumber: string;
@@ -214,8 +360,23 @@ export default function AdminDashboard({
     try { window.localStorage.setItem('ptt_admin_active_tab', activeTab); } catch { /* yok say */ }
   }, [activeTab]);
 
-  // Menü şeridi: dar ekranda kaydırılabilir. Aktif sekme seçilince
-  // görünür alana otomatik kaydırılır (scrollIntoView).
+  // Site & İçerik açılır menü kontrolü (Tek satır sade navigasyon için)
+  const [isCmsDropdownOpen, setIsCmsDropdownOpen] = useState<boolean>(false);
+  const cmsDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (cmsDropdownRef.current && !cmsDropdownRef.current.contains(e.target as Node)) {
+        setIsCmsDropdownOpen(false);
+      }
+    };
+    if (isCmsDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isCmsDropdownOpen]);
+
+  // Menü şeridi ref
   const navRef = useRef<HTMLDivElement>(null);
 
   // Toast Feedback
@@ -359,16 +520,31 @@ export default function AdminDashboard({
   const [settingsSaved, setSettingsSaved] = useState<boolean>(false);
 
   /* -------------------------------------------------------------------------
-     Menü: tek düz liste, sayısını yalnızca tek sekmede (Rezervasyon)
-     gösteriyoruz — 7 sekmede birden sayı = gürültü.
+     Menü Durum ve Filtre Mantığı:
+     Kategori filtresi, anlık arama ve aktif sekme senkronizasyonu
      ------------------------------------------------------------------------- */
-  const bookingsCount = bookings.length;
+  const pendingBookingsCount = useMemo(
+    () => bookings.filter((b) => b.status === 'inquiry').length,
+    [bookings]
+  );
   const activeNavItem: NavItem | undefined = useMemo(
     () => NAV_ITEMS.find((i) => i.id === activeTab),
-    [activeTab],
+    [activeTab]
   );
 
-  /** Klavye ile menüde gezinme: [ = önceki sekme, ] = sonraki sekme. */
+  const isCmsActive = useMemo(
+    () => [...CMS_NAV_ITEMS, ...SYSTEM_NAV_ITEMS].some((i) => i.id === activeTab),
+    [activeTab]
+  );
+  const activeCmsItem = useMemo(
+    () => [...CMS_NAV_ITEMS, ...SYSTEM_NAV_ITEMS].find((i) => i.id === activeTab),
+    [activeTab]
+  );
+
+  /** Klavye ile menüde gezinme:
+   *  [ = önceki sekme, ] = sonraki sekme
+   *  1-5 = Temel operasyon sekmelerine doğrudan hızlı atlama
+   */
   const isAnyModalOpen =
     isModalOpen ||
     Boolean(voucherBooking) ||
@@ -385,17 +561,40 @@ export default function AdminDashboard({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key !== '[' && e.key !== ']') return;
       if (isAnyModalOpen) return; // Form/modal açıkken sekme değiştirme
       // Kullanıcı bir alana yazıyorken kısayol çalışmasın
       const el = e.target as HTMLElement | null;
       if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
-      const idx = NAV_ITEMS.findIndex((i) => i.id === activeTab);
-      if (idx === -1) return;
-      const next = e.key === ']' ? (idx + 1) % NAV_ITEMS.length : (idx - 1 + NAV_ITEMS.length) % NAV_ITEMS.length;
-      setActiveTab(NAV_ITEMS[next].id);
+      if (e.key === '[' || e.key === ']') {
+        const idx = NAV_ITEMS.findIndex((i) => i.id === activeTab);
+        if (idx === -1) {
+          setActiveTab(NAV_ITEMS[0].id);
+        } else {
+          const next = e.key === ']' ? (idx + 1) % NAV_ITEMS.length : (idx - 1 + NAV_ITEMS.length) % NAV_ITEMS.length;
+          setActiveTab(NAV_ITEMS[next].id);
+        }
+      }
+
+      // 1-5 tuşları ile temel operasyon sekmelerine doğrudan hızlı geçiş
+      if (['1', '2', '3', '4', '5'].includes(e.key)) {
+        const keyMap: Record<string, AdminTab> = {
+          '1': 'overview',
+          '2': 'bookings',
+          '3': 'transfers',
+          '4': 'settlements',
+          '5': 'fleet',
+        };
+        const targetTab = keyMap[e.key];
+        if (targetTab) {
+          setActiveTab(targetTab);
+          const found = NAV_ITEMS.find((i) => i.id === targetTab);
+          if (found) {
+            showToast(`⚡ ${found.label} sekmesine geçildi`);
+          }
+        }
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -1374,119 +1573,191 @@ export default function AdminDashboard({
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
       {/* Top Header */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-surface-1/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-primary to-slate-800 text-white flex items-center justify-center font-serif font-bold text-lg shadow-md border border-slate-700">
+      {/* Tek Satır, Sade ve Ergonomik Header */}
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-surface-1/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
+          
+          {/* Sol: Logo & Marka */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-brand-primary text-white flex items-center justify-center font-serif font-black text-sm shadow-sm border border-slate-700/60 ring-1 ring-white/10">
               PT
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h1 className="font-serif font-bold text-lg sm:text-xl text-brand-primary dark:text-white leading-none">
-                  Phuket Tatili <span className="text-brand-accent italic font-sans text-sm font-semibold">Yönetim & Operasyon</span>
-                </h1>
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
-                  Tam Yetki
+            <div className="hidden sm:block">
+              <div className="flex items-center gap-2 leading-none">
+                <span className="font-serif font-bold text-base text-slate-900 dark:text-white">
+                  Phuket Tatili
                 </span>
-                {isCloudConnected ? (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-300 dark:border-teal-700 flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></span>
-                    Bulut Canlı (Supabase)
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400 border border-slate-300 dark:border-slate-700 flex items-center gap-1">
-                    <Cloud className="w-3 h-3 text-slate-400" />
-                    Yerel Mod
-                  </span>
-                )}
+                <span className="text-[10px] font-bold text-brand-accent uppercase tracking-wider">
+                  Panel
+                </span>
+                <span
+                  className={`w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}
+                  title={isCloudConnected ? 'Bulut Canlı (Supabase)' : 'Yerel Mod'}
+                />
               </div>
-              {/* Aktif bölüm — kullanıcının nerede olduğunu söyler. */}
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 hidden sm:block">
-                <span className="font-bold text-slate-700 dark:text-slate-200">
-                  {activeNavItem?.label ?? 'Genel Bakış'}
-                </span>
-                <span className="mx-1.5">·</span>
-                <span>Rezervasyon, transfer ve site içerik yönetimi</span>
-              </p>
+              {activeNavItem && (
+                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate max-w-[200px]">
+                  {activeNavItem.label}
+                </p>
+              )}
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Orta: Sade Tek Satır Menü (5 Temel Sekme + 1 Açılır Menü) */}
+          <nav ref={navRef} aria-label="Panel menüsü" className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1">
+            {PRIMARY_NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeTab === item.id;
+              const isBookings = item.id === 'bookings';
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => setActiveTab(item.id)}
+                  data-nav-active={isActive ? 'true' : undefined}
+                  className={`flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                    isActive
+                      ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400'}`} />
+                  <span>{item.shortLabel || item.label}</span>
+                  {isBookings && pendingBookingsCount > 0 && (
+                    <span className="rounded-full px-1.5 py-0.2 text-[10px] font-black bg-amber-500 text-white animate-pulse">
+                      {pendingBookingsCount}
+                    </span>
+                  )}
+                  {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
+                    <span className={`text-[10px] opacity-60 font-mono ${isActive ? 'text-white' : 'text-slate-400'}`}>
+                      {bookings.length}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+
+            {/* Site & İçerik Açılır Menüsü */}
+            <div className="relative" ref={cmsDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsCmsDropdownOpen(!isCmsDropdownOpen)}
+                className={`flex items-center gap-1.5 rounded-xl px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer border ${
+                  isCmsActive
+                    ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 border-slate-900 dark:border-brand-accent shadow-sm font-bold'
+                    : 'border-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                }`}
+              >
+                {activeCmsItem ? (
+                  <>
+                    <activeCmsItem.icon className={`w-4 h-4 shrink-0 ${isCmsActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400'}`} />
+                    <span>{activeCmsItem.shortLabel || activeCmsItem.label}</span>
+                  </>
+                ) : (
+                  <>
+                    <Layers className="w-4 h-4 text-slate-400 shrink-0" />
+                    <span>Site & CMS</span>
+                  </>
+                )}
+                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCmsDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {/* Açılır Menü Popover */}
+              {isCmsDropdownOpen && (
+                <div className="absolute right-0 sm:left-0 mt-2 w-56 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200 dark:border-slate-800 shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    Web Sitesi Vitrini
+                  </div>
+                  {CMS_NAV_ITEMS.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setIsCmsDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-left transition-colors cursor-pointer ${
+                          isActive
+                            ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary dark:text-brand-accent font-bold'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-accent' : 'text-slate-400'}`} />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+
+                  <div className="my-1.5 border-t border-slate-100 dark:border-slate-800/80" />
+
+                  <div className="px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
+                    Sistem & İletişim
+                  </div>
+                  {SYSTEM_NAV_ITEMS.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => {
+                          setActiveTab(item.id);
+                          setIsCmsDropdownOpen(false);
+                        }}
+                        className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-left transition-colors cursor-pointer ${
+                          isActive
+                            ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary dark:text-brand-accent font-bold'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                      >
+                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-accent' : 'text-slate-400'}`} />
+                        <span>{item.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </nav>
+
+          {/* Sağ: Yeni Rezervasyon & Çıkış */}
+          <div className="flex items-center gap-2 shrink-0">
             <a
               href="/ekip"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3.5 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs sm:text-sm font-bold transition-all flex items-center gap-1.5 shadow-sm"
-              title="Rehber & Saha Ekibi Mobil Uygulamasını Aç"
+              className="hidden md:flex px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all items-center gap-1.5"
+              title="Rehber & Saha Ekibi Uygulamasını Aç"
             >
-              <Smartphone className="w-4 h-4 text-amber-500" />
-              <span className="hidden sm:inline">Saha / Rehber Uygulaması</span>
-              <span className="sm:hidden">Saha</span>
+              <Smartphone className="w-3.5 h-3.5 text-amber-500" />
+              <span>Saha</span>
             </a>
 
             <button
               onClick={handleOpenCreateBooking}
-              className="px-4 py-2.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-accent/20 transition-all flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
-              <span>Yeni Rezervasyon</span>
+              <span className="hidden sm:inline">Yeni Rezervasyon</span>
+              <span className="sm:hidden">Yeni</span>
             </button>
 
             <button
               onClick={handleLogout}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-500 hover:text-red-500 transition-colors"
+              className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
               title="Çıkış Yap"
             >
               <LogOut className="w-4 h-4" />
             </button>
           </div>
         </div>
-
-        {/* Panel menüsü — düz, tek renk, kompakt. Tek kaynak: NAV_ITEMS.
-            Sıra = kullanım sıklığı. Klavye: [ önceki sekme, ] sonraki sekme. */}
-        <nav
-          ref={navRef}
-          aria-label="Panel menüsü"
-          className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 flex items-center gap-1 border-t border-slate-100 dark:border-slate-800/60 py-2 overflow-x-auto"
-        >
-          {NAV_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            const count = item.showCount ? bookingsCount : undefined;
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveTab(item.id)}
-                data-nav-active={isActive ? 'true' : undefined}
-                aria-current={isActive ? 'page' : undefined}
-                className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold whitespace-nowrap transition-all ${
-                  isActive
-                    ? 'bg-brand-primary text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{item.label}</span>
-                {typeof count === 'number' && count > 0 && (
-                  <span
-                    className={`rounded-md px-1.5 py-0.5 text-[10px] font-black leading-none tabular-nums ${
-                      isActive
-                        ? 'bg-white/25 text-white'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </nav>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
         
         {/* ==================================================== */}
         {/* TAB 1: OVERVIEW */}
@@ -1801,6 +2072,15 @@ export default function AdminDashboard({
 
                           <td className="py-4 px-5 text-right">
                             <div className="flex items-center justify-end gap-1.5">
+                              <a
+                                href={`/bilet/${b.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors"
+                                title="Misafir Canlı Takip Portalını Aç (/bilet/[kod])"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </a>
                               <button
                                 onClick={() => setVoucherBooking(b)}
                                 className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
@@ -2282,6 +2562,15 @@ export default function AdminDashboard({
                                 >
                                   <MessageCircle className="w-4 h-4" />
                                 </button>
+                                <a
+                                  href={`/bilet/${p.bookingId}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors"
+                                  title="Misafir Canlı Takip Portalını Aç (/bilet/[kod])"
+                                >
+                                  <ExternalLink className="w-4 h-4" />
+                                </a>
                                 <button
                                   type="button"
                                   onClick={() => {
@@ -2305,6 +2594,25 @@ export default function AdminDashboard({
             </div>
           );
         })()}
+
+        {/* ==================================================== */}
+        {/* TAB 2.55: SUPPLIER SETTLEMENTS & PROFIT ENGINE */}
+        {/* ==================================================== */}
+        {activeTab === 'settlements' && (
+          <SupplierSettlementManager
+            bookings={bookings}
+            onUpdateBooking={(updated) => {
+              saveBookings(bookings.map((b) => (b.id === updated.id ? updated : b)));
+              void fetch('/api/bookings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated),
+              });
+              showToast('Tedarikçi maliyeti güncellendi! 💰');
+            }}
+            managerPhone={siteSettings.whatsappNumber}
+          />
+        )}
 
         {/* ==================================================== */}
         {/* TAB 2.6: FLEET & CREW (Araç Filosu + Şoför/Rehber Kadrosu) */}
