@@ -365,15 +365,14 @@ export default function AdminDashboard({
   const cmsDropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!isCmsDropdownOpen) return;
     const handleClickOutside = (e: MouseEvent) => {
       if (cmsDropdownRef.current && !cmsDropdownRef.current.contains(e.target as Node)) {
         setIsCmsDropdownOpen(false);
       }
     };
-    if (isCmsDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
   }, [isCmsDropdownOpen]);
 
   // Menü şeridi ref
@@ -1603,45 +1602,51 @@ export default function AdminDashboard({
             </div>
           </div>
 
-          {/* Orta: Sade Tek Satır Menü (5 Temel Sekme + 1 Açılır Menü) */}
-          <nav ref={navRef} aria-label="Panel menüsü" className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1">
-            {PRIMARY_NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              const isBookings = item.id === 'bookings';
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveTab(item.id)}
-                  data-nav-active={isActive ? 'true' : undefined}
-                  className={`flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
-                    isActive
-                      ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
-                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                  }`}
-                >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400'}`} />
-                  <span>{item.shortLabel || item.label}</span>
-                  {isBookings && pendingBookingsCount > 0 && (
-                    <span className="rounded-full px-1.5 py-0.2 text-[10px] font-black bg-amber-500 text-white animate-pulse">
-                      {pendingBookingsCount}
-                    </span>
-                  )}
-                  {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
-                    <span className={`text-[10px] opacity-60 font-mono ${isActive ? 'text-white' : 'text-slate-400'}`}>
-                      {bookings.length}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+          {/* Orta: Sade Menü */}
+          <div className="flex items-center gap-1 sm:gap-2">
+            {/* 5 Temel Sekme */}
+            <nav ref={navRef} aria-label="Panel menüsü" className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1">
+              {PRIMARY_NAV_ITEMS.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                const isBookings = item.id === 'bookings';
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setActiveTab(item.id)}
+                    data-nav-active={isActive ? 'true' : undefined}
+                    className={`flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                      isActive
+                        ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
+                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400'}`} />
+                    <span>{item.shortLabel || item.label}</span>
+                    {isBookings && pendingBookingsCount > 0 && (
+                      <span className="rounded-full px-1.5 py-0.2 text-[10px] font-black bg-amber-500 text-white animate-pulse">
+                        {pendingBookingsCount}
+                      </span>
+                    )}
+                    {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
+                      <span className={`text-[10px] opacity-60 font-mono ${isActive ? 'text-white' : 'text-slate-400'}`}>
+                        {bookings.length}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </nav>
 
-            {/* Site & İçerik Açılır Menüsü */}
-            <div className="relative" ref={cmsDropdownRef}>
+            {/* Site & İçerik Açılır Menüsü — nav dışında olduğu için overflow tarafından ASLA kesilmez */}
+            <div className="relative shrink-0" ref={cmsDropdownRef}>
               <button
                 type="button"
-                onClick={() => setIsCmsDropdownOpen(!isCmsDropdownOpen)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsCmsDropdownOpen((prev) => !prev);
+                }}
                 className={`flex items-center gap-1.5 rounded-xl px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                   isCmsActive
                     ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 border-slate-900 dark:border-brand-accent shadow-sm font-bold'
@@ -1664,7 +1669,10 @@ export default function AdminDashboard({
 
               {/* Açılır Menü Popover */}
               {isCmsDropdownOpen && (
-                <div className="absolute right-0 sm:left-0 mt-2 w-56 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200 dark:border-slate-800 shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  className="absolute right-0 sm:left-auto sm:right-0 top-full mt-2 w-60 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200 dark:border-slate-800 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+                >
                   <div className="px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
                     Web Sitesi Vitrini
                   </div>
@@ -1721,7 +1729,7 @@ export default function AdminDashboard({
                 </div>
               )}
             </div>
-          </nav>
+          </div>
 
           {/* Sağ: Yeni Rezervasyon & Çıkış */}
           <div className="flex items-center gap-2 shrink-0">
