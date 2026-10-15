@@ -5,7 +5,7 @@
  * API çağrısı ve toast akışı orada). Buraya yalnızca JSX + props geçer.
  */
 import { PlusCircle, Check } from 'lucide-react';
-import type { TourItem } from '../../data/adminInitialData';
+import { type TourItem, HOTEL_ZONES, detectHotelZone } from '../../data/adminInitialData';
 
 interface NewBookingTabProps {
   newCustName: string;
@@ -14,6 +14,8 @@ interface NewBookingTabProps {
   setNewCustPhone: (v: string) => void;
   newCustHotel: string;
   setNewCustHotel: (v: string) => void;
+  newCustZone?: string;
+  setNewCustZone?: (v: string) => void;
   newCustRoom: string;
   setNewCustRoom: (v: string) => void;
   newTourId: string;
@@ -46,6 +48,8 @@ export default function NewBookingTab({
   setNewCustPhone,
   newCustHotel,
   setNewCustHotel,
+  newCustZone,
+  setNewCustZone,
   newCustRoom,
   setNewCustRoom,
   newTourId,
@@ -125,18 +129,45 @@ export default function NewBookingTab({
           </div>
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-slate-300 mb-1">
-            Otel Adı & Bölge *
-          </label>
-          <input
-            type="text"
-            required
-            value={newCustHotel}
-            onChange={(e) => setNewCustHotel(e.target.value)}
-            placeholder="Örn: Amari Phuket (Patong)"
-            className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-400"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
+              🏨 Otel Adı *
+            </label>
+            <input
+              type="text"
+              required
+              value={newCustHotel}
+              onChange={(e) => {
+                const val = e.target.value;
+                setNewCustHotel(val);
+                if (setNewCustZone) {
+                  const detected = detectHotelZone(val);
+                  if (!newCustZone || newCustZone === 'Patong & Kalim' || newCustZone === 'Genel Phuket') {
+                    setNewCustZone(detected);
+                  }
+                }
+              }}
+              placeholder="Örn: Millennium Resort Patong"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-slate-300 mb-1">
+              📍 Bölge / Hat *
+            </label>
+            <select
+              value={newCustZone || (newCustHotel ? detectHotelZone(newCustHotel) : 'Patong & Kalim')}
+              onChange={(e) => setNewCustZone && setNewCustZone(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-sm text-white focus:outline-none focus:border-amber-400"
+            >
+              {HOTEL_ZONES.map((zone) => (
+                <option key={zone} value={zone}>
+                  {zone}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div>

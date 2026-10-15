@@ -182,6 +182,7 @@ export default function FieldApp({
   const [newCustName, setNewCustName] = useState('');
   const [newCustPhone, setNewCustPhone] = useState('+90 ');
   const [newCustHotel, setNewCustHotel] = useState('');
+  const [newCustZone, setNewCustZone] = useState('Patong & Kalim');
   const [newCustRoom, setNewCustRoom] = useState('');
   const [newTourId, setNewTourId] = useState(initialTours[0]?.id || 'phi-phi-maya-ve-bamboo-adasi');
   const [newTourDate, setNewTourDate] = useState(getPhuketToday());
@@ -687,6 +688,7 @@ export default function FieldApp({
       customerName: newCustName.trim(),
       phone: newCustPhone.trim(),
       hotel: newCustHotel.trim(),
+      hotelZone: newCustZone || detectHotelZone(newCustHotel.trim()),
       roomNumber: newCustRoom.trim() || undefined,
       tourId: newTourId,
       tourTitle,
@@ -1408,6 +1410,8 @@ export default function FieldApp({
             setNewCustPhone={setNewCustPhone}
             newCustHotel={newCustHotel}
             setNewCustHotel={setNewCustHotel}
+            newCustZone={newCustZone}
+            setNewCustZone={setNewCustZone}
             newCustRoom={newCustRoom}
             setNewCustRoom={setNewCustRoom}
             newTourId={newTourId}

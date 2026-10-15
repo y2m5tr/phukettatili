@@ -59,6 +59,8 @@ import {
   type TourCostItem,
   calculateAgentCommission,
   lookupTourCost,
+  HOTEL_ZONES,
+  detectHotelZone,
 } from '../../data/adminInitialData';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
@@ -1074,6 +1076,7 @@ export default function AdminDashboard({
       customerName: '',
       phone: '',
       hotel: '',
+      hotelZone: 'Patong & Kalim',
       roomNumber: '',
       tourTitle: initialTourItem?.title || 'Phi Phi Adaları',
       tourDate: new Date().toISOString().split('T')[0],
@@ -1112,6 +1115,7 @@ export default function AdminDashboard({
 
     setFormData({
       ...b,
+      hotelZone: b.hotelZone || detectHotelZone(b.hotel),
       tours: schedule,
     });
     setIsModalOpen(true);
@@ -1178,12 +1182,17 @@ export default function AdminDashboard({
     const primaryTourDate = schedule[0].tourDate;
     const primaryPickupTime = schedule[0].pickupTime || '07:30';
 
+    const resolvedZone =
+      formData.hotelZone ||
+      (formData.hotel ? detectHotelZone(formData.hotel) : 'Patong & Kalim');
+
     if (editingBooking) {
       const updated = bookings.map((b) =>
         b.id === editingBooking.id
           ? ({
               ...b,
               ...formData,
+              hotelZone: resolvedZone,
               tourTitle: primaryTourTitle,
               tourDate: primaryTourDate,
               pickupTime: primaryPickupTime,
@@ -1219,6 +1228,7 @@ export default function AdminDashboard({
         customerName: formData.customerName || 'İsimsiz Misafir',
         phone: formData.phone || '',
         hotel: formData.hotel || 'Belirtilmedi',
+        hotelZone: resolvedZone,
         roomNumber: formData.roomNumber,
         tourId: formData.tourId || 'coklu-tur',
         tourTitle: primaryTourTitle,
@@ -2379,24 +2389,57 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Otel & Bölge *</label>
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
+                <div className="sm:col-span-5">
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    🏨 Otel Adı *
+                  </label>
                   <input
                     type="text"
                     required
+                    placeholder="Örn: Millennium Resort Patong"
                     value={formData.hotel || ''}
-                    onChange={(e) => setFormData({ ...formData, hotel: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const detected = detectHotelZone(val);
+                      setFormData((prev) => ({
+                        ...prev,
+                        hotel: val,
+                        hotelZone:
+                          !prev.hotelZone || prev.hotelZone === 'Patong & Kalim' || prev.hotelZone === 'Genel Phuket'
+                            ? detected
+                            : prev.hotelZone,
+                      }));
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40"
                   />
                 </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">Oda Numarası</label>
+                <div className="sm:col-span-4">
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    📍 Bölge / Hat *
+                  </label>
+                  <select
+                    value={formData.hotelZone || (formData.hotel ? detectHotelZone(formData.hotel) : 'Patong & Kalim')}
+                    onChange={(e) => setFormData({ ...formData, hotelZone: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white"
+                  >
+                    {HOTEL_ZONES.map((zone) => (
+                      <option key={zone} value={zone}>
+                        {zone}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="sm:col-span-3">
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    🚪 Oda Numarası
+                  </label>
                   <input
                     type="text"
+                    placeholder="Örn: 402"
                     value={formData.roomNumber || ''}
                     onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40"
                   />
                 </div>
               </div>

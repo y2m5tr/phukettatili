@@ -5,7 +5,7 @@
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
 import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2 } from 'lucide-react';
-import type { Booking } from '../../data/adminInitialData';
+import { type Booking, detectHotelZone } from '../../data/adminInitialData';
 
 interface BookingsTabProps {
   /** Arama + durum + tarih filtresinden geçmiş liste. */
@@ -119,7 +119,7 @@ export default function BookingsTab({
             <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 font-bold border-b border-slate-200/80 dark:border-slate-800 uppercase text-[11px] tracking-wider">
               <tr>
                 <th className="py-4 px-5">ID / Müşteri</th>
-                <th className="py-4 px-5">Otel & Oda</th>
+                <th className="py-4 px-5">Otel, Bölge & Oda</th>
                 <th className="py-4 px-5">Tur & Tarih</th>
                 <th className="py-4 px-5">Kişi</th>
                 <th className="py-4 px-5">Fiyat / Tahsilat</th>
@@ -152,9 +152,14 @@ export default function BookingsTab({
 
                     <td className="py-4 px-5">
                       <span className="font-medium text-slate-800 dark:text-slate-200 block">{b.hotel}</span>
-                      {b.roomNumber && (
-                        <span className="text-xs text-slate-500 dark:text-slate-400 block">Oda: {b.roomNumber}</span>
-                      )}
+                      <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                        <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/40 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/60">
+                          📍 {b.hotelZone || detectHotelZone(b.hotel)}
+                        </span>
+                        {b.roomNumber && (
+                          <span className="text-xs text-slate-500 dark:text-slate-400">Oda: {b.roomNumber}</span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="py-4 px-5">
