@@ -60,6 +60,11 @@ import ToursTab from './ToursTab';
 import TransfersTab from './TransfersTab';
 import OverviewTab from './OverviewTab';
 import BookingsTab from './BookingsTab';
+import TestimonialModal from './TestimonialModal';
+import FaqModal from './FaqModal';
+import ServiceModal from './ServiceModal';
+import BlogModal from './BlogModal';
+import { AddMediaModal, MediaLightboxModal } from './MediaModals';
 import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
 import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
 import {
@@ -67,6 +72,12 @@ import {
   getSingleHotelMapUrl,
   detectDeparturePier,
 } from '../../lib/maps';
+import {
+  loadCmsCollections,
+  saveCmsCollection,
+  writeLocalCollection,
+  type CmsCollectionKey,
+} from '../../lib/cmsSync';
 import {
   isSupabaseConfigured,
   subscribeBookingsSignal,
@@ -424,12 +435,12 @@ export default function AdminDashboard({
 
   const saveVehicles = (next: VehicleItem[]) => {
     setVehicles(next);
-    localStorage.setItem(STORAGE_KEY_VEHICLES, JSON.stringify(next));
+    saveCmsCollection('vehicles', next, showToast);
   };
 
   const saveDrivers = (next: DriverItem[]) => {
     setDrivers(next);
-    localStorage.setItem(STORAGE_KEY_DRIVERS, JSON.stringify(next));
+    saveCmsCollection('drivers', next, showToast);
   };
 
   // 2. Tours State
@@ -610,11 +621,10 @@ export default function AdminDashboard({
   // Initialize data on mount
   useEffect(() => {
     try {
-      // Load Bookings
+      // 1) Anında yerel yükleme (bulut yoksa panel boş açılmasın).
       const savedBookings = localStorage.getItem(STORAGE_KEY_BOOKINGS);
       setBookings(savedBookings ? JSON.parse(savedBookings) : initialBookings);
 
-      // Load Tours
       const savedTours = localStorage.getItem(STORAGE_KEY_TOURS);
       setTours(savedTours ? JSON.parse(savedTours) : initialTours);
 
@@ -635,29 +645,47 @@ export default function AdminDashboard({
         localStorage.setItem(STORAGE_KEY_MEDIA, JSON.stringify(defaultMedia));
       }
 
-      // Load Blogs
       const savedBlogs = localStorage.getItem(STORAGE_KEY_BLOGS);
       setBlogs(savedBlogs ? JSON.parse(savedBlogs) : initialBlogs);
 
-      // Load Services
       const savedServices = localStorage.getItem(STORAGE_KEY_SERVICES);
       setServices(savedServices ? JSON.parse(savedServices) : initialServices);
 
-      // Load FAQs
       const savedFaqs = localStorage.getItem(STORAGE_KEY_FAQS);
       setFaqs(savedFaqs ? JSON.parse(savedFaqs) : initialFaqs);
 
-      // Load Testimonials
       const savedTestis = localStorage.getItem(STORAGE_KEY_TESTIMONIALS);
       setTestimonials(savedTestis ? JSON.parse(savedTestis) : initialTestimonials);
 
-      // Load Settings
       const savedSettings = localStorage.getItem(STORAGE_KEY_SITE);
       if (savedSettings) setSiteSettings(JSON.parse(savedSettings));
 
       // ☁️ Bulut verisi: tablo erişimi /api/bookings üzerinden (oturum
       // cookie'si ile). Client Supabase anahtarı tabloyu okuyamaz — RLS kapalı.
       void fetchBookingsFromServer(true);
+
+      // 2) CMS koleksiyonları (tours/blog/sss/…): bulut > yerel > initial.
+      //    Bulutta kayıt varsa yerelin üstüne yazar; yoksa yerel kalır.
+      void (async () => {
+        const { items } = await loadCmsCollections();
+        const apply = <T,>(key: CmsCollectionKey, setValue: (v: T) => void, fallback: T) => {
+          const cloud = items[key];
+          if (cloud === undefined) return; // bulutta yok — yerel/initial geçerli
+          setValue(cloud as T);
+          // Bulut değerini yerel cache'e da yaz — çevrimdışı açılışta taze.
+          writeLocalCollection(key, cloud);
+          void fallback; // fallback yalnızca tip çıkarımı için
+        };
+        apply('tours', setTours, initialTours);
+        apply('blogs', setBlogs, initialBlogs);
+        apply('services', setServices, initialServices);
+        apply('faqs', setFaqs, initialFaqs);
+        apply('testimonials', setTestimonials, initialTestimonials);
+        apply('media', setMediaList, []);
+        apply('site-settings', setSiteSettings, initialSiteSettings);
+        apply('vehicles', setVehicles, initialVehicles);
+        apply('drivers', setDrivers, initialDrivers);
+      })();
     } catch {
       setBookings(initialBookings);
       setTours(initialTours);
@@ -703,34 +731,36 @@ export default function AdminDashboard({
     return unsubscribe;
   }, [isSupabaseConfigured, fetchBookingsFromServer]);
 
-  // Save helpers
+  // Save helpers — her kayıt yerele VE buluta (/api/content) yazılır.
+  // Bulut yazma yangın-and-forget; hata toast'u yerel kopyanın geçerli
+  // olduğunu söyler. Yerel yazma davranışı değişmedi.
   const saveBookings = (next: Booking[]) => {
     setBookings(next);
     localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(next));
   };
   const saveTours = (next: TourItem[]) => {
     setTours(next);
-    localStorage.setItem(STORAGE_KEY_TOURS, JSON.stringify(next));
+    saveCmsCollection('tours', next, showToast);
   };
   const saveMediaList = (next: MediaItem[]) => {
     setMediaList(next);
-    localStorage.setItem(STORAGE_KEY_MEDIA, JSON.stringify(next));
+    saveCmsCollection('media', next, showToast);
   };
   const saveBlogs = (next: BlogItem[]) => {
     setBlogs(next);
-    localStorage.setItem(STORAGE_KEY_BLOGS, JSON.stringify(next));
+    saveCmsCollection('blogs', next, showToast);
   };
   const saveServices = (next: ServiceItem[]) => {
     setServices(next);
-    localStorage.setItem(STORAGE_KEY_SERVICES, JSON.stringify(next));
+    saveCmsCollection('services', next, showToast);
   };
   const saveFaqs = (next: FaqItem[]) => {
     setFaqs(next);
-    localStorage.setItem(STORAGE_KEY_FAQS, JSON.stringify(next));
+    saveCmsCollection('faqs', next, showToast);
   };
   const saveTestimonials = (next: TestimonialItem[]) => {
     setTestimonials(next);
-    localStorage.setItem(STORAGE_KEY_TESTIMONIALS, JSON.stringify(next));
+    saveCmsCollection('testimonials', next, showToast);
   };
 
   // All available image URLs (system + uploaded) for pickers
@@ -1456,10 +1486,10 @@ export default function AdminDashboard({
     setIsTestiModalOpen(false);
   };
 
-  // Save Settings
+  // Save Settings — artık yerele + buluta yazılır.
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem(STORAGE_KEY_SITE, JSON.stringify(siteSettings));
+    saveCmsCollection('site-settings', siteSettings, showToast);
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 2500);
   };
@@ -3053,577 +3083,92 @@ export default function AdminDashboard({
       {/* ==================================================== */}
       {/* MODAL 3: BLOG */}
       {/* ==================================================== */}
-      {isBlogModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-surface-2 w-full max-w-xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
-            <h2 className="text-xl font-bold font-serif mb-4">
-              {editingBlog ? 'Yazıyı Düzenle' : 'Yeni Blog / Rehber Yazısı'}
-            </h2>
-            <form onSubmit={handleSubmitBlog} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase mb-1">Yazı Başlığı *</label>
-                <input
-                  type="text"
-                  required
-                  value={blogFormData.title || ''}
-                  onChange={(e) => setBlogFormData({ ...blogFormData, title: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase mb-1">Kısa Özet *</label>
-                <textarea
-                  rows={3}
-                  required
-                  value={blogFormData.excerpt || ''}
-                  onChange={(e) => setBlogFormData({ ...blogFormData, excerpt: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Yazar</label>
-                  <input
-                    type="text"
-                    value={blogFormData.author || ''}
-                    onChange={(e) => setBlogFormData({ ...blogFormData, author: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Tarih</label>
-                  <input
-                    type="date"
-                    value={blogFormData.date || ''}
-                    onChange={(e) => setBlogFormData({ ...blogFormData, date: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                  />
-                </div>
-              </div>
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
-                    Kapak Görseli
-                  </label>
-                  <label className="cursor-pointer px-3 py-1 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Görsel Yükle</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          handleFileUpload(file, (url) => {
-                            setBlogFormData({ ...blogFormData, cover_image: url });
-                          });
-                        }
-                        e.target.value = '';
-                      }}
-                    />
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <select
-                    value={blogFormData.cover_image || 'pileh.webp'}
-                    onChange={(e) => setBlogFormData({ ...blogFormData, cover_image: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
-                  >
-                    {allImageOptions.map((img) => (
-                      <option key={img} value={img}>
-                        {img.startsWith('data:') ? 'Özel Yüklenen Görsel' : img}
-                      </option>
-                    ))}
-                  </select>
-
-                  <input
-                    type="text"
-                    placeholder="veya direkt görsel URL'si girin..."
-                    value={blogFormData.cover_image || ''}
-                    onChange={(e) => setBlogFormData({ ...blogFormData, cover_image: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
-                  />
-                </div>
-
-                {blogFormData.cover_image && (
-                  <div className="flex items-center gap-2.5 pt-1">
-                    <img
-                      src={getImageUrl(blogFormData.cover_image)}
-                      alt="Blog Kapak"
-                      className="w-16 h-10 object-cover rounded-lg border border-slate-300 dark:border-slate-700 shadow-xs"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/pileh.webp';
-                      }}
-                    />
-                    <span className="text-[11px] font-mono text-slate-500 truncate max-w-xs">
-                      {blogFormData.cover_image}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={blogFormData.featured || false}
-                    onChange={(e) => setBlogFormData({ ...blogFormData, featured: e.target.checked })}
-                    className="w-4 h-4 rounded text-brand-accent"
-                  />
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                    Öne çıkarılan yazı yap ⭐
-                  </span>
-                </label>
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-                <button type="button" onClick={() => setIsBlogModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
-                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        {isBlogModalOpen && (
+          <BlogModal
+            editingBlog={editingBlog}
+            blogFormData={blogFormData}
+            setBlogFormData={setBlogFormData}
+            onSubmit={handleSubmitBlog}
+            onClose={() => setIsBlogModalOpen(false)}
+            getImageUrl={getImageUrl}
+            handleFileUpload={handleFileUpload}
+            allImageOptions={allImageOptions}
+          />
+        )}
 
       {/* ==================================================== */}
       {/* MODAL 4: SERVICE */}
       {/* ==================================================== */}
-      {isServiceModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-surface-2 w-full max-w-xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
-            <h2 className="text-xl font-bold font-serif mb-4">Hizmet Sayfasını Düzenle</h2>
-            <form onSubmit={handleSubmitService} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Üst Etiket (Eyebrow)</label>
-                  <input
-                    type="text"
-                    value={serviceFormData.eyebrow || ''}
-                    onChange={(e) => setServiceFormData({ ...serviceFormData, eyebrow: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Ana Başlık (Heading)</label>
-                  <input
-                    type="text"
-                    value={serviceFormData.heading || ''}
-                    onChange={(e) => setServiceFormData({ ...serviceFormData, heading: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold uppercase mb-1">Giriş Metni (Intro)</label>
-                <textarea
-                  rows={3}
-                  value={serviceFormData.intro || ''}
-                  onChange={(e) => setServiceFormData({ ...serviceFormData, intro: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                />
-              </div>
-
-              {/* Hizmet Görseli */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
-                    Hizmet Görseli
-                  </label>
-                  <label className="cursor-pointer px-3 py-1 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
-                    <Upload className="w-3.5 h-3.5" />
-                    <span>Görsel Yükle</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          handleFileUpload(file, (url) => {
-                            setServiceFormData({ ...serviceFormData, media: url });
-                          });
-                        }
-                        e.target.value = '';
-                      }}
-                    />
-                  </label>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  <select
-                    value={serviceFormData.media || 'longtail.webp'}
-                    onChange={(e) => setServiceFormData({ ...serviceFormData, media: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
-                  >
-                    {allImageOptions.map((img) => (
-                      <option key={img} value={img}>
-                        {img.startsWith('data:') ? 'Özel Yüklenen Görsel' : img}
-                      </option>
-                    ))}
-                  </select>
-
-                  <input
-                    type="text"
-                    placeholder="veya direkt görsel URL'si girin..."
-                    value={serviceFormData.media || ''}
-                    onChange={(e) => setServiceFormData({ ...serviceFormData, media: e.target.value })}
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
-                  />
-                </div>
-
-                {serviceFormData.media && (
-                  <div className="flex items-center gap-2.5 pt-1">
-                    <img
-                      src={getImageUrl(serviceFormData.media)}
-                      alt="Hizmet Görseli"
-                      className="w-16 h-10 object-cover rounded-lg border border-slate-300 dark:border-slate-700 shadow-xs"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/longtail.webp';
-                      }}
-                    />
-                    <span className="text-[11px] font-mono text-slate-500 truncate max-w-xs">
-                      {serviceFormData.media}
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
-                <button type="button" onClick={() => setIsServiceModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
-                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        {isServiceModalOpen && (
+          <ServiceModal
+            serviceFormData={serviceFormData}
+            setServiceFormData={setServiceFormData}
+            onSubmit={handleSubmitService}
+            onClose={() => setIsServiceModalOpen(false)}
+            getImageUrl={getImageUrl}
+            handleFileUpload={handleFileUpload}
+            allImageOptions={allImageOptions}
+          />
+        )}
 
       {/* ==================================================== */}
       {/* MODAL 5: FAQ */}
       {/* ==================================================== */}
-      {isFaqModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
-            <h2 className="text-xl font-bold font-serif mb-4">
-              {editingFaq ? 'Soruyu Düzenle' : 'Yeni SSS Sorusu'}
-            </h2>
-            <form onSubmit={handleSubmitFaq} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase mb-1">Soru *</label>
-                <input
-                  type="text"
-                  required
-                  value={faqFormData.question || ''}
-                  onChange={(e) => setFaqFormData({ ...faqFormData, question: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase mb-1">Cevap *</label>
-                <textarea
-                  rows={4}
-                  required
-                  value={faqFormData.answer || ''}
-                  onChange={(e) => setFaqFormData({ ...faqFormData, answer: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                />
-              </div>
-              <div className="pt-4 flex justify-end gap-3">
-                <button type="button" onClick={() => setIsFaqModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
-                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        {isFaqModalOpen && (
+          <FaqModal
+            editingFaq={editingFaq}
+            faqFormData={faqFormData}
+            setFaqFormData={setFaqFormData}
+            onSubmit={handleSubmitFaq}
+            onClose={() => setIsFaqModalOpen(false)}
+          />
+        )}
 
       {/* ==================================================== */}
       {/* MODAL 6: TESTIMONIAL */}
       {/* ==================================================== */}
-      {isTestiModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
-            <h2 className="text-xl font-bold font-serif mb-4">
-              {editingTesti ? 'Yorumu Düzenle' : 'Yeni Müşteri Yorumu'}
-            </h2>
-            <form onSubmit={handleSubmitTesti} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1">İsim *</label>
-                  <input
-                    type="text"
-                    required
-                    value={testiFormData.name || ''}
-                    onChange={(e) => setTestiFormData({ ...testiFormData, name: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Tip (Çift / Aile...)</label>
-                  <input
-                    type="text"
-                    value={testiFormData.type || ''}
-                    onChange={(e) => setTestiFormData({ ...testiFormData, type: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Hangi Tur</label>
-                  <input
-                    type="text"
-                    value={testiFormData.tour || ''}
-                    onChange={(e) => setTestiFormData({ ...testiFormData, tour: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold uppercase mb-1">Puan (1-5)</label>
-                  <select
-                    value={testiFormData.stars || 5}
-                    onChange={(e) => setTestiFormData({ ...testiFormData, stars: Number(e.target.value) })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                  >
-                    {[5, 4, 3, 2, 1].map((n) => (
-                      <option key={n} value={n}>{n} Yıldız</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-bold uppercase mb-1">Yorum Metni *</label>
-                <textarea
-                  rows={4}
-                  required
-                  value={testiFormData.text || ''}
-                  onChange={(e) => setTestiFormData({ ...testiFormData, text: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
-                />
-              </div>
-              <div className="pt-4 flex justify-end gap-3">
-                <button type="button" onClick={() => setIsTestiModalOpen(false)} className="px-5 py-2.5 rounded-xl border text-sm font-semibold">Vazgeç</button>
-                <button type="submit" className="px-6 py-2.5 rounded-xl bg-brand-primary text-white text-sm font-bold">Kaydet</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        {isTestiModalOpen && (
+          <TestimonialModal
+            editingTesti={editingTesti}
+            testiFormData={testiFormData}
+            setTestiFormData={setTestiFormData}
+            onSubmit={handleSubmitTesti}
+            onClose={() => setIsTestiModalOpen(false)}
+          />
+        )}
 
       {/* ==================================================== */}
       {/* MODAL 7: ADD MEDIA (FOTOĞRAF YÜKLE / URL EKLE) */}
       {/* ==================================================== */}
-      {isAddMediaModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
-            <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
-              <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white flex items-center gap-2">
-                <Image className="w-5 h-5 text-brand-accent" />
-                <span>Kütüphaneye Fotoğraf Ekle</span>
-              </h2>
-              <button
-                type="button"
-                onClick={() => setIsAddMediaModalOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-white"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Mode Selector */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 mb-4 text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => setMediaUploadMode('file')}
-                className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                  mediaUploadMode === 'file'
-                    ? 'bg-white dark:bg-slate-800 text-brand-primary dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <Upload className="w-3.5 h-3.5" />
-                <span>Bilgisayardan Dosya Seç</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setMediaUploadMode('url')}
-                className={`flex-1 py-2 rounded-lg transition-all flex items-center justify-center gap-1.5 ${
-                  mediaUploadMode === 'url'
-                    ? 'bg-white dark:bg-slate-800 text-brand-primary dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>Web URL'si Gir</span>
-              </button>
-            </div>
-
-            <form onSubmit={handleAddMediaSubmit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  Fotoğraf Başlığı / Açıklaması
-                </label>
-                <input
-                  type="text"
-                  placeholder="Örn: James Bond Adası Gün Batımı"
-                  value={newMediaTitle}
-                  onChange={(e) => setNewMediaTitle(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
-                />
-              </div>
-
-              {mediaUploadMode === 'file' ? (
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Görsel Dosyası (JPG, PNG, WEBP)
-                  </label>
-                  <label className="border-2 border-dashed border-slate-200 dark:border-slate-700 hover:border-brand-accent rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer bg-slate-50/50 dark:bg-slate-900/30 transition-colors">
-                    <Upload className="w-8 h-8 text-slate-400 mb-2" />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                      Bilgisayarınızdan bir görsel seçin
-                    </span>
-                    <span className="text-[11px] text-slate-400 mt-1">
-                      Doğrudan panele ve kütüphaneye kaydedilir
-                    </span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          if (!newMediaTitle) {
-                            setNewMediaTitle(file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '));
-                          }
-                          const reader = new FileReader();
-                          reader.onload = (ev) => {
-                            setNewMediaUrl((ev.target?.result as string) || '');
-                          };
-                          reader.readAsDataURL(file);
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Web Görsel URL'si (HTTPS Linki)
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    placeholder="https://images.unsplash.com/... veya CDN linki"
-                    value={newMediaUrl}
-                    onChange={(e) => setNewMediaUrl(e.target.value)}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
-                  />
-                </div>
-              )}
-
-              {/* Canlı Önizleme */}
-              {newMediaUrl && (
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1.5">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Canlı Önizleme</span>
-                  <div className="h-40 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-800 flex items-center justify-center">
-                    <img
-                      src={getImageUrl(newMediaUrl)}
-                      alt="Önizleme"
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/phuket_hero.webp';
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setIsAddMediaModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
-                >
-                  Vazgeç
-                </button>
-                <button
-                  type="submit"
-                  disabled={!newMediaUrl}
-                  className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold shadow-md shadow-brand-primary/20 disabled:opacity-50"
-                >
-                  Kütüphaneye Ekle
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        {isAddMediaModalOpen && (
+          <AddMediaModal
+            mediaUploadMode={mediaUploadMode}
+            setMediaUploadMode={setMediaUploadMode}
+            newMediaTitle={newMediaTitle}
+            setNewMediaTitle={setNewMediaTitle}
+            newMediaUrl={newMediaUrl}
+            setNewMediaUrl={setNewMediaUrl}
+            onSubmit={handleAddMediaSubmit}
+            onClose={() => setIsAddMediaModalOpen(false)}
+            getImageUrl={getImageUrl}
+          />
+        )}
 
       {/* ==================================================== */}
       {/* MODAL 8: LIGHTBOX (BÜYÜK BOYUT GÖRSEL İNCELEME) */}
       {/* ==================================================== */}
-      {selectedLightboxMedia && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-          <div className="bg-white dark:bg-surface-2 w-full max-w-4xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <div>
-                <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white">
-                  {selectedLightboxMedia.title}
-                </h3>
-                <span className="text-[11px] font-mono text-slate-400 truncate block max-w-md">
-                  {selectedLightboxMedia.url}
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedLightboxMedia(null)}
-                className="p-2 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800 transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="flex-1 bg-black/90 p-4 flex items-center justify-center overflow-hidden min-h-[350px]">
-              <img
-                src={getImageUrl(selectedLightboxMedia.url)}
-                alt={selectedLightboxMedia.title}
-                className="max-h-[60vh] max-w-full object-contain rounded-xl shadow-2xl"
-              />
-            </div>
-
-            <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-              <span className="text-xs text-slate-500 font-semibold">
-                Tür: {selectedLightboxMedia.type === 'system' ? 'Sistem Görseli' : selectedLightboxMedia.type === 'uploaded' ? 'Yüklenen Dosya' : 'Web URL'}
-              </span>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleCopyMediaUrl(selectedLightboxMedia.url)}
-                  className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-white text-xs font-bold flex items-center gap-1.5"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>Bağlantıyı Kopyala</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAssignMediaModal(selectedLightboxMedia);
-                    setSelectedLightboxMedia(null);
-                  }}
-                  className="px-4 py-2 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm"
-                >
-                  <Star className="w-3.5 h-3.5 fill-current" />
-                  <span>Bir Tura Kapak Yap</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        {selectedLightboxMedia && (
+          <MediaLightboxModal
+            media={selectedLightboxMedia}
+            onClose={() => setSelectedLightboxMedia(null)}
+            onCopyUrl={handleCopyMediaUrl}
+            onAssignToTour={() => {
+              setAssignMediaModal(selectedLightboxMedia);
+              setSelectedLightboxMedia(null);
+            }}
+            getImageUrl={getImageUrl}
+          />
+        )}
 
       {/* ==================================================== */}
       {/* MODAL 9: ASSIGN PHOTO AS TOUR COVER */}

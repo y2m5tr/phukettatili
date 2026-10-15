@@ -5,17 +5,40 @@ import GuestTicketPortal from '../../components/guest/GuestTicketPortal';
 import { initialBookings, type Booking } from '../../data/adminInitialData';
 import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../lib/server/supabaseAdmin';
 import { toGuestBookingView } from '../../lib/server/guestView';
+import { checkRateLimit } from '../../lib/server/rateLimit';
 import { rowToBooking } from '../../lib/supabase';
 import siteSettings from '../../content/settings/site.json';
 
 const codeParam = (Astro.params.code || '').trim();
 const cleanCode = codeParam.toUpperCase();
 
+// ---------------------------------------------------------------------------
+// Hız limiti — bilet kodu probe/brute-force denemelerini sınırlar.
+// IP başına dakikada 10 sorgu; kalıcı sayaç (Supabase rate_limits) tüm
+// serverless instance'larında ortaktır. 429 durumunda sayfa değil
+// basit bir mesaj render edilir — veritabanı sorgusuna hiç girilmez.
+// Localhost'ta (dev) IP hep aynı olduğundan limit yine de sayılır ama
+// sayfa testini zorlaştırmaz (dakikada 10 genelde yeterli).
+// ---------------------------------------------------------------------------
+const clientIp =
+  Astro.clientAddress ||
+  (Astro.request.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+  'unknown';
+
+const biletLimiter = await checkRateLimit('bilet', clientIp, 10, 60);
+if (!biletLimiter.allowed) {
+  Astro.response.status = 429;
+  Astro.response.headers.set('Retry-After', String(biletLimiter.retryAfterSeconds));
+}
+const isRateLimitedRequest = !biletLimiter.allowed;
+
 let booking: Booking | null = null;
 
-// 1. Supabase: önce tahmin edilemez BİLET KODU (PT-XXXXXXX), sonra eski
-//    kayıt id'si (BK-XXXX) — geriye dönük uyumluluk için.
-if (isSupabaseAdminConfigured()) {
+// Limit aşıldıysa veritabanı sorgusu hiç yapılmaz — probe trafiği
+// pahalı DB isteklerini tetikleyemez.
+if (isRateLimitedRequest) {
+  // bilinçli olarak sorgulanmaz
+} else if (isSupabaseAdminConfigured()) {
   const db = getSupabaseAdmin();
   if (db && cleanCode) {
     try {
@@ -51,7 +74,7 @@ if (isSupabaseAdminConfigured()) {
 // 2. Bulutta bulunamadıysa veya çevrimdışıysa yerel verilerden sorgula.
 //    ⚠️ Yalnızca TAM eşleşme: `.includes()` kısmi kodla (örn. "BK") başkasının
 //    kaydını getirirdi ve kodlar 4 haneye kadar tahmin edilebilir olurdu.
-if (!booking && cleanCode) {
+if (!booking && cleanCode && !isRateLimitedRequest) {
   const found = initialBookings.find(
     (b) => b.id.toUpperCase() === cleanCode || b.ticketCode?.toUpperCase() === cleanCode
   );
@@ -90,7 +113,18 @@ const managerPhone = siteSettings?.whatsappNumber || '66828950665';
     />
   </head>
   <body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
-    {booking ? (
+    {isRateLimitedRequest ? (
+      <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 text-center">
+          <p class="text-4xl mb-4">⏳</p>
+          <h1 class="text-xl font-bold text-white mb-2">Çok fazla sorgulama</h1>
+          <p class="text-sm text-slate-400 leading-relaxed">
+            Güvenlik için bilet sorgulama sayfası kısa süreliğine sınırlandırıldı.
+            Lütfen bir dakika sonra tekrar deneyin veya WhatsApp'tan bizimle iletişime geçin.
+          </p>
+        </div>
+      </div>
+    ) : booking ? (
       <GuestTicketPortal client:load booking={guestView!} managerPhone={managerPhone} />
     ) : (
       <div class="min-h-screen flex items-center justify-center p-4">

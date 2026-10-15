@@ -225,3 +225,38 @@ end $$;
 -- isteği (select/insert/update/delete) "row-level security" varsayılan
 -- reddiyle döner. Sinyal kanalı (broadcast) RLS'e tabi değildir ve
 -- çalışmaya devam eder.
+
+-- -----------------------------------------------------------------------------
+-- 9. CMS CONTENT STORE — yönetim panelinin canlı içerik kayıtları
+--
+-- Tur/blog/SSS/yorum/hizmet/medya/site ayarı düzenlemeleri artık buluta
+-- yazılır: ptt_cms_<koleksiyon> localStorage anahtarlarının karşılığı.
+-- Tek key-value tablo: her koleksiyon JSONB doküman olarak saklanır,
+-- /api/content üzerinden oturumlu (admin) isteklerle okunur/yazılır.
+-- RLS default deny — yalnızca servis rolü (sunucu) erişir.
+-- -----------------------------------------------------------------------------
+create table if not exists public.content_store (
+  key text primary key,           -- 'tours' | 'blogs' | 'faqs' | 'services' | 'testimonials' | 'media' | 'site-settings' | ...
+  data jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+alter table public.content_store enable row level security;
+drop policy if exists "content_store_anon_all" on public.content_store;
+
+-- -----------------------------------------------------------------------------
+-- 10. RATE LIMIT SAYAÇLARI — serverless'ta kalıcı brute-force koruması
+--
+-- In-memory sayaçlar her lambda instance'ında ayrı yaşar; dağıtık trafiği
+-- sayamaz. Bu tablo /ops-login ve /bilet/[code] sayaçlarını kalıcı tutar.
+-- Yazma yalnızca servis rolü üzerinden /api uçlarında yapılır; RLS default
+-- deny. Satırlar kısa ömürlüdür, pencere dolunca yeniden kullanılır.
+-- -----------------------------------------------------------------------------
+create table if not exists public.rate_limits (
+  bucket_key text primary key,      -- '<amac>:<ip>'
+  count integer not null default 0,
+  reset_at timestamptz not null
+);
+
+alter table public.rate_limits enable row level security;
+drop policy if exists "rate_limits_anon_all" on public.rate_limits;

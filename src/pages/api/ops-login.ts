@@ -12,6 +12,7 @@ import {
   retryAfterMs,
   verifyPasscode,
 } from '../../lib/auth';
+import { checkRateLimit, clearRateLimit } from '../../lib/server/rateLimit';
 
 /** Giriş yapılabilecek paneller — open-redirect'i engellemek için beyaz liste. */
 const ALLOWED_TARGETS: Record<string, 'admin' | 'field'> = {
@@ -43,6 +44,19 @@ export const POST: APIRoute = async ({ request, url, cookies, clientAddress }) =
     );
   }
 
+  // Kalıcı (cross-instance) limit: Supabase rate_limits tablosu.
+  // 15 dakikada 5 deneme — instance'lar arası da sayılır.
+  const persistent = await checkRateLimit('login', limiterKey, 5, 15 * 60);
+  if (!persistent.allowed) {
+    return Response.json(
+      {
+        error: 'rate_limited',
+        retryAfterMs: persistent.retryAfterSeconds * 1000,
+      },
+      { status: 429, headers: { 'Retry-After': String(persistent.retryAfterSeconds) } },
+    );
+  }
+
   let passcode = '';
   try {
     const body = (await request.json()) as { passcode?: unknown };
@@ -57,6 +71,7 @@ export const POST: APIRoute = async ({ request, url, cookies, clientAddress }) =
   }
 
   clearFailures(limiterKey);
+  await clearRateLimit('login', limiterKey);
   cookies.set(SESSION_COOKIE, createSessionValue(ALLOWED_TARGETS[target]), {
     path: '/',
     httpOnly: true,
