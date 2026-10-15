@@ -1,9 +1,10 @@
 ---
 export const prerender = false;
 
-import GuestTicketPortal, { type GuestBookingView } from '../../components/guest/GuestTicketPortal';
+import GuestTicketPortal from '../../components/guest/GuestTicketPortal';
 import { initialBookings, type Booking } from '../../data/adminInitialData';
 import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../lib/server/supabaseAdmin';
+import { toGuestBookingView } from '../../lib/server/guestView';
 import { rowToBooking } from '../../lib/supabase';
 import siteSettings from '../../content/settings/site.json';
 
@@ -60,32 +61,11 @@ if (!booking && cleanCode) {
 }
 
 /**
- * Misafire gönderilecek ASGARİ veri.
- *
- * Bu sayfa halka açıktır (oturum gerektirmez) ve Astro, island'a geçen her
- * prop'u HTML içine JSON olarak serileştirir. Tam `Booking` nesnesi
- * geçilirse maliyet, tedarikçi, alınan kapora, özel notlar, telefon, e-posta
- * ve YOLCU PASAPORT BİLGİLERİ sayfa kaynağında görünür hale gelir.
- * Bu yüzden yalnızca portalın gerçekten çizdiği alanlar seçilir.
+ * Misafire gönderilecek ASGARİ veri — dönüşüm ve izinli alan listesi
+ * src/lib/server/guestView.ts içinde tek kaynak olarak durur;
+ * test/guestView.test.ts sızıntı regression koruması sağlar.
  */
-const guestView: GuestBookingView | null = booking
-  ? {
-      id: booking.id,
-      customerName: booking.customerName,
-      hotel: booking.hotel,
-      roomNumber: booking.roomNumber,
-      tourTitle: booking.tourTitle,
-      tourDate: booking.tourDate,
-      pickupTime: booking.pickupTime,
-      adultCount: booking.adultCount,
-      childCount: booking.childCount,
-      remainingAmountThb: booking.remainingAmountThb,
-      nationalParkFeeIncluded: booking.nationalParkFeeIncluded ?? false,
-      assignedVehicle: booking.assignedVehicle,
-      // Pasaport/uyruk/doğum tarihi GÖNDERİLMEZ — portal yalnızca isim çizer.
-      passengerNames: (booking.passengers ?? []).map((p) => p.fullName),
-    }
-  : null;
+const guestView = toGuestBookingView(booking);
 
 const managerPhone = siteSettings?.whatsappNumber || '66828950665';
 ---

@@ -63,6 +63,14 @@ import {
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
 import SupplierSettlementManager from './SupplierSettlementManager';
+import SettingsTab, { type SiteSettingsState } from './SettingsTab';
+import WhatsAppTab from './WhatsAppTab';
+import TestimonialsTab from './TestimonialsTab';
+import FaqsTab from './FaqsTab';
+import BlogsTab from './BlogsTab';
+import ServicesTab from './ServicesTab';
+import MediaTab from './MediaTab';
+import ToursTab from './ToursTab';
 import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
 import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
 import {
@@ -273,16 +281,6 @@ export const NAV_ITEMS: NavItem[] = [
 export const PRIMARY_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'operations');
 export const CMS_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'content');
 export const SYSTEM_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'system');
-
-interface SiteSettingsState {
-  whatsappNumber: string;
-  email: string;
-  siteTitle: string;
-  instagramUrl: string;
-  heroTitle: string;
-  heroSubtitle: string;
-  heroImage: string;
-}
 
 interface AdminDashboardProps {
   initialTours: TourItem[];
@@ -2596,823 +2594,108 @@ export default function AdminDashboard({
         {/* TAB 3: TOURS & PRICES */}
         {/* ==================================================== */}
         {activeTab === 'tours' && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-surface-2 p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                  Turlar & Fiyat Yönetimi ({tours.length})
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Tur ekleyin, kapak görselini seçin, fiyatları güncelleyin veya silin.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <input
-                  type="text"
-                  value={tourSearchQuery}
-                  onChange={(e) => setTourSearchQuery(e.target.value)}
-                  placeholder="Tur ara..."
-                  className="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
-                />
-                {/* Kategori filtresi — tourCategoryFilter state'i eskiden ölüydü.
-                    Turlar categories alanıyla geliyor; mevcut kategoriler dinamik türetilir. */}
-                <select
-                  value={tourCategoryFilter}
-                  onChange={(e) => setTourCategoryFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 focus:outline-none"
-                >
-                  <option value="all">Tüm Kategoriler</option>
-                  {tourCategoryOptions.map((cat) => (
-                    <option key={cat} value={cat}>{cat}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={handleOpenCreateTour}
-                  className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Yeni Tur Ekle</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredTours.map((t) => (
-                <div
-                  key={t.id}
-                  className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col hover:border-brand-accent/50 transition-colors"
-                >
-                  <div className="h-44 relative bg-slate-100 dark:bg-slate-900">
-                    <img
-                      src={getImageUrl(t.image)}
-                      alt={t.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/phuket_hero.webp';
-                      }}
-                    />
-                    <div className="absolute top-3 left-3">
-                      <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white border border-white/20">
-                        {t.categoryLabel || t.category}
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => handleToggleTourFeatured(t.id)}
-                      className={`absolute top-3 right-3 p-1.5 rounded-full text-xs font-bold transition-all ${
-                        t.featured ? 'bg-amber-500 text-white shadow-md' : 'bg-black/50 text-slate-300 hover:text-white'
-                      }`}
-                      title={t.featured ? 'Öne Çıkarılan' : 'Öne Çıkar'}
-                    >
-                      <Star className="w-3.5 h-3.5 fill-current" />
-                    </button>
-                  </div>
-
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white line-clamp-1">
-                        {t.title}
-                      </h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{t.duration || 'Tam Gün'}</span>
-                      </p>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Kişi Başı Ücret:</span>
-                        <span className="font-extrabold text-base text-brand-primary dark:text-white">
-                          {t.priceThb > 0 ? `${t.priceThb.toLocaleString()} THB` : 'Teklif Alın'}
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenEditTour(t)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
-                          title="Tüm Ayrıntılarıyla Düzenle"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <a
-                          href={`/turlar/${t.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-accent hover:text-white transition-colors"
-                          title="Sitede Gör"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                        </a>
-                        <button
-                          onClick={() => handleDeleteTour(t.id, t.title)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
-                          title="Sil"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ToursTab
+            tours={tours}
+            filteredTours={filteredTours}
+            tourSearchQuery={tourSearchQuery}
+            setTourSearchQuery={setTourSearchQuery}
+            tourCategoryFilter={tourCategoryFilter}
+            setTourCategoryFilter={setTourCategoryFilter}
+            tourCategoryOptions={tourCategoryOptions}
+            getImageUrl={getImageUrl}
+            onOpenCreate={handleOpenCreateTour}
+            onOpenEdit={handleOpenEditTour}
+            onToggleFeatured={handleToggleTourFeatured}
+            onDelete={handleDeleteTour}
+          />
         )}
 
         {/* ==================================================== */}
         {/* TAB: MEDIA & PHOTO LIBRARY */}
         {/* ==================================================== */}
         {activeTab === 'media' && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-surface-2 p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                    Medya & Fotoğraf Kütüphanesi ({filteredMedia.length})
-                  </h2>
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-brand-accent/10 text-brand-accent border border-brand-accent/20">
-                    Görsel Yönetim Merkezi
-                  </span>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Bilgisayarınızdan fotoğraf yükleyin, harici web URL'leri ekleyin veya mevcut sistem fotoğraflarını yönetin.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2.5">
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={mediaSearchQuery}
-                    onChange={(e) => setMediaSearchQuery(e.target.value)}
-                    placeholder="Fotoğraf ara..."
-                    className="w-48 sm:w-56 px-3.5 py-2 pl-9 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
-                  />
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-                </div>
-
-                <div className="flex items-center bg-slate-100 dark:bg-slate-900 rounded-xl p-1 text-xs font-semibold">
-                  <button
-                    onClick={() => setMediaTypeFilter('all')}
-                    className={`px-2.5 py-1 rounded-lg transition-colors ${
-                      mediaTypeFilter === 'all'
-                        ? 'bg-white dark:bg-slate-800 text-brand-primary dark:text-white shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    Tümü
-                  </button>
-                  <button
-                    onClick={() => setMediaTypeFilter('system')}
-                    className={`px-2.5 py-1 rounded-lg transition-colors ${
-                      mediaTypeFilter === 'system'
-                        ? 'bg-white dark:bg-slate-800 text-brand-primary dark:text-white shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    Sistem
-                  </button>
-                  <button
-                    onClick={() => setMediaTypeFilter('uploaded')}
-                    className={`px-2.5 py-1 rounded-lg transition-colors ${
-                      mediaTypeFilter === 'uploaded'
-                        ? 'bg-white dark:bg-slate-800 text-brand-primary dark:text-white shadow-xs'
-                        : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                    }`}
-                  >
-                    Yüklenenler
-                  </button>
-                </div>
-
-                <label className="cursor-pointer px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all">
-                  <Upload className="w-4 h-4" />
-                  <span>Fotoğraf Yükle</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileUpload(file);
-                      e.target.value = '';
-                    }}
-                  />
-                </label>
-
-                <button
-                  onClick={() => {
-                    setMediaUploadMode('url');
-                    setNewMediaTitle('');
-                    setNewMediaUrl('');
-                    setIsAddMediaModalOpen(true);
-                  }}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-bold flex items-center gap-1.5"
-                >
-                  <ExternalLink className="w-4 h-4" />
-                  <span>URL Ekle</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Media Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {filteredMedia.map((m) => {
-                const resolvedUrl = getImageUrl(m.url);
-                return (
-                  <div
-                    key={m.id}
-                    className="group bg-white dark:bg-surface-2 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs hover:border-brand-accent/50 hover:shadow-md transition-all flex flex-col"
-                  >
-                    <div className="relative aspect-square bg-slate-100 dark:bg-slate-900 overflow-hidden">
-                      <img
-                        src={resolvedUrl}
-                        alt={m.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        loading="lazy"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/assets/phuket_hero.webp';
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 p-2">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedLightboxMedia(m)}
-                          className="p-2 rounded-xl bg-white/95 text-slate-900 hover:bg-white shadow-md transform hover:scale-110 transition-transform"
-                          title="Büyük Boyut İncele"
-                        >
-                          <Maximize2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleCopyMediaUrl(m.url)}
-                          className="p-2 rounded-xl bg-white/95 text-slate-900 hover:bg-white shadow-md transform hover:scale-110 transition-transform"
-                          title="Görsel Adını / Linkini Kopyala"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setAssignMediaModal(m)}
-                          className="p-2 rounded-xl bg-brand-accent text-white hover:bg-brand-accent/90 shadow-md transform hover:scale-110 transition-transform"
-                          title="Bir Tura Kapak Yap"
-                        >
-                          <Star className="w-3.5 h-3.5 fill-current" />
-                        </button>
-                      </div>
-
-                      <span
-                        className={`absolute top-2 left-2 px-1.5 py-0.5 rounded-md text-[9px] font-extrabold uppercase tracking-wider backdrop-blur-md ${
-                          m.type === 'system'
-                            ? 'bg-slate-900/70 text-slate-200 border border-white/20'
-                            : m.type === 'uploaded'
-                            ? 'bg-emerald-600/90 text-white'
-                            : 'bg-blue-600/90 text-white'
-                        }`}
-                      >
-                        {m.type === 'system' ? 'Sistem' : m.type === 'uploaded' ? 'Yüklendi' : 'URL'}
-                      </span>
-                    </div>
-
-                    <div className="p-3 flex-1 flex flex-col justify-between">
-                      <div>
-                        <h4 className="font-bold text-xs text-slate-900 dark:text-white truncate" title={m.title}>
-                          {m.title}
-                        </h4>
-                        <p className="text-[10px] text-slate-400 font-mono truncate mt-0.5" title={m.url}>
-                          {m.url.startsWith('data:') ? 'Özel Dosya (Base64)' : m.url}
-                        </p>
-                      </div>
-
-                      <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                        <button
-                          type="button"
-                          onClick={() => handleCopyMediaUrl(m.url)}
-                          className="text-brand-accent hover:underline font-semibold flex items-center gap-1"
-                        >
-                          <Copy className="w-3 h-3" />
-                          <span>Kopyala</span>
-                        </button>
-
-                        {m.type !== 'system' && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteMedia(m.id, m.title)}
-                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                            title="Fotoğrafı Sil"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <MediaTab
+            mediaSearchQuery={mediaSearchQuery}
+            setMediaSearchQuery={setMediaSearchQuery}
+            mediaTypeFilter={mediaTypeFilter}
+            setMediaTypeFilter={setMediaTypeFilter}
+            filteredMedia={filteredMedia}
+            getImageUrl={getImageUrl}
+            handleFileUpload={handleFileUpload}
+            onOpenUrlModal={() => {
+              setMediaUploadMode('url');
+              setNewMediaTitle('');
+              setNewMediaUrl('');
+              setIsAddMediaModalOpen(true);
+            }}
+            setSelectedLightboxMedia={setSelectedLightboxMedia}
+            setAssignMediaModal={setAssignMediaModal}
+            handleCopyMediaUrl={handleCopyMediaUrl}
+            handleDeleteMedia={handleDeleteMedia}
+          />
         )}
 
         {/* ==================================================== */}
         {/* TAB 4: SERVICES MANAGEMENT */}
         {/* ==================================================== */}
         {activeTab === 'services' && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800">
-              <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                Hizmet Sayfaları Yönetimi ({services.length})
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Transferler, Oteller, Tatil Paketleri ve VIP Hizmetler sayfalarının başlık ve içeriklerini düzenleyin.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              {services.map((s) => (
-                <div
-                  key={s.slug}
-                  className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-[11px] font-bold uppercase tracking-wider text-brand-accent">
-                        {s.eyebrow || 'Hizmet'}
-                      </span>
-                      <span className="font-mono text-xs text-slate-400">/{s.slug}</span>
-                    </div>
-                    <h3 className="font-bold text-lg text-slate-900 dark:text-white">{s.title}</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 line-clamp-3 leading-relaxed">
-                      {s.intro}
-                    </p>
-                  </div>
-
-                  <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <a
-                      href={`/${s.slug}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs font-semibold text-brand-accent hover:underline flex items-center gap-1"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>Sayfayı Canlı Gör</span>
-                    </a>
-                    <button
-                      onClick={() => handleOpenEditService(s)}
-                      className="px-4 py-2 rounded-xl bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary/90 flex items-center gap-1.5"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                      <span>Düzenle</span>
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ServicesTab services={services} onOpenEdit={handleOpenEditService} />
         )}
 
         {/* ==================================================== */}
         {/* TAB 5: BLOG ARTICLES */}
         {/* ==================================================== */}
         {activeTab === 'blogs' && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                  Blog & Gezi Rehberi Yönetimi ({blogs.length})
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Yeni rehber yazısı ekleyin, kapak görsellerini ve özetlerini düzenleyin.
-                </p>
-              </div>
-              <button
-                onClick={handleOpenCreateBlog}
-                className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Yeni Yazı Ekle</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {blogs.map((b) => (
-                <div
-                  key={b.id}
-                  className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm flex flex-col"
-                >
-                  <div className="h-40 relative bg-slate-100 dark:bg-slate-900">
-                    <img
-                      src={`/assets/${b.cover_image}`}
-                      alt={b.title}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src = '/assets/pileh.webp';
-                      }}
-                    />
-                    <div className="absolute top-3 left-3">
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white">
-                        {b.date}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-5 flex-1 flex flex-col justify-between">
-                    <div>
-                      <h3 className="font-bold text-sm text-slate-900 dark:text-white line-clamp-1">{b.title}</h3>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5 line-clamp-2">{b.excerpt}</p>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                      <a
-                        href={`/blog/${b.id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-brand-accent hover:underline flex items-center gap-1"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>Oku</span>
-                      </a>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenEditBlog(b)}
-                          className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white"
-                        >
-                          <Edit2 className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteBlog(b.id, b.title)}
-                          className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <BlogsTab
+            blogs={blogs}
+            onOpenCreate={handleOpenCreateBlog}
+            onOpenEdit={handleOpenEditBlog}
+            onDelete={handleDeleteBlog}
+          />
         )}
 
         {/* ==================================================== */}
         {/* TAB 6: FAQS */}
         {/* ==================================================== */}
         {activeTab === 'faqs' && (
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                  Sıkça Sorulan Sorular (FAQ) ({faqs.length})
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Ana sayfada yer alan SSS akordiyon sorularını ve cevaplarını yönetin.
-                </p>
-              </div>
-              <button
-                onClick={handleOpenCreateFaq}
-                className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Yeni Soru Ekle</span>
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {faqs.map((f, idx) => (
-                <div
-                  key={f.id}
-                  className="bg-white dark:bg-surface-2 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex items-start justify-between gap-4"
-                >
-                  <div className="flex-1">
-                    <span className="text-[11px] font-bold text-brand-accent block mb-1">Soru #{idx + 1}</span>
-                    <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-1.5">{f.question}</h3>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{f.answer}</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    <button
-                      onClick={() => handleOpenEditFaq(f)}
-                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white"
-                    >
-                      <Edit2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteFaq(f.id)}
-                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <FaqsTab
+            faqs={faqs}
+            onOpenCreate={handleOpenCreateFaq}
+            onOpenEdit={handleOpenEditFaq}
+            onDelete={handleDeleteFaq}
+          />
         )}
 
         {/* ==================================================== */}
         {/* TAB 7: TESTIMONIALS */}
         {/* ==================================================== */}
         {activeTab === 'testimonials' && (
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                  Müşteri Yorumları ({testimonials.length})
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Ana sayfadaki gerçek tatilci yorumlarını, puanlarını ve çift isimlerini yönetin.
-                </p>
-              </div>
-              <button
-                onClick={handleOpenCreateTesti}
-                className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Yeni Yorum Ekle</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {testimonials.map((t) => (
-                <div
-                  key={t.id}
-                  className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center text-amber-400 gap-0.5">
-                        {Array.from({ length: t.stars || 5 }).map((_, i) => (
-                          <Star key={i} className="w-4 h-4 fill-current" />
-                        ))}
-                      </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                        {t.type}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 italic mb-4 leading-relaxed">
-                      "{t.text}"
-                    </p>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-xs text-slate-900 dark:text-white">{t.name}</div>
-                      <div className="text-[11px] text-brand-accent">{t.tour}</div>
-                    </div>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => handleOpenEditTesti(t)}
-                        className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteTesti(t.id, t.name)}
-                        className="p-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <TestimonialsTab
+            testimonials={testimonials}
+            onOpenCreate={handleOpenCreateTesti}
+            onOpenEdit={handleOpenEditTesti}
+            onDelete={handleDeleteTesti}
+          />
         )}
 
         {/* ==================================================== */}
         {/* TAB 8: WHATSAPP TEMPLATES */}
         {/* ==================================================== */}
-        {activeTab === 'whatsapp' && (
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div className="bg-white dark:bg-surface-2 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-3 rounded-2xl bg-[#25D366]/10 text-[#25D366]">
-                  <MessageCircle className="w-6 h-6" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
-                    WhatsApp Otomatik Şablon Merkezi
-                  </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Misafirlerinize tur öncesi ve sonrası gönderebileceğiniz profesyonel Türkçe mesaj şablonları
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 mb-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                    <span>1. Tur Öncesi Otel Alınış Hatırlatması</span>
-                  </h3>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 font-mono text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed border border-slate-100 dark:border-slate-800">
-                    {`Merhaba [İsim] Bey/Hanım! 🌴 Phuket Tatili ekibinden yazıyoruz.
-
-📅 Yarınki turunuz: [Tur Adı]
-⏰ Otelden Alınış Saati: [07:30]
-📍 Otel: [Otel Adı] (Oda: [304])
-👥 Kişi Sayısı: [2 Yetişkin]
-💰 Kalan Ödeme: [4.000 THB]
-
-Lütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Harika bir gün dileriz! 🇹🇭`}
-                  </div>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-3">
-                  👉 Müşteriler sekmesindeki her satırın yanındaki yeşil WhatsApp butonuna basınca bu mesaj otomatik dolar.
-                </p>
-              </div>
-
-              <div className="bg-white dark:bg-surface-2 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between">
-                <div>
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2 mb-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                    <span>2. Tur Sonrası Yorum & Memnuniyet Talebi</span>
-                  </h3>
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 font-mono text-xs text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed border border-slate-100 dark:border-slate-800">
-                    {`Merhaba [İsim] Bey/Hanım! Umarız bugünkü turunuz harika geçmiştir. 🏝️✨
-
-Sizlerin memnuniyeti bizim için çok değerli. Deneyiminizi birkaç cümleyle değerlendirmek ister misiniz? 
-
-Görüşlerinizi web sitemizde ve Google haritalarda diğer Türk tatilcilerle paylaşmaktan mutluluk duyarız. İyi tatiller! 🙏`}
-                  </div>
-                </div>
-                <p className="text-[11px] text-slate-400 mt-3">
-                  👉 Tur bittikten sonra misafirden Google yorumu almak için idealdir.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        {activeTab === 'whatsapp' && <WhatsAppTab />}
 
         {/* ==================================================== */}
         {/* TAB 9: SITE & HERO SETTINGS */}
         {/* ==================================================== */}
         {activeTab === 'settings' && (
-          <div className="max-w-3xl mx-auto space-y-6">
-            <div className="bg-white dark:bg-surface-2 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
-              <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white mb-1">
-                Genel İletişim & Ana Sayfa (Hero) Ayarları
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mb-6">
-                WhatsApp hattını, site başlığını ve ana sayfanın en üstündeki karşılama metinlerini düzenleyin.
-              </p>
-
-              <form onSubmit={handleSaveSettings} className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
-                      WhatsApp Numarası
-                    </label>
-                    <input
-                      type="text"
-                      value={siteSettings.whatsappNumber}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, whatsappNumber: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
-                    />
-                    <span className="text-[11px] text-slate-400 mt-1 block">Ülke koduyla, örn: 66828950665</span>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
-                      İletişim E-posta Adresi
-                    </label>
-                    <input
-                      type="email"
-                      value={siteSettings.email}
-                      onChange={(e) => setSiteSettings({ ...siteSettings, email: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
-                    Instagram Profil Linki
-                  </label>
-                  <input
-                    type="url"
-                    value={siteSettings.instagramUrl}
-                    onChange={(e) => setSiteSettings({ ...siteSettings, instagramUrl: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
-                  />
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-3">
-                    Ana Sayfa Karşılama Alanı (Hero)
-                  </h3>
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
-                        Büyük Başlık (Hero Title)
-                      </label>
-                      <input
-                        type="text"
-                        value={siteSettings.heroTitle}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, heroTitle: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
-                        Alt Açıklama (Hero Subtitle)
-                      </label>
-                      <textarea
-                        rows={2}
-                        value={siteSettings.heroSubtitle}
-                        onChange={(e) => setSiteSettings({ ...siteSettings, heroSubtitle: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
-                          Hero Arka Plan Fotoğrafı
-                        </label>
-                        <label className="cursor-pointer px-3 py-1 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
-                          <Upload className="w-3.5 h-3.5" />
-                          <span>Yeni Fotoğraf Yükle</span>
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file) {
-                                handleFileUpload(file, (url) => {
-                                  setSiteSettings({ ...siteSettings, heroImage: url });
-                                });
-                              }
-                              e.target.value = '';
-                            }}
-                          />
-                        </label>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
-                        <select
-                          value={siteSettings.heroImage || 'phuket_hero.webp'}
-                          onChange={(e) => setSiteSettings({ ...siteSettings, heroImage: e.target.value })}
-                          className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
-                        >
-                          {allImageOptions.map((img) => (
-                            <option key={img} value={img}>
-                              {img.startsWith('data:') ? 'Özel Yüklenen Görsel' : img}
-                            </option>
-                          ))}
-                        </select>
-
-                        <input
-                          type="text"
-                          placeholder="veya direkt görsel URL'si girin..."
-                          value={siteSettings.heroImage || ''}
-                          onChange={(e) => setSiteSettings({ ...siteSettings, heroImage: e.target.value })}
-                          className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
-                        />
-                      </div>
-
-                      {siteSettings.heroImage && (
-                        <div className="flex items-center gap-3 mt-3 p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
-                          <img
-                            src={getImageUrl(siteSettings.heroImage)}
-                            alt="Hero Önizleme"
-                            className="w-20 h-12 object-cover rounded-lg border border-slate-300 dark:border-slate-700"
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = '/assets/phuket_hero.webp';
-                            }}
-                          />
-                          <span className="text-xs font-mono text-slate-600 dark:text-slate-400 truncate">
-                            {siteSettings.heroImage}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-4 flex items-center justify-between border-t border-slate-100 dark:border-slate-800">
-                  {settingsSaved ? (
-                    <span className="text-emerald-600 font-bold text-xs flex items-center gap-1.5">
-                      <Check className="w-4 h-4" /> Ayarlar kaydedildi!
-                    </span>
-                  ) : (
-                    <span />
-                  )}
-
-                  <button
-                    type="submit"
-                    className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-2"
-                  >
-                    <Save className="w-4 h-4" />
-                    <span>Ayarları Kaydet</span>
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+          <SettingsTab
+            siteSettings={siteSettings}
+            setSiteSettings={setSiteSettings}
+            settingsSaved={settingsSaved}
+            onSave={handleSaveSettings}
+            getImageUrl={getImageUrl}
+            handleFileUpload={handleFileUpload}
+            allImageOptions={allImageOptions}
+          />
         )}
 
       </main>
