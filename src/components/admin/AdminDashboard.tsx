@@ -30,12 +30,17 @@ import {
   Bus,
   Zap,
   Wallet,
+  Building,
+  Ship,
 } from 'lucide-react';
 import {
   initialBookings,
   initialVehicles,
   initialDrivers,
   initialPayments,
+  initialAgents,
+  initialSuppliers,
+  initialTourCosts,
   type Booking,
   type BookingTourSchedule,
   type TourItem,
@@ -48,6 +53,11 @@ import {
   type DriverItem,
   type PassengerItem,
   type PaymentRecord,
+  type PartnerAgent,
+  type SupplierItem,
+  type TourCostItem,
+  calculateAgentCommission,
+  lookupTourCost,
 } from '../../data/adminInitialData';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
@@ -65,6 +75,8 @@ import TransfersTab from './TransfersTab';
 import OverviewTab from './OverviewTab';
 import BookingsTab from './BookingsTab';
 import FinanceTab from './FinanceTab';
+import PartnersTab from './PartnersTab';
+import SuppliersTab from './SuppliersTab';
 import TestimonialModal from './TestimonialModal';
 import FaqModal from './FaqModal';
 import ServiceModal from './ServiceModal';
@@ -96,6 +108,9 @@ const STORAGE_KEY_MEDIA = 'phuket_tatili_crm_media_v2';
 const STORAGE_KEY_VEHICLES = 'phuket_tatili_crm_vehicles_v1';
 const STORAGE_KEY_DRIVERS = 'phuket_tatili_crm_drivers_v1';
 const STORAGE_KEY_PAYMENTS = 'phuket_tatili_crm_payments_v1';
+const STORAGE_KEY_AGENTS = 'phuket_tatili_crm_agents_v1';
+const STORAGE_KEY_SUPPLIERS = 'phuket_tatili_crm_suppliers_v1';
+const STORAGE_KEY_TOUR_COSTS = 'phuket_tatili_crm_tour_costs_v1';
 
 /* ---------------------------------------------------------------------------
    PANEL MENÜSÜ — tek kaynak
@@ -106,7 +121,7 @@ const STORAGE_KEY_PAYMENTS = 'phuket_tatili_crm_payments_v1';
    ------------------------------------------------------------------------- */
 
 export type AdminTab =
-  | 'overview' | 'bookings' | 'finance' | 'transfers' | 'settlements' | 'fleet'
+  | 'overview' | 'bookings' | 'finance' | 'transfers' | 'partners' | 'settlements' | 'suppliers' | 'fleet'
   | 'tours' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
   | 'whatsapp' | 'settings' | 'users';
 
@@ -202,13 +217,31 @@ export const NAV_ITEMS: NavItem[] = [
     hotkey: '4',
   },
   {
+    id: 'partners',
+    label: 'Acenta & B2B',
+    shortLabel: 'Acenta',
+    category: 'operations',
+    icon: Building,
+    description: 'Partner alt acentalar, otel rehberleri ve komisyon carileri',
+    hotkey: '5',
+  },
+  {
     id: 'settlements',
     label: 'Hakediş & Kâr',
     shortLabel: 'Hakediş',
     category: 'operations',
     icon: DollarSign,
     description: 'Tedarikçi ödemeleri, kâr marjı ve mutabakat ekstresi',
-    hotkey: '5',
+    hotkey: '6',
+  },
+  {
+    id: 'suppliers',
+    label: 'Tedarikçi Kataloğu',
+    shortLabel: 'Tedarikçi',
+    category: 'operations',
+    icon: Ship,
+    description: 'Tekne firmaları ve net tur alış fiyat matrisi',
+    hotkey: '7',
   },
   {
     id: 'fleet',
@@ -217,7 +250,7 @@ export const NAV_ITEMS: NavItem[] = [
     category: 'operations',
     icon: Bus,
     description: 'Minibüsler, şoförler ve araç rotalama',
-    hotkey: '5',
+    hotkey: '8',
   },
 
   // 🌐 WEB & İÇERİK (CMS)
@@ -532,6 +565,80 @@ export default function AdminDashboard({
     savePayments([newRecord, ...payments]);
   };
 
+  // 1.7 ERP B2B Partner & Alt Acentalar State'i (Faz 2)
+  const [agents, setAgents] = useState<PartnerAgent[]>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem(STORAGE_KEY_AGENTS);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch { /* ignore */ }
+      }
+    }
+    return initialAgents;
+  });
+
+  const saveAgents = (next: PartnerAgent[]) => {
+    setAgents(next);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEY_AGENTS, JSON.stringify(next));
+      } catch { /* ignore */ }
+    }
+    saveCmsCollection('agents', next, () =>
+      showToast('⚠️ Bulut yazma hatası: acenta kayıtları buluta kaydedilemedi.')
+    );
+  };
+
+  // 1.8 ERP Tedarikçi Kataloğu & Net Alış Fiyatları State'i (Faz 3)
+  const [suppliers, setSuppliers] = useState<SupplierItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem(STORAGE_KEY_SUPPLIERS);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch { /* ignore */ }
+      }
+    }
+    return initialSuppliers;
+  });
+
+  const saveSuppliers = (next: SupplierItem[]) => {
+    setSuppliers(next);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEY_SUPPLIERS, JSON.stringify(next));
+      } catch { /* ignore */ }
+    }
+    saveCmsCollection('suppliers', next, () =>
+      showToast('⚠️ Bulut yazma hatası: tedarikçi kayıtları buluta kaydedilemedi.')
+    );
+  };
+
+  const [tourCosts, setTourCosts] = useState<TourCostItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem(STORAGE_KEY_TOUR_COSTS);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch { /* ignore */ }
+      }
+    }
+    return initialTourCosts;
+  });
+
+  const saveTourCosts = (next: TourCostItem[]) => {
+    setTourCosts(next);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEY_TOUR_COSTS, JSON.stringify(next));
+      } catch { /* ignore */ }
+    }
+    saveCmsCollection('tour-costs', next, () =>
+      showToast('⚠️ Bulut yazma hatası: tur maliyet kayıtları buluta kaydedilemedi.')
+    );
+  };
+
   // 2. Tours State
   const [tours, setTours] = useState<TourItem[]>([]);
   const [tourSearchQuery, setTourSearchQuery] = useState<string>('');
@@ -728,6 +835,16 @@ export default function AdminDashboard({
       const savedDrivers = localStorage.getItem(STORAGE_KEY_DRIVERS);
       setDrivers(savedDrivers ? JSON.parse(savedDrivers) : initialDrivers);
 
+      // Load B2B Partners, Suppliers & Tour Costs (Faz 2 & 3 ERP)
+      const savedAgents = localStorage.getItem(STORAGE_KEY_AGENTS);
+      setAgents(savedAgents ? JSON.parse(savedAgents) : initialAgents);
+
+      const savedSuppliers = localStorage.getItem(STORAGE_KEY_SUPPLIERS);
+      setSuppliers(savedSuppliers ? JSON.parse(savedSuppliers) : initialSuppliers);
+
+      const savedTourCosts = localStorage.getItem(STORAGE_KEY_TOUR_COSTS);
+      setTourCosts(savedTourCosts ? JSON.parse(savedTourCosts) : initialTourCosts);
+
       // Load Media
       const savedMedia = localStorage.getItem(STORAGE_KEY_MEDIA);
       if (savedMedia) {
@@ -779,6 +896,9 @@ export default function AdminDashboard({
         apply('vehicles', setVehicles, initialVehicles);
         apply('drivers', setDrivers, initialDrivers);
         apply('payments', setPayments, initialPayments);
+        apply('agents', setAgents, initialAgents);
+        apply('suppliers', setSuppliers, initialSuppliers);
+        apply('tour-costs', setTourCosts, initialTourCosts);
       })();
     } catch {
       setBookings(initialBookings);
@@ -1109,6 +1229,13 @@ export default function AdminDashboard({
         nationalParkFeeIncluded: formData.nationalParkFeeIncluded ?? false,
         status: (formData.status as Booking['status']) || 'confirmed',
         paymentStatus,
+        depositMethod: formData.depositMethod,
+        collectionLocation: formData.collectionLocation,
+        balanceCollector: formData.balanceCollector,
+        agentId: formData.agentId,
+        agentName: formData.agentName,
+        agentCommissionThb: formData.agentCommissionThb,
+        agentCommissionStatus: formData.agentCommissionStatus,
         specialNotes: formData.specialNotes,
         // Misafir bilet portalı kodu — id tahmin edilebilir olduğu için
         // ayrı rastgele kod atanır (misafire WhatsApp'tan bu gönderilir).
@@ -2012,6 +2139,33 @@ export default function AdminDashboard({
         )}
 
         {/* ==================================================== */}
+        {/* TAB 2.7: B2B PARTNER & SUB-AGENCY PORTAL (FAZ 2) */}
+        {/* ==================================================== */}
+        {activeTab === 'partners' && (
+          <PartnersTab
+            agents={agents}
+            bookings={bookings}
+            onSaveAgents={saveAgents}
+            showToast={showToast}
+            managerPhone={siteSettings.whatsappNumber}
+          />
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB 2.8: TEDARİKÇİ & NET MALİYET KATALOĞU (FAZ 3) */}
+        {/* ==================================================== */}
+        {activeTab === 'suppliers' && (
+          <SuppliersTab
+            suppliers={suppliers}
+            tourCosts={tourCosts}
+            tours={tours}
+            onSaveSuppliers={saveSuppliers}
+            onSaveTourCosts={saveTourCosts}
+            showToast={showToast}
+          />
+        )}
+
+        {/* ==================================================== */}
         {/* TAB 3: TOURS & PRICES */}
         {/* ==================================================== */}
         {activeTab === 'tours' && (
@@ -2503,7 +2657,99 @@ export default function AdminDashboard({
                 </div>
               </div>
 
-              {/* Cost & Supplier & Profit Row */}
+              {/* B2B Partner / Acenta & Komisyon Paneli (Faz 2 ERP) */}
+              <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-200/80 dark:border-indigo-900/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-indigo-800 dark:text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Building className="w-3.5 h-3.5" />
+                    B2B Partner & Alt Acenta Komisyonu
+                  </span>
+                  {formData.agentId && (Number(formData.agentCommissionThb) || 0) > 0 && (
+                    <span className="text-xs font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md">
+                      Komisyon: {(Number(formData.agentCommissionThb) || 0).toLocaleString()} THB ({formData.agentCommissionStatus === 'settled' ? 'Ödendi / Kapatıldı' : formData.agentCommissionStatus === 'cancelled' ? 'İptal' : 'Ödeme Bekliyor'})
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Yönlendiren Acenta / Partner
+                    </label>
+                    <select
+                      value={formData.agentId || ''}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        if (!selectedId) {
+                          setFormData({
+                            ...formData,
+                            agentId: undefined,
+                            agentName: undefined,
+                            agentCommissionThb: 0,
+                            agentCommissionStatus: 'pending',
+                          });
+                          return;
+                        }
+                        const selectedAgent = agents.find((a) => a.id === selectedId);
+                        if (selectedAgent) {
+                          const comm = calculateAgentCommission(
+                            selectedAgent,
+                            Number(formData.totalPriceThb) || 0,
+                            Number(formData.adultCount) || 1,
+                            Number(formData.childCount) || 0
+                          );
+                          setFormData({
+                            ...formData,
+                            agentId: selectedAgent.id,
+                            agentName: selectedAgent.name,
+                            agentCommissionThb: comm,
+                            agentCommissionStatus: formData.agentCommissionStatus || 'pending',
+                          });
+                        }
+                      }}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 text-xs focus:outline-none font-medium"
+                    >
+                      <option value="">Doğrudan Satış / Acenta Yok</option>
+                      {agents.map((ag) => (
+                        <option key={ag.id} value={ag.id}>
+                          {ag.name} ({ag.commissionType === 'percentage' ? `%${ag.commissionRate}` : `${ag.commissionRate} THB/Pax`})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Hesaplanan Komisyon (THB)
+                    </label>
+                    <input
+                      type="number"
+                      value={formData.agentCommissionThb || 0}
+                      onChange={(e) => setFormData({ ...formData, agentCommissionThb: Number(e.target.value) })}
+                      disabled={!formData.agentId}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 text-xs font-bold text-indigo-700 dark:text-indigo-300 focus:outline-none disabled:opacity-50"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Komisyon Durumu
+                    </label>
+                    <select
+                      value={formData.agentCommissionStatus || 'pending'}
+                      onChange={(e) => setFormData({ ...formData, agentCommissionStatus: e.target.value as any })}
+                      disabled={!formData.agentId}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-indigo-200 dark:border-indigo-800 text-xs focus:outline-none font-medium disabled:opacity-50"
+                    >
+                      <option value="pending">⏳ Beklemede (Ödenecek)</option>
+                      <option value="settled">✅ Ödendi / Mutabakat Yapıldı</option>
+                      <option value="cancelled">❌ İptal Edildi</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Cost & Supplier & Profit Row (Faz 3 ERP) */}
               <div className="p-4 rounded-2xl bg-rose-50/40 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-rose-800 dark:text-rose-300 uppercase tracking-wider flex items-center gap-1.5">
@@ -2512,29 +2758,77 @@ export default function AdminDashboard({
                   </span>
                   {Number(formData.totalPriceThb || 0) > 0 && (
                     <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">
-                      Net Kâr: {Math.max(0, Number(formData.totalPriceThb || 0) - Number(formData.costThb || 0)).toLocaleString()} THB
+                      Net Kâr: {Math.max(0, Number(formData.totalPriceThb || 0) - Number(formData.costThb || 0) - (Number(formData.agentCommissionThb) || 0)).toLocaleString()} THB
                     </span>
                   )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
-                      Tedarikçi Firma / Tekne Sahibi
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400">
+                        Tedarikçi Firma / Tekne Sahibi
+                      </label>
+                      {formData.supplier && (
+                        <span className="text-[10px] text-brand-primary dark:text-brand-accent font-semibold">
+                          Kayıtlı Tedarikçiler
+                        </span>
+                      )}
+                    </div>
                     <input
                       type="text"
+                      list="registered-suppliers-list"
                       placeholder="Örn: Andaman Wave Master, Royal Phuket Marina vb."
                       value={formData.supplier || ''}
-                      onChange={(e) => setFormData({ ...formData, supplier: e.target.value })}
+                      onChange={(e) => {
+                        const sName = e.target.value;
+                        const primaryTour = formData.tours?.[0]?.tourTitle || formData.tourTitle;
+                        let newCost = formData.costThb;
+                        if (primaryTour && sName) {
+                          const costRule = lookupTourCost(tourCosts, primaryTour, sName);
+                          if (costRule) {
+                            const aCount = Number(formData.adultCount) || 1;
+                            const cCount = Number(formData.childCount) || 0;
+                            newCost = (costRule.netCostAdultThb * aCount) + (costRule.netCostChildThb * cCount);
+                          }
+                        }
+                        setFormData({ ...formData, supplier: sName, costThb: newCost });
+                      }}
                       className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs focus:outline-none"
                     />
+                    <datalist id="registered-suppliers-list">
+                      {suppliers.map((s) => (
+                        <option key={s.id} value={s.name} />
+                      ))}
+                    </datalist>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
-                      Toplam Alış / Maliyet Gideri (THB)
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400">
+                        Toplam Alış / Maliyet Gideri (THB)
+                      </label>
+                      {(() => {
+                        const primaryTour = formData.tours?.[0]?.tourTitle || formData.tourTitle;
+                        const match = primaryTour && formData.supplier ? lookupTourCost(tourCosts, primaryTour, formData.supplier) : null;
+                        if (!match) return null;
+                        return (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const aCount = Number(formData.adultCount) || 1;
+                              const cCount = Number(formData.childCount) || 0;
+                              const calc = (match.netCostAdultThb * aCount) + (match.netCostChildThb * cCount);
+                              setFormData({ ...formData, costThb: calc });
+                              showToast(`Matris uygulandı: ${calc.toLocaleString()} THB`);
+                            }}
+                            className="text-[10px] text-rose-600 hover:underline font-bold flex items-center gap-0.5"
+                          >
+                            ⚡ Matristen Doldur ({match.netCostAdultThb} THB/Pax)
+                          </button>
+                        );
+                      })()}
+                    </div>
                     <input
                       type="number"
                       placeholder="Tekneye ödenecek toplam tutar"

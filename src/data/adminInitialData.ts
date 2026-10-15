@@ -87,6 +87,11 @@ export interface Booking {
   collectionLocation?: CollectionLocation;
   depositMethod?: PaymentMethod;
   balanceCollector?: string;
+  // B2B & Acenta / Satıcı Takibi (Faz 2)
+  agentId?: string;
+  agentName?: string;
+  agentCommissionThb?: number;
+  agentCommissionStatus?: 'pending' | 'settled' | 'cancelled';
   /**
    * Misafir bilet portalı kodu (/bilet/[code]).
    * Kayıt id'si (BK-XXXX) tahmin edilebilir olduğu için portala ayrı,
@@ -498,4 +503,305 @@ export const initialPayments: PaymentRecord[] = [
     receiptNo: 'RCP-202610-004',
   },
 ];
+
+/* ---------------------------------------------------------------------------
+   FAZ 2: B2B & ARACI ACENTA / TEMSİLCİ YÖNETİMİ
+   ------------------------------------------------------------------------- */
+export type AgentCommissionType = 'percentage' | 'fixed_per_pax';
+
+export interface PartnerAgent {
+  id: string;
+  name: string;
+  companyTitle?: string;
+  code: string;
+  contactPerson: string;
+  phone: string;
+  email?: string;
+  cityOrZone?: string;
+  commissionType: AgentCommissionType;
+  commissionRate: number; // örn: 15 (%15) veya 300 (300 THB/kişi)
+  totalPaidCommissionThb: number;
+  active: boolean;
+  notes?: string;
+  createdAt: string;
+}
+
+export const initialAgents: PartnerAgent[] = [
+  {
+    id: 'agent-ist-travel',
+    name: 'İstanbul Tour Partner',
+    companyTitle: 'İstanbul Turizm ve Seyahat Ltd.',
+    code: 'IST-TRV',
+    contactPerson: 'Serkan Yılmaz',
+    phone: '+90 532 999 11 22',
+    email: 'b2b@istanbultour.com',
+    cityOrZone: 'İstanbul / TR',
+    commissionType: 'percentage',
+    commissionRate: 15,
+    totalPaidCommissionThb: 12000,
+    active: true,
+    notes: 'Aylık toplu mutabakat yapılıyor. Türkiye kaynaklı paket turlar.',
+    createdAt: '2026-08-01',
+  },
+  {
+    id: 'agent-ali-patong',
+    name: 'Ali Güven (Patong Otel Rehberi)',
+    companyTitle: 'Bağımsız Otel Rehberi',
+    code: 'ALI-PAT',
+    contactPerson: 'Ali Güven',
+    phone: '+66 89 555 44 33',
+    email: 'ali.guven.phuket@gmail.com',
+    cityOrZone: 'Patong & Karon / Phuket',
+    commissionType: 'fixed_per_pax',
+    commissionRate: 300,
+    totalPaidCommissionThb: 4500,
+    active: true,
+    notes: 'Patong otellerindeki misafirlere tur satıyor. Kişi başı 300 THB komisyon.',
+    createdAt: '2026-09-10',
+  },
+  {
+    id: 'agent-direct-web',
+    name: 'Direct Web (Doğrudan Web Sitesi)',
+    companyTitle: 'Phuket Tatili Organik Satış',
+    code: 'DIR-WEB',
+    contactPerson: 'Merkez Ofis',
+    phone: '+66 82 895 0665',
+    cityOrZone: 'Phuket',
+    commissionType: 'percentage',
+    commissionRate: 0,
+    totalPaidCommissionThb: 0,
+    active: true,
+    notes: 'Doğrudan web sitesinden gelen organik komisyonsuz misafirler.',
+    createdAt: '2026-01-01',
+  },
+];
+
+export function calculateAgentCommission(
+  agent: PartnerAgent,
+  totalPriceThb: number,
+  adultCount: number,
+  childCount: number = 0
+): number {
+  if (!agent) return 0;
+  const rate = Number(agent.commissionRate) || 0;
+  if (rate <= 0) return 0;
+
+  if (agent.commissionType === 'percentage') {
+    const total = Math.max(0, Number(totalPriceThb) || 0);
+    return Math.round((total * rate) / 100);
+  }
+  if (agent.commissionType === 'fixed_per_pax') {
+    const adults = Math.max(0, Number(adultCount) || 0);
+    const children = Math.max(0, Number(childCount) || 0);
+    return Math.round((adults + children * 0.5) * rate);
+  }
+  return 0;
+}
+
+/* ---------------------------------------------------------------------------
+   FAZ 3: TEDARİKÇİ & NET ALIŞ MALİYET KATALOĞU
+   ------------------------------------------------------------------------- */
+export type SupplierCategory =
+  | 'speedboat'
+  | 'catamaran'
+  | 'yacht'
+  | 'adventure'
+  | 'show'
+  | 'safari'
+  | 'transfer'
+  | 'other';
+
+export interface SupplierItem {
+  id: string;
+  name: string;
+  category: SupplierCategory;
+  contactPerson?: string;
+  phone: string;
+  email?: string;
+  pierOrLocation: string;
+  paymentTerms: 'weekly_friday' | 'monthly_invoice' | 'cash_at_pier' | 'per_booking';
+  bankDetails?: string;
+  rating?: number;
+  active: boolean;
+  notes?: string;
+}
+
+export interface TourCostItem {
+  id: string;
+  tourId: string;
+  tourTitle: string;
+  supplierId: string;
+  supplierName: string;
+  netCostAdultThb: number;
+  netCostChildThb: number;
+  nationalParkFeeIncluded: boolean;
+  notes?: string;
+}
+
+export const initialSuppliers: SupplierItem[] = [
+  {
+    id: 'sup-andaman-wave',
+    name: 'Andaman Wave Master',
+    category: 'speedboat',
+    contactPerson: 'K. Somkiat',
+    phone: '+66 76 281 234',
+    email: 'booking@andamanwavemaster.com',
+    pierOrLocation: 'Rassada Pier',
+    paymentTerms: 'weekly_friday',
+    bankDetails: 'Kasikorn Bank (K-Bank): 720-2-33445-1',
+    rating: 5,
+    active: true,
+    notes: 'Phi Phi sürat teknesi ve feribot operatörü. İskelede kendi check-in masası var.',
+  },
+  {
+    id: 'sup-phangnga-discovery',
+    name: 'Phang Nga Discovery',
+    category: 'speedboat',
+    contactPerson: 'K. Narin',
+    phone: '+66 76 345 678',
+    email: 'ops@phangngadiscovery.co.th',
+    pierOrLocation: 'Ao Po Grand Marina',
+    paymentTerms: 'weekly_friday',
+    bankDetails: 'SCB Bank: 554-1-29834-0',
+    rating: 5,
+    active: true,
+    notes: 'James Bond Adası ve kano turları. Yüksek kaliteli sürat tekneleri.',
+  },
+  {
+    id: 'sup-hanuman-world',
+    name: 'Hanuman World Phuket',
+    category: 'adventure',
+    contactPerson: 'Sales Team',
+    phone: '+66 62 979 5533',
+    email: 'info@hanumanworldphuket.com',
+    pierOrLocation: 'Wichit, Muang Phuket',
+    paymentTerms: 'monthly_invoice',
+    bankDetails: 'Bangkok Bank: 312-0-44918-2',
+    rating: 5,
+    active: true,
+    notes: 'Zipline, luge ve macera parkı. Transfer otelden doğrudan Hanuman minibüsüyle.',
+  },
+  {
+    id: 'sup-carnival-magic',
+    name: 'Carnival Magic & FantaSea',
+    category: 'show',
+    contactPerson: 'Agency Desk',
+    phone: '+66 76 385 555',
+    email: 'b2b@carnivalmagic.fun',
+    pierOrLocation: 'Kamala Beach',
+    paymentTerms: 'monthly_invoice',
+    bankDetails: 'Kasikorn Bank: 102-3-88991-0',
+    rating: 5,
+    active: true,
+    notes: 'Işık ve tema parkı, akşam açık büfe akşam yemeği.',
+  },
+  {
+    id: 'sup-elephant-care',
+    name: 'Phuket Elephant Care Sanctuary',
+    category: 'safari',
+    contactPerson: 'K. Prasert',
+    phone: '+66 84 123 9988',
+    email: 'sanctuary@phuketelephantcare.com',
+    pierOrLocation: 'Chalong / Kathu',
+    paymentTerms: 'weekly_friday',
+    bankDetails: 'Krung Thai Bank: 441-2-00129-3',
+    rating: 5,
+    active: true,
+    notes: 'Etik fil bakımı ve besleme deneyimi. Kafes veya binme kesinlikle yok.',
+  },
+];
+
+export const initialTourCosts: TourCostItem[] = [
+  {
+    id: 'cost-phi-phi-wave',
+    tourId: 'phi-phi-maya-ve-bamboo-adasi',
+    tourTitle: 'Phi Phi, Maya Bay ve Bamboo Adası',
+    supplierId: 'sup-andaman-wave',
+    supplierName: 'Andaman Wave Master',
+    netCostAdultThb: 1900,
+    netCostChildThb: 1300,
+    nationalParkFeeIncluded: false,
+    notes: 'Açık büfe öğle yemeği, şnorkel ekipmanı dahil. Milli park misafire ait (400 THB).',
+  },
+  {
+    id: 'cost-james-bond-disc',
+    tourId: 'james-bond-adasi-ve-kano-turu',
+    tourTitle: 'James Bond Adası ve Kano Turu',
+    supplierId: 'sup-phangnga-discovery',
+    supplierName: 'Phang Nga Discovery',
+    netCostAdultThb: 1700,
+    netCostChildThb: 1200,
+    nationalParkFeeIncluded: true,
+    notes: 'Kano kürekçisi bahşişi hariç tüm milli park ve öğle yemeği dahil.',
+  },
+  {
+    id: 'cost-hanuman-world',
+    tourId: 'hanuman-world-zipline-deneyimi',
+    tourTitle: 'Hanuman World Zipline Deneyimi',
+    supplierId: 'sup-hanuman-world',
+    supplierName: 'Hanuman World Phuket',
+    netCostAdultThb: 1600,
+    netCostChildThb: 1600,
+    nationalParkFeeIncluded: true,
+    notes: '16 platform macera paketi.',
+  },
+  {
+    id: 'cost-carnival-magic',
+    tourId: 'carnival-magic-isik-ve-tema-parki',
+    tourTitle: 'Carnival Magic Işık ve Tema Parkı',
+    supplierId: 'sup-carnival-magic',
+    supplierName: 'Carnival Magic & FantaSea',
+    netCostAdultThb: 1800,
+    netCostChildThb: 1400,
+    nationalParkFeeIncluded: true,
+    notes: 'Giriş + Açık Büfe Akşam Yemeği + Krallık Geçidi Gösterisi dahil.',
+  },
+  {
+    id: 'cost-elephant-care',
+    tourId: 'fil-besleme-ve-bakim-deneyimi',
+    tourTitle: 'Fil Besleme ve Bakım Deneyimi',
+    supplierId: 'sup-elephant-care',
+    supplierName: 'Phuket Elephant Care Sanctuary',
+    netCostAdultThb: 1500,
+    netCostChildThb: 1000,
+    nationalParkFeeIncluded: true,
+    notes: 'Muz besleme, çamur banyosu ve duş deneyimi.',
+  },
+];
+
+export function lookupTourCost(
+  tourCosts: TourCostItem[],
+  tourIdOrTitle: string,
+  supplierName?: string
+): TourCostItem | undefined {
+  if (!tourIdOrTitle) return undefined;
+  const tNorm = tourIdOrTitle.toLowerCase().trim();
+  const sNorm = supplierName ? supplierName.toLowerCase().trim() : '';
+
+  const tourMatches = (c: TourCostItem) => {
+    const cTitle = c.tourTitle.toLowerCase().trim();
+    const cId = c.tourId.toLowerCase().trim();
+    return (
+      cTitle === tNorm ||
+      cId === tNorm ||
+      cTitle.includes(tNorm) ||
+      tNorm.includes(cTitle)
+    );
+  };
+
+  const supplierMatches = (c: TourCostItem) => {
+    if (!sNorm) return true;
+    const sTitle = c.supplierName.toLowerCase().trim();
+    const sId = c.supplierId.toLowerCase().trim();
+    return sTitle.includes(sNorm) || sNorm.includes(sTitle) || sId === sNorm;
+  };
+
+  if (sNorm) {
+    const exactBoth = tourCosts.find((c) => tourMatches(c) && supplierMatches(c));
+    if (exactBoth) return exactBoth;
+  }
+
+  return tourCosts.find((c) => tourMatches(c));
+}
+
 

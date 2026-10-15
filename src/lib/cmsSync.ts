@@ -28,6 +28,9 @@ export const CMS_COLLECTIONS = [
   'vehicles',
   'drivers',
   'payments',
+  'agents',
+  'suppliers',
+  'tour-costs',
 ] as const;
 
 export type CmsCollectionKey = (typeof CMS_COLLECTIONS)[number];
