@@ -13,7 +13,7 @@
  *   her zaman en az bir aktif owner kalmalı — bu kural burada uygulanır).
  */
 import type { APIRoute } from 'astro';
-import { SESSION_COOKIE, readMembershipSession, roleRank } from '../../../lib/auth';
+import { SESSION_COOKIE, readMembershipSession, readSessionValue, roleRank } from '../../../lib/auth';
 import { jsonError, jsonOk } from '../../../lib/server/apiGuard';
 import { hashPassword, validatePasswordPolicy } from '../../../lib/server/passwords';
 import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../../lib/server/supabaseAdmin';
@@ -179,14 +179,19 @@ export const DELETE: APIRoute = async (context) => {
   return jsonOk({ ok: true });
 };
 
-/** Owner-only guard — üyelik çerezi zorunlu (eski şifre çerezi KABUL EDİLMEZ). */
+/** Owner-only guard — üyelik 'owner' veya master admin oturumu zorunlu. */
 function guardOwner(context: Parameters<APIRoute>[0]): { allowed: boolean; userId?: string; response?: Response } {
-  const session = readMembershipSession(context.cookies.get(SESSION_COOKIE)?.value);
-  if (!session) {
-    return { allowed: false, response: jsonError(401, 'Üyelik oturumu gerekli.') };
-  }
-  if (roleRank(session.role) < 4) {
+  const cookieVal = context.cookies.get(SESSION_COOKIE)?.value;
+  const session = readMembershipSession(cookieVal);
+  if (session) {
+    if (roleRank(session.role) >= 4) {
+      return { allowed: true, userId: session.userId };
+    }
     return { allowed: false, response: jsonError(403, 'Kullanıcı yönetimi yalnızca yöneticiye açıktır.') };
   }
-  return { allowed: true, userId: session.userId };
+  const oldSession = readSessionValue(cookieVal);
+  if (oldSession === 'admin') {
+    return { allowed: true, userId: 'root-admin' };
+  }
+  return { allowed: false, response: jsonError(401, 'Yetkisiz istek. Yönetici oturumu gerekli.') };
 }

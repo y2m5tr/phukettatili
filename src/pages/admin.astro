@@ -5,7 +5,7 @@ import faqData from '../content/settings/faq.json';
 import testimonialsData from '../content/settings/testimonials.json';
 import siteData from '../content/settings/site.json';
 import homeData from '../content/pages/home.json';
-import { SESSION_COOKIE, readMembershipSession } from '../lib/auth';
+import { SESSION_COOKIE, readMembershipSession, readSessionValue } from '../lib/auth';
 import '../styles/global.css';
 
 // Sunucu tarafında render edilir: /admin adresine gelen istek önce
@@ -16,8 +16,10 @@ export const prerender = false;
 // Oturum rolü — UsersTab yalnızca owner'a gösterilir. Middleware zaten
 // manager-altını bu sayfaya almaz; buradaki kontrol UI seviyesinde ek
 // ayrım (manager paneli görür, kullanıcı yönetimini görmez).
-const membershipSession = readMembershipSession(Astro.cookies.get(SESSION_COOKIE)?.value);
-const viewerRole = membershipSession?.role ?? null;
+const cookieVal = Astro.cookies.get(SESSION_COOKIE)?.value;
+const membershipSession = readMembershipSession(cookieVal);
+const oldSession = readSessionValue(cookieVal);
+const viewerRole = membershipSession?.role || (oldSession === 'admin' ? 'owner' : null);
 
 // 1. Tours — gallery ve tüm operasyonel ayrıntılar dahil
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');

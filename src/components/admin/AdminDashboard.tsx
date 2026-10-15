@@ -272,8 +272,8 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'users',
-    label: 'Ekip Üyeleri',
-    shortLabel: 'Üyeler',
+    label: 'Ekip & Yetkiler',
+    shortLabel: 'Ekip',
     category: 'system',
     icon: Users,
     description: 'Yönetici, müdür, rehber ve şoför hesapları',
@@ -548,12 +548,20 @@ export default function AdminDashboard({
     [activeTab]
   );
 
+  const visiblePrimaryNav = useMemo(() => {
+    if (viewerRole === 'owner') {
+      const usersItem = NAV_ITEMS.find((i) => i.id === 'users');
+      return usersItem ? [...PRIMARY_NAV_ITEMS, usersItem] : PRIMARY_NAV_ITEMS;
+    }
+    return PRIMARY_NAV_ITEMS;
+  }, [viewerRole]);
+
   const isCmsActive = useMemo(
-    () => [...CMS_NAV_ITEMS, ...SYSTEM_NAV_ITEMS].some((i) => i.id === activeTab),
+    () => [...CMS_NAV_ITEMS, ...SYSTEM_NAV_ITEMS.filter((i) => i.id !== 'users')].some((i) => i.id === activeTab),
     [activeTab]
   );
   const activeCmsItem = useMemo(
-    () => [...CMS_NAV_ITEMS, ...SYSTEM_NAV_ITEMS].find((i) => i.id === activeTab),
+    () => [...CMS_NAV_ITEMS, ...SYSTEM_NAV_ITEMS.filter((i) => i.id !== 'users')].find((i) => i.id === activeTab),
     [activeTab]
   );
 
@@ -1570,9 +1578,9 @@ export default function AdminDashboard({
 
           {/* Orta: Sade Menü */}
           <div className="flex items-center gap-1 sm:gap-2">
-            {/* 5 Temel Sekme */}
+            {/* Temel Sekmeler (ve Yönetici için Ekip) */}
             <nav ref={navRef} aria-label="Panel menüsü" className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1">
-              {PRIMARY_NAV_ITEMS.map((item) => {
+              {visiblePrimaryNav.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
                 const isBookings = item.id === 'bookings';
@@ -1670,7 +1678,7 @@ export default function AdminDashboard({
                   <div className="px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
                     Sistem & İletişim
                   </div>
-                  {SYSTEM_NAV_ITEMS.filter((item) => item.id !== 'users' || viewerRole === 'owner').map((item) => {
+                  {SYSTEM_NAV_ITEMS.filter((item) => item.id !== 'users').map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
                     return (
