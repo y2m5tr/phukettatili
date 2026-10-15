@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Users,
   Compass,
@@ -14,7 +14,10 @@ import {
   Settings,
   HelpCircle,
   Save,
-  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Menu,
+  X,
   BookOpen,
   Car,
   MessageSquareQuote,
@@ -369,23 +372,31 @@ export default function AdminDashboard({
     try { window.localStorage.setItem('ptt_admin_active_tab', activeTab); } catch { /* yok say */ }
   }, [activeTab]);
 
-  // Site & İçerik açılır menü kontrolü (Tek satır sade navigasyon için)
-  const [isCmsDropdownOpen, setIsCmsDropdownOpen] = useState<boolean>(false);
-  const cmsDropdownRef = useRef<HTMLDivElement>(null);
+  // Kenar Çubuğu (Sidebar) kontrolü — kullanıcı tercihi localStorage'da saklanır
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return localStorage.getItem('ptt_admin_sidebar_collapsed') === 'true';
+      } catch { /* yok say */ }
+    }
+    return false;
+  });
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
-  useEffect(() => {
-    if (!isCmsDropdownOpen) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (cmsDropdownRef.current && !cmsDropdownRef.current.contains(e.target as Node)) {
-        setIsCmsDropdownOpen(false);
-      }
-    };
-    document.addEventListener('click', handleClickOutside);
-    return () => document.removeEventListener('click', handleClickOutside);
-  }, [isCmsDropdownOpen]);
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('ptt_admin_sidebar_collapsed', String(next));
+      } catch { /* yok say */ }
+      return next;
+    });
+  };
 
-  // Menü şeridi ref
-  const navRef = useRef<HTMLDivElement>(null);
+  const handleTabSelect = (tabId: AdminTab) => {
+    setActiveTab(tabId);
+    setIsMobileSidebarOpen(false);
+  };
 
   // Toast Feedback — hata/başarı ayrımı: hatalar 8 sn kalır (kullanıcı
   // fark etmeden kaybolmasın — örn. buluta kaydedilemedi uyarısı),
@@ -548,22 +559,24 @@ export default function AdminDashboard({
     [activeTab]
   );
 
-  const visiblePrimaryNav = useMemo(() => {
+  const operationNavItems = useMemo(() => {
+    const list = NAV_ITEMS.filter((i) => i.category === 'operations');
     if (viewerRole === 'owner') {
       const usersItem = NAV_ITEMS.find((i) => i.id === 'users');
-      return usersItem ? [...PRIMARY_NAV_ITEMS, usersItem] : PRIMARY_NAV_ITEMS;
+      if (usersItem && !list.some((i) => i.id === 'users')) {
+        return [...list, usersItem];
+      }
     }
-    return PRIMARY_NAV_ITEMS;
+    return list;
   }, [viewerRole]);
 
-  const isCmsActive = useMemo(
-    () => [...CMS_NAV_ITEMS, ...SYSTEM_NAV_ITEMS.filter((i) => i.id !== 'users')].some((i) => i.id === activeTab),
-    [activeTab]
-  );
-  const activeCmsItem = useMemo(
-    () => [...CMS_NAV_ITEMS, ...SYSTEM_NAV_ITEMS.filter((i) => i.id !== 'users')].find((i) => i.id === activeTab),
-    [activeTab]
-  );
+  const cmsNavItems = useMemo(() => {
+    return NAV_ITEMS.filter((i) => i.category === 'content');
+  }, []);
+
+  const systemNavItems = useMemo(() => {
+    return NAV_ITEMS.filter((i) => i.category === 'system' && i.id !== 'users');
+  }, []);
 
   /** Klavye ile menüde gezinme:
    *  [ = önceki sekme, ] = sonraki sekme
@@ -624,12 +637,6 @@ export default function AdminDashboard({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [activeTab, isAnyModalOpen]);
 
-  /** Sekme değişince aktif butonu görünür alana kaydır. */
-  useEffect(() => {
-    if (!navRef.current) return;
-    const active = navRef.current.querySelector<HTMLElement>('[data-nav-active="true"]');
-    active?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-  }, [activeTab]);
 
   // Helper for universal image URL resolution
   const getImageUrl = (img?: string): string => {
@@ -1544,43 +1551,62 @@ export default function AdminDashboard({
   // ----------------------------------------------------
   // ----------------------------------------------------
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col">
-      {/* Top Header */}
-      {/* Tek Satır, Sade ve Ergonomik Header */}
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-surface-1/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 shadow-2xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3">
-          
-          {/* Sol: Logo & Marka */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-brand-primary text-white flex items-center justify-center font-serif font-black text-sm shadow-sm border border-slate-700/60 ring-1 ring-white/10">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex">
+      {/* 1. Mobilde Açılan Menü Karartma Katmanı */}
+      {isMobileSidebarOpen && (
+        <div
+          onClick={() => setIsMobileSidebarOpen(false)}
+          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xs md:hidden"
+        />
+      )}
+
+      {/* 2. Sol Kenar Çubuğu (Sidebar) — Masaüstünde Sabit/Daraltılabilir, Mobilde Çekmece */}
+      <aside
+        className={`fixed md:sticky top-0 z-50 md:z-30 h-screen shrink-0 bg-white dark:bg-surface-1 border-r border-slate-200 dark:border-slate-800 transition-all duration-200 flex flex-col ${
+          isSidebarCollapsed ? 'w-20' : 'w-64'
+        } ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
+      >
+        {/* Sidebar Üst: Logo & Başlık */}
+        <div className="h-16 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0">
+          <div className="flex items-center gap-3 overflow-hidden">
+            <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-brand-primary text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-sm border border-slate-700/60 ring-1 ring-white/10">
               PT
             </div>
-            <div className="hidden sm:block">
-              <div className="flex items-center gap-2 leading-none">
-                <span className="font-serif font-bold text-base text-slate-900 dark:text-white">
+            {!isSidebarCollapsed && (
+              <div className="min-w-0">
+                <span className="font-serif font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate block leading-tight">
                   Phuket Tatili
                 </span>
-                <span className="text-[10px] font-bold text-brand-accent uppercase tracking-wider">
-                  Panel
+                <span className="text-[10px] font-bold text-brand-accent uppercase tracking-wider block">
+                  Yönetim Paneli
                 </span>
-                <span
-                  className={`w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}
-                  title={isCloudConnected ? 'Bulut Canlı (Supabase)' : 'Yerel Mod'}
-                />
               </div>
-              {activeNavItem && (
-                <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-0.5 truncate max-w-[200px]">
-                  {activeNavItem.label}
-                </p>
-              )}
-            </div>
+            )}
           </div>
+          {/* Mobilde Kapatma Butonu */}
+          <button
+            type="button"
+            onClick={() => setIsMobileSidebarOpen(false)}
+            className="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+            aria-label="Menüyü Kapat"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Orta: Sade Menü */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            {/* Temel Sekmeler (ve Yönetici için Ekip) */}
-            <nav ref={navRef} aria-label="Panel menüsü" className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-1">
-              {visiblePrimaryNav.map((item) => {
+        {/* Sidebar Menü Listesi (Kaydırılabilir) */}
+        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
+          {/* Grup 1: Operasyon */}
+          <div>
+            {!isSidebarCollapsed ? (
+              <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500">
+                Operasyon
+              </div>
+            ) : (
+              <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
+            )}
+            <div className="space-y-0.5">
+              {operationNavItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = activeTab === item.id;
                 const isBookings = item.id === 'bookings';
@@ -1588,130 +1614,214 @@ export default function AdminDashboard({
                   <button
                     key={item.id}
                     type="button"
-                    onClick={() => setActiveTab(item.id)}
-                    data-nav-active={isActive ? 'true' : undefined}
-                    className={`flex items-center gap-1.5 sm:gap-2 rounded-xl px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer ${
+                    onClick={() => handleTabSelect(item.id)}
+                    title={isSidebarCollapsed ? item.label : undefined}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer relative group ${
                       isActive
                         ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                    }`}
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                    } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
                   >
-                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400'}`} />
-                    <span>{item.shortLabel || item.label}</span>
-                    {isBookings && pendingBookingsCount > 0 && (
-                      <span className="rounded-full px-1.5 py-0.2 text-[10px] font-black bg-amber-500 text-white animate-pulse">
-                        {pendingBookingsCount}
-                      </span>
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${
+                      isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
+                    }`} />
+                    {!isSidebarCollapsed && (
+                      <>
+                        <span className="truncate flex-1 text-left">{item.label}</span>
+                        {isBookings && pendingBookingsCount > 0 && (
+                          <span className="rounded-full px-2 py-0.5 text-[10px] font-black bg-amber-500 text-white animate-pulse">
+                            {pendingBookingsCount}
+                          </span>
+                        )}
+                        {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
+                          <span className={`text-[10px] opacity-60 font-mono ${isActive ? 'text-white' : 'text-slate-400'}`}>
+                            {bookings.length}
+                          </span>
+                        )}
+                      </>
                     )}
-                    {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
-                      <span className={`text-[10px] opacity-60 font-mono ${isActive ? 'text-white' : 'text-slate-400'}`}>
-                        {bookings.length}
-                      </span>
+                    {isSidebarCollapsed && isBookings && pendingBookingsCount > 0 && (
+                      <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900" />
                     )}
                   </button>
                 );
               })}
-            </nav>
-
-            {/* Site & İçerik Açılır Menüsü — nav dışında olduğu için overflow tarafından ASLA kesilmez */}
-            <div className="relative shrink-0" ref={cmsDropdownRef}>
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsCmsDropdownOpen((prev) => !prev);
-                }}
-                className={`flex items-center gap-1.5 rounded-xl px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-semibold whitespace-nowrap transition-all cursor-pointer border ${
-                  isCmsActive
-                    ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 border-slate-900 dark:border-brand-accent shadow-sm font-bold'
-                    : 'border-transparent text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                {activeCmsItem ? (
-                  <>
-                    <activeCmsItem.icon className={`w-4 h-4 shrink-0 ${isCmsActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400'}`} />
-                    <span>{activeCmsItem.shortLabel || activeCmsItem.label}</span>
-                  </>
-                ) : (
-                  <>
-                    <Layers className="w-4 h-4 text-slate-400 shrink-0" />
-                    <span>Site & CMS</span>
-                  </>
-                )}
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isCmsDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {/* Açılır Menü Popover */}
-              {isCmsDropdownOpen && (
-                <div
-                  onClick={(e) => e.stopPropagation()}
-                  className="absolute right-0 sm:left-auto sm:right-0 top-full mt-2 w-60 rounded-2xl bg-white dark:bg-surface-2 border border-slate-200 dark:border-slate-800 shadow-2xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
-                >
-                  <div className="px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                    Web Sitesi Vitrini
-                  </div>
-                  {CMS_NAV_ITEMS.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveTab(item.id);
-                          setIsCmsDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-left transition-colors cursor-pointer ${
-                          isActive
-                            ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary dark:text-brand-accent font-bold'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
-                        }`}
-                      >
-                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-accent' : 'text-slate-400'}`} />
-                        <span>{item.label}</span>
-                      </button>
-                    );
-                  })}
-
-                  <div className="my-1.5 border-t border-slate-100 dark:border-slate-800/80" />
-
-                  <div className="px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
-                    Sistem & İletişim
-                  </div>
-                  {SYSTEM_NAV_ITEMS.filter((item) => item.id !== 'users').map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => {
-                          setActiveTab(item.id);
-                          setIsCmsDropdownOpen(false);
-                        }}
-                        className={`w-full flex items-center gap-2.5 px-3.5 py-2 text-xs font-medium text-left transition-colors cursor-pointer ${
-                          isActive
-                            ? 'bg-slate-100 dark:bg-slate-800 text-brand-primary dark:text-brand-accent font-bold'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white'
-                        }`}
-                      >
-                        <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-brand-accent' : 'text-slate-400'}`} />
-                        <span>{item.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
             </div>
           </div>
 
-          {/* Sağ: Yeni Rezervasyon & Çıkış */}
+          {/* Grup 2: Web Sitesi & İçerik */}
+          <div>
+            {!isSidebarCollapsed ? (
+              <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500">
+                Web Sitesi & İçerik
+              </div>
+            ) : (
+              <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
+            )}
+            <div className="space-y-0.5">
+              {cmsNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleTabSelect(item.id)}
+                    title={isSidebarCollapsed ? item.label : undefined}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
+                      isActive
+                        ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                    } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
+                  >
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${
+                      isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
+                    }`} />
+                    {!isSidebarCollapsed && (
+                      <span className="truncate flex-1 text-left">{item.label}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Grup 3: Sistem & İletişim */}
+          <div>
+            {!isSidebarCollapsed ? (
+              <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500">
+                Sistem & İletişim
+              </div>
+            ) : (
+              <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
+            )}
+            <div className="space-y-0.5">
+              {systemNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleTabSelect(item.id)}
+                    title={isSidebarCollapsed ? item.label : undefined}
+                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
+                      isActive
+                        ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                    } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
+                  >
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${
+                      isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
+                    }`} />
+                    {!isSidebarCollapsed && (
+                      <span className="truncate flex-1 text-left">{item.label}</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Sidebar Alt: Profil & Daralt/Genişlet Butonu */}
+        <div className="p-3 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2 shrink-0">
+          {!isSidebarCollapsed ? (
+            <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl bg-slate-100/70 dark:bg-slate-900/60">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-7 h-7 rounded-lg bg-brand-primary/10 text-brand-primary dark:text-brand-accent flex items-center justify-center font-bold text-xs shrink-0">
+                  MG
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold truncate text-slate-800 dark:text-slate-200">Murat Gençer</p>
+                  <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                    {viewerRole === 'owner' ? '👑 Yönetici' : '🧭 Müdür'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center py-1" title="Murat Gençer (👑 Yönetici)">
+              <div className="w-8 h-8 rounded-xl bg-brand-primary/10 text-brand-primary dark:text-brand-accent flex items-center justify-center font-bold text-xs">
+                MG
+              </div>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            className="hidden md:flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            title={isSidebarCollapsed ? 'Menüyü Genişlet' : 'Menüyü Daralt'}
+          >
+            {isSidebarCollapsed ? (
+              <ChevronRight className="w-4 h-4" />
+            ) : (
+              <>
+                <ChevronLeft className="w-4 h-4" />
+                <span>Menüyü Daralt</span>
+              </>
+            )}
+          </button>
+        </div>
+      </aside>
+
+      {/* 3. Ana Sütun (Header + Main) */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Üst İnce Header Bar */}
+        <header className="sticky top-0 z-30 h-16 bg-white/95 dark:bg-surface-1/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 shadow-2xs">
+          {/* Sol: Menü Açma (Mobil) + Aktif Sekme Başlığı */}
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setIsMobileSidebarOpen(true)}
+              className="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+              aria-label="Menüyü Aç"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {activeNavItem && (
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-8 h-8 rounded-xl bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 flex items-center justify-center shrink-0">
+                  <activeNavItem.icon className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 leading-none">
+                    <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      {activeNavItem.category === 'operations' ? 'Operasyon' : activeNavItem.category === 'content' ? 'Web Sitesi' : 'Sistem'}
+                    </span>
+                    <span className="text-slate-300 dark:text-slate-600">/</span>
+                    <h1 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
+                      {activeNavItem.label}
+                    </h1>
+                  </div>
+                  {activeNavItem.description && (
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 hidden sm:block truncate mt-0.5">
+                      {activeNavItem.description}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Sağ: Durum + Hızlı Eylemler */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Canlı Bağlantı Durumu */}
+            <div
+              className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 text-[11px] font-semibold text-slate-600 dark:text-slate-300"
+              title={isCloudConnected ? 'Bulut Canlı (Supabase)' : 'Yerel Mod'}
+            >
+              <span className={`w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+              <span>{isCloudConnected ? 'Canlı Bulut' : 'Yerel Mod'}</span>
+            </div>
+
             <a
               href="/ekip"
               target="_blank"
               rel="noopener noreferrer"
-              className="hidden md:flex px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all items-center gap-1.5"
+              className="hidden sm:flex px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all items-center gap-1.5"
               title="Rehber & Saha Ekibi Uygulamasını Aç"
             >
               <Smartphone className="w-3.5 h-3.5 text-amber-500" />
@@ -1736,11 +1846,10 @@ export default function AdminDashboard({
               <LogOut className={`w-4 h-4 ${isSigningOut ? 'animate-pulse' : ''}`} />
             </button>
           </div>
-        </div>
-      </header>
+        </header>
 
-      {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+        {/* Main Content */}
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
         
         {/* ==================================================== */}
         {/* TAB 1: OVERVIEW */}
@@ -1949,6 +2058,7 @@ export default function AdminDashboard({
         )}
 
       </main>
+      </div>
 
       {/* ==================================================== */}
       {/* MODAL 1: BOOKING */}
