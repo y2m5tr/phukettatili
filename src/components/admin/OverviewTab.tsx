@@ -22,9 +22,10 @@ import {
   Camera,
   FileText,
   Plus,
+  Waves,
 } from 'lucide-react';
 import type { AdminTab } from './AdminDashboard';
-import type { Booking } from '../../data/adminInitialData';
+import { type Booking, getPhuketSeason } from '../../data/adminInitialData';
 
 /** AdminDashboard'taki stats useMemo çıktısı — alan isimleri birebir. */
 export interface OverviewStats {
@@ -54,6 +55,7 @@ interface OverviewTabProps {
   onOpenCreateBooking?: () => void;
   onOpenQrScanner?: () => void;
   onOpenPoliceManifest?: () => void;
+  onOpenBulkReschedule?: () => void;
 }
 
 export default function OverviewTab({
@@ -69,6 +71,7 @@ export default function OverviewTab({
   onOpenCreateBooking,
   onOpenQrScanner,
   onOpenPoliceManifest,
+  onOpenBulkReschedule,
 }: OverviewTabProps) {
   // Bugünün Phuket tarihi (UTC+7)
   const todayStr = useMemo(() => {
@@ -229,6 +232,17 @@ export default function OverviewTab({
                 </button>
               )}
 
+              {onOpenBulkReschedule && (
+                <button
+                  type="button"
+                  onClick={onOpenBulkReschedule}
+                  className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Waves className="w-3.5 h-3.5" />
+                  <span>Hava Erteleme</span>
+                </button>
+              )}
+
               {onOpenCreateBooking && (
                 <button
                   type="button"
@@ -317,6 +331,50 @@ export default function OverviewTab({
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ==================================================== */}
+      {/* 🌊 PHUKET DENİZ GÜVENLİK RADARI & AKTİF SEZON GÖSTERGESİ */}
+      {/* ==================================================== */}
+      <div className="rounded-2xl bg-white dark:bg-surface-2 p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-11 h-11 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0 border border-sky-500/20">
+            <Waves className="w-6 h-6 animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs font-bold text-slate-900 dark:text-white">
+                Andaman Denizi & Liman Barometresi
+              </span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                <span>🟢 İskeleler Açık (Dalga 0.6m · Rüzgar 10 kt)</span>
+              </span>
+              {(() => {
+                const season = getPhuketSeason(todayStr);
+                return (
+                  <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${season.badgeColor}`}>
+                    {season.name}
+                  </span>
+                );
+              })()}
+            </div>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              Chalong, Rassada ve Ao Po marinalarında sürat teknesi ve katamaran seferleri olağan seyrindedir.
+            </p>
+          </div>
+        </div>
+
+        {onOpenBulkReschedule && (
+          <button
+            type="button"
+            onClick={onOpenBulkReschedule}
+            className="px-4 py-2.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer active:scale-98"
+          >
+            <Waves className="w-4 h-4 text-amber-500" />
+            <span>Hava Erteleme Sihirbazı</span>
+          </button>
+        )}
       </div>
 
       {/* Top Stat Cards */}

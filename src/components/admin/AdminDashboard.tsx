@@ -64,8 +64,10 @@ import {
   HOTEL_ZONES,
   detectHotelZone,
   getRecommendedPickupTime,
+  getPhuketSeason,
 } from '../../data/adminInitialData';
 import CommandPaletteModal from './CommandPaletteModal';
+import BulkRescheduleModal from './BulkRescheduleModal';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
 import SupplierSettlementManager from './SupplierSettlementManager';
@@ -519,6 +521,46 @@ export default function AdminDashboard({
 
   // QR Ticket Scanner Modal (Saha Bilet Check-in)
   const [isQrScannerOpen, setIsQrScannerOpen] = useState<boolean>(false);
+
+  // Hava Muhalefeti & Toplu Tur Erteleme Modalı
+  const [isBulkRescheduleOpen, setIsBulkRescheduleOpen] = useState<boolean>(false);
+
+  const handleBulkReschedule = async (
+    bookingIds: string[],
+    newDate: string,
+    reason: string
+  ) => {
+    const updated = bookings.map((b) => {
+      if (!bookingIds.includes(b.id)) return b;
+      const nextTours = b.tours?.map((t) => ({ ...t, tourDate: newDate })) || [];
+      return {
+        ...b,
+        tourDate: newDate,
+        tours: nextTours,
+        specialNotes: b.specialNotes
+          ? `${b.specialNotes} | Erteleme: ${reason}`
+          : `Erteleme: ${reason}`,
+      };
+    });
+
+    setBookings(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
+    } catch { /* ignore */ }
+
+    // Bulut yazımı
+    for (const id of bookingIds) {
+      const found = updated.find((b) => b.id === id);
+      if (found) {
+        void fetch('/api/bookings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(found),
+        });
+      }
+    }
+    showToast(`🌊 ${bookingIds.length} rezervasyon ${newDate} tarihine ertelendi.`);
+  };
 
   // Yolcu pasaport bilgilerini günceller (deniz polisi / sigorta manifestosu).
   // localStorage + Supabase'e yazılır: sahadaki rehber manifestoyu teknede
@@ -1289,6 +1331,8 @@ export default function AdminDashboard({
         agentName: formData.agentName,
         agentCommissionThb: formData.agentCommissionThb,
         agentCommissionStatus: formData.agentCommissionStatus,
+        supplierRefCode: formData.supplierRefCode,
+        supplierStatus: formData.supplierStatus,
         specialNotes: formData.specialNotes,
         // Misafir bilet portalı kodu — id tahmin edilebilir olduğu için
         // ayrı rastgele kod atanır (misafire WhatsApp'tan bu gönderilir).
@@ -2211,6 +2255,7 @@ export default function AdminDashboard({
             onOpenCreateBooking={handleOpenCreateBooking}
             onOpenQrScanner={() => setIsQrScannerOpen(true)}
             onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
+            onOpenBulkReschedule={() => setIsBulkRescheduleOpen(true)}
           />
         )}
 
@@ -2694,8 +2739,16 @@ export default function AdminDashboard({
                         </div>
 
                         <div className="sm:col-span-3">
-                          <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
-                            Tur Tarihi *
+                          <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1 flex items-center justify-between">
+                            <span>Tur Tarihi *</span>
+                            {tourSchedule.tourDate && (() => {
+                              const s = getPhuketSeason(tourSchedule.tourDate);
+                              return (
+                                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold border ${s.badgeColor}`}>
+                                  {s.season === 'peak' ? '⚡ Peak' : s.season === 'low' ? '🌴 Low' : '☀️ High'}
+                                </span>
+                              );
+                            })()}
                           </label>
                           <input
                             type="date"
@@ -3068,6 +3121,36 @@ export default function AdminDashboard({
                       onChange={(e) => setFormData({ ...formData, costThb: Number(e.target.value) })}
                       className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs font-bold text-rose-600 focus:outline-none"
                     />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Tedarikçi Konfirmasyon No (Ref)
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Örn: AWM-8492"
+                      value={formData.supplierRefCode || ''}
+                      onChange={(e) => setFormData({ ...formData, supplierRefCode: e.target.value.toUpperCase() })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs font-mono uppercase focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Tedarikçi Onay Durumu
+                    </label>
+                    <select
+                      value={formData.supplierStatus || 'pending'}
+                      onChange={(e) => setFormData({ ...formData, supplierStatus: e.target.value as any })}
+                      className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs font-semibold focus:outline-none"
+                    >
+                      <option value="pending">⏳ Sipariş İletildi / Teyit Bekliyor</option>
+                      <option value="confirmed">✅ Tedarikçi Onayladı</option>
+                      <option value="cancelled">❌ Tekne Dolu / İptal</option>
+                    </select>
                   </div>
                 </div>
 
@@ -4099,6 +4182,7 @@ export default function AdminDashboard({
         onOpenCreateBooking={handleOpenCreateBooking}
         onOpenQrScanner={() => setIsQrScannerOpen(true)}
         onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
+        onOpenBulkReschedule={() => setIsBulkRescheduleOpen(true)}
         onSelectBooking={(b) => handleOpenEditBooking(b)}
         onSetNavMode={(mode) => {
           setNavMode(mode);
@@ -4107,6 +4191,19 @@ export default function AdminDashboard({
           } catch {}
         }}
       />
+
+      {/* ==================================================== */}
+      {/* MODAL 15: BULK WEATHER RESCHEDULE & MARINE RADAR */}
+      {/* ==================================================== */}
+      {isBulkRescheduleOpen && (
+        <BulkRescheduleModal
+          isOpen={isBulkRescheduleOpen}
+          onClose={() => setIsBulkRescheduleOpen(false)}
+          bookings={bookings}
+          onBulkReschedule={handleBulkReschedule}
+          managerPhone={siteSettings.whatsappNumber}
+        />
+      )}
 
       {/* ==================================================== */}
       {/* TOAST FEEDBACK NOTIFICATION */}

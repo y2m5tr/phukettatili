@@ -12,7 +12,16 @@ export interface BookingTourSchedule {
   assignedVehicle?: string;
   assignedDriver?: string;
   hotelZone?: string;
+  supplierRefCode?: string;
+  supplierStatus?: 'pending' | 'confirmed' | 'cancelled';
 }
+
+export type DietaryPreference =
+  | 'standard'
+  | 'vegetarian'
+  | 'halal'
+  | 'vegan'
+  | 'seafood_allergy';
 
 export interface PassengerItem {
   fullName: string;
@@ -20,6 +29,7 @@ export interface PassengerItem {
   nationality?: string;
   birthDate?: string;
   gender?: 'M' | 'F';
+  dietaryPreference?: DietaryPreference;
 }
 
 export type PaymentMethod =
@@ -92,6 +102,9 @@ export interface Booking {
   agentName?: string;
   agentCommissionThb?: number;
   agentCommissionStatus?: 'pending' | 'settled' | 'cancelled';
+  // Tedarikçi Sipariş & Onay Takibi
+  supplierRefCode?: string;
+  supplierStatus?: 'pending' | 'confirmed' | 'cancelled';
   /**
    * Misafir bilet portalı kodu (/bilet/[code]).
    * Kayıt id'si (BK-XXXX) tahmin edilebilir olduğu için portala ayrı,
@@ -168,6 +181,88 @@ export function convertToThb(
 ): number {
   const rate = customRates?.[currency] ?? DEFAULT_EXCHANGE_RATES[currency] ?? 1;
   return Math.round(amount * rate);
+}
+
+/** Phuket Turizm Sezonları */
+export type PhuketSeason = 'low' | 'high' | 'peak';
+
+export interface SeasonInfo {
+  season: PhuketSeason;
+  name: string;
+  badgeColor: string;
+  note: string;
+  multiplier: number;
+}
+
+export function getPhuketSeason(dateStr?: string): SeasonInfo {
+  const d = dateStr ? new Date(dateStr) : new Date();
+  const month = d.getMonth() + 1; // 1-12
+  const day = d.getDate();
+
+  // Peak: 15 Dec - 15 Jan
+  if ((month === 12 && day >= 15) || (month === 1 && day <= 15)) {
+    return {
+      season: 'peak',
+      name: 'Peak Season (Zirve)',
+      badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30',
+      note: 'Yılbaşı yoğun dönemi · Yoğun talep & tedarikçi ek ücretleri geçerlidir',
+      multiplier: 1.25,
+    };
+  }
+
+  // Low Season: 1 May - 31 Oct
+  if (month >= 5 && month <= 10) {
+    return {
+      season: 'low',
+      name: 'Low Season (Muson / İndirimli)',
+      badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+      note: 'Yaz musonu dönemi · İndirimli fiyatlar & sakin deniz turları',
+      multiplier: 0.85,
+    };
+  }
+
+  // High Season: 1 Nov - 14 Dec & 16 Jan - 30 Apr
+  return {
+    season: 'high',
+    name: 'High Season (Yüksek Sezon)',
+    badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
+    note: 'Güneşli & sakin deniz dönemi · Standart katalog fiyatları',
+    multiplier: 1.0,
+  };
+}
+
+/** Tedarikçiye gidecek resmi İngilizce Booking Order / Tur Siparişi metni */
+export function generateSupplierBookingOrder(booking: Booking, tourScheduleIndex: number = 0): string {
+  const t = (booking.tours && booking.tours[tourScheduleIndex]) || {
+    tourTitle: booking.tourTitle,
+    tourDate: booking.tourDate,
+    pickupTime: booking.pickupTime || '07:30',
+    supplier: booking.supplier,
+    nationalParkFeeIncluded: booking.nationalParkFeeIncluded,
+    supplierRefCode: booking.supplierRefCode,
+  };
+
+  const lines = [
+    `*BOOKING ORDER / VOUCHER*`,
+    `Agent: Phuket Tatili DMC (Thailand)`,
+    `Booking Ref: ${booking.id}`,
+    t.supplierRefCode ? `Supplier Ref: ${t.supplierRefCode}` : null,
+    `-----------------------------`,
+    `Tour: ${t.tourTitle}`,
+    `Date: ${t.tourDate}`,
+    `Pickup Time: ${t.pickupTime || '07:30'}`,
+    `Hotel: ${booking.hotel}${booking.roomNumber ? ` (Room: ${booking.roomNumber})` : ''}`,
+    `Area: ${booking.hotelZone || detectHotelZone(booking.hotel)}`,
+    `Guests: ${booking.adultCount} Adult(s)${booking.childCount ? `, ${booking.childCount} Child(ren)` : ''} [Total: ${booking.adultCount + booking.childCount} Pax]`,
+    `Lead Guest: ${booking.customerName}`,
+    `Guest Phone: ${booking.phone}`,
+    booking.specialNotes ? `Special Request: ${booking.specialNotes}` : null,
+    t.nationalParkFeeIncluded ? `National Park Fee: INCLUDED in booking` : `National Park Fee: NOT INCLUDED (Pax will pay direct)`,
+    `-----------------------------`,
+    `Please confirm receipt and reply with Confirmation Ref No. Thank you! 🙏`,
+  ].filter(Boolean);
+
+  return lines.join('\n');
 }
 
 /** Araç tipi — filo kaydı. */

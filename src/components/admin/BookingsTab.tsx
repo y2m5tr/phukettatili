@@ -4,8 +4,8 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2 } from 'lucide-react';
-import { type Booking, detectHotelZone } from '../../data/adminInitialData';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship } from 'lucide-react';
+import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 
 interface BookingsTabProps {
   /** Arama + durum + tarih filtresinden geçmiş liste. */
@@ -181,10 +181,31 @@ export default function BookingsTab({
                         </div>
                       ) : (
                         <>
-                          <span className="font-semibold text-slate-900 dark:text-white block">{b.tourTitle}</span>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className="font-semibold text-slate-900 dark:text-white">{b.tourTitle}</span>
+                            {(() => {
+                              const s = getPhuketSeason(b.tourDate);
+                              return (
+                                <span className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-bold border ${s.badgeColor}`}>
+                                  {s.season === 'peak' ? 'Peak' : s.season === 'low' ? 'Low' : 'High'}
+                                </span>
+                              );
+                            })()}
+                          </div>
                           <span className="text-xs text-slate-500 dark:text-slate-400 block mt-0.5">
                             📅 {b.tourDate} {b.pickupTime ? `· ⏰ ${b.pickupTime}` : ''}
                           </span>
+                          {b.supplier && (
+                            <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                              <Ship className="w-3 h-3 text-rose-500" />
+                              <span>{b.supplier}</span>
+                              {b.supplierRefCode && (
+                                <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
+                                  ({b.supplierRefCode})
+                                </span>
+                              )}
+                            </span>
+                          )}
                         </>
                       )}
                     </td>

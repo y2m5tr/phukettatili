@@ -9,6 +9,7 @@ import {
   X,
   Zap,
   Globe,
+  Waves,
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
 import type { AdminTab, NavItem } from './AdminDashboard';
@@ -22,6 +23,7 @@ interface CommandPaletteModalProps {
   onOpenCreateBooking: () => void;
   onOpenQrScanner: () => void;
   onOpenPoliceManifest: () => void;
+  onOpenBulkReschedule?: () => void;
   onSelectBooking: (b: Booking) => void;
   onSetNavMode: (mode: 'operations' | 'cms') => void;
 }
@@ -46,6 +48,7 @@ export default function CommandPaletteModal({
   onOpenCreateBooking,
   onOpenQrScanner,
   onOpenPoliceManifest,
+  onOpenBulkReschedule,
   onSelectBooking,
   onSetNavMode,
 }: CommandPaletteModalProps) {
@@ -132,6 +135,19 @@ export default function CommandPaletteModal({
           onSetNavMode('cms');
           onSelectTab('tours');
           onClose();
+        },
+      },
+      {
+        id: 'act-weather-reschedule',
+        type: 'action',
+        title: 'Hava Muhalefeti & Toplu Tur Erteleme',
+        subtitle: 'Fırtına veya liman kısıtlamasında turları yeni tarihe kaydır',
+        icon: Waves,
+        badge: 'Operasyon & Güvenlik',
+        badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
+        handler: () => {
+          onClose();
+          if (onOpenBulkReschedule) onOpenBulkReschedule();
         },
       },
     ];

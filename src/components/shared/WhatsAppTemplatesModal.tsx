@@ -6,14 +6,18 @@ import {
   Check,
   Send,
 } from 'lucide-react';
-import type { Booking } from '../../data/adminInitialData';
+import { type Booking, generateSupplierBookingOrder } from '../../data/adminInitialData';
 
 export type TemplateId =
   | 'pre_tour_reminder'
   | 'driver_arrived'
   | 'balance_reminder'
   | 'post_tour_review'
-  | 'park_fee_notice';
+  | 'park_fee_notice'
+  | 'checkin_request'
+  | 'supplier_order'
+  | 'weather_reschedule'
+  | 'cross_sell_discount';
 
 interface Props {
   booking: Booking;
@@ -112,6 +116,56 @@ Deneyiminizi 1 dakikanızı ayırarak Google Haritalar profilimizde paylaşarak 
 Phuket'teki sonraki günleriniz için her türlü transfer, restoran ve tur desteğinde yanınızdayız!
 Whatsapp: ${displayPhone}`;
 
+      case 'checkin_request':
+        return `🛂 *PHUKET TATİLİ — TAYLAND DENİZ POLİSİ & LİMAN CHECK-IN* 🛂
+
+Sayın *${booking.customerName}*, merhaba!
+
+*${booking.tourTitle}* turunuz için Tayland Kraliyeti Deniz Liman Başkanlığı zorunlu yolcu sigorta manifestosu hazırlanmaktadır.
+
+Tur sabahı limanda pasaport sırası beklememek ve doğrudan teknenize geçebilmek için lütfen aşağıdaki güvenli bilet portalınızdan pasaport bilgilerinizi doldurunuz:
+
+🎫 *Online Check-In & Bilet Linkiniz:*
+https://phukettatili.com/bilet/${booking.id}
+
+(Formda ad-soyad, pasaport no ve vejetaryen/özel yemek tercihlerinizi 1 dakikada kaydedebilirsiniz.)
+
+Herhangi bir sorunuz olursa buradayız: ${displayPhone}
+İyi tatiller dileriz! 🌴🌊`;
+
+      case 'supplier_order':
+        return generateSupplierBookingOrder(booking);
+
+      case 'weather_reschedule':
+        return `🌊 *PHUKET TATİLİ — HAVA DURUMU & TUR ERTELEME BİLGİLENDİRMESİ* 🌊
+
+Sayın *${booking.customerName}*,
+
+Bugün için planlanan *${booking.tourTitle}* turumuz, Andaman Denizi'ndeki olumsuz hava koşulları ve Tayland Deniz Liman Başkanlığı fırtına uyarısı nedeniyle misafirlerimizin güvenliği için geçici olarak ertelenmiştir.
+
+🎫 *Güncel Biletiniz & Yeni Alınış Takibi:*
+https://phukettatili.com/bilet/${booking.id}
+
+Yeni tur tarihinizi belirlemek, alternatif tur seçmek veya kesintisiz iade almak için lütfen bize buradan yazınız.
+
+Güvenliğiniz bizim için her şeyden önemlidir. Anlayışınız için teşekkür ederiz! 🙏🇹🇭`;
+
+      case 'cross_sell_discount':
+        return `🎁 *PHUKET TATİLİ — %10 İKİNCİ TUR & VIP MASAJ İNDİRİMİ* 🎁
+
+Sayın *${booking.customerName}*, iyi akşamlar!
+
+Bugünkü turumuzun ardından Phuket tatilinizin devamında değerlendirebileceğiniz *%10 özel misafir indirimi* tanımladık!
+
+🔥 *Öne Çıkan Diğer Deneyimlerimiz:*
+• James Bond Adası & Kano Safarisi
+• Fil Besleme & Etik Koruma Alanı
+• Özel Sürat Teknesi & VIP Katamaran Kiralama
+• Havalimanı VIP Transfer Hizmeti
+
+Tarihlerinizi planlamak için bize WhatsApp'tan dilediğiniz zaman yazabilirsiniz: ${displayPhone}
+Keyifli bir tatil geçirmenizi dileriz! ✨🇹🇭`;
+
       default:
         return '';
     }
@@ -143,6 +197,24 @@ Whatsapp: ${displayPhone}`;
       desc: 'Saat 20:00 civarı misafire tur saati, otel lobisi ve yanına alması gerekenleri hatırlatır.',
     },
     {
+      id: 'checkin_request',
+      label: 'Pasaport & Online Check-In İsteği',
+      icon: '🛂',
+      desc: 'Deniz Polisi liman manifestosu için pasaport ve yemek tercihi doldurma linki.',
+    },
+    {
+      id: 'supplier_order',
+      label: 'Tedarikçi Tur Siparişi (İngilizce)',
+      icon: '🚢',
+      desc: 'Tekne firmasına resmi İngilizce Pax, Otel, Alış Saati ve Ref rezervasyon formatı.',
+    },
+    {
+      id: 'weather_reschedule',
+      label: 'Hava Muhalefeti & Erteleme Uyarısı',
+      icon: '🌊',
+      desc: 'Fırtına veya liman kapanmasında tur erteleme ve bilet linki bildirimi.',
+    },
+    {
       id: 'driver_arrived',
       label: 'Şoför Lobide Bekliyor Bildirimi',
       icon: '🚐',
@@ -165,6 +237,12 @@ Whatsapp: ${displayPhone}`;
       label: 'Tur Sonu Teşekkür & Google Yorumu',
       icon: '⭐',
       desc: 'Tur sonrası memnuniyet teyidi ve Google Maps yorum daveti.',
+    },
+    {
+      id: 'cross_sell_discount',
+      label: 'İkinci Tur %10 İndirim Teklifi',
+      icon: '🎁',
+      desc: 'Tatilin devamı için yeni turlara ve VIP transferlere çapraz satış teklifi.',
     },
   ];
 
