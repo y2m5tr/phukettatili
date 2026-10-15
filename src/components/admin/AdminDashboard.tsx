@@ -33,6 +33,8 @@ import {
   Building,
   Ship,
   Camera,
+  Globe,
+  Search,
 } from 'lucide-react';
 import {
   initialBookings,
@@ -61,7 +63,9 @@ import {
   lookupTourCost,
   HOTEL_ZONES,
   detectHotelZone,
+  getRecommendedPickupTime,
 } from '../../data/adminInitialData';
+import CommandPaletteModal from './CommandPaletteModal';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
 import SupplierSettlementManager from './SupplierSettlementManager';
@@ -444,7 +448,40 @@ export default function AdminDashboard({
     });
   };
 
+  // ⚡ Çift Modlu Menü Switcher: 'operations' (ERP) vs 'cms' (Web İçerik)
+  const [navMode, setNavMode] = useState<'operations' | 'cms'>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('ptt_admin_nav_mode');
+        if (saved === 'operations' || saved === 'cms') return saved;
+      } catch { /* yok say */ }
+    }
+    return 'operations';
+  });
+
+  // Spotlight / Hızlı Komut Paleti Modalı (Cmd+K)
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
   const handleTabSelect = (tabId: AdminTab) => {
+    const item = NAV_ITEMS.find((i) => i.id === tabId);
+    if (item?.category === 'content') {
+      setNavMode('cms');
+      try { localStorage.setItem('ptt_admin_nav_mode', 'cms'); } catch {}
+    } else if (item?.category === 'operations') {
+      setNavMode('operations');
+      try { localStorage.setItem('ptt_admin_nav_mode', 'operations'); } catch {}
+    }
     setActiveTab(tabId);
     setIsMobileSidebarOpen(false);
   };
@@ -1836,134 +1873,185 @@ export default function AdminDashboard({
           </button>
         </div>
 
+        {/* Çift Modlu Menü Switcher: Operasyon ERP vs Web CMS */}
+        <div className="p-3 pb-1 shrink-0">
+          <div className="p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 grid grid-cols-2 gap-1 border border-slate-200/60 dark:border-slate-800/60">
+            <button
+              type="button"
+              onClick={() => {
+                setNavMode('operations');
+                try { localStorage.setItem('ptt_admin_nav_mode', 'operations'); } catch {}
+                if (cmsNavItems.some((i) => i.id === activeTab)) {
+                  setActiveTab('overview');
+                }
+              }}
+              title={isSidebarCollapsed ? 'Operasyon Masası (ERP)' : undefined}
+              className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                navMode === 'operations'
+                  ? 'bg-white dark:bg-surface-2 text-slate-900 dark:text-white shadow-2xs font-extrabold'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              {!isSidebarCollapsed && <span>Operasyon</span>}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setNavMode('cms');
+                try { localStorage.setItem('ptt_admin_nav_mode', 'cms'); } catch {}
+                if (operationNavItems.some((i) => i.id === activeTab)) {
+                  setActiveTab('tours');
+                }
+              }}
+              title={isSidebarCollapsed ? 'Web & İçerik Modu (CMS)' : undefined}
+              className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                navMode === 'cms'
+                  ? 'bg-white dark:bg-surface-2 text-slate-900 dark:text-white shadow-2xs font-extrabold'
+                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Globe className="w-3.5 h-3.5 text-sky-500" />
+              {!isSidebarCollapsed && <span>Web CMS</span>}
+            </button>
+          </div>
+        </div>
+
         {/* Sidebar Menü Listesi (Kaydırılabilir) */}
         <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
-          {/* Grup 1: Operasyon */}
-          <div>
-            {!isSidebarCollapsed ? (
-              <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500">
-                Operasyon
+          {navMode === 'operations' ? (
+            /* Grup 1: Operasyon ERP */
+            <div>
+              {!isSidebarCollapsed ? (
+                <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500 flex items-center justify-between">
+                  <span>Operasyon Masası</span>
+                  <span className="font-mono text-[9px] opacity-75">{operationNavItems.length} Modül</span>
+                </div>
+              ) : (
+                <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
+              )}
+              <div className="space-y-0.5">
+                {operationNavItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  const isBookings = item.id === 'bookings';
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleTabSelect(item.id)}
+                      title={isSidebarCollapsed ? item.label : undefined}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer relative group ${
+                        isActive
+                          ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
+                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                      } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
+                    >
+                      <Icon className={`w-4 h-4 shrink-0 transition-colors ${
+                        isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
+                      }`} />
+                      {!isSidebarCollapsed && (
+                        <>
+                          <span className="truncate flex-1 text-left">{item.label}</span>
+                          {isBookings && pendingBookingsCount > 0 && (
+                            <span className="rounded-full px-2 py-0.5 text-[10px] font-black bg-amber-500 text-white animate-pulse">
+                              {pendingBookingsCount}
+                            </span>
+                          )}
+                          {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
+                            <span className={`text-[10px] opacity-60 font-mono ${isActive ? 'text-white' : 'text-slate-400'}`}>
+                              {bookings.length}
+                            </span>
+                          )}
+                        </>
+                      )}
+                      {isSidebarCollapsed && isBookings && pendingBookingsCount > 0 && (
+                        <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900" />
+                      )}
+                    </button>
+                  );
+                })}
               </div>
-            ) : (
-              <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
-            )}
-            <div className="space-y-0.5">
-              {operationNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                const isBookings = item.id === 'bookings';
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleTabSelect(item.id)}
-                    title={isSidebarCollapsed ? item.label : undefined}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer relative group ${
-                      isActive
-                        ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
-                    } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
-                  >
-                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                      isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
-                    }`} />
-                    {!isSidebarCollapsed && (
-                      <>
-                        <span className="truncate flex-1 text-left">{item.label}</span>
-                        {isBookings && pendingBookingsCount > 0 && (
-                          <span className="rounded-full px-2 py-0.5 text-[10px] font-black bg-amber-500 text-white animate-pulse">
-                            {pendingBookingsCount}
-                          </span>
+            </div>
+          ) : (
+            <>
+              {/* Grup 2: Web Sitesi & İçerik */}
+              <div>
+                {!isSidebarCollapsed ? (
+                  <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500 flex items-center justify-between">
+                    <span>Web & İçerik</span>
+                    <span className="font-mono text-[9px] opacity-75">{cmsNavItems.length} Modül</span>
+                  </div>
+                ) : (
+                  <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
+                )}
+                <div className="space-y-0.5">
+                  {cmsNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleTabSelect(item.id)}
+                        title={isSidebarCollapsed ? item.label : undefined}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
+                          isActive
+                            ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                        } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
+                      >
+                        <Icon className={`w-4 h-4 shrink-0 transition-colors ${
+                          isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
+                        }`} />
+                        {!isSidebarCollapsed && (
+                          <span className="truncate flex-1 text-left">{item.label}</span>
                         )}
-                        {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
-                          <span className={`text-[10px] opacity-60 font-mono ${isActive ? 'text-white' : 'text-slate-400'}`}>
-                            {bookings.length}
-                          </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Grup 3: Sistem & İletişim */}
+              <div>
+                {!isSidebarCollapsed ? (
+                  <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500">
+                    Sistem & İletişim
+                  </div>
+                ) : (
+                  <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
+                )}
+                <div className="space-y-0.5">
+                  {systemNavItems.map((item) => {
+                    const Icon = item.icon;
+                    const isActive = activeTab === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleTabSelect(item.id)}
+                        title={isSidebarCollapsed ? item.label : undefined}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
+                          isActive
+                            ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                        } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
+                      >
+                        <Icon className={`w-4 h-4 shrink-0 transition-colors ${
+                          isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
+                        }`} />
+                        {!isSidebarCollapsed && (
+                          <span className="truncate flex-1 text-left">{item.label}</span>
                         )}
-                      </>
-                    )}
-                    {isSidebarCollapsed && isBookings && pendingBookingsCount > 0 && (
-                      <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Grup 2: Web Sitesi & İçerik */}
-          <div>
-            {!isSidebarCollapsed ? (
-              <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500">
-                Web Sitesi & İçerik
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            ) : (
-              <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
-            )}
-            <div className="space-y-0.5">
-              {cmsNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleTabSelect(item.id)}
-                    title={isSidebarCollapsed ? item.label : undefined}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
-                      isActive
-                        ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
-                    } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
-                  >
-                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                      isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
-                    }`} />
-                    {!isSidebarCollapsed && (
-                      <span className="truncate flex-1 text-left">{item.label}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Grup 3: Sistem & İletişim */}
-          <div>
-            {!isSidebarCollapsed ? (
-              <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500">
-                Sistem & İletişim
-              </div>
-            ) : (
-              <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
-            )}
-            <div className="space-y-0.5">
-              {systemNavItems.map((item) => {
-                const Icon = item.icon;
-                const isActive = activeTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => handleTabSelect(item.id)}
-                    title={isSidebarCollapsed ? item.label : undefined}
-                    className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
-                      isActive
-                        ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
-                        : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
-                    } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
-                  >
-                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                      isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
-                    }`} />
-                    {!isSidebarCollapsed && (
-                      <span className="truncate flex-1 text-left">{item.label}</span>
-                    )}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+            </>
+          )}
         </div>
 
         {/* Sidebar Alt: Profil & Daralt/Genişlet Butonu */}
@@ -2050,6 +2138,20 @@ export default function AdminDashboard({
 
           {/* Sağ: Durum + Hızlı Eylemler */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Spotlight Arama Butonu (Cmd+K) */}
+            <button
+              type="button"
+              onClick={() => setIsCommandPaletteOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-800 text-xs font-medium transition-all cursor-pointer"
+              title="Klavyeden ⌘K veya Ctrl+K ile hızlı arama"
+            >
+              <Search className="w-3.5 h-3.5 text-slate-400" />
+              <span className="hidden md:inline">Hızlı Arama / Komut</span>
+              <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-white dark:bg-surface-2 border border-slate-200 dark:border-slate-700 text-slate-500">
+                ⌘K
+              </kbd>
+            </button>
+
             {/* Canlı Bağlantı Durumu */}
             <div
               className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800/80 text-[11px] font-semibold text-slate-600 dark:text-slate-300"
@@ -2098,6 +2200,7 @@ export default function AdminDashboard({
         {activeTab === 'overview' && (
           <OverviewTab
             stats={stats}
+            bookings={bookings}
             bookingsCount={bookings.length}
             toursCount={tours.length}
             servicesCount={services.length}
@@ -2105,6 +2208,9 @@ export default function AdminDashboard({
             faqsCount={faqs.length}
             testimonialsCount={testimonials.length}
             setActiveTab={setActiveTab}
+            onOpenCreateBooking={handleOpenCreateBooking}
+            onOpenQrScanner={() => setIsQrScannerOpen(true)}
+            onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
           />
         )}
 
@@ -2402,14 +2508,24 @@ export default function AdminDashboard({
                     onChange={(e) => {
                       const val = e.target.value;
                       const detected = detectHotelZone(val);
-                      setFormData((prev) => ({
-                        ...prev,
-                        hotel: val,
-                        hotelZone:
-                          !prev.hotelZone || prev.hotelZone === 'Patong & Kalim' || prev.hotelZone === 'Genel Phuket'
-                            ? detected
-                            : prev.hotelZone,
-                      }));
+                      const recTime = getRecommendedPickupTime(detected);
+                      setFormData((prev) => {
+                        const updatedTours = (prev.tours || []).map((t, idx) =>
+                          idx === 0 && (!t.pickupTime || t.pickupTime === '07:30')
+                            ? { ...t, pickupTime: recTime }
+                            : t
+                        );
+                        return {
+                          ...prev,
+                          hotel: val,
+                          hotelZone:
+                            !prev.hotelZone || prev.hotelZone === 'Patong & Kalim' || prev.hotelZone === 'Genel Phuket'
+                              ? detected
+                              : prev.hotelZone,
+                          pickupTime: !prev.pickupTime || prev.pickupTime === '07:30' ? recTime : prev.pickupTime,
+                          tours: updatedTours.length > 0 ? updatedTours : prev.tours,
+                        };
+                      });
                     }}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40"
                   />
@@ -2420,12 +2536,28 @@ export default function AdminDashboard({
                   </label>
                   <select
                     value={formData.hotelZone || (formData.hotel ? detectHotelZone(formData.hotel) : 'Patong & Kalim')}
-                    onChange={(e) => setFormData({ ...formData, hotelZone: e.target.value })}
+                    onChange={(e) => {
+                      const zone = e.target.value;
+                      const recTime = getRecommendedPickupTime(zone);
+                      setFormData((prev) => {
+                        const updatedTours = (prev.tours || []).map((t, idx) =>
+                          idx === 0 && (!t.pickupTime || t.pickupTime === '07:30')
+                            ? { ...t, pickupTime: recTime }
+                            : t
+                        );
+                        return {
+                          ...prev,
+                          hotelZone: zone,
+                          pickupTime: !prev.pickupTime || prev.pickupTime === '07:30' ? recTime : prev.pickupTime,
+                          tours: updatedTours.length > 0 ? updatedTours : prev.tours,
+                        };
+                      });
+                    }}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white"
                   >
                     {HOTEL_ZONES.map((zone) => (
                       <option key={zone} value={zone}>
-                        {zone}
+                        {zone} (Alış: {getRecommendedPickupTime(zone)})
                       </option>
                     ))}
                   </select>
@@ -3954,6 +4086,27 @@ export default function AdminDashboard({
           onScanResult={handleQrScanResult}
         />
       )}
+
+      {/* ==================================================== */}
+      {/* MODAL 14: SPOTLIGHT & COMMAND PALETTE (CMD+K / CTRL+K) */}
+      {/* ==================================================== */}
+      <CommandPaletteModal
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        bookings={bookings}
+        navItems={visibleNavItems}
+        onSelectTab={handleTabSelect}
+        onOpenCreateBooking={handleOpenCreateBooking}
+        onOpenQrScanner={() => setIsQrScannerOpen(true)}
+        onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
+        onSelectBooking={(b) => handleOpenEditBooking(b)}
+        onSetNavMode={(mode) => {
+          setNavMode(mode);
+          try {
+            localStorage.setItem('ptt_admin_nav_mode', mode);
+          } catch {}
+        }}
+      />
 
       {/* ==================================================== */}
       {/* TOAST FEEDBACK NOTIFICATION */}

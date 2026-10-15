@@ -130,6 +130,46 @@ export function detectHotelZone(hotel: string): string {
   return 'Genel Phuket';
 }
 
+export function getRecommendedPickupTime(zone: string): string {
+  switch (zone) {
+    case 'Kuzey / Havalimanı':
+      return '06:45';
+    case 'Bang Tao & Surin':
+      return '07:00';
+    case 'Kamala':
+      return '07:10';
+    case 'Patong & Kalim':
+      return '07:15';
+    case 'Kata & Karon':
+      return '07:30';
+    case 'Rawai & Chalong':
+      return '07:45';
+    case 'Cape Panwa':
+      return '07:45';
+    case 'Phuket Town':
+      return '08:00';
+    default:
+      return '07:30';
+  }
+}
+
+/** Standart döviz kurları (1 yabancı birim = X THB) */
+export const DEFAULT_EXCHANGE_RATES: Record<'TRY' | 'USD' | 'EUR' | 'GBP', number> = {
+  TRY: 1.05,
+  USD: 36.5,
+  EUR: 39.5,
+  GBP: 46.0,
+};
+
+export function convertToThb(
+  amount: number,
+  currency: 'TRY' | 'USD' | 'EUR' | 'GBP',
+  customRates?: Partial<Record<'TRY' | 'USD' | 'EUR' | 'GBP', number>>
+): number {
+  const rate = customRates?.[currency] ?? DEFAULT_EXCHANGE_RATES[currency] ?? 1;
+  return Math.round(amount * rate);
+}
+
 /** Araç tipi — filo kaydı. */
 export type VehicleKind = 'minibus' | 'vip' | 'speedboat' | 'other';
 

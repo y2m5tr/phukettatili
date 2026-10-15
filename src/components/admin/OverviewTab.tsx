@@ -5,6 +5,7 @@
  * diğer görünümler de aynı stats'ı kullanıyor); buraya hazır değerler
  * prop olarak geçer.
  */
+import { useMemo } from 'react';
 import {
   Calendar,
   DollarSign,
@@ -18,8 +19,12 @@ import {
   BookOpen,
   HelpCircle,
   MessageSquareQuote,
+  Camera,
+  FileText,
+  Plus,
 } from 'lucide-react';
 import type { AdminTab } from './AdminDashboard';
+import type { Booking } from '../../data/adminInitialData';
 
 /** AdminDashboard'taki stats useMemo çıktısı — alan isimleri birebir. */
 export interface OverviewStats {
@@ -37,6 +42,7 @@ export interface OverviewStats {
 
 interface OverviewTabProps {
   stats: OverviewStats;
+  bookings?: Booking[];
   /** Sekme kısayolları için sayım ve geçiş. */
   bookingsCount: number;
   toursCount: number;
@@ -45,10 +51,14 @@ interface OverviewTabProps {
   faqsCount: number;
   testimonialsCount: number;
   setActiveTab: (tab: AdminTab) => void;
+  onOpenCreateBooking?: () => void;
+  onOpenQrScanner?: () => void;
+  onOpenPoliceManifest?: () => void;
 }
 
 export default function OverviewTab({
   stats,
+  bookings = [],
   bookingsCount,
   toursCount,
   servicesCount,
@@ -56,9 +66,259 @@ export default function OverviewTab({
   faqsCount,
   testimonialsCount,
   setActiveTab,
+  onOpenCreateBooking,
+  onOpenQrScanner,
+  onOpenPoliceManifest,
 }: OverviewTabProps) {
+  // Bugünün Phuket tarihi (UTC+7)
+  const todayStr = useMemo(() => {
+    try {
+      const now = new Date();
+      return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok' }).format(now);
+    } catch {
+      return new Date().toISOString().split('T')[0];
+    }
+  }, []);
+
+  // Bugünün operasyon ve saha verileri
+  const todayDispatch = useMemo(() => {
+    let guests = 0;
+    let pickedUp = 0;
+    let pending = 0;
+    let noShow = 0;
+    let cash = 0;
+    const vehiclesSet = new Set<string>();
+    const items: Array<{
+      bookingId: string;
+      customerName: string;
+      tourTitle: string;
+      pickupTime: string;
+      hotel: string;
+      hotelZone?: string;
+      pickupStatus: string;
+      remainingAmountThb: number;
+    }> = [];
+
+    bookings.forEach((b) => {
+      if (b.tours && b.tours.length > 0) {
+        b.tours.forEach((t) => {
+          if (t.tourDate === todayStr) {
+            const count = (b.adultCount || 1) + (b.childCount || 0);
+            guests += count;
+            const status = t.pickupStatus || b.pickupStatus || 'pending';
+            if (status === 'picked_up' || status === 'completed' || status === 'on_tour') pickedUp += count;
+            else if (status === 'no_show') noShow += count;
+            else pending += count;
+
+            if (t.assignedVehicle) vehiclesSet.add(t.assignedVehicle);
+            else if (b.assignedVehicle) vehiclesSet.add(b.assignedVehicle);
+
+            cash += Number(b.remainingAmountThb) || 0;
+
+            items.push({
+              bookingId: b.id,
+              customerName: b.customerName,
+              tourTitle: t.tourTitle,
+              pickupTime: t.pickupTime || '07:30',
+              hotel: b.hotel,
+              hotelZone: t.hotelZone || b.hotelZone,
+              pickupStatus: status,
+              remainingAmountThb: b.remainingAmountThb,
+            });
+          }
+        });
+      } else if (b.tourDate === todayStr) {
+        const count = (b.adultCount || 1) + (b.childCount || 0);
+        guests += count;
+        const status = b.pickupStatus || 'pending';
+        if (status === 'picked_up' || status === 'completed' || status === 'on_tour') pickedUp += count;
+        else if (status === 'no_show') noShow += count;
+        else pending += count;
+
+        if (b.assignedVehicle) vehiclesSet.add(b.assignedVehicle);
+        cash += Number(b.remainingAmountThb) || 0;
+
+        items.push({
+          bookingId: b.id,
+          customerName: b.customerName,
+          tourTitle: b.tourTitle,
+          pickupTime: b.pickupTime || '07:30',
+          hotel: b.hotel,
+          hotelZone: b.hotelZone,
+          pickupStatus: status,
+          remainingAmountThb: b.remainingAmountThb,
+        });
+      }
+    });
+
+    const completionRate = guests > 0 ? Math.round((pickedUp / guests) * 100) : 0;
+
+    return {
+      totalGuests: guests,
+      toursCount: items.length,
+      pickedUpCount: pickedUp,
+      pendingCount: pending,
+      noShowCount: noShow,
+      cashToCollectThb: cash,
+      assignedVehicles: Array.from(vehiclesSet),
+      completionRate,
+      todayItems: items,
+    };
+  }, [bookings, todayStr]);
+
   return (
     <div className="space-y-8">
+      {/* ==================================================== */}
+      {/* 🚀 BUGÜNÜN SAHA & OPERASYON KOKPİTİ (FLIGHT DISPATCH) */}
+      {/* ==================================================== */}
+      <div className="rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 sm:p-7 shadow-xl border border-slate-700/60 relative overflow-hidden">
+        {/* Dekoratif Arka Plan Parıltısı */}
+        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-brand-accent/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-1/3 -mb-10 w-48 h-48 bg-purple-500/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col gap-6">
+          {/* Kokpit Başlığı & Hızlı Aksiyon Butonları */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-white/10">
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-brand-accent text-slate-950 font-mono">
+                  CANLI DISPATCH
+                </span>
+                <span className="text-xs text-slate-300 font-mono">
+                  Phuket: {todayStr}
+                </span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-bold font-serif text-white mt-1">
+                Günün Operasyon Kokpiti
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Bugünün otel transferleri, canlı biniş durumu ve lobilerden tahsil edilecek nakit akışı
+              </p>
+            </div>
+
+            {/* Hızlı Aksiyon Butonları */}
+            <div className="flex items-center gap-2 flex-wrap">
+              {onOpenQrScanner && (
+                <button
+                  type="button"
+                  onClick={onOpenQrScanner}
+                  className="px-3.5 py-2 rounded-xl bg-purple-500 hover:bg-purple-600 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Camera className="w-3.5 h-3.5" />
+                  <span>Bilet Tara</span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={() => setActiveTab('transfers')}
+                className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/15 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              >
+                <Car className="w-3.5 h-3.5 text-sky-400" />
+                <span>Transferler</span>
+              </button>
+
+              {onOpenPoliceManifest && (
+                <button
+                  type="button"
+                  onClick={onOpenPoliceManifest}
+                  className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/15 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FileText className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Manifesto</span>
+                </button>
+              )}
+
+              {onOpenCreateBooking && (
+                <button
+                  type="button"
+                  onClick={onOpenCreateBooking}
+                  className="px-3.5 py-2 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-slate-950 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Yeni Ekle</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Kokpit 4 Ana Metrik Kartı */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 1. Bugünkü Misafir & Tur */}
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Users className="w-3.5 h-3.5 text-sky-400" />
+                Bugünkü Misafir
+              </span>
+              <div className="text-2xl sm:text-3xl font-extrabold text-white mt-1">
+                {todayDispatch.totalGuests} <span className="text-sm font-normal text-slate-400">Yolcu</span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">
+                {todayDispatch.toursCount} farklı tur grubu/transferi
+              </p>
+            </div>
+
+            {/* 2. Saha Biniş Durumu (Canlı Progress) */}
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                  Biniş Durumu
+                </span>
+                <span className="text-emerald-400">%{todayDispatch.completionRate}</span>
+              </div>
+              <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden mt-2">
+                <div
+                  className="bg-emerald-400 h-full rounded-full transition-all duration-500"
+                  style={{ width: `${todayDispatch.completionRate}%` }}
+                />
+              </div>
+              <div className="mt-2 flex items-center gap-2 text-[11px] flex-wrap">
+                <span className="text-emerald-400 font-bold">🟢 {todayDispatch.pickedUpCount} Bindi</span>
+                <span>·</span>
+                <span className="text-amber-300 font-bold">🟡 {todayDispatch.pendingCount} Bekliyor</span>
+                {todayDispatch.noShowCount > 0 && (
+                  <>
+                    <span>·</span>
+                    <span className="text-rose-400 font-bold">🔴 {todayDispatch.noShowCount} No-Show</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* 3. Sahada Toplanacak Nakit Kalan */}
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-amber-400" />
+                Sahada Toplanacak Nakit
+              </span>
+              <div className="text-2xl sm:text-3xl font-extrabold text-amber-300 font-mono mt-1">
+                {todayDispatch.cashToCollectThb.toLocaleString()} <span className="text-xs font-semibold text-white">THB</span>
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Şoför & rehberlerin lobilerden alacağı bakiye
+              </p>
+            </div>
+
+            {/* 4. Görevdeki Araçlar */}
+            <div className="p-4 rounded-2xl bg-white/5 border border-white/10">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-1.5">
+                <Car className="w-3.5 h-3.5 text-purple-400" />
+                Aktif Hat & Filo
+              </span>
+              <div className="text-lg font-bold text-white mt-1 truncate">
+                {todayDispatch.assignedVehicles.length > 0
+                  ? todayDispatch.assignedVehicles.join(', ')
+                  : 'Otomatik Atama'}
+              </div>
+              <p className="text-[11px] text-slate-400 mt-1">
+                {todayDispatch.assignedVehicles.length > 0 ? `${todayDispatch.assignedVehicles.length} Araç hatta` : 'Araç atanmamış transferler var'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Top Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
         <div className="bg-white dark:bg-surface-2 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm">

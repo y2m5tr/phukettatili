@@ -12,6 +12,11 @@ import {
   X,
   Wallet,
   Receipt,
+  Car,
+  ShieldCheck,
+  ArrowRight,
+  Clock,
+  Coins,
 } from 'lucide-react';
 import {
   type Booking,
@@ -20,6 +25,8 @@ import {
   type CollectionLocation,
   PAYMENT_METHOD_LABELS,
   COLLECTION_LOCATION_LABELS,
+  convertToThb,
+  DEFAULT_EXCHANGE_RATES,
 } from '../../data/adminInitialData';
 
 interface FinanceTabProps {
@@ -40,7 +47,13 @@ export default function FinanceTab({
   setVoucherBooking,
 }: FinanceTabProps) {
   // Alt Görünüm Modu
-  const [subTab, setSubTab] = useState<'ledger' | 'outstanding' | 'accounts'>('ledger');
+  const [subTab, setSubTab] = useState<'ledger' | 'outstanding' | 'accounts' | 'driver_handover'>('ledger');
+  const [settledDrivers, setSettledDrivers] = useState<string[]>([]);
+
+  // Döviz Çevirici State'i
+  const [showCurrencyCalc, setShowCurrencyCalc] = useState(false);
+  const [foreignAmount, setForeignAmount] = useState<number>(0);
+  const [foreignCurrency, setForeignCurrency] = useState<'TRY' | 'USD' | 'EUR' | 'GBP'>('TRY');
 
   // Filtreler
   const [searchQuery, setSearchQuery] = useState('');
@@ -171,6 +184,32 @@ export default function FinanceTab({
       return true;
     });
   }, [payments, searchQuery, methodFilter, dateFilter]);
+
+  // Şoför Kasa Kapatma (Z-Raporu) Verileri
+  const driverCashGroups = useMemo(() => {
+    const map = new Map<
+      string,
+      {
+        driverName: string;
+        totalAmountThb: number;
+        payments: PaymentRecord[];
+      }
+    >();
+
+    payments.forEach((p) => {
+      if (p.method === 'cash_thb' && p.collectedBy) {
+        const collector = p.collectedBy.trim();
+        if (!map.has(collector)) {
+          map.set(collector, { driverName: collector, totalAmountThb: 0, payments: [] });
+        }
+        const g = map.get(collector)!;
+        g.totalAmountThb += p.amountThb || 0;
+        g.payments.push(p);
+      }
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.totalAmountThb - a.totalAmountThb);
+  }, [payments]);
 
   // Bir rezervasyon için hızlı tahsilat modalı aç
   const handleOpenCollect = (booking: Booking) => {
@@ -429,6 +468,19 @@ export default function FinanceTab({
           >
             <Wallet className="w-3.5 h-3.5" />
             <span>Kasa Hesapları</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab('driver_handover')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              subTab === 'driver_handover'
+                ? 'bg-purple-600 text-white shadow-2xs font-extrabold'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Car className="w-3.5 h-3.5" />
+            <span>Şoför Z-Raporu & Teslimat</span>
           </button>
         </div>
 
@@ -812,6 +864,127 @@ export default function FinanceTab({
       )}
 
       {/* ==================================================== */}
+      {/* 5.5 ŞOFÖR KASA KAPATMA & Z-RAPORU (DRIVER HANDOVER) */}
+      {/* ==================================================== */}
+      {subTab === 'driver_handover' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Car className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                <span>Şoför & Saha Kasa Kapatma (Z-Raporu)</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Şoför ve rehberlerin otel lobilerinden elden topladığı nakitleri ofis kasasına teslim alın ve devir kaydını kapatın.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-medium">Toplam Saha Tahsilatçısı:</span>
+              <span className="px-2.5 py-1 rounded-xl bg-purple-500/10 text-purple-700 dark:text-purple-300 text-xs font-bold border border-purple-500/20">
+                {driverCashGroups.length} Kişi
+              </span>
+            </div>
+          </div>
+
+          {driverCashGroups.length === 0 ? (
+            <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-12 text-center text-slate-400">
+              <Car className="w-10 h-10 mx-auto mb-2 opacity-30" />
+              <p className="text-sm font-semibold">Henüz elden nakit tahsilat kaydedilmiş şoför kaydı bulunmuyor.</p>
+              <p className="text-xs text-slate-500 mt-1">
+                Lobiden tahsilat yapıldığında veya rezervasyona tahsilat makbuzu girildiğinde burada listelenir.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {driverCashGroups.map((g) => {
+                const isSettled = settledDrivers.includes(g.driverName);
+                return (
+                  <div
+                    key={g.driverName}
+                    className={`p-5 rounded-3xl border transition-all ${
+                      isSettled
+                        ? 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-75'
+                        : 'bg-white dark:bg-surface-2 border-purple-500/30 shadow-md ring-1 ring-purple-500/10'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2 mb-3">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                          Saha Tahsilatçısı
+                        </span>
+                        <h4 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
+                          {g.driverName}
+                        </h4>
+                      </div>
+
+                      {isSettled ? (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Kasaya Teslim Alındı</span>
+                        </span>
+                      ) : (
+                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>Eldeki Nakit</span>
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-1.5 mb-4">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-500">Toplanan Nakit Tutar:</span>
+                        <span className="font-extrabold text-base font-mono text-emerald-600 dark:text-emerald-400">
+                          {g.totalAmountThb.toLocaleString()} THB
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-slate-500">
+                        <span>Makbuz Sayısı:</span>
+                        <span className="font-bold text-slate-700 dark:text-slate-300">
+                          {g.payments.length} Tahsilat
+                        </span>
+                      </div>
+                    </div>
+
+                    {!isSettled ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const receiptNo = `DEVIR-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(Math.floor(100 + Math.random() * 900))}`;
+                          onAddPayment({
+                            bookingId: 'OFIS-DEVIR',
+                            customerName: `Kasa Teslimatı (${g.driverName})`,
+                            tourTitle: 'Gün Sonu Z-Raporu & Teslimat',
+                            amountThb: g.totalAmountThb,
+                            method: 'cash_thb',
+                            collectedBy: 'Ofis Ana Kasası',
+                            collectionLocation: 'office',
+                            note: `${g.driverName} tarafından teslim edilen gün sonu nakit toplamı`,
+                            receiptNo,
+                          });
+                          setSettledDrivers((prev) => [...prev, g.driverName]);
+                          showToast(`✅ ${g.driverName} gün sonu nakit teslimatı (${g.totalAmountThb.toLocaleString()} THB) ana kasaya aktarıldı ve kapatıldı!`);
+                        }}
+                        className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
+                      >
+                        <Wallet className="w-3.5 h-3.5" />
+                        <span>💰 Kasaya Teslim Al & Kapat ({g.totalAmountThb.toLocaleString()} THB)</span>
+                      </button>
+                    ) : (
+                      <div className="text-center py-2 text-xs text-slate-400 flex items-center justify-center gap-1">
+                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                        <span>Bu tutar ana kasaya devredilmiştir.</span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ==================================================== */}
       {/* 6. HIZLI TAHSİLAT AL MODALI */}
       {/* ==================================================== */}
       {isCollectModalOpen && (
@@ -867,6 +1040,83 @@ export default function FinanceTab({
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* 💱 Çoklu Para Birimi (TRY / USD / EUR → THB) Çevirici */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Coins className="w-4 h-4 text-amber-500" />
+                    <span>Döviz / Kur Çevirici (TRY / USD / EUR → THB)</span>
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowCurrencyCalc(!showCurrencyCalc)}
+                    className="text-[11px] font-bold text-brand-primary dark:text-brand-accent hover:underline cursor-pointer"
+                  >
+                    {showCurrencyCalc ? '✕ Gizle' : '+ Çeviriciyi Aç'}
+                  </button>
+                </div>
+
+                {showCurrencyCalc && (
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                          Alınan Döviz Tutarı
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          placeholder="Örn: 5000"
+                          value={foreignAmount || ''}
+                          onChange={(e) => setForeignAmount(Number(e.target.value) || 0)}
+                          className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
+                          Para Birimi
+                        </label>
+                        <select
+                          value={foreignCurrency}
+                          onChange={(e) => setForeignCurrency(e.target.value as any)}
+                          className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
+                        >
+                          <option value="TRY">🇹🇷 Türk Lirası (1 TRY ≈ {DEFAULT_EXCHANGE_RATES.TRY} THB)</option>
+                          <option value="USD">🇺🇸 ABD Doları (1 USD ≈ {DEFAULT_EXCHANGE_RATES.USD} THB)</option>
+                          <option value="EUR">🇪🇺 Euro (1 EUR ≈ {DEFAULT_EXCHANGE_RATES.EUR} THB)</option>
+                          <option value="GBP">🇬🇧 İngiliz Sterlini (1 GBP ≈ {DEFAULT_EXCHANGE_RATES.GBP} THB)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-1">
+                      <div className="text-xs text-slate-600 dark:text-slate-400">
+                        Karşılığı:{' '}
+                        <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono text-sm">
+                          {convertToThb(foreignAmount, foreignCurrency).toLocaleString()} THB
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const converted = convertToThb(foreignAmount, foreignCurrency);
+                          setCollectAmount(converted);
+                          setCollectNote(
+                            `${foreignAmount.toLocaleString()} ${foreignCurrency} nakit/havale alındı (Kur: ${DEFAULT_EXCHANGE_RATES[foreignCurrency]})`
+                          );
+                          showToast(`💱 ${converted.toLocaleString()} THB olarak tahsilat kutusuna aktarıldı!`);
+                        }}
+                        disabled={foreignAmount <= 0}
+                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all disabled:opacity-40 cursor-pointer flex items-center gap-1 shadow-sm"
+                      >
+                        <ArrowRight className="w-3.5 h-3.5" />
+                        <span>Tutara Aktar</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Tutar & Kasa Yöntemi */}
