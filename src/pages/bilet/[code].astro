@@ -1,7 +1,7 @@
 ---
 export const prerender = false;
 
-import GuestTicketPortal from '../../components/guest/GuestTicketPortal';
+import GuestTicketPortal, { type GuestBookingView } from '../../components/guest/GuestTicketPortal';
 import { initialBookings, type Booking } from '../../data/adminInitialData';
 import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../lib/server/supabaseAdmin';
 import { rowToBooking } from '../../lib/supabase';
@@ -12,19 +12,34 @@ const cleanCode = codeParam.toUpperCase();
 
 let booking: Booking | null = null;
 
-// 1. Önce Supabase Bulut Veritabanından Sorgula
+// 1. Supabase: önce tahmin edilemez BİLET KODU (PT-XXXXXXX), sonra eski
+//    kayıt id'si (BK-XXXX) — geriye dönük uyumluluk için.
 if (isSupabaseAdminConfigured()) {
   const db = getSupabaseAdmin();
   if (db && cleanCode) {
     try {
+      // `.eq` kullanılıyor, `.ilike` DEĞİL: ilike'ta `%` ve `_` wildcard
+      // sayılır, yani "/bilet/BK-%25" gibi bir istek desene dönüşürdü.
       const { data, error } = await db
         .from('bookings')
         .select('*')
-        .ilike('id', cleanCode)
+        .eq('ticket_code', cleanCode)
         .maybeSingle();
 
       if (!error && data) {
         booking = rowToBooking(data);
+      }
+
+      // Bilet kodu eşleşmediyse eski id ile dene (PT- dışı her şey).
+      if (!booking && !cleanCode.startsWith('PT-')) {
+        const { data: byId, error: idErr } = await db
+          .from('bookings')
+          .select('*')
+          .eq('id', cleanCode)
+          .maybeSingle();
+        if (!idErr && byId) {
+          booking = rowToBooking(byId);
+        }
       }
     } catch (err) {
       console.warn('Bilet portalı bulut sorgulama hatası:', err);
@@ -32,15 +47,45 @@ if (isSupabaseAdminConfigured()) {
   }
 }
 
-// 2. Bulutta bulunamadıysa veya çevrimdışıysa yerel verilerden sorgula
+// 2. Bulutta bulunamadıysa veya çevrimdışıysa yerel verilerden sorgula.
+//    ⚠️ Yalnızca TAM eşleşme: `.includes()` kısmi kodla (örn. "BK") başkasının
+//    kaydını getirirdi ve kodlar 4 haneye kadar tahmin edilebilir olurdu.
 if (!booking && cleanCode) {
   const found = initialBookings.find(
-    (b) => b.id.toUpperCase() === cleanCode || b.id.toUpperCase().includes(cleanCode)
+    (b) => b.id.toUpperCase() === cleanCode || b.ticketCode?.toUpperCase() === cleanCode
   );
   if (found) {
     booking = found;
   }
 }
+
+/**
+ * Misafire gönderilecek ASGARİ veri.
+ *
+ * Bu sayfa halka açıktır (oturum gerektirmez) ve Astro, island'a geçen her
+ * prop'u HTML içine JSON olarak serileştirir. Tam `Booking` nesnesi
+ * geçilirse maliyet, tedarikçi, alınan kapora, özel notlar, telefon, e-posta
+ * ve YOLCU PASAPORT BİLGİLERİ sayfa kaynağında görünür hale gelir.
+ * Bu yüzden yalnızca portalın gerçekten çizdiği alanlar seçilir.
+ */
+const guestView: GuestBookingView | null = booking
+  ? {
+      id: booking.id,
+      customerName: booking.customerName,
+      hotel: booking.hotel,
+      roomNumber: booking.roomNumber,
+      tourTitle: booking.tourTitle,
+      tourDate: booking.tourDate,
+      pickupTime: booking.pickupTime,
+      adultCount: booking.adultCount,
+      childCount: booking.childCount,
+      remainingAmountThb: booking.remainingAmountThb,
+      nationalParkFeeIncluded: booking.nationalParkFeeIncluded ?? false,
+      assignedVehicle: booking.assignedVehicle,
+      // Pasaport/uyruk/doğum tarihi GÖNDERİLMEZ — portal yalnızca isim çizer.
+      passengerNames: (booking.passengers ?? []).map((p) => p.fullName),
+    }
+  : null;
 
 const managerPhone = siteSettings?.whatsappNumber || '66828950665';
 ---
@@ -66,7 +111,7 @@ const managerPhone = siteSettings?.whatsappNumber || '66828950665';
   </head>
   <body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
     {booking ? (
-      <GuestTicketPortal client:load booking={booking} managerPhone={managerPhone} />
+      <GuestTicketPortal client:load booking={guestView!} managerPhone={managerPhone} />
     ) : (
       <div class="min-h-screen flex items-center justify-center p-4">
         <div class="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-slate-900 border border-slate-800 text-center shadow-2xl">

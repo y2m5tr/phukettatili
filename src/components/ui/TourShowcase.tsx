@@ -44,7 +44,7 @@ export default function TourShowcase({ tours }: { tours: TourSlide[] }) {
         touchStart.current = null;
       }}>
       <div className="showcase-backdrop" key={current.id}>
-        <img src={`/assets/${current.data.image || 'phuket_tours.jpg'}`} alt="" loading="eager" decoding="async" />
+        <img src={`/assets/${current.data.image || 'phuket_hero.webp'}`} alt="" loading="eager" decoding="async" />
         <div className="showcase-wash" />
       </div>
       <div className="showcase-grain" aria-hidden="true" />

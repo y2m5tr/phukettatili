@@ -60,6 +60,29 @@ alter table public.bookings add column if not exists hotel_zone text;
 -- isteklerle, sunucuda servis rolü anahtarıyla erişilebilir.
 alter table public.bookings add column if not exists passengers jsonb not null default '[]'::jsonb;
 
+-- Bilet portalı kodu (/bilet/[code]).
+-- Kayıt id'leri (BK-1001) tahmin edilebilir olduğu için misafir portalına
+-- rastgele, tahmin edilemez ayrı kod atanır. Eski BK- id'leri geriye dönük
+-- olarak çalışmaya devam eder; yeni kayıtlar PT-XXXXXXX kodu alır.
+-- 31^7 ≈ 27,5 milyar kombinasyon — bot taraması pratik değil.
+alter table public.bookings add column if not exists ticket_code text;
+create unique index if not exists idx_bookings_ticket_code on public.bookings (ticket_code) where ticket_code is not null;
+
+-- Mevcut kayıtlara rastgele kod backfill (idempotent: yalnız kodu olmayanlar).
+-- md5(tabanlı 7 karakter — 16^7 ≈ 268 milyon kombinasyon, backfill için yeterli;
+-- yeni kayıtlar uygulama tarafından 31^7'lik alfabeden üretilir).
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_name = 'bookings' and column_name = 'ticket_code'
+  ) then
+    update public.bookings
+    set ticket_code = 'PT-' || upper(substr(md5(random()::text || clock_timestamp()::text), 1, 7))
+    where ticket_code is null;
+  end if;
+end $$;
+
 -- Manifesto ve günlük rapor sorguları tarih + duruma göre filtreliyor.
 create index if not exists idx_bookings_tour_date on public.bookings (tour_date);
 create index if not exists idx_bookings_status on public.bookings (status);

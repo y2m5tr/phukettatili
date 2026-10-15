@@ -6,23 +6,18 @@ import {
   DollarSign,
   TrendingUp,
   Search,
-  Filter,
   Plus,
   Edit2,
   Trash2,
   Phone,
   MessageCircle,
-  Building,
   CheckCircle2,
   Clock,
-  XCircle,
   FileText,
   LogOut,
   Sparkles,
   MapPin,
-  RefreshCw,
   Eye,
-  SlidersHorizontal,
   Download,
   Settings,
   HelpCircle,
@@ -33,32 +28,20 @@ import {
   BookOpen,
   Car,
   MessageSquareQuote,
-  LayoutTemplate,
   Image,
   Upload,
   Copy,
   ExternalLink,
-  ListPlus,
-  Trash,
-  PlusCircle,
-  Maximize2,
-  X,
   Layers,
   ListChecks,
-  Info,
-  Printer,
+  Maximize2,
   Ticket,
   Briefcase,
-  Share2,
-  Wallet,
-  Cloud,
   Smartphone,
   Bus,
-  Wifi,
   Navigation,
   ShieldCheck,
   Zap,
-  ChevronRight,
 } from 'lucide-react';
 import {
   initialBookings,
@@ -91,6 +74,7 @@ import {
   isSupabaseConfigured,
   subscribeBookingsSignal,
 } from '../../lib/supabase';
+import { generateTicketCode } from '../../lib/ticketCodes';
 
 const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v2';
 const STORAGE_KEY_TOURS = 'phuket_tatili_crm_tours_v2';
@@ -465,6 +449,11 @@ export default function AdminDashboard({
   const [tours, setTours] = useState<TourItem[]>([]);
   const [tourSearchQuery, setTourSearchQuery] = useState<string>('');
   const [tourCategoryFilter, setTourCategoryFilter] = useState<string>('all');
+  /** Kategori filtresi seçenekleri — kayıtlardaki benzersiz kategoriler. */
+  const tourCategoryOptions = useMemo(
+    () => Array.from(new Set(tours.map((t) => t.category).filter(Boolean))).sort(),
+    [tours],
+  );
   const [isTourModalOpen, setIsTourModalOpen] = useState<boolean>(false);
   const [editingTour, setEditingTour] = useState<TourItem | null>(null);
   const [tourFormData, setTourFormData] = useState<Partial<TourItem>>({});
@@ -1024,10 +1013,13 @@ export default function AdminDashboard({
         status: (formData.status as Booking['status']) || 'confirmed',
         paymentStatus,
         specialNotes: formData.specialNotes,
+        // Misafir bilet portalı kodu — id tahmin edilebilir olduğu için
+        // ayrı rastgele kod atanır (misafire WhatsApp'tan bu gönderilir).
+        ticketCode: generateTicketCode(),
         createdAt: new Date().toISOString().split('T')[0],
       };
       saveBookings([newBooking, ...bookings]);
-      showToast('Yeni rezervasyon başarıyla eklendi!');
+      showToast(`Yeni rezervasyon eklendi — bilet kodu: ${newBooking.ticketCode}`);
 
       // Bulut yazımı /api/bookings üzerinden (oturum cookie'si ile).
       void fetch('/api/bookings', {
@@ -1485,65 +1477,6 @@ export default function AdminDashboard({
     setTimeout(() => setSettingsSaved(false), 2500);
   };
 
-  // WhatsApp Message Link
-  const createWhatsAppLink = (b: Booking, type: 'reminder' | 'confirm') => {
-    const cleanPhone = b.phone.replace(/[^0-9]/g, '');
-    const hasMultipleTours = Boolean(b.tours && b.tours.length > 1);
-    const nationalParkWarning = b.nationalParkFeeIncluded === false
-      ? `\n⚠️ *Önemli Hatırlatma:* Millî Park Giriş Ücreti fiyata dahil değildir. Lütfen limanda ödenmek üzere yanınızda kişi başı nakit Baht (THB) hazır bulundurunuz.\n`
-      : '';
-
-    let msg: string;
-
-    if (type === 'reminder') {
-      const tourScheduleText = hasMultipleTours
-        ? b.tours!
-            .map(
-              (t, i) =>
-                `${i + 1}️⃣ *${t.tourTitle}*\n` +
-                `   📅 Tarih: *${t.tourDate}* | ⏰ Otelden Alınış: *${t.pickupTime || '07:30'}*`
-            )
-            .join('\n\n')
-        : `📅 Tur: *${b.tourTitle}*\n` +
-          `⏰ Otelden Alınış Saati: *${b.pickupTime || '07:30'}*`;
-
-      msg =
-        `Merhaba ${b.customerName} Bey/Hanım! 🌴 Phuket Tatili operasyon ekibinden yazıyoruz.\n\n` +
-        `Rezerve ettiğiniz tur programınız:\n\n` +
-        `${tourScheduleText}\n\n` +
-        `📍 Otel: *${b.hotel}* ${b.roomNumber ? `(Oda: ${b.roomNumber})` : ''}\n` +
-        `👥 Kişi Sayısı: *${b.adultCount} Yetişkin ${b.childCount ? `, ${b.childCount} Çocuk` : ''}*\n` +
-        (b.remainingAmountThb > 0
-          ? `💰 Kalan Ödeme: *${b.remainingAmountThb.toLocaleString()} THB* (Rehbere elden teslim edebilirsiniz).\n`
-          : `\n`) +
-        nationalParkWarning +
-        `\nLütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Harika bir tatil dileriz! 🇹🇭`;
-    } else {
-      const tourScheduleText = hasMultipleTours
-        ? b.tours!
-            .map(
-              (t, i) =>
-                `${i + 1}️⃣ *${t.tourTitle}*\n` +
-                `   📅 Tarih: *${t.tourDate}* ${t.pickupTime ? `| ⏰ Alınış: *${t.pickupTime}*` : ''}`
-            )
-            .join('\n')
-        : `Tur: *${b.tourTitle}*\n` +
-          `Tarih: *${b.tourDate}*`;
-
-      msg =
-        `Merhaba ${b.customerName}! 🏝️ Phuket Tatili rezervasyonunuz onaylanmıştır.\n\n` +
-        `📋 Rezervasyon No: *${b.id}*\n\n` +
-        `Tur Programınız:\n${tourScheduleText}\n\n` +
-        `📍 Otel: *${b.hotel}*\n` +
-        `Toplam Tutar: *${b.totalPriceThb.toLocaleString()} THB*\n` +
-        `Ödenen Kapora: *${b.paidAmountThb.toLocaleString()} THB*\n` +
-        `Kalan Tutar: *${b.remainingAmountThb.toLocaleString()} THB*\n` +
-        nationalParkWarning +
-        `\nHerhangi bir sorunuzda bu hat üzerinden dilediğiniz zaman bize ulaşabilirsiniz.`;
-    }
-    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`;
-  };
-
   // CSV Export
   const handleExportCSV = () => {
     const headers = ['ID,Musteri,Telefon,Otel,Oda,Turlar,Tarihler,Yetiskin,Cocuk,ToplamTHB,OdenenTHB,KalanTHB,Durum\n'];
@@ -1755,10 +1688,11 @@ export default function AdminDashboard({
 
             <button
               onClick={handleLogout}
-              className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-red-500 transition-colors cursor-pointer"
+              disabled={isSigningOut}
+              className="p-1.5 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-red-500 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               title="Çıkış Yap"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className={`w-4 h-4 ${isSigningOut ? 'animate-pulse' : ''}`} />
             </button>
           </div>
         </div>
@@ -1952,6 +1886,29 @@ export default function AdminDashboard({
                   <option value="completed">🔵 Tamamlananlar</option>
                   <option value="cancelled">🔴 İptaller</option>
                 </select>
+
+                {/* Tarih filtresi — dateFilter state'i eskiden ölüydü (setter'ı
+                    hiçbir UI çağırmıyordu). Operasyonda en sık ihtiyaç duyulan
+                    filtre: "bugünkü turlar". */}
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="date"
+                    value={dateFilter}
+                    onChange={(e) => setDateFilter(e.target.value)}
+                    title="Tarih bazlı filtrele (çoklu tur kayıtlarında herhangi bir tur tarihi eşleşirse gösterilir)"
+                    className="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 focus:outline-none"
+                  />
+                  {dateFilter && (
+                    <button
+                      type="button"
+                      onClick={() => setDateFilter('')}
+                      title="Tarih filtresini temizle"
+                      className="px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 hover:border-red-300 text-xs font-bold transition-colors"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="flex items-center gap-2.5">
@@ -2658,6 +2615,18 @@ export default function AdminDashboard({
                   placeholder="Tur ara..."
                   className="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
                 />
+                {/* Kategori filtresi — tourCategoryFilter state'i eskiden ölüydü.
+                    Turlar categories alanıyla geliyor; mevcut kategoriler dinamik türetilir. */}
+                <select
+                  value={tourCategoryFilter}
+                  onChange={(e) => setTourCategoryFilter(e.target.value)}
+                  className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 focus:outline-none"
+                >
+                  <option value="all">Tüm Kategoriler</option>
+                  {tourCategoryOptions.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
                 <button
                   onClick={handleOpenCreateTour}
                   className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"

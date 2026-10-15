@@ -30,6 +30,7 @@ import {
   CreditCard,
 } from 'lucide-react';
 import { isSupabaseConfigured, subscribeBookingsSignal } from '../../lib/supabase';
+import { generateTicketCode } from '../../lib/ticketCodes';
 import { initialBookings, type Booking, type TourItem, type PassengerItem, detectHotelZone } from '../../data/adminInitialData';
 import { generateMultiStopMapUrl, detectDeparturePier, getSingleHotelMapUrl } from '../../lib/maps';
 import QrScannerModal from './QrScannerModal';
@@ -626,7 +627,12 @@ export default function FieldApp({
     const remaining = Math.max(0, newPriceThb - newDepositThb);
 
     const newBooking: Booking = {
-      id: `BK-${Date.now().toString().slice(-5)}`,
+      // Date.now()'un son 5 hanesi zamanı bilen herkes tarafından hesaplanabilir
+      // — id çarpışmasını önlemek ve tahmin edilemezliği sağlamak için
+      // rastgele üretilir. (Kayıt id + ayrı bilet kodu ikisi de rastgele.)
+      id: `BK-${Math.floor(100000 + Math.random() * 900000)}`,
+      // Misafir bilet portalı kodu — rehber bunu misafire WhatsApp'tan gönderir.
+      ticketCode: generateTicketCode(),
       customerName: newCustName.trim(),
       phone: newCustPhone.trim(),
       hotel: newCustHotel.trim(),

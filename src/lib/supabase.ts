@@ -100,6 +100,10 @@ export function bookingToRow(b: Booking) {
     // Taşınmazsa manifestoda girilen pasaportlar buluta yazılmaz ve
     // sayfa yenilenince kaybolur.
     passengers: b.passengers || [],
+    // Misafir bilet portalı kodu — id tahmin edilebilir olduğu için portala
+    // ayrı rastgele kod atanır. Kolon şemada varsa yazılır, yoksa update
+    // hata verir: SQL'i önce çalıştırmak gerekir.
+    ticket_code: b.ticketCode || null,
     created_at: b.createdAt || new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
@@ -136,6 +140,7 @@ export function rowToBooking(r: any): Booking {
     assignedDriver: r.assigned_driver || undefined,
     hotelZone: r.hotel_zone || undefined,
     passengers: Array.isArray(r.passengers) ? r.passengers : undefined,
+    ticketCode: r.ticket_code || undefined,
     createdAt: r.created_at
       ? new Date(r.created_at).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0],

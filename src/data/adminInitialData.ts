@@ -51,6 +51,12 @@ export interface Booking {
   paymentStatus: 'unpaid' | 'partial' | 'paid' | 'refunded';
   specialNotes?: string;
   passengers?: PassengerItem[];
+  /**
+   * Misafir bilet portalı kodu (/bilet/[code]).
+   * Kayıt id'si (BK-XXXX) tahmin edilebilir olduğu için portala ayrı,
+   * rastgele, tahmin edilemez kod atanır (PT-XXXXXXX).
+   */
+  ticketCode?: string;
   createdAt: string;
 }
 

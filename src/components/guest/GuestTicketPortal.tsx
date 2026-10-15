@@ -12,11 +12,39 @@ import {
   Luggage,
   Sun,
 } from 'lucide-react';
-import type { Booking } from '../../data/adminInitialData';
 import { getSingleHotelMapUrl, detectDeparturePier } from '../../lib/maps';
 
+/**
+ * Misafir portalının ÇİZECEĞİ asgari rezervasyon görünümü.
+ *
+ * Bu bileşen halka açık /bilet/[code] sayfasında client:load ile çalışır;
+ * Astro her prop'u HTML içine JSON olarak serileştirir. Bu yüzden tam
+ * `Booking` yerine yalnızca burada kullanılan alanlar geçilir — maliyet,
+ * tedarikçi, kapora, telefon, e-posta, özel not ve pasaport verisi
+ * sayfa kaynağına asla inmez.
+ *
+ * Yeni bir alan çizmek gerekirse önce bu tipe eklenmeli; tip burada
+ * olmayan bir alanın yanlışlıkla sızmasını derleme zamanında engeller.
+ */
+export interface GuestBookingView {
+  id: string;
+  customerName: string;
+  hotel: string;
+  roomNumber?: string;
+  tourTitle: string;
+  tourDate: string;
+  pickupTime?: string;
+  adultCount: number;
+  childCount: number;
+  remainingAmountThb: number;
+  nationalParkFeeIncluded: boolean;
+  assignedVehicle?: string;
+  /** Pasaport/uyruk/doğum tarihi YOK — yalnızca isimler. */
+  passengerNames: string[];
+}
+
 interface Props {
-  booking: Booking;
+  booking: GuestBookingView;
   managerPhone?: string;
 }
 
@@ -327,19 +355,19 @@ export default function GuestTicketPortal({
                   </div>
                 </div>
 
-                {/* Yolcu İsimleri Listesi (varsa) */}
-                {booking.passengers && booking.passengers.length > 0 && (
+                {/* Yolcu İsimleri Listesi (varsa) — pasaport bilgisi GÖSTERİLMEZ */}
+                {booking.passengerNames.length > 0 && (
                   <div className="pt-1">
                     <span className="text-[10px] font-bold uppercase text-slate-400 block mb-1">
                       Kayıtlı Yolcular:
                     </span>
                     <div className="flex flex-wrap gap-1.5">
-                      {booking.passengers.map((p, idx) => (
+                      {booking.passengerNames.map((name, idx) => (
                         <span
                           key={idx}
                           className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[11px] font-semibold"
                         >
-                          {p.fullName}
+                          {name}
                         </span>
                       ))}
                     </div>
