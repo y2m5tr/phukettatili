@@ -22,6 +22,38 @@ export interface PassengerItem {
   gender?: 'M' | 'F';
 }
 
+export type PaymentMethod =
+  | 'cash_thb'
+  | 'promptpay'
+  | 'kbank_transfer'
+  | 'tr_bank_transfer'
+  | 'cash_usd'
+  | 'cash_eur'
+  | 'credit_card'
+  | 'wise'
+  | 'other';
+
+export type CollectionLocation =
+  | 'hotel_lobby'
+  | 'pier_marina'
+  | 'office'
+  | 'bank_online'
+  | 'other';
+
+export interface PaymentRecord {
+  id: string;
+  bookingId: string;
+  customerName?: string;
+  tourTitle?: string;
+  amountThb: number;
+  method: PaymentMethod;
+  collectedBy?: string;
+  collectionLocation?: CollectionLocation;
+  collectedAt: string;
+  note?: string;
+  receiptNo?: string;
+}
+
 export interface Booking {
   id: string;
   customerName: string;
@@ -51,6 +83,10 @@ export interface Booking {
   paymentStatus: 'unpaid' | 'partial' | 'paid' | 'refunded';
   specialNotes?: string;
   passengers?: PassengerItem[];
+  payments?: PaymentRecord[];
+  collectionLocation?: CollectionLocation;
+  depositMethod?: PaymentMethod;
+  balanceCollector?: string;
   /**
    * Misafir bilet portalı kodu (/bilet/[code]).
    * Kayıt id'si (BK-XXXX) tahmin edilebilir olduğu için portala ayrı,
@@ -387,3 +423,79 @@ export const initialDrivers: DriverItem[] = [
     active: true,
   },
 ];
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, { label: string; icon: string; category: 'cash' | 'bank' | 'card' }> = {
+  cash_thb: { label: 'Nakit THB (Kasa)', icon: '💵', category: 'cash' },
+  promptpay: { label: 'PromptPay (K-Bank QR)', icon: '📱', category: 'bank' },
+  kbank_transfer: { label: 'Tayland Banka Havalesi', icon: '🏦', category: 'bank' },
+  tr_bank_transfer: { label: 'TR Banka Havale / EFT', icon: '🇹🇷', category: 'bank' },
+  cash_usd: { label: 'Nakit USD', icon: '💵', category: 'cash' },
+  cash_eur: { label: 'Nakit EUR', icon: '💶', category: 'cash' },
+  credit_card: { label: 'Kredi Kartı / POS', icon: '💳', category: 'card' },
+  wise: { label: 'Wise / Uluslararası', icon: '🌐', category: 'bank' },
+  other: { label: 'Diğer / Çeşitli', icon: '📝', category: 'cash' },
+};
+
+export const COLLECTION_LOCATION_LABELS: Record<CollectionLocation, string> = {
+  hotel_lobby: 'Otel Lobisi (Alış Anında)',
+  pier_marina: 'İskele / Marina Girişi',
+  office: 'Acenta Ofisi',
+  bank_online: 'Önceden Havale / Online',
+  other: 'Diğer Nokta',
+};
+
+export const initialPayments: PaymentRecord[] = [
+  {
+    id: 'PAY-1001-1',
+    bookingId: 'BK-1001',
+    customerName: 'Ahmet & Zeynep Yılmaz',
+    tourTitle: 'Phi Phi, Maya Bay ve Bamboo Adası',
+    amountThb: 2400,
+    method: 'tr_bank_transfer',
+    collectedBy: 'Murat Gençer (Ofis)',
+    collectionLocation: 'bank_online',
+    collectedAt: '2026-10-10T14:30:00Z',
+    note: 'Kapora alındı (İş Bankası Havalesi)',
+    receiptNo: 'RCP-202610-001',
+  },
+  {
+    id: 'PAY-1002-1',
+    bookingId: 'BK-1002',
+    customerName: 'Burak Demir',
+    tourTitle: 'James Bond Adası ve Kano Turu',
+    amountThb: 8400,
+    method: 'promptpay',
+    collectedBy: 'Ofis',
+    collectionLocation: 'bank_online',
+    collectedAt: '2026-10-11T10:15:00Z',
+    note: 'Tamamı ödendi (PromptPay K-Bank QR)',
+    receiptNo: 'RCP-202610-002',
+  },
+  {
+    id: 'PAY-1003-1',
+    bookingId: 'BK-1003',
+    customerName: 'Selin & Caner Öztürk',
+    tourTitle: 'Fil Koruma Alanı + Zipline',
+    amountThb: 3000,
+    method: 'credit_card',
+    collectedBy: 'Web Online',
+    collectionLocation: 'bank_online',
+    collectedAt: '2026-10-12T16:45:00Z',
+    note: 'Online Kredi Kartı Ön Ödemesi',
+    receiptNo: 'RCP-202610-003',
+  },
+  {
+    id: 'PAY-1004-1',
+    bookingId: 'BK-1004',
+    customerName: 'Emre Karaca',
+    tourTitle: 'Racha & Coral Adası Sürat Teknesi',
+    amountThb: 3500,
+    method: 'cash_thb',
+    collectedBy: 'Somchai (Şoför)',
+    collectionLocation: 'hotel_lobby',
+    collectedAt: '2026-10-13T07:45:00Z',
+    note: 'Patong otel lobisinde nakit elden alındı',
+    receiptNo: 'RCP-202610-004',
+  },
+];
+

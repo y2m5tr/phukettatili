@@ -29,11 +29,13 @@ import {
   Smartphone,
   Bus,
   Zap,
+  Wallet,
 } from 'lucide-react';
 import {
   initialBookings,
   initialVehicles,
   initialDrivers,
+  initialPayments,
   type Booking,
   type BookingTourSchedule,
   type TourItem,
@@ -45,6 +47,7 @@ import {
   type VehicleItem,
   type DriverItem,
   type PassengerItem,
+  type PaymentRecord,
 } from '../../data/adminInitialData';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
@@ -61,6 +64,7 @@ import ToursTab from './ToursTab';
 import TransfersTab from './TransfersTab';
 import OverviewTab from './OverviewTab';
 import BookingsTab from './BookingsTab';
+import FinanceTab from './FinanceTab';
 import TestimonialModal from './TestimonialModal';
 import FaqModal from './FaqModal';
 import ServiceModal from './ServiceModal';
@@ -91,6 +95,7 @@ const STORAGE_KEY_SITE = 'phuket_tatili_crm_site_settings_v2';
 const STORAGE_KEY_MEDIA = 'phuket_tatili_crm_media_v2';
 const STORAGE_KEY_VEHICLES = 'phuket_tatili_crm_vehicles_v1';
 const STORAGE_KEY_DRIVERS = 'phuket_tatili_crm_drivers_v1';
+const STORAGE_KEY_PAYMENTS = 'phuket_tatili_crm_payments_v1';
 
 /* ---------------------------------------------------------------------------
    PANEL MENÜSÜ — tek kaynak
@@ -101,7 +106,7 @@ const STORAGE_KEY_DRIVERS = 'phuket_tatili_crm_drivers_v1';
    ------------------------------------------------------------------------- */
 
 export type AdminTab =
-  | 'overview' | 'bookings' | 'transfers' | 'settlements' | 'fleet'
+  | 'overview' | 'bookings' | 'finance' | 'transfers' | 'settlements' | 'fleet'
   | 'tours' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
   | 'whatsapp' | 'settings' | 'users';
 
@@ -179,13 +184,22 @@ export const NAV_ITEMS: NavItem[] = [
     showCount: true,
   },
   {
+    id: 'finance',
+    label: 'Kasa & Finans',
+    shortLabel: 'Kasa',
+    category: 'operations',
+    icon: Wallet,
+    description: 'Nakit kasa, PromptPay, tahsilat makbuzları ve alacak takibi',
+    hotkey: '3',
+  },
+  {
     id: 'transfers',
     label: 'Transferler',
     shortLabel: 'Transfer',
     category: 'operations',
     icon: Car,
     description: 'Havalimanı & otel alma/bırakma manifestosu',
-    hotkey: '3',
+    hotkey: '4',
   },
   {
     id: 'settlements',
@@ -194,7 +208,7 @@ export const NAV_ITEMS: NavItem[] = [
     category: 'operations',
     icon: DollarSign,
     description: 'Tedarikçi ödemeleri, kâr marjı ve mutabakat ekstresi',
-    hotkey: '4',
+    hotkey: '5',
   },
   {
     id: 'fleet',
@@ -484,6 +498,40 @@ export default function AdminDashboard({
     saveCmsCollection('drivers', next, showToast);
   };
 
+  // 1.6 ERP Finans & Kasa Hareketleri State'i
+  const [payments, setPayments] = useState<PaymentRecord[]>(() => {
+    if (typeof window !== 'undefined') {
+      const cached = localStorage.getItem(STORAGE_KEY_PAYMENTS);
+      if (cached) {
+        try {
+          return JSON.parse(cached);
+        } catch { /* ignore */ }
+      }
+    }
+    return initialPayments;
+  });
+
+  const savePayments = (next: PaymentRecord[]) => {
+    setPayments(next);
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(STORAGE_KEY_PAYMENTS, JSON.stringify(next));
+      } catch { /* ignore */ }
+    }
+    saveCmsCollection('payments', next, () =>
+      showToast('⚠️ Bulut yazma hatası: kasa kayıtları buluta kaydedilemedi.')
+    );
+  };
+
+  const handleAddPayment = (record: Omit<PaymentRecord, 'id' | 'collectedAt'>) => {
+    const newRecord: PaymentRecord = {
+      ...record,
+      id: `PAY-${Date.now().toString().slice(-6)}`,
+      collectedAt: new Date().toISOString(),
+    };
+    savePayments([newRecord, ...payments]);
+  };
+
   // 2. Tours State
   const [tours, setTours] = useState<TourItem[]>([]);
   const [tourSearchQuery, setTourSearchQuery] = useState<string>('');
@@ -730,6 +778,7 @@ export default function AdminDashboard({
         apply('site-settings', setSiteSettings, initialSiteSettings);
         apply('vehicles', setVehicles, initialVehicles);
         apply('drivers', setDrivers, initialDrivers);
+        apply('payments', setPayments, initialPayments);
       })();
     } catch {
       setBookings(initialBookings);
@@ -1886,6 +1935,28 @@ export default function AdminDashboard({
             canDelete={canDeleteBookings}
             setVoucherBooking={setVoucherBooking}
             setWhatsAppModalBooking={setWhatsAppModalBooking}
+            onQuickCollect={(_b) => setActiveTab('finance')}
+          />
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB 2.3: ERP FINANCE & CASHFLOW */}
+        {/* ==================================================== */}
+        {activeTab === 'finance' && (
+          <FinanceTab
+            bookings={bookings}
+            payments={payments}
+            onAddPayment={handleAddPayment}
+            onUpdateBooking={(updated) => {
+              saveBookings(bookings.map((b) => (b.id === updated.id ? updated : b)));
+              void fetch('/api/bookings', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated),
+              });
+            }}
+            showToast={showToast}
+            setVoucherBooking={setVoucherBooking}
           />
         )}
 
@@ -2364,6 +2435,71 @@ export default function AdminDashboard({
                     <option value="completed">🔵 Tamamlandı</option>
                     <option value="cancelled">🔴 İptal</option>
                   </select>
+                </div>
+              </div>
+
+              {/* Tahsilat & Kasa Planı */}
+              <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/80 dark:border-emerald-900/40 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+                    <Wallet className="w-3.5 h-3.5" />
+                    Kasa & Tahsilat Planı
+                  </span>
+                  <span className="text-xs font-extrabold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded-md">
+                    Kalan Bakiye: {Math.max(0, Number(formData.totalPriceThb || 0) - Number(formData.paidAmountThb || 0)).toLocaleString()} THB
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Kapora Ödeme Yöntemi
+                    </label>
+                    <select
+                      value={formData.depositMethod || 'tr_bank_transfer'}
+                      onChange={(e) => setFormData({ ...formData, depositMethod: e.target.value as any })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 text-xs focus:outline-none font-medium"
+                    >
+                      <option value="tr_bank_transfer">🇹🇷 TR Banka Havale / EFT</option>
+                      <option value="promptpay">📱 PromptPay (K-Bank QR)</option>
+                      <option value="cash_thb">💵 Nakit THB (El Kasası)</option>
+                      <option value="credit_card">💳 Kredi Kartı / Online</option>
+                      <option value="kbank_transfer">🏦 Tayland Banka Havalesi</option>
+                      <option value="cash_usd">💵 Nakit USD</option>
+                      <option value="cash_eur">💶 Nakit EUR</option>
+                      <option value="wise">🌐 Wise / Uluslararası</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Bakiye Tahsilat Noktası
+                    </label>
+                    <select
+                      value={formData.collectionLocation || 'hotel_lobby'}
+                      onChange={(e) => setFormData({ ...formData, collectionLocation: e.target.value as any })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 text-xs focus:outline-none font-medium"
+                    >
+                      <option value="hotel_lobby">🏨 Otel Lobisi (Alış Anında)</option>
+                      <option value="pier_marina">⚓ İskele / Marina Girişi</option>
+                      <option value="office">🏢 Acenta Ofisi</option>
+                      <option value="bank_online">💻 Önceden Havale / Online</option>
+                      <option value="other">📍 Diğer Nokta</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                      Bakiyeyi Alacak Kişi
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Örn: Somchai (Şoför) veya Ofis"
+                      value={formData.balanceCollector || ''}
+                      onChange={(e) => setFormData({ ...formData, balanceCollector: e.target.value })}
+                      className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 text-xs focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 

@@ -23,6 +23,7 @@ interface BookingsTabProps {
   canDelete?: boolean;
   setVoucherBooking: (b: Booking) => void;
   setWhatsAppModalBooking: (b: Booking) => void;
+  onQuickCollect?: (b: Booking) => void;
 }
 
 export default function BookingsTab({
@@ -40,6 +41,7 @@ export default function BookingsTab({
   canDelete = true,
   setVoucherBooking,
   setWhatsAppModalBooking,
+  onQuickCollect,
 }: BookingsTabProps) {
   return (
     <div className="space-y-6">
@@ -195,9 +197,20 @@ export default function BookingsTab({
                         {b.remainingAmountThb === 0 ? (
                           <span className="text-emerald-600 font-semibold">✓ Tamamı Ödendi</span>
                         ) : (
-                          <span className="text-amber-600 font-semibold">
-                            Kalan: {b.remainingAmountThb.toLocaleString()} THB
-                          </span>
+                          <div className="flex flex-col items-start gap-1">
+                            <span className="text-amber-600 font-semibold">
+                              Kalan: {b.remainingAmountThb.toLocaleString()} THB
+                            </span>
+                            {onQuickCollect && (
+                              <button
+                                type="button"
+                                onClick={() => onQuickCollect(b)}
+                                className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all cursor-pointer"
+                              >
+                                + Tahsilat Al
+                              </button>
+                            )}
+                          </div>
                         )}
                       </div>
                     </td>

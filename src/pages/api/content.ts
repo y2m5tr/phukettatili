@@ -41,6 +41,7 @@ const CONTENT_KEYS: ReadonlySet<string> = new Set([
   'site-settings',
   'vehicles',
   'drivers',
+  'payments',
 ]);
 
 /** Tek bir koleksiyonun JSONB boyutu için üst sınır (bayt, yaklaşık). */

@@ -11,12 +11,11 @@ import {
   AlertTriangle,
   Compass,
   Phone,
-  DollarSign,
   Bus,
   Sparkles,
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
-import { detectHotelZone } from '../../data/adminInitialData';
+import { detectHotelZone, COLLECTION_LOCATION_LABELS } from '../../data/adminInitialData';
 
 interface Props {
   booking: Booking | null;
@@ -275,6 +274,13 @@ export default function BoardingPassModal({
                       : '0 THB (Ödendi)'}
                   </span>
                 </div>
+                {booking.remainingAmountThb > 0 && (
+                  <p className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold pt-1 border-t border-dashed border-slate-200 dark:border-slate-700">
+                    ⚠️ {booking.collectionLocation && booking.collectionLocation in COLLECTION_LOCATION_LABELS
+                      ? COLLECTION_LOCATION_LABELS[booking.collectionLocation]
+                      : 'Otel lobisinde transfer anında nakit ödenecektir.'}
+                  </p>
+                )}
               </div>
             </div>
           </div>

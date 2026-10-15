@@ -27,6 +27,7 @@ export const CMS_COLLECTIONS = [
   'site-settings',
   'vehicles',
   'drivers',
+  'payments',
 ] as const;
 
 export type CmsCollectionKey = (typeof CMS_COLLECTIONS)[number];
