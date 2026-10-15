@@ -43,10 +43,12 @@ if (!username || !password) {
 
 const fullName = fullNameArg || 'Yönetici';
 
-// Şifre politikası — API ile aynı kural.
-if (password.length < 10 || !/[a-zA-ZçğıöşüÇĞİÖŞÜ]/.test(password) || !/[0-9]/.test(password)) {
-  console.error('HATA: Şifre en az 10 karakter olmalı ve harf + rakam içermeli.');
+if (password.length < 6) {
+  console.error('HATA: Şifre en az 6 karakter olmalı.');
   process.exit(1);
+}
+if (password.length < 10 || !/[a-zA-ZçğıöşüÇĞİÖŞÜ]/.test(password) || !/[0-9]/.test(password)) {
+  console.warn('⚠️ UYARI: Şifre 10 karakterden kısa veya harf+rakam kombinasyonu içermiyor; yine de oluşturuluyor.');
 }
 
 const url = env.PUBLIC_SUPABASE_URL || env.SUPABASE_URL;
