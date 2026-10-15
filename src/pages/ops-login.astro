@@ -174,38 +174,137 @@ const accent = safeNext === '/ekip' ? '#f59e0b' : '#0ea5e9';
 
       <div id="msg" class="msg" hidden></div>
 
-      <form id="login-form" method="post" action={`/api/ops-login?next=${safeNext}`}>
-        <label for="passcode">Erişim Şifresi</label>
-        <input
-          id="passcode"
-          name="passcode"
-          type="password"
-          autocomplete="current-password"
-          required
-          autofocus
-          disabled={!configured}
-        />
-        <button type="submit" disabled={!configured}>Giriş Yap</button>
-      </form>
+      <!-- Üyelik ile giriş (yeni sistem) -->
+      <div id="membership-form-wrap">
+        <form id="membership-form">
+          <label for="username">Kullanıcı Adı</label>
+          <input
+            id="username"
+            name="username"
+            type="text"
+            autocomplete="username"
+            required
+            autofocus
+          />
+          <label for="password" style="margin-top: 12px">Şifre</label>
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            required
+          />
+          <button type="submit">Giriş Yap</button>
+        </form>
+        <p class="foot" style="margin-top: 10px">
+          <a href="#" id="switch-to-passcode" style="color: #64748b">Eski tek-şifre girişi</a>
+        </p>
+      </div>
+
+      <!-- Tek şifre ile giriş (geçiş dönemi) -->
+      <div id="passcode-form-wrap" hidden>
+        <form id="login-form" method="post" action={`/api/ops-login?next=${safeNext}`}>
+          <label for="passcode">Erişim Şifresi</label>
+          <input
+            id="passcode"
+            name="passcode"
+            type="password"
+            autocomplete="current-password"
+            required
+            disabled={!configured}
+          />
+          <button type="submit" disabled={!configured}>Giriş Yap</button>
+        </form>
+        <p class="foot" style="margin-top: 10px">
+          <a href="#" id="switch-to-membership" style="color: #64748b">Üyelik ile giriş</a>
+        </p>
+      </div>
 
       <p class="foot">Phuket Tatili Operasyon · {new Date().getFullYear()}</p>
     </div>
 
     <script is:inline define:vars={{ configured, errorCode }}>
       (() => {
-        const form = document.getElementById('login-form');
-        const button = form.querySelector('button');
-        const input = document.getElementById('passcode');
         const msg = document.getElementById('msg');
-
         const showError = (text) => {
           msg.textContent = text;
           msg.hidden = false;
         };
 
+        const membershipWrap = document.getElementById('membership-form-wrap');
+        const passcodeWrap = document.getElementById('passcode-form-wrap');
+        const switchToPasscode = document.getElementById('switch-to-passcode');
+        const switchToMembership = document.getElementById('switch-to-membership');
+
+        switchToPasscode.addEventListener('click', (e) => {
+          e.preventDefault();
+          membershipWrap.hidden = true;
+          passcodeWrap.hidden = false;
+          msg.hidden = true;
+          document.getElementById('passcode').focus();
+        });
+        switchToMembership.addEventListener('click', (e) => {
+          e.preventDefault();
+          passcodeWrap.hidden = true;
+          membershipWrap.hidden = false;
+          msg.hidden = true;
+          document.getElementById('username').focus();
+        });
+
         if (errorCode === 'unconfigured') {
           showError('Panel kilitli: sunucuda ADMIN_PASSCODE tanımlı değil.');
         }
+
+        // ---- Üyelik girişi ----
+        const mForm = document.getElementById('membership-form');
+        const mButton = mForm.querySelector('button');
+        mForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          msg.hidden = true;
+          mButton.disabled = true;
+          mButton.textContent = 'Doğrulanıyor…';
+
+          try {
+            const res = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: document.getElementById('username').value,
+                password: document.getElementById('password').value,
+              }),
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              window.location.href = data.redirect;
+              return;
+            }
+
+            if (res.status === 401) {
+              showError('Kullanıcı adı veya şifre hatalı.');
+            } else if (res.status === 429) {
+              const data = await res.json().catch(() => ({}));
+              const minutes = Math.ceil((data.retryAfterMs || 900000) / 60000);
+              showError(`Çok fazla deneme. ${minutes} dakika sonra tekrar deneyin.`);
+            } else if (res.status === 503) {
+              showError('Üyelik sistemi yapılandırılmamış. Eski tek-şifre girişini kullanın.');
+            } else {
+              showError('Giriş yapılamadı. Lütfen tekrar deneyin.');
+            }
+          } catch {
+            showError('Bağlantı hatası. İnternetinizi kontrol edin.');
+          }
+
+          mButton.disabled = false;
+          mButton.textContent = 'Giriş Yap';
+          document.getElementById('password').value = '';
+          document.getElementById('password').focus();
+        });
+
+        // ---- Eski tek-şifre girişi (geçiş dönemi) ----
+        const form = document.getElementById('login-form');
+        const button = form.querySelector('button');
+        const input = document.getElementById('passcode');
 
         form.addEventListener('submit', async (e) => {
           e.preventDefault();

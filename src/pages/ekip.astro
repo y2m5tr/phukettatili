@@ -2,12 +2,16 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import FieldApp from '../components/field/FieldApp';
 import siteData from '../content/settings/site.json';
+import { SESSION_COOKIE, readMembershipSession } from '../lib/auth';
 import '../styles/global.css';
 
 // Sunucu tarafında render edilir: /ekip adresine gelen istek önce
 // src/middleware.ts içindeki oturum kontrolünden geçer. Prerender edilirse
 // middleware çalışmaz ve sayfa içeriği herkese açık statik dosya olur.
 export const prerender = false;
+
+const membershipSession = readMembershipSession(Astro.cookies.get(SESSION_COOKIE)?.value);
+const viewerRole = membershipSession?.role ?? null;
 
 // Turlar - sahada hızlı satış için liste
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
@@ -75,6 +79,7 @@ const managerPhone = siteData?.whatsappNumber || '66828950665';
       client:only="react"
       initialTours={initialTours}
       managerPhone={managerPhone}
+      viewerRole={viewerRole}
     />
   </body>
 </html>

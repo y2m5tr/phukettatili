@@ -13,7 +13,6 @@ import {
   Sparkles,
   Settings,
   HelpCircle,
-  Star,
   Save,
   ChevronDown,
   BookOpen,
@@ -21,8 +20,6 @@ import {
   MessageSquareQuote,
   Image,
   Upload,
-  Copy,
-  ExternalLink,
   Layers,
   ListChecks,
   Briefcase,
@@ -50,6 +47,7 @@ import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
 import SupplierSettlementManager from './SupplierSettlementManager';
 import SettingsTab, { type SiteSettingsState } from './SettingsTab';
+import UsersTab from './UsersTab';
 import WhatsAppTab from './WhatsAppTab';
 import TestimonialsTab from './TestimonialsTab';
 import FaqsTab from './FaqsTab';
@@ -67,11 +65,6 @@ import BlogModal from './BlogModal';
 import { AddMediaModal, MediaLightboxModal } from './MediaModals';
 import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
 import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
-import {
-  generateMultiStopMapUrl,
-  getSingleHotelMapUrl,
-  detectDeparturePier,
-} from '../../lib/maps';
 import {
   loadCmsCollections,
   saveCmsCollection,
@@ -107,7 +100,7 @@ const STORAGE_KEY_DRIVERS = 'phuket_tatili_crm_drivers_v1';
 export type AdminTab =
   | 'overview' | 'bookings' | 'transfers' | 'settlements' | 'fleet'
   | 'tours' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
-  | 'whatsapp' | 'settings';
+  | 'whatsapp' | 'settings' | 'users';
 
 export type NavCategory = 'operations' | 'content' | 'system' | 'all';
 
@@ -277,6 +270,15 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Settings,
     description: 'Telefon, e-posta, sosyal medya ve genel ayarlar',
   },
+  {
+    id: 'users',
+    label: 'Ekip Üyeleri',
+    shortLabel: 'Üyeler',
+    category: 'system',
+    icon: Users,
+    description: 'Yönetici, müdür, rehber ve şoför hesapları',
+    showCount: true,
+  },
 ];
 
 export const PRIMARY_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'operations');
@@ -291,6 +293,8 @@ interface AdminDashboardProps {
   initialTestimonials: TestimonialItem[];
   initialSiteSettings: SiteSettingsState;
   availableImages?: string[];
+  /** Giriş yapan üyenin rolü (üyelik sistemi) — null: eski şifre girişi. */
+  viewerRole?: 'owner' | 'manager' | 'guide' | 'driver' | null;
 }
 
 // Panelin görsel seçiminde sunacağı varsayılan envanter (prop gelmezse)
@@ -322,11 +326,18 @@ export default function AdminDashboard({
   initialTestimonials,
   initialSiteSettings,
   availableImages = DEFAULT_AVAILABLE_IMAGES,
+  viewerRole = null,
 }: AdminDashboardProps) {
   // Kimlik doğrulama sunucu tarafında yapılır (src/middleware.ts).
   // Bu bileşen yalnızca yetkili isteklerde render edildiği için
   // client'ta şifre tutulmaz; çıkış da sunucuya bırakılır.
   const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
+
+  const visibleNavItems = useMemo(
+    () => NAV_ITEMS.filter((i) => i.id !== 'users' || viewerRole === 'owner'),
+    [viewerRole],
+  );
+  const canDeleteBookings = viewerRole === 'owner' || viewerRole === null;
 
   // Active Tab — son seçim localStorage'da tutulur; sayfa yenilense bile
   // kullanıcı kaldığı bölüme döner (operasyonda sık yenileme yapılır).
@@ -335,10 +346,12 @@ export default function AdminDashboard({
   const [activeTab, setActiveTabState] = useState<AdminTab>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const urlTab = new URL(window.location.href).searchParams.get('tab') as AdminTab | null;
-        if (urlTab && NAV_ITEMS.some((i) => i.id === urlTab)) return urlTab;
-        const saved = window.localStorage.getItem('ptt_admin_active_tab') as AdminTab | null;
-        if (saved && NAV_ITEMS.some((i) => i.id === saved)) return saved;
+        const isAllowedTab = (t: string | null): t is AdminTab =>
+          Boolean(t && (t !== 'users' || viewerRole === 'owner') && NAV_ITEMS.some((i) => i.id === t));
+        const urlTab = new URL(window.location.href).searchParams.get('tab');
+        if (isAllowedTab(urlTab)) return urlTab;
+        const saved = window.localStorage.getItem('ptt_admin_active_tab');
+        if (isAllowedTab(saved)) return saved;
       } catch { /* gizli mod / kota: sessizce varsayılana düş */ }
     }
     return 'overview';
@@ -571,12 +584,12 @@ export default function AdminDashboard({
       if (e.metaKey || e.ctrlKey || e.altKey) return;
 
       if (e.key === '[' || e.key === ']') {
-        const idx = NAV_ITEMS.findIndex((i) => i.id === activeTab);
+        const idx = visibleNavItems.findIndex((i) => i.id === activeTab);
         if (idx === -1) {
-          setActiveTab(NAV_ITEMS[0].id);
+          setActiveTab(visibleNavItems[0].id);
         } else {
-          const next = e.key === ']' ? (idx + 1) % NAV_ITEMS.length : (idx - 1 + NAV_ITEMS.length) % NAV_ITEMS.length;
-          setActiveTab(NAV_ITEMS[next].id);
+          const next = e.key === ']' ? (idx + 1) % visibleNavItems.length : (idx - 1 + visibleNavItems.length) % visibleNavItems.length;
+          setActiveTab(visibleNavItems[next].id);
         }
       }
 
@@ -915,6 +928,10 @@ export default function AdminDashboard({
   };
 
   const handleDeleteBooking = (id: string, name: string) => {
+    if (!canDeleteBookings) {
+      showToast('⚠️ Kalıcı rezervasyon silme yetkisi yalnızca yöneticidedir.');
+      return;
+    }
     if (window.confirm(`"${name}" rezervasyonunu silmek istediğinize emin misiniz?`)) {
       saveBookings(bookings.filter((b) => b.id !== id));
       showToast('Rezervasyon silindi.');
@@ -923,9 +940,9 @@ export default function AdminDashboard({
       // oturumuyla yapılabilir (API tarafında guard 'admin' ister).
       void fetch(`/api/bookings?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).then(
         (res) => {
-          if (!res.ok) console.warn('Bulut silme hatası:', res.status);
+          if (!res.ok) showToast('⚠️ Bulut silme hatası: yetki veya sunucu sorunu.');
         },
-        (err) => console.warn('Bulut silme hatası:', err)
+        () => showToast('⚠️ Bulut silme hatası: ağ bağlantısı kurulamadı.')
       );
     }
   };
@@ -1653,7 +1670,7 @@ export default function AdminDashboard({
                   <div className="px-3.5 py-1.5 text-[10px] font-extrabold uppercase tracking-wider text-slate-400">
                     Sistem & İletişim
                   </div>
-                  {SYSTEM_NAV_ITEMS.map((item) => {
+                  {SYSTEM_NAV_ITEMS.filter((item) => item.id !== 'users' || viewerRole === 'owner').map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
                     return (
@@ -1749,6 +1766,7 @@ export default function AdminDashboard({
             onOpenCreate={handleOpenCreateBooking}
             onOpenEdit={handleOpenEditBooking}
             onDelete={handleDeleteBooking}
+            canDelete={canDeleteBookings}
             setVoucherBooking={setVoucherBooking}
             setWhatsAppModalBooking={setWhatsAppModalBooking}
           />
@@ -1910,7 +1928,16 @@ export default function AdminDashboard({
             getImageUrl={getImageUrl}
             handleFileUpload={handleFileUpload}
             allImageOptions={allImageOptions}
+            viewerRole={viewerRole}
+            showToast={showToast}
           />
+        )}
+
+        {/* TAB 10: EKİP ÜYELERİ — yalnızca owner (üyelik sistemi).
+            manager paneli görür ama bu sekmeyi görmez; API tarafında
+            ayrıca owner-only guard çalışır (UI gizlemesi kozmetik). */}
+        {activeTab === 'users' && viewerRole === 'owner' && (
+          <UsersTab showToast={showToast} />
         )}
 
       </main>

@@ -85,7 +85,8 @@ export const PUT: APIRoute = async (context) => {
 };
 
 export const POST: APIRoute = async (context) => {
-  const guard = guardApi(context);
+  // Yeni rezervasyon oluşturma yalnızca rehber (guide) ve üzeri rollere açıktır (şoför oluşturamaz).
+  const guard = guardApi(context, 'guide');
   if (!guard.allowed) return guard.response!;
 
   let body: unknown;

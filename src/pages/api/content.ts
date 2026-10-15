@@ -31,7 +31,7 @@ import {
 export const prerender = false;
 
 /** CMS koleksiyon beyaz listesi — localStorage anahtar uzayıyla hizalı. */
-const CONTENT_KEYS = new Set([
+const CONTENT_KEYS: ReadonlySet<string> = new Set([
   'tours',
   'blogs',
   'services',
@@ -41,7 +41,7 @@ const CONTENT_KEYS = new Set([
   'site-settings',
   'vehicles',
   'drivers',
-] as const);
+]);
 
 /** Tek bir koleksiyonun JSONB boyutu için üst sınır (bayt, yaklaşık). */
 const MAX_CONTENT_BYTES = 2 * 1024 * 1024; // 2 MiB
@@ -51,7 +51,7 @@ function validKey(key: unknown): key is string {
 }
 
 export const GET: APIRoute = async (context) => {
-  const guard = guardApi(context, 'admin');
+  const guard = guardApi(context, 'manager');
   if (!guard.allowed) return guard.response!;
 
   if (!isSupabaseAdminConfigured()) {
@@ -78,7 +78,7 @@ export const GET: APIRoute = async (context) => {
 };
 
 export const PUT: APIRoute = async (context) => {
-  const guard = guardApi(context, 'admin');
+  const guard = guardApi(context, 'manager');
   if (!guard.allowed) return guard.response!;
 
   let body: Record<string, unknown>;

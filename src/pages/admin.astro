@@ -5,12 +5,19 @@ import faqData from '../content/settings/faq.json';
 import testimonialsData from '../content/settings/testimonials.json';
 import siteData from '../content/settings/site.json';
 import homeData from '../content/pages/home.json';
+import { SESSION_COOKIE, readMembershipSession } from '../lib/auth';
 import '../styles/global.css';
 
 // Sunucu tarafında render edilir: /admin adresine gelen istek önce
 // src/middleware.ts içindeki oturum kontrolünden geçer. Prerender edilirse
 // middleware atlanır ve tüm CRM verisi statik HTML olarak herkese açık olur.
 export const prerender = false;
+
+// Oturum rolü — UsersTab yalnızca owner'a gösterilir. Middleware zaten
+// manager-altını bu sayfaya almaz; buradaki kontrol UI seviyesinde ek
+// ayrım (manager paneli görür, kullanıcı yönetimini görmez).
+const membershipSession = readMembershipSession(Astro.cookies.get(SESSION_COOKIE)?.value);
+const viewerRole = membershipSession?.role ?? null;
 
 // 1. Tours — gallery ve tüm operasyonel ayrıntılar dahil
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
@@ -138,8 +145,8 @@ const availableImages: string[] = [
     </style>
   </head>
   <body class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 antialiased selection:bg-brand-accent selection:text-white">
-    <AdminDashboard 
-      client:only="react" 
+    <AdminDashboard
+      client:only="react"
       initialTours={initialTours}
       initialBlogs={initialBlogs}
       initialServices={initialServices}
@@ -147,6 +154,7 @@ const availableImages: string[] = [
       initialTestimonials={initialTestimonials}
       initialSiteSettings={initialSiteSettings}
       availableImages={availableImages}
+      viewerRole={viewerRole}
     />
   </body>
 </html>

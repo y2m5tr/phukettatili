@@ -260,3 +260,35 @@ create table if not exists public.rate_limits (
 
 alter table public.rate_limits enable row level security;
 drop policy if exists "rate_limits_anon_all" on public.rate_limits;
+
+-- -----------------------------------------------------------------------------
+-- 11. ÜYELİK SİSTEMİ — kullanıcı hesapları ve roller
+--
+-- Rol hiyerarşisi: owner > manager > guide > driver.
+--   owner  : her şey (kullanıcı yönetimi dahil)
+--   manager: admin paneli + CMS yazma; kullanıcı yönetimi ve kalıcı silme yok
+--   guide  : saha paneli (tam)
+--   driver : saha paneli (yalnızca kendi rotası görür)
+--
+-- Şifre hash'i scrypt ile sunucuda doğrulanır (bcrypt bağımlılığı gerekmez).
+-- RLS default deny — kimlik doğrulama yalnızca /api/auth/* uçlarında,
+-- servis rolü üzerinden yapılır. Hiçbir parça client'a açılmaz.
+--
+-- İlk yönetici (owner) hesabı scripts/create-admin.mjs ile oluşturulur:
+--   node scripts/create-admin.mjs <kullaniciadi> <sifre> [adSoyad]
+-- -----------------------------------------------------------------------------
+create table if not exists public.users (
+  id uuid primary key default gen_random_uuid(),
+  username text not null unique,
+  full_name text not null,
+  password_hash text not null,          -- 'scrypt$<saltHex>$<hashHex>'
+  role text not null check (role in ('owner', 'manager', 'guide', 'driver')),
+  is_active boolean not null default true,
+  created_at timestamptz not null default now(),
+  last_login_at timestamptz
+);
+
+create index if not exists idx_users_username on public.users (username);
+
+alter table public.users enable row level security;
+drop policy if exists "users_anon_all" on public.users;

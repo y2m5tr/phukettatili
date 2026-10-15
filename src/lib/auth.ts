@@ -14,8 +14,39 @@ export const SESSION_COOKIE = 'ptt_ops_session';
 /** Oturum ömrü: 12 saat. */
 export const SESSION_TTL_SECONDS = 12 * 60 * 60;
 
-/** Panel rolleri. Rol çerezde taşınır ve imzayla korunur. */
-export type OpsRole = 'admin' | 'field';
+/**
+ * ÜYELİK ROLLERİ — hiyerarşi: owner > manager > guide > driver.
+ * Eski iki-parçalı sistem ('admin' | 'field') geçiş döneminde kabul
+ * edilir; yeni oturumlar dört rollerden birini taşır.
+ */
+export type OpsRole = 'admin' | 'field' | 'owner' | 'manager' | 'guide' | 'driver';
+export type MembershipRole = 'owner' | 'manager' | 'guide' | 'driver';
+
+/** Üyelik rolü mü (yeni sistem) yoksa eski şifre-rolü mü? */
+export function isMembershipRole(role: OpsRole | null): role is MembershipRole {
+  return role === 'owner' || role === 'manager' || role === 'guide' || role === 'driver';
+}
+
+/**
+ * Rolün yetki seviyesi (sayısal hiyerarşi) — guardApi karşılaştırmaları
+ * bunu kullanır. Eski 'admin' eşdeğeri owner, 'field' eşdeğeri guide'dır.
+ */
+export function roleRank(role: OpsRole | null): number {
+  switch (role) {
+    case 'owner':
+    case 'admin':
+      return 4;
+    case 'manager':
+      return 3;
+    case 'guide':
+    case 'field':
+      return 2;
+    case 'driver':
+      return 1;
+    default:
+      return 0;
+  }
+}
 
 /** Çerez imza anahtarı, yönetici şifresinden türetilir (ayrı secret gerekmez). */
 function signingSecret(): string {
@@ -91,6 +122,23 @@ export function createSessionValue(role: OpsRole): string {
   return `${payload}.${sign(payload)}`;
 }
 
+/**
+ * Üyelik oturum çerezi: `userId.rol.bitmeZamani.imza`.
+ * userId'nin imzaya dahil edilmesi çerezin sahtelenmesini imkânsızlaştırır;
+ * kullanıcı pasifleştirilse bile imza geçersiz kalmaya devam eder (12 sa
+ * TTL çerezi sınırlar).
+ */
+export function createMembershipSessionValue(userId: string, role: MembershipRole): string {
+  const expiresAt = Math.floor(Date.now() / 1000) + SESSION_TTL_SECONDS;
+  const payload = `${userId}.${role}.${expiresAt}`;
+  return `${payload}.${sign(payload)}`;
+}
+
+export interface MembershipSession {
+  userId: string;
+  role: MembershipRole;
+}
+
 /** Çerezi doğrular; geçerliyse rolü, değilse null döner. */
 export function readSessionValue(value: string | undefined): OpsRole | null {
   if (!value) return null;
@@ -98,14 +146,36 @@ export function readSessionValue(value: string | undefined): OpsRole | null {
   if (parts.length !== 3) return null;
 
   const [role, rawExpiresAt, signature] = parts;
-  if (role !== 'admin' && role !== 'field') return null;
+  if (!['admin', 'field', 'owner', 'manager', 'guide', 'driver'].includes(role)) return null;
 
   const expiresAt = Number(rawExpiresAt);
   if (!Number.isFinite(expiresAt)) return null;
   if (expiresAt * 1000 < Date.now()) return null;
 
   if (!safeEqual(signature, sign(`${role}.${rawExpiresAt}`))) return null;
-  return role;
+  return role as OpsRole;
+}
+
+/** Üyelik çerezini okur — geçerliyse userId + rol, değilse null. */
+export function readMembershipSession(value: string | undefined): MembershipSession | null {
+  if (!value) return null;
+  const parts = value.split('.');
+  if (parts.length !== 4) return null;
+
+  const [userId, role, rawExpiresAt, signature] = parts;
+  if (!isUUID(userId)) return null;
+  if (!['owner', 'manager', 'guide', 'driver'].includes(role)) return null;
+
+  const expiresAt = Number(rawExpiresAt);
+  if (!Number.isFinite(expiresAt)) return null;
+  if (expiresAt * 1000 < Date.now()) return null;
+
+  if (!safeEqual(signature, sign(`${userId}.${role}.${rawExpiresAt}`))) return null;
+  return { userId, role: role as MembershipRole };
+}
+
+function isUUID(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
 }
 
 /* -------------------------------------------------------------------------

@@ -2,11 +2,10 @@
  * Site & Hero Ayarları sekmesi — AdminDashboard'tan ayrıldı.
  *
  * Not: Bu sekme de diğer içerik sekmeleri gibi YEREL kaydeder
- * (localStorage). Site Ayarları'ndaki değişiklik canlı sitenin
- * src/content/settings/site.json'una yazılmaz. Canlıya yansıtma
- * ayrı bir iş maddesidir (Keystatic entegrasyonu).
+ * (localStorage) ve /api/content üzerinden buluta senkronlar.
  */
-import { Upload, Check, Save } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, Check, Save, KeyRound } from 'lucide-react';
 
 export interface SiteSettingsState {
   whatsappNumber: string;
@@ -29,6 +28,8 @@ interface SettingsTabProps {
   handleFileUpload: (file: File, cb: (url: string) => void) => void;
   /** Select'te sunulacak görsel seçenekleri (sistem + yüklenen). */
   allImageOptions: string[];
+  viewerRole?: 'owner' | 'manager' | 'guide' | 'driver' | null;
+  showToast?: (msg: string) => void;
 }
 
 export default function SettingsTab({
@@ -39,7 +40,38 @@ export default function SettingsTab({
   getImageUrl,
   handleFileUpload,
   allImageOptions,
+  viewerRole = null,
+  showToast,
 }: SettingsTabProps) {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword) return;
+    setIsChangingPassword(true);
+    try {
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        showToast?.(`⚠️ ${data.error || 'Şifre güncellenemedi.'}`);
+        return;
+      }
+      setCurrentPassword('');
+      setNewPassword('');
+      showToast?.('✅ Şifreniz güncellendi.');
+    } catch {
+      showToast?.('⚠️ Ağ hatası — şifre güncellenemedi.');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="bg-white dark:bg-surface-2 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
@@ -205,6 +237,56 @@ export default function SettingsTab({
           </div>
         </form>
       </div>
+
+      {viewerRole && (
+        <div className="bg-white dark:bg-surface-2 p-6 sm:p-8 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+          <h3 className="text-lg font-bold font-serif text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+            <KeyRound className="w-5 h-5 text-brand-accent" />
+            Hesap Şifresini Değiştir
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mb-5">
+            Üyelik hesabınızın şifresini güncelleyin (en az 10 karakter, harf ve rakam içermeli).
+          </p>
+          <form onSubmit={handlePasswordChange} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                  Mevcut Şifre
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                  Yeni Şifre
+                </label>
+                <input
+                  type="password"
+                  required
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="En az 10 karakter, harf + rakam"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="submit"
+                disabled={isChangingPassword}
+                className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold shadow-md shadow-brand-primary/20 disabled:opacity-50"
+              >
+                {isChangingPassword ? 'Güncelleniyor…' : 'Şifreyi Güncelle'}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

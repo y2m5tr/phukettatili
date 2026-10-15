@@ -5,45 +5,69 @@
  * (redirect değil). Bu yardımcı, route başına yazılan kontrolü tek
  * kaynağa indirger.
  */
-import { SESSION_COOKIE, isAuthConfigured, readSessionValue } from '../auth';
+import { SESSION_COOKIE, isAuthConfigured, readSessionValue, readMembershipSession, roleRank, type OpsRole } from '../auth';
 import type { APIRoute } from 'astro';
 
-export type ApiRole = 'admin' | 'field';
+export type ApiRole = OpsRole;
 
 export interface ApiGuardResult {
   allowed: boolean;
   /** 401 dönerken yanıt olarak gönderilecek hazır Response. */
   response?: Response;
+  /** Geçerli oturumun rolü (üyelik sisteminden geliyorsa kullanıcı rolü). */
+  role?: OpsRole;
 }
 
 /**
- * İsteğin oturumunu doğrular.
+ * İsteğin oturumunu doğrular — rol hiyerarşisi: owner > manager > guide > driver.
  *
- * `requiredRole` verilmezse: geçerli her oturum (admin VEYA field) geçer.
- * `requiredRole = 'field'` ise: field VEYA admin geçer (admin her şeyi görebilir).
- * `requiredRole = 'admin'` ise: YALNIZCA admin geçer.
+ * `requiredRole` verilmezse: geçerli her oturum geçer.
+ * `requiredRole` verilirse: o ROLÜN SEVİYESİNE EŞİT VEYA ÜSTÜ olan herkes geçer
+ * (owner her şeyi yapabilir, manager saha uçlarını da kullanabilir vb.).
+ *
+ * Kural eşlemesi (eski iki-rol çağrıları da çalışır):
+ *   'admin' → owner düzeyi (manager DAHİL DEĞİL — admin-only uçlar)
+ *   'field' → guide düzeyi (guide ve üzeri)
  */
 export function guardApi(context: Parameters<APIRoute>[0], requiredRole?: ApiRole): ApiGuardResult {
-  if (!isAuthConfigured()) {
+  const required =
+    requiredRole === 'admin' ? 4 :
+    requiredRole === 'field' ? 2 :
+    requiredRole ? roleRank(requiredRole) : 1;
+
+  // Üyelik oturumu önce: yeni sistemin çerezi varsa o kullanılır.
+  const membership = readMembershipSession(context.cookies.get(SESSION_COOKIE)?.value);
+  if (membership) {
+    if (roleRank(membership.role) >= required) {
+      return { allowed: true, role: membership.role };
+    }
     return {
       allowed: false,
-      response: jsonError(503, 'Sunucu kimlik doğrulaması yapılandırılmamış (ADMIN_PASSCODE yok).'),
+      response: jsonError(403, 'Bu işlem için yetkiniz yok.'),
     };
   }
 
+  // Geçiş dönemi: eski imzalı çerezler (şifre tabanlı).
+  if (!isAuthConfigured()) {
+    return {
+      allowed: false,
+      response: jsonError(503, 'Sunucu kimlik doğrulaması yapılandırılmamış.'),
+    };
+  }
   const session = readSessionValue(context.cookies.get(SESSION_COOKIE)?.value);
-
-  const allowed =
-    session === 'admin' ||
-    (requiredRole !== 'admin' && session === 'field');
-
-  if (!allowed) {
+  if (!session) {
     return {
       allowed: false,
       response: jsonError(401, 'Yetkisiz istek. Oturum açın.'),
     };
   }
-  return { allowed: true };
+  if (roleRank(session) < required) {
+    return {
+      allowed: false,
+      response: jsonError(403, 'Bu işlem için yetkiniz yok.'),
+    };
+  }
+  return { allowed: true, role: session };
 }
 
 /** Tek tip JSON hata yanıtı. */

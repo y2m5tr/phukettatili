@@ -101,18 +101,23 @@ interface FieldScheduleItem {
 interface Props {
   initialTours?: TourItem[];
   managerPhone?: string;
+  viewerRole?: 'owner' | 'manager' | 'guide' | 'driver' | null;
 }
 
 export default function FieldApp({
   initialTours = [],
   managerPhone = '66828950665',
+  viewerRole = null,
 }: Props) {
+  const isDriverOnly = viewerRole === 'driver';
+  const canAccessAdmin = viewerRole === 'owner' || viewerRole === 'manager' || viewerRole === null;
+
   // 1. Kimlik — erişim yetkisi sunucuda doğrulanır (src/middleware.ts).
   // Buradaki durum yalnızca "vardiya hangi isimle açıldı" bilgisini tutar;
   // manifesto ve WhatsApp raporlarında görevli adı olarak kullanılır.
   const [isShiftStarted, setIsShiftStarted] = useState<boolean>(false);
   const [identityError, setIdentityError] = useState('');
-  const [crewName, setCrewName] = useState<string>('Rehber Ekibi');
+  const [crewName, setCrewName] = useState<string>(isDriverOnly ? 'Şoför Ekibi' : 'Rehber Ekibi');
 
   // 2. Navigasyon & Filtreler
   const [activeTab, setActiveTab] = useState<'schedule' | 'new_booking' | 'cash' | 'settings'>('schedule');
@@ -143,6 +148,36 @@ export default function FieldApp({
   const [cashModalItem, setCashModalItem] = useState<FieldScheduleItem | null>(null);
   const [collectedAmountInput, setCollectedAmountInput] = useState<string>('');
 
+  // Şifre Değiştirme State (Üyelik Oturumu)
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+
+  const handleChangeOwnPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentPassword || !newPassword) return;
+    setIsChangingPassword(true);
+    try {
+      const res = await fetch('/api/auth/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      if (!res.ok) {
+        showToast(`⚠️ ${data.error || 'Şifre güncellenemedi.'}`);
+        return;
+      }
+      setCurrentPassword('');
+      setNewPassword('');
+      showToast('✅ Şifreniz güncellendi.');
+    } catch {
+      showToast('⚠️ Ağ hatası — şifre güncellenemedi.');
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   // 6. Hızlı Rezervasyon Formu State
   const [newCustName, setNewCustName] = useState('');
   const [newCustPhone, setNewCustPhone] = useState('+90 ');
@@ -159,11 +194,15 @@ export default function FieldApp({
   const [newNotes, setNewNotes] = useState('');
   const [isSubmittingBooking, setIsSubmittingBooking] = useState(false);
 
-  // Başlangıç: localStorage kontrolü
+  // Başlangıç: localStorage kontrolü + üyelik oturumundan görevli adı
   useEffect(() => {
+    let hasSavedCrew = false;
     try {
       const savedCrew = localStorage.getItem(CREW_NAME_STORAGE_KEY);
-      if (savedCrew) setCrewName(savedCrew);
+      if (savedCrew) {
+        setCrewName(savedCrew);
+        hasSavedCrew = true;
+      }
 
       const cached = localStorage.getItem(LOCAL_BOOKINGS_KEY);
       if (cached) {
@@ -171,6 +210,17 @@ export default function FieldApp({
       }
     } catch {
       // ignore
+    }
+
+    if (viewerRole && !hasSavedCrew) {
+      void fetch('/api/auth/session')
+        .then((res) => (res.ok ? res.json() : null))
+        .then((data: { user?: { fullName?: string } } | null) => {
+          if (data?.user?.fullName) {
+            setCrewName(data.user.fullName);
+          }
+        })
+        .catch(() => {});
     }
 
     const handleOnline = () => setIsOnline(true);
@@ -1115,15 +1165,19 @@ export default function FieldApp({
               <p className="text-sm font-semibold text-slate-300">
                 {selectedDate === todayStr ? 'Bugün için planlanmış tur bulunamadı' : 'Bu tarihte tur bulunamadı'}
               </p>
-              <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
-                Yeni bir misafir eklemek için alttaki "+ Yeni Satış" butonunu kullanabilirsiniz.
-              </p>
-              <button
-                onClick={() => setActiveTab('new_booking')}
-                className="mt-4 px-4 py-2 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold shadow-md hover:bg-amber-400 transition-all"
-              >
-                + Yeni Rezervasyon Oluştur
-              </button>
+              {!isDriverOnly && (
+                <>
+                  <p className="text-xs text-slate-500 mt-1 max-w-xs mx-auto">
+                    Yeni bir misafir eklemek için alttaki "+ Yeni Satış" butonunu kullanabilirsiniz.
+                  </p>
+                  <button
+                    onClick={() => setActiveTab('new_booking')}
+                    className="mt-4 px-4 py-2 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold shadow-md hover:bg-amber-400 transition-all"
+                  >
+                    + Yeni Rezervasyon Oluştur
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <div className="space-y-3">
@@ -1236,7 +1290,7 @@ export default function FieldApp({
                       </div>
 
                       {/* Hızlı Tahsilat Butonu */}
-                      {hasBalance && (
+                      {hasBalance && !isDriverOnly && (
                         <button
                           onClick={() => {
                             setCashModalItem(item);
@@ -1491,18 +1545,52 @@ export default function FieldApp({
             </div>
           </div>
 
+          {viewerRole && (
+            <form
+              onSubmit={handleChangeOwnPassword}
+              className="bg-slate-900 border border-slate-800 rounded-3xl p-5 space-y-3"
+            >
+              <h4 className="text-sm font-bold text-white">Şifre Değiştir</h4>
+              <input
+                type="password"
+                required
+                placeholder="Mevcut şifreniz"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+              />
+              <input
+                type="password"
+                required
+                placeholder="Yeni şifre (en az 10 karakter, harf + rakam)"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+              />
+              <button
+                type="submit"
+                disabled={isChangingPassword}
+                className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition-all disabled:opacity-50"
+              >
+                {isChangingPassword ? 'Güncelleniyor…' : 'Şifreyi Güncelle'}
+              </button>
+            </form>
+          )}
+
           {/* Hızlı Kısayollar */}
           <div className="space-y-2">
-            <a
-              href="/admin"
-              className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 text-slate-200 text-xs font-semibold flex items-center justify-between hover:bg-slate-800 transition-all"
-            >
-              <div className="flex items-center gap-2.5">
-                <Building className="w-4 h-4 text-amber-400" />
-                <span>Masaüstü Yönetici CRM Paneline Geç</span>
-              </div>
-              <ChevronRight className="w-4 h-4 text-slate-500" />
-            </a>
+            {canAccessAdmin && (
+              <a
+                href="/admin"
+                className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 text-slate-200 text-xs font-semibold flex items-center justify-between hover:bg-slate-800 transition-all"
+              >
+                <div className="flex items-center gap-2.5">
+                  <Building className="w-4 h-4 text-amber-400" />
+                  <span>Masaüstü Yönetici CRM Paneline Geç</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-slate-500" />
+              </a>
+            )}
 
             <button
               onClick={handleLogout}
@@ -1579,7 +1667,7 @@ export default function FieldApp({
       {/* ALT GEZİNTİ ÇUBUĞU (Bottom Navigation Bar) */}
       {/* --------------------------------------------------------------------------------- */}
       <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-lg border-t border-slate-800/80 max-w-md mx-auto px-3 py-2">
-        <div className="grid grid-cols-4 gap-1">
+        <div className={`grid ${isDriverOnly ? 'grid-cols-2' : 'grid-cols-4'} gap-1`}>
           <button
             onClick={() => setActiveTab('schedule')}
             className={`flex flex-col items-center py-1.5 rounded-2xl transition-all ${
@@ -1592,29 +1680,33 @@ export default function FieldApp({
             <span className="text-[10px]">Manifesto</span>
           </button>
 
-          <button
-            onClick={() => setActiveTab('new_booking')}
-            className={`flex flex-col items-center py-1.5 rounded-2xl transition-all ${
-              activeTab === 'new_booking'
-                ? 'text-amber-400 font-bold'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            <PlusCircle className="w-5 h-5 mb-1" />
-            <span className="text-[10px]">+ Satış</span>
-          </button>
+          {!isDriverOnly && (
+            <button
+              onClick={() => setActiveTab('new_booking')}
+              className={`flex flex-col items-center py-1.5 rounded-2xl transition-all ${
+                activeTab === 'new_booking'
+                  ? 'text-amber-400 font-bold'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              <PlusCircle className="w-5 h-5 mb-1" />
+              <span className="text-[10px]">+ Satış</span>
+            </button>
+          )}
 
-          <button
-            onClick={() => setActiveTab('cash')}
-            className={`flex flex-col items-center py-1.5 rounded-2xl transition-all ${
-              activeTab === 'cash'
-                ? 'text-amber-400 font-bold'
-                : 'text-slate-500 hover:text-slate-300'
-            }`}
-          >
-            <CreditCard className="w-5 h-5 mb-1" />
-            <span className="text-[10px]">Kasa</span>
-          </button>
+          {!isDriverOnly && (
+            <button
+              onClick={() => setActiveTab('cash')}
+              className={`flex flex-col items-center py-1.5 rounded-2xl transition-all ${
+                activeTab === 'cash'
+                  ? 'text-amber-400 font-bold'
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              <CreditCard className="w-5 h-5 mb-1" />
+              <span className="text-[10px]">Kasa</span>
+            </button>
+          )}
 
           <button
             onClick={() => setActiveTab('settings')}

@@ -20,6 +20,7 @@ interface BookingsTabProps {
   onOpenCreate: () => void;
   onOpenEdit: (b: Booking) => void;
   onDelete: (id: string, customerName: string) => void;
+  canDelete?: boolean;
   setVoucherBooking: (b: Booking) => void;
   setWhatsAppModalBooking: (b: Booking) => void;
 }
@@ -36,6 +37,7 @@ export default function BookingsTab({
   onOpenCreate,
   onOpenEdit,
   onDelete,
+  canDelete = true,
   setVoucherBooking,
   setWhatsAppModalBooking,
 }: BookingsTabProps) {
@@ -243,15 +245,19 @@ export default function BookingsTab({
                         <button
                           onClick={() => onOpenEdit(b)}
                           className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
+                          title="Düzenle"
                         >
                           <Edit2 className="w-4 h-4" />
                         </button>
-                        <button
-                          onClick={() => onDelete(b.id, b.customerName)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {canDelete && (
+                          <button
+                            onClick={() => onDelete(b.id, b.customerName)}
+                            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
+                            title="Kalıcı Olarak Sil"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
