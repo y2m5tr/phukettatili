@@ -1,11 +1,19 @@
-/**
- * Günlük Transfer & Şoför Dağıtım Listesi sekmesi — AdminDashboard'tan ayrıldı.
- *
- * manifestDate state'i AdminDashboard'ta kalır (diğer görünüm ve
- * filtrelerle paylaşılıyor). dailyPickups türetimi bura taşındı;
- * sıralama ve özet hesapları bileşen içinde yapılır.
- */
-import { Car, Copy, Navigation, ShieldCheck, MapPin, Phone, MessageCircle, ExternalLink, Ticket } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import {
+  Car,
+  Copy,
+  Navigation,
+  ShieldCheck,
+  MapPin,
+  Phone,
+  MessageCircle,
+  ExternalLink,
+  Ticket,
+  Camera,
+  CheckCircle2,
+  Clock,
+  Filter,
+} from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
 import type { Booking, VehicleItem, DriverItem } from '../../data/adminInitialData';
@@ -20,9 +28,15 @@ interface TransfersTabProps {
   showToast: (msg: string) => void;
   handleAssignVehicleToBooking: (bookingId: string, tourIndex: number, vehicle: string) => void;
   handleAssignDriverToBooking: (bookingId: string, tourIndex: number, driverId: string) => void;
+  handleUpdatePickupStatus?: (
+    bookingId: string,
+    tourIndex: number,
+    status: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show'
+  ) => void;
   setWhatsAppModalBooking: (b: Booking) => void;
   setVoucherBooking: (b: Booking) => void;
   onOpenPoliceManifest: () => void;
+  onOpenQrScanner?: () => void;
 }
 
 export default function TransfersTab({
@@ -34,9 +48,11 @@ export default function TransfersTab({
   showToast,
   handleAssignVehicleToBooking,
   handleAssignDriverToBooking,
+  handleUpdatePickupStatus,
   setWhatsAppModalBooking,
   setVoucherBooking,
   onOpenPoliceManifest,
+  onOpenQrScanner,
 }: TransfersTabProps) {
   // Günlük alınışlar — mantık src/lib/adminFilters.ts'te (testli tek kaynak).
   const dailyPickups: PickupItem[] = buildDailyPickups(bookings, manifestDate);
@@ -45,6 +61,24 @@ export default function TransfersTab({
     (acc, p) => acc + p.adultCount + p.childCount,
     0
   );
+
+  const [vehicleFilter, setVehicleFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  const routeVehicles = useMemo(() => {
+    return Array.from(new Set(dailyPickups.map((p) => p.assignedVehicle).filter(Boolean)));
+  }, [dailyPickups]);
+
+  const filteredPickups = useMemo(() => {
+    return dailyPickups.filter((p) => {
+      const matchVehicle = vehicleFilter === 'all' || p.assignedVehicle === vehicleFilter;
+      const matchStatus = statusFilter === 'all' || (p.pickupStatus || 'pending') === statusFilter;
+      return matchVehicle && matchStatus;
+    });
+  }, [dailyPickups, vehicleFilter, statusFilter]);
+
+  const pickedUpCount = dailyPickups.filter((p) => p.pickupStatus === 'picked_up').length;
+  const pendingCount = dailyPickups.filter((p) => !p.pickupStatus || p.pickupStatus === 'pending').length;
 
   // Generate clipboard text for drivers / suppliers
   const handleCopyManifest = () => {
@@ -68,13 +102,19 @@ export default function TransfersTab({
           p.remainingAmountThb > 0
             ? ` ⚠️ Tahsil Edilecek: *${p.remainingAmountThb.toLocaleString()} THB*`
             : ` ✅ Ödendi`;
+        const pickupStateText =
+          p.pickupStatus === 'picked_up'
+            ? ` [🚐 BİNDİ: ${p.pickedUpAt || 'OK'}]`
+            : p.pickupStatus === 'no_show'
+            ? ` [❌ NO-SHOW]`
+            : '';
         return (
           `${idx + 1}️⃣ ⏰ *${p.pickupTime}* — *${p.hotel}* ${p.roomNumber ? `(Oda: ${p.roomNumber})` : ''}\n` +
           `   👤 Misafir: *${p.customerName}* (${guests})\n` +
           `   📞 Tel: ${p.phone}\n` +
           `   🏝️ Tur: *${p.tourTitle}*` +
           (p.supplier ? ` [${p.supplier}]` : '') +
-          `\n   💰 Durum:${remainingText}` +
+          `\n   💰 Durum:${remainingText}${pickupStateText}` +
           (p.specialNotes ? `\n   📝 Not: ${p.specialNotes}` : '') +
           `\n`
         );
@@ -141,6 +181,19 @@ export default function TransfersTab({
               className="px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold text-slate-900 dark:text-white focus:outline-none"
             />
           </div>
+
+          {/* 📷 Bilet QR Tara / Check-in Butonu (Saha Entegrasyonu) */}
+          {onOpenQrScanner && (
+            <button
+              type="button"
+              onClick={onOpenQrScanner}
+              className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-purple-600/20 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Misafir Kuponu / Bilet QR Kodu Oku & Doğrula"
+            >
+              <Camera className="w-4 h-4" />
+              <span>📷 Bilet QR Oku / Check-in</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -217,6 +270,56 @@ export default function TransfersTab({
         </div>
       </div>
 
+      {/* Filters & Live Status Bar */}
+      <div className="bg-white dark:bg-surface-2 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-1.5 text-xs text-slate-500 font-bold mr-1">
+            <Filter className="w-3.5 h-3.5 text-brand-primary dark:text-brand-accent" />
+            <span>Filtrele:</span>
+          </div>
+
+          {/* Araç Filtresi */}
+          <select
+            value={vehicleFilter}
+            onChange={(e) => setVehicleFilter(e.target.value)}
+            className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none"
+          >
+            <option value="all">🚐 Tüm Araçlar / Hatlar ({dailyPickups.length})</option>
+            {routeVehicles.map((v) => (
+              <option key={v} value={v}>
+                {v} ({dailyPickups.filter((p) => p.assignedVehicle === v).length})
+              </option>
+            ))}
+          </select>
+
+          {/* Biniş Durumu Filtresi */}
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none"
+          >
+            <option value="all">🚦 Tüm Biniş Durumları</option>
+            <option value="pending">⏳ Alınmayı Bekleyenler ({pendingCount})</option>
+            <option value="picked_up">🚐 Araca Binenler ({pickedUpCount})</option>
+            <option value="on_tour">⛵ Turda Olanlar</option>
+            <option value="completed">✅ Tamamlananlar</option>
+            <option value="no_show">❌ Gelmeyenler (No-Show)</option>
+          </select>
+        </div>
+
+        {/* Live Pickup Counter Badges */}
+        <div className="flex items-center gap-2 text-xs font-bold">
+          <span className="px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            Binen: {pickedUpCount}
+          </span>
+          <span className="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200 dark:border-amber-800 flex items-center gap-1">
+            <Clock className="w-3.5 h-3.5" />
+            Bekleyen: {pendingCount}
+          </span>
+        </div>
+      </div>
+
       {/* Manifest Table */}
       <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
@@ -230,25 +333,26 @@ export default function TransfersTab({
                 <th className="py-4 px-5">👤 Misafir & Telefon</th>
                 <th className="py-4 px-5">👥 Kişi</th>
                 <th className="py-4 px-5">🏝️ Tur & Tedarikçi</th>
-                <th className="py-4 px-5">💰 Tahsilat Durumu</th>
+                <th className="py-4 px-5">💰 Tahsilat</th>
+                <th className="py-4 px-5">🚦 Saha / Biniş Durumu</th>
                 <th className="py-4 px-5 text-right">İşlem</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-              {dailyPickups.length === 0 ? (
+              {filteredPickups.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-14 text-center text-slate-400">
+                  <td colSpan={10} className="py-14 text-center text-slate-400">
                     <Car className="w-10 h-10 mx-auto text-slate-300 dark:text-slate-700 mb-2" />
                     <p className="font-semibold text-slate-600 dark:text-slate-400">
-                      Bu tarihte planlanmış herhangi bir transfer veya tur bulunamadı.
+                      Seçilen filtre ve tarihte transfer kaydı bulunamadı.
                     </p>
                     <p className="text-xs text-slate-400 mt-1">
-                      Yukarıdan başka bir tarih seçebilir veya rezervasyon ekleyebilirsiniz.
+                      Filtreleri sıfırlayabilir veya yukarıdan başka bir tarih seçebilirsiniz.
                     </p>
                   </td>
                 </tr>
               ) : (
-                dailyPickups.map((p, idx) => (
+                filteredPickups.map((p, idx) => (
                   <tr
                     key={`${p.bookingId}-${idx}`}
                     className="hover:bg-slate-50/60 dark:hover:bg-slate-900/30 transition-colors"
@@ -378,6 +482,42 @@ export default function TransfersTab({
                       ) : (
                         <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 inline-block">
                           ✓ Tamamı Ödendi
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="py-4 px-5">
+                      <select
+                        value={p.pickupStatus || 'pending'}
+                        onChange={(e) =>
+                          handleUpdatePickupStatus &&
+                          handleUpdatePickupStatus(
+                            p.bookingId,
+                            p.tourIndex,
+                            e.target.value as any
+                          )
+                        }
+                        className={`px-2.5 py-1.5 rounded-xl border text-xs font-bold focus:outline-none transition-colors cursor-pointer ${
+                          p.pickupStatus === 'picked_up'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-700 dark:text-emerald-300'
+                            : p.pickupStatus === 'on_tour'
+                            ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-300 dark:border-sky-700 text-sky-700 dark:text-sky-300'
+                            : p.pickupStatus === 'completed'
+                            ? 'bg-purple-50 dark:bg-purple-950/60 border-purple-300 dark:border-purple-700 text-purple-700 dark:text-purple-300'
+                            : p.pickupStatus === 'no_show'
+                            ? 'bg-red-50 dark:bg-red-950/60 border-red-300 dark:border-red-700 text-red-700 dark:text-red-300'
+                            : 'bg-amber-50 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-700 dark:text-amber-300'
+                        }`}
+                      >
+                        <option value="pending">⏳ Bekliyor</option>
+                        <option value="picked_up">🚐 Araca Bindi</option>
+                        <option value="on_tour">⛵ Turda</option>
+                        <option value="completed">✅ Tamamlandı</option>
+                        <option value="no_show">❌ Gelmedi (No-Show)</option>
+                      </select>
+                      {p.pickedUpAt && (
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-mono block mt-0.5">
+                          Biniş: {p.pickedUpAt}
                         </span>
                       )}
                     </td>

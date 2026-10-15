@@ -32,6 +32,7 @@ import {
   Wallet,
   Building,
   Ship,
+  Camera,
 } from 'lucide-react';
 import {
   initialBookings,
@@ -84,6 +85,7 @@ import BlogModal from './BlogModal';
 import { AddMediaModal, MediaLightboxModal } from './MediaModals';
 import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
 import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
+import QrScannerModal from '../shared/QrScannerModal';
 import {
   loadCmsCollections,
   saveCmsCollection,
@@ -476,6 +478,9 @@ export default function AdminDashboard({
   // Marine Police Manifest Modal
   const [isPoliceManifestOpen, setIsPoliceManifestOpen] = useState<boolean>(false);
 
+  // QR Ticket Scanner Modal (Saha Bilet Check-in)
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState<boolean>(false);
+
   // Yolcu pasaport bilgilerini günceller (deniz polisi / sigorta manifestosu).
   // localStorage + Supabase'e yazılır: sahadaki rehber manifestoyu teknede
   // çıkardığı için bu verinin buluta gitmesi şart.
@@ -742,6 +747,7 @@ export default function AdminDashboard({
     Boolean(voucherBooking) ||
     Boolean(whatsAppModalBooking) ||
     isPoliceManifestOpen ||
+    isQrScannerOpen ||
     isTourModalOpen ||
     isAddMediaModalOpen ||
     Boolean(assignMediaModal) ||
@@ -1270,7 +1276,7 @@ export default function AdminDashboard({
   const applyAssignment = async (
     bookingId: string,
     tourIndex: number,
-    patch: Partial<Pick<BookingTourSchedule, 'assignedVehicle' | 'assignedDriver'>>
+    patch: Partial<Pick<BookingTourSchedule, 'assignedVehicle' | 'assignedDriver' | 'pickupStatus' | 'pickedUpAt'>>
   ) => {
     const target = bookings.find((b) => b.id === bookingId);
     if (!target) return;
@@ -1282,6 +1288,10 @@ export default function AdminDashboard({
       full.tours = nextTours;
     } else {
       Object.assign(full, patch);
+    }
+
+    if (patch.pickupStatus === 'completed') {
+      full.status = 'completed';
     }
 
     const updated = bookings.map((b) => (b.id === bookingId ? full : b));
@@ -1301,6 +1311,52 @@ export default function AdminDashboard({
     }
 
     return full;
+  };
+
+  const handleUpdatePickupStatus = async (
+    bookingId: string,
+    tourIndex: number,
+    status: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show'
+  ) => {
+    const nowTime = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    const full = await applyAssignment(bookingId, tourIndex, {
+      pickupStatus: status,
+      pickedUpAt: status === 'picked_up' ? nowTime : undefined,
+    });
+    if (full) {
+      if (status === 'picked_up') {
+        showToast(`🚐 ${full.customerName} otelden alındı (${nowTime})`);
+      } else if (status === 'no_show') {
+        showToast(`⚠️ ${full.customerName} NO-SHOW olarak işaretlendi`);
+      } else {
+        showToast(`Durum güncellendi: ${status}`);
+      }
+    }
+  };
+
+  const handleQrScanResult = async (scannedCode: string, tourIndex: number) => {
+    const clean = scannedCode.trim().toUpperCase();
+    const found = bookings.find(
+      (b) =>
+        b.id.toUpperCase() === clean ||
+        b.id.toUpperCase().includes(clean) ||
+        (b.ticketCode && b.ticketCode.toUpperCase() === clean)
+    );
+    if (!found) {
+      showToast(`⚠️ Rezervasyon bulunamadı: ${clean}`);
+      return;
+    }
+    const nowTime = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+    await applyAssignment(found.id, tourIndex >= 0 ? tourIndex : 0, {
+      pickupStatus: 'picked_up',
+      pickedUpAt: nowTime,
+    });
+    setIsQrScannerOpen(false);
+    if (found.remainingAmountThb > 0) {
+      showToast(`✅ ${found.customerName} bindi! ⚠️ Kalan Alınacak: ${found.remainingAmountThb.toLocaleString()} THB`);
+    } else {
+      showToast(`✅ ${found.customerName} bilet doğrulandı ve araca bindi olarak kaydedildi.`);
+    }
   };
 
   const handleAssignVehicleToBooking = async (
@@ -1993,16 +2049,15 @@ export default function AdminDashboard({
               <span>{isCloudConnected ? 'Canlı Bulut' : 'Yerel Mod'}</span>
             </div>
 
-            <a
-              href="/ekip"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hidden sm:flex px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all items-center gap-1.5"
-              title="Rehber & Saha Ekibi Uygulamasını Aç"
+            <button
+              type="button"
+              onClick={() => setIsQrScannerOpen(true)}
+              className="hidden sm:flex px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/30 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer"
+              title="Misafir Kuponu / Bilet QR Kodu Oku & Doğrula"
             >
-              <Smartphone className="w-3.5 h-3.5 text-amber-500" />
-              <span>Saha</span>
-            </a>
+              <Camera className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+              <span>Bilet Tara</span>
+            </button>
 
             <button
               onClick={handleOpenCreateBooking}
@@ -2100,9 +2155,11 @@ export default function AdminDashboard({
             showToast={showToast}
             handleAssignVehicleToBooking={handleAssignVehicleToBooking}
             handleAssignDriverToBooking={handleAssignDriverToBooking}
+            handleUpdatePickupStatus={handleUpdatePickupStatus}
             setWhatsAppModalBooking={setWhatsAppModalBooking}
             setVoucherBooking={setVoucherBooking}
             onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
+            onOpenQrScanner={() => setIsQrScannerOpen(true)}
           />
         )}
 
@@ -3841,6 +3898,17 @@ export default function AdminDashboard({
           )}
           onUpdatePassengers={handleUpdateBookingPassengers}
           onClose={() => setIsPoliceManifestOpen(false)}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 13: QR CODE TICKET SCANNER & CHECK-IN (SAHA ENTEGRASYONU) */}
+      {/* ==================================================== */}
+      {isQrScannerOpen && (
+        <QrScannerModal
+          isOpen={isQrScannerOpen}
+          onClose={() => setIsQrScannerOpen(false)}
+          onScanResult={handleQrScanResult}
         />
       )}
 

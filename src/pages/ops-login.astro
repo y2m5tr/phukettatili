@@ -7,11 +7,11 @@ import { isAuthConfigured } from '../lib/auth';
 
 const configured = isAuthConfigured();
 const nextParam = Astro.url.searchParams.get('next') || '';
-const safeNext = nextParam === '/admin' || nextParam === '/ekip' ? nextParam : '/admin';
+const safeNext = nextParam === '/ekip' ? '/admin?tab=transfers' : (nextParam || '/admin');
 const errorCode = Astro.url.searchParams.get('error') || '';
 
-const heading = safeNext === '/ekip' ? 'Saha & Rehber Girişi' : 'Yönetim Paneli Girişi';
-const accent = safeNext === '/ekip' ? '#f59e0b' : '#0ea5e9';
+const heading = 'Yönetim & Operasyon Girişi';
+const accent = '#0ea5e9';
 ---
 
 <!doctype html>

@@ -67,6 +67,9 @@ export interface PickupItem {
   assignedDriver?: string;
   hotelZone: string;
   tourIndex: number;
+  pickupStatus?: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show';
+  pickedUpAt?: string;
+  ticketCode?: string;
 }
 
 /**
@@ -102,6 +105,9 @@ export function buildDailyPickups(bookings: Booking[], manifestDate: string): Pi
             assignedDriver: t.assignedDriver || b.assignedDriver,
             hotelZone: b.hotelZone || t.hotelZone || detectHotelZone(b.hotel),
             tourIndex: tIdx,
+            pickupStatus: t.pickupStatus || b.pickupStatus || 'pending',
+            pickedUpAt: t.pickedUpAt || b.pickedUpAt,
+            ticketCode: b.ticketCode,
           });
         }
       });
@@ -124,6 +130,9 @@ export function buildDailyPickups(bookings: Booking[], manifestDate: string): Pi
         assignedDriver: b.assignedDriver,
         hotelZone: b.hotelZone || detectHotelZone(b.hotel),
         tourIndex: -1,
+        pickupStatus: b.pickupStatus || 'pending',
+        pickedUpAt: b.pickedUpAt,
+        ticketCode: b.ticketCode,
       });
     }
   });

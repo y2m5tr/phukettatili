@@ -106,8 +106,8 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
     maxAge: SESSION_TTL_SECONDS,
   });
 
-  // Yönlendirme hedefi role göre: manager+ → /admin, guide/driver → /ekip.
-  const target = user.role === 'guide' || user.role === 'driver' ? '/ekip' : '/admin';
+  // Yönlendirme hedefi: rehber/şoför doğrudan transfer & manifestoya, diğerleri ana panele.
+  const target = user.role === 'guide' || user.role === 'driver' ? '/admin?tab=transfers' : '/admin';
 
   return jsonOk({
     ok: true,

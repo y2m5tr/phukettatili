@@ -9,8 +9,7 @@ import {
 
 /** Oturum gerektiren paneller ve erişim için gereken minimum rol seviyesi. */
 const PROTECTED: Record<string, number> = {
-  '/admin': 3, // manager ve üzeri (owner dahil)
-  '/ekip': 1,  // driver ve üzeri (guide, manager, owner dahil)
+  '/admin': 1, // driver ve üzeri (tüm acenta ekibi tek yönetim panelini kullanır)
 };
 
 /**
@@ -19,13 +18,14 @@ const PROTECTED: Record<string, number> = {
  * Oturum yoksa panel içeriği hiç render edilmez — ziyaretçi doğrudan giriş
  * sayfasına yönlendirilir. Böylece rezervasyon verileri ve React bundle'ı
  * yetkisiz tarayıcılara inmez.
- *
- * ÜYELİK SİSTEMİ: rol hiyerarşisi owner(4) > manager(3) > guide(2) >
- * driver(1). /admin için manager+; /ekip için driver+ yeterlidir.
- * Eski şifre-tabanlı çerezler (admin/field) geçiş döneminde kabul edilir.
  */
 export const onRequest = defineMiddleware(async (context, next) => {
   const pathname = context.url.pathname.replace(/\/+$/, '') || '/';
+
+  // /ekip rotası artık /admin?tab=transfers içine taşındı
+  if (pathname === '/ekip') {
+    return context.redirect('/admin?tab=transfers');
+  }
 
   const requiredRank = PROTECTED[pathname];
   if (!requiredRank) return next();
@@ -34,10 +34,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   const membership = readMembershipSession(context.cookies.get(SESSION_COOKIE)?.value);
   if (membership) {
     if (roleRank(membership.role) >= requiredRank) return next();
-    // Yetkisi yetmeyen ÜYE: kendi seviyesine uygun panele yönlendirilir.
-    const fallback = roleRank(membership.role) >= 3 ? '/admin' : '/ekip';
-    const target = fallback === pathname ? '/ops-login' : fallback;
-    return context.redirect(target);
+    return context.redirect('/ops-login');
   }
 
   // Geçiş dönemi: şifre tanımlı değilse paneller kilitli kalır (fail-closed).
@@ -47,13 +44,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
   const session = readSessionValue(context.cookies.get(SESSION_COOKIE)?.value);
 
-  // 'admin' (4) her iki paneli de görebilir, 'field' (2) sadece /ekip'i (1).
   if (session && roleRank(session) >= requiredRank) return next();
-  if (session) {
-    const fallback = roleRank(session) >= 3 ? '/admin' : '/ekip';
-    const target = fallback === pathname ? '/ops-login' : fallback;
-    return context.redirect(target);
-  }
 
   return context.redirect(`/ops-login?next=${encodeURIComponent(pathname)}`);
 });
