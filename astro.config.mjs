@@ -41,8 +41,13 @@ export default defineConfig({
 
       // Supabase proje URL'si — public bilgi ama sunucu tarafında tutarlı
       // okunsun diye şemada tanımlı (secret: build çıktısına gömülmez).
-      // Değişken adı PUBLIC_SUPABASE_URL — .env ve client tarafıyla aynı.
+      // Hem SUPABASE_URL hem PUBLIC_SUPABASE_URL desteklenir.
       PUBLIC_SUPABASE_URL: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      SUPABASE_URL: envField.string({
         context: 'server',
         access: 'secret',
         optional: true,

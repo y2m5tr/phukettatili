@@ -15,21 +15,26 @@ import { getSecret } from 'astro:env/server';
 let cachedClient: SupabaseClient | null = null;
 let cachedClientUrl = '';
 
+const DEFAULT_SUPABASE_URL = 'https://xiyuozntwoqibvwivkms.supabase.co';
+
 /** Proje URL'si public bir bilgidir; client ile aynı kaynaktan okunur. */
-function resolveUrl(): string {
-  // PUBLIC_SUPABASE_URL (şemada tanımlı, secret) → SUPABASE_URL takma adı →
-  // process.env. Local'de .env'den, Vercel'de runtime env'den gelir.
+export function resolveUrl(): string {
+  // SUPABASE_URL veya PUBLIC_SUPABASE_URL — runtime env veya astro:env'den okunur.
   try {
-    const fromEnv = getSecret('PUBLIC_SUPABASE_URL');
-    if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) return fromEnv.trim();
+    const fromEnv1 = getSecret('SUPABASE_URL');
+    if (typeof fromEnv1 === 'string' && fromEnv1.trim().length > 0) return fromEnv1.trim();
   } catch { /* şema yoksa düş */ }
-  for (const c of [process.env.PUBLIC_SUPABASE_URL, process.env.SUPABASE_URL]) {
+  try {
+    const fromEnv2 = getSecret('PUBLIC_SUPABASE_URL');
+    if (typeof fromEnv2 === 'string' && fromEnv2.trim().length > 0) return fromEnv2.trim();
+  } catch { /* şema yoksa düş */ }
+  for (const c of [process.env.SUPABASE_URL, process.env.PUBLIC_SUPABASE_URL]) {
     if (typeof c === 'string' && c.trim().length > 0) return c.trim();
   }
-  return '';
+  return DEFAULT_SUPABASE_URL;
 }
 
-function resolveServiceKey(): string {
+export function resolveServiceKey(): string {
   try {
     const fromEnv = getSecret('SUPABASE_SERVICE_ROLE_KEY');
     if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) return fromEnv.trim();

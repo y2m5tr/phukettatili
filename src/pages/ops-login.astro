@@ -287,7 +287,8 @@ const accent = safeNext === '/ekip' ? '#f59e0b' : '#0ea5e9';
               const minutes = Math.ceil((data.retryAfterMs || 900000) / 60000);
               showError(`Çok fazla deneme. ${minutes} dakika sonra tekrar deneyin.`);
             } else if (res.status === 503) {
-              showError('Üyelik sistemi yapılandırılmamış. Eski tek-şifre girişini kullanın.');
+              const data = await res.json().catch(() => ({}));
+              showError(data.error || 'Üyelik sistemi yapılandırılmamış. Eski tek-şifre girişini kullanın.');
             } else {
               showError('Giriş yapılamadı. Lütfen tekrar deneyin.');
             }
