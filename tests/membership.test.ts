@@ -148,10 +148,10 @@ describe('passwords — scrypt hash turları', () => {
     expect(await verifyPassword('Şifre-Çok-Güçlü-9', hash)).toBe(true);
   });
 
-  it('şifre politikası: kısa/harfsiz/rakamsız reddedilir', () => {
-    expect(validatePasswordPolicy('abc123')).not.toBeNull(); // < 10
-    expect(validatePasswordPolicy('1234567890123')).not.toBeNull(); // harf yok
-    expect(validatePasswordPolicy('abcdefghijk')).not.toBeNull(); // rakam yok
+  it('şifre politikası: 6 karakterden kısa reddedilir', () => {
+    expect(validatePasswordPolicy('123')).not.toBeNull(); // < 6
+    expect(validatePasswordPolicy('12345')).not.toBeNull(); // < 6
+    expect(validatePasswordPolicy('54131984')).toBeNull(); // geçerli (8 rakam)
     expect(validatePasswordPolicy('guclu-sifre-2026')).toBeNull(); // geçerli
   });
 });

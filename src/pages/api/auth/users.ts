@@ -87,7 +87,7 @@ export const POST: APIRoute = async (context) => {
 
   if (error) {
     if (error.code === '23505') return jsonError(409, 'Bu kullanıcı adı zaten alınmış.');
-    return jsonError(502, 'Kullanıcı oluşturulamadı.');
+    return jsonError(502, `Kullanıcı oluşturulamadı: ${error.message || error.code || 'Veritabanı hatası'}`);
   }
   return jsonOk({ ok: true });
 };

@@ -38,6 +38,16 @@ export default defineConfig({
         access: 'secret',
         optional: true,
       }),
+      SUPABASE_SERVICE_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      SUPABASE_SECRET_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
 
       // Supabase proje URL'si — public bilgi ama sunucu tarafında tutarlı
       // okunsun diye şemada tanımlı (secret: build çıktısına gömülmez).

@@ -35,12 +35,21 @@ export function resolveUrl(): string {
 }
 
 export function resolveServiceKey(): string {
-  try {
-    const fromEnv = getSecret('SUPABASE_SERVICE_ROLE_KEY');
-    if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) return fromEnv.trim();
-  } catch { /* şema tanımlı değilse düş */ }
-  const processKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (processKey && processKey.trim().length > 0) return processKey.trim();
+  const envNames = [
+    'SUPABASE_SERVICE_ROLE_KEY',
+    'SUPABASE_SERVICE_KEY',
+    'SUPABASE_SECRET_KEY',
+    'SUPABASE_SERVICE_ROLE',
+    'SERVICE_ROLE_KEY',
+  ];
+  for (const name of envNames) {
+    try {
+      const fromEnv = getSecret(name as any);
+      if (typeof fromEnv === 'string' && fromEnv.trim().length > 0) return fromEnv.trim();
+    } catch { /* şema tanımlı değilse düş */ }
+    const p = process.env[name];
+    if (typeof p === 'string' && p.trim().length > 0) return p.trim();
+  }
   return '';
 }
 

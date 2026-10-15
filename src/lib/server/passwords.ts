@@ -43,8 +43,6 @@ export async function verifyPassword(candidate: string, stored: string): Promise
  * kullanıcılar kendi şifresini seçtiği için taban gerekir.)
  */
 export function validatePasswordPolicy(password: string): string | null {
-  if (password.length < 10) return 'Şifre en az 10 karakter olmalı.';
-  if (!/[a-zA-ZçğıöşüÇĞİÖŞÜ]/.test(password)) return 'Şifre en az bir harf içermeli.';
-  if (!/[0-9]/.test(password)) return 'Şifre en az bir rakam içermeli.';
+  if (!password || password.length < 6) return 'Şifre en az 6 karakter olmalı.';
   return null; // geçerli
 }

@@ -316,11 +316,23 @@ export default function UsersTab({ showToast }: UsersTabProps) {
                     type="text"
                     required
                     value={form.username}
-                    onChange={(e) => setForm({ ...form, username: e.target.value })}
-                    placeholder="ör: elif.kaya"
+                    onChange={(e) => {
+                      const clean = e.target.value
+                        .toLowerCase()
+                        .replace(/ğ/g, 'g')
+                        .replace(/ü/g, 'u')
+                        .replace(/ş/g, 's')
+                        .replace(/ı/g, 'i')
+                        .replace(/ö/g, 'o')
+                        .replace(/ç/g, 'c')
+                        .replace(/\s+/g, '_')
+                        .replace(/[^a-z0-9_.-]/g, '');
+                      setForm({ ...form, username: clean });
+                    }}
+                    placeholder="ör: ahmet_sofor"
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
                   />
-                  <span className="text-[11px] text-slate-400 mt-1 block">3-32 karakter, küçük harf/rakam/._-</span>
+                  <span className="text-[11px] text-slate-400 mt-1 block">En az 3 karakter, boşluksuz küçük harf/rakam</span>
                 </div>
                 <div>
                   <label className="block text-xs font-bold uppercase mb-1">Ad Soyad *</label>
@@ -329,7 +341,7 @@ export default function UsersTab({ showToast }: UsersTabProps) {
                     required
                     value={form.fullName}
                     onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-                    placeholder="ör: Elif Kaya"
+                    placeholder="ör: Ahmet Yılmaz"
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
                   />
                 </div>
@@ -354,11 +366,11 @@ export default function UsersTab({ showToast }: UsersTabProps) {
                   required
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="Üyeye ileteceğin şifre (en az 10 karakter, harf+rakam)"
+                  placeholder="En az 6 karakter (ör: 54131984 veya sifre123)"
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border text-sm focus:outline-none"
                 />
                 <span className="text-[11px] text-slate-400 mt-1 block">
-                  Üye ilk girişten sonra kendi şifresini değiştirebilir.
+                  En az 6 karakter. Üye daha sonra kendi şifresini değiştirebilir.
                 </span>
               </div>
               <div className="pt-4 flex justify-end gap-3">

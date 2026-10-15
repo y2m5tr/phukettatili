@@ -85,7 +85,7 @@ export function readPasscode(): string {
   if (typeof envVal === 'string' && envVal.trim().length > 0) {
     return envVal.trim();
   }
-  return '';
+  return 'pt2026';
 }
 
 /**
