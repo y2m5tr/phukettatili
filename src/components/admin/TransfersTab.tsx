@@ -6,8 +6,8 @@
  * sıralama ve özet hesapları bileşen içinde yapılır.
  */
 import { Car, Copy, Navigation, ShieldCheck, MapPin, Phone, MessageCircle, ExternalLink, Ticket } from 'lucide-react';
-import { detectHotelZone } from '../../data/adminInitialData';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier } from '../../lib/maps';
+import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
 import type { Booking, VehicleItem, DriverItem } from '../../data/adminInitialData';
 
 interface TransfersTabProps {
@@ -25,26 +25,6 @@ interface TransfersTabProps {
   onOpenPoliceManifest: () => void;
 }
 
-interface PickupItem {
-  bookingId: string;
-  customerName: string;
-  phone: string;
-  hotel: string;
-  roomNumber?: string;
-  tourTitle: string;
-  pickupTime: string;
-  adultCount: number;
-  childCount: number;
-  remainingAmountThb: number;
-  specialNotes?: string;
-  supplier?: string;
-  status: string;
-  assignedVehicle?: string;
-  assignedDriver?: string;
-  hotelZone: string;
-  tourIndex: number;
-}
-
 export default function TransfersTab({
   bookings,
   manifestDate,
@@ -58,60 +38,8 @@ export default function TransfersTab({
   setVoucherBooking,
   onOpenPoliceManifest,
 }: TransfersTabProps) {
-  // Flatten all scheduled tour pickups for the chosen date
-  const dailyPickups: PickupItem[] = [];
-  bookings.forEach((b) => {
-    if (b.status === 'cancelled') return;
-
-    if (b.tours && b.tours.length > 0) {
-      b.tours.forEach((t, tIdx) => {
-        if (t.tourDate === manifestDate) {
-          dailyPickups.push({
-            bookingId: b.id,
-            customerName: b.customerName,
-            phone: b.phone,
-            hotel: b.hotel,
-            roomNumber: b.roomNumber,
-            tourTitle: t.tourTitle,
-            pickupTime: t.pickupTime || '07:30',
-            adultCount: b.adultCount,
-            childCount: b.childCount,
-            remainingAmountThb: b.remainingAmountThb,
-            specialNotes: b.specialNotes,
-            supplier: t.supplier || b.supplier,
-            status: b.status,
-            assignedVehicle: t.assignedVehicle || b.assignedVehicle || 'Atanmadı',
-            assignedDriver: t.assignedDriver || b.assignedDriver,
-            hotelZone: b.hotelZone || t.hotelZone || detectHotelZone(b.hotel),
-            tourIndex: tIdx,
-          });
-        }
-      });
-    } else if (b.tourDate === manifestDate) {
-      dailyPickups.push({
-        bookingId: b.id,
-        customerName: b.customerName,
-        phone: b.phone,
-        hotel: b.hotel,
-        roomNumber: b.roomNumber,
-        tourTitle: b.tourTitle,
-        pickupTime: b.pickupTime || '07:30',
-        adultCount: b.adultCount,
-        childCount: b.childCount,
-        remainingAmountThb: b.remainingAmountThb,
-        specialNotes: b.specialNotes,
-        supplier: b.supplier,
-        status: b.status,
-        assignedVehicle: b.assignedVehicle || 'Atanmadı',
-        assignedDriver: b.assignedDriver,
-        hotelZone: b.hotelZone || detectHotelZone(b.hotel),
-        tourIndex: -1,
-      });
-    }
-  });
-
-  // Sort pickups chronologically by pickupTime
-  dailyPickups.sort((a, b) => a.pickupTime.localeCompare(b.pickupTime));
+  // Günlük alınışlar — mantık src/lib/adminFilters.ts'te (testli tek kaynak).
+  const dailyPickups: PickupItem[] = buildDailyPickups(bookings, manifestDate);
 
   const totalDailyPassengers = dailyPickups.reduce(
     (acc, p) => acc + p.adultCount + p.childCount,

@@ -78,6 +78,7 @@ import {
   writeLocalCollection,
   type CmsCollectionKey,
 } from '../../lib/cmsSync';
+import { filterBookings, filterTours } from '../../lib/adminFilters';
 import {
   isSupabaseConfigured,
   subscribeBookingsSignal,
@@ -329,15 +330,28 @@ export default function AdminDashboard({
 
   // Active Tab — son seçim localStorage'da tutulur; sayfa yenilense bile
   // kullanıcı kaldığı bölüme döner (operasyonda sık yenileme yapılır).
-  const [activeTab, setActiveTab] = useState<AdminTab>(() => {
+  // URL'de ?tab=... varsa o ÖNCE gelir: "tarih filtreli müşteri listesi"
+  // gibi linkler ekip içinde paylaşılabilir.
+  const [activeTab, setActiveTabState] = useState<AdminTab>(() => {
     if (typeof window !== 'undefined') {
       try {
+        const urlTab = new URL(window.location.href).searchParams.get('tab') as AdminTab | null;
+        if (urlTab && NAV_ITEMS.some((i) => i.id === urlTab)) return urlTab;
         const saved = window.localStorage.getItem('ptt_admin_active_tab') as AdminTab | null;
         if (saved && NAV_ITEMS.some((i) => i.id === saved)) return saved;
       } catch { /* gizli mod / kota: sessizce varsayılana düş */ }
     }
     return 'overview';
   });
+  const setActiveTab = (tab: AdminTab) => {
+    setActiveTabState(tab);
+    // URL'yi de senkronla — geri/ileri ve link paylaşımı çalışsın.
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set('tab', tab);
+      window.history.replaceState({}, '', url);
+    } catch { /* yok say */ }
+  };
   useEffect(() => {
     try { window.localStorage.setItem('ptt_admin_active_tab', activeTab); } catch { /* yok say */ }
   }, [activeTab]);
@@ -360,11 +374,14 @@ export default function AdminDashboard({
   // Menü şeridi ref
   const navRef = useRef<HTMLDivElement>(null);
 
-  // Toast Feedback
+  // Toast Feedback — hata/başarı ayrımı: hatalar 8 sn kalır (kullanıcı
+  // fark etmeden kaybolmasın — örn. buluta kaydedilemedi uyarısı),
+  // bilgiler 3 sn.
   const [toastMessage, setToastMessage] = useState<string>('');
   const showToast = (msg: string) => {
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(''), 3000);
+    const isError = /hata|bulut|başarılamadı|başarısız|bulunamadı|aşıyor/i.test(msg);
+    setTimeout(() => setToastMessage(''), isError ? 8000 : 3000);
   };
 
   // Cloud Database Sync State
@@ -823,34 +840,16 @@ export default function AdminDashboard({
     };
   }, [bookings]);
 
-  // Filters
-  const filteredBookings = useMemo(() => {
-    return bookings.filter((b) => {
-      const q = searchQuery.toLowerCase();
-      const matchSearch =
-        b.customerName.toLowerCase().includes(q) ||
-        b.phone.toLowerCase().includes(q) ||
-        b.hotel.toLowerCase().includes(q) ||
-        b.tourTitle.toLowerCase().includes(q) ||
-        (b.tours || []).some((t) => t.tourTitle.toLowerCase().includes(q));
+  // Filters — mantık src/lib/adminFilters.ts'te (testli tek kaynak).
+  const filteredBookings = useMemo(
+    () => filterBookings(bookings, searchQuery, statusFilter, dateFilter),
+    [bookings, searchQuery, statusFilter, dateFilter],
+  );
 
-      const matchStatus = statusFilter === 'all' || b.status === statusFilter;
-      const matchDate =
-        !dateFilter ||
-        b.tourDate === dateFilter ||
-        (b.tours || []).some((t) => t.tourDate === dateFilter);
-
-      return matchSearch && matchStatus && matchDate;
-    });
-  }, [bookings, searchQuery, statusFilter, dateFilter]);
-
-  const filteredTours = useMemo(() => {
-    return tours.filter((t) => {
-      const matchSearch = t.title.toLowerCase().includes(tourSearchQuery.toLowerCase());
-      const matchCat = tourCategoryFilter === 'all' || t.category === tourCategoryFilter;
-      return matchSearch && matchCat;
-    });
-  }, [tours, tourSearchQuery, tourCategoryFilter]);
+  const filteredTours = useMemo(
+    () => filterTours(tours, tourSearchQuery, tourCategoryFilter),
+    [tours, tourSearchQuery, tourCategoryFilter],
+  );
 
   // Booking CRUD
   const handleOpenCreateBooking = () => {
