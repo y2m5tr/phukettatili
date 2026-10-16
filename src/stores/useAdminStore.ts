@@ -31,6 +31,8 @@ export interface AdminStoreState {
   // Cloud & Feedback State
   isCloudConnected: boolean;
   isSyncing: boolean;
+  isOnline: boolean;
+  pendingSyncCount: number;
   lastSyncedAt: Date | null;
   toastMessage: string;
 
@@ -74,6 +76,8 @@ export interface AdminStoreState {
   setToastMessage: (msg: string) => void;
   setIsCloudConnected: (v: boolean) => void;
   setIsSyncing: (v: boolean) => void;
+  setIsOnline: (v: boolean) => void;
+  setPendingSyncCount: (v: number | ((prev: number) => number)) => void;
   setLastSyncedAt: (date: Date | null) => void;
 
   // Modal Controls
@@ -112,6 +116,8 @@ export const useAdminStore = create<AdminStoreState>((set) => ({
 
   isCloudConnected: false,
   isSyncing: false,
+  isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
+  pendingSyncCount: 0,
   lastSyncedAt: null,
   toastMessage: '',
 
@@ -202,6 +208,11 @@ export const useAdminStore = create<AdminStoreState>((set) => ({
   setToastMessage: (toastMessage) => set({ toastMessage }),
   setIsCloudConnected: (isCloudConnected) => set({ isCloudConnected }),
   setIsSyncing: (isSyncing) => set({ isSyncing }),
+  setIsOnline: (isOnline) => set({ isOnline }),
+  setPendingSyncCount: (v) =>
+    set((state) => ({
+      pendingSyncCount: typeof v === 'function' ? v(state.pendingSyncCount) : v,
+    })),
   setLastSyncedAt: (lastSyncedAt) => set({ lastSyncedAt }),
 
   setIsCommandPaletteOpen: (v) =>

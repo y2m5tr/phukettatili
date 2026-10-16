@@ -43,6 +43,8 @@ import {
   Plane,
   Fuel,
   Luggage,
+  WifiOff,
+  CloudUpload,
 } from 'lucide-react';
 import {
   initialBookings,
@@ -129,6 +131,13 @@ import {
 import { generateTicketCode } from '../../lib/ticketCodes';
 import { useAdminStore } from '../../stores/useAdminStore';
 import { getRolePermissions, getRoleBadge } from '../../lib/rbac';
+import {
+  enqueueMutation,
+  getPendingMutations,
+  flushPendingMutations,
+  setOfflineCache,
+  getOfflineCache,
+} from '../../lib/offlineQueue';
 
 const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v2';
 const STORAGE_KEY_TOURS = 'phuket_tatili_crm_tours_v2';
@@ -529,6 +538,10 @@ export default function AdminDashboard({
     setIsCloudConnected,
     isSyncing,
     setIsSyncing,
+    isOnline,
+    setIsOnline,
+    pendingSyncCount,
+    setPendingSyncCount,
     lastSyncedAt,
     setLastSyncedAt,
   } = useAdminStore();
@@ -1029,6 +1042,52 @@ export default function AdminDashboard({
       setBookings(initialBookings);
       setTours(initialTours);
     }
+
+    // 2) Çevrimdışı kuyruk dinleyicisi & ağ bağlantı takibi (Aşama 4)
+    const handleOnline = async () => {
+      setIsOnline(true);
+      showToast('📶 İnternet bağlantısı sağlandı. Bekleyen çevrimdışı işlemler eşitleniyor...');
+      try {
+        const res = await flushPendingMutations();
+        if (res.succeeded > 0) {
+          showToast(`✅ ${res.succeeded} adet çevrimdışı işlem buluta aktarıldı!`);
+        }
+        setPendingSyncCount(res.remaining);
+      } catch {}
+      void fetchBookingsFromServer(true);
+      void refreshCmsFromServer();
+    };
+
+    const handleOffline = () => {
+      setIsOnline(false);
+      showToast('📶 Çevrimdışı moda geçildi. İskele ve teknede yapılan tüm işlemler yerel kuyrukta saklanacaktır.');
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+
+      void getPendingMutations().then((list) => {
+        setPendingSyncCount(list.length);
+      });
+
+      const hasLocal = typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY_BOOKINGS);
+      if (!hasLocal) {
+        void getOfflineCache<Booking[]>('bookings').then((cached) => {
+          if (cached && Array.isArray(cached) && cached.length > 0 && !localStorage.getItem(STORAGE_KEY_BOOKINGS)) {
+            setBookings(cached);
+            localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(cached));
+          }
+        });
+      }
+    }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+      }
+    };
   }, []);
 
   /**
@@ -1102,17 +1161,23 @@ export default function AdminDashboard({
   const handleManualSync = useCallback(async () => {
     setIsSyncing(true);
     try {
+      const flushResult = await flushPendingMutations();
+      if (flushResult.succeeded > 0) {
+        showToast(`📶 ${flushResult.succeeded} adet çevrimdışı işlem buluta aktarıldı!`);
+      }
+      setPendingSyncCount(flushResult.remaining);
+
       await Promise.all([
         fetchBookingsFromServer(false),
         refreshCmsFromServer(),
       ]);
-      showToast('✅ Bulut verileri başarıyla eşitlendi.');
+      showToast('✅ Bulut verileri ve çevrimdışı kuyruk eşitlendi.');
     } catch {
       showToast('⚠️ Eşitleme sırasında hata oluştu.');
     } finally {
       setTimeout(() => setIsSyncing(false), 400);
     }
-  }, [fetchBookingsFromServer, refreshCmsFromServer, setIsSyncing, showToast]);
+  }, [fetchBookingsFromServer, refreshCmsFromServer, setIsSyncing, showToast, setPendingSyncCount]);
 
   /**
    * Canlı senkronizasyon: sunucunun "bookings/cms değişti" Broadcast sinyalini
@@ -1145,11 +1210,13 @@ export default function AdminDashboard({
   const saveBookings = (next: Booking[]) => {
     setBookings(next);
     localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(next));
+    void setOfflineCache('bookings', next);
   };
 
   /**
    * Tek bir rezervasyonu hem yerel state'te günceller hem de buluta (/api/bookings PUT)
-   * optimistic update ile yazar. Hata durumunda eski duruma geri alır (rollback).
+   * optimistic update ile yazar. Çevrimdışı veya sunucu hatasında asla geri almaz (rollback yapmaz);
+   * IndexedDB çevrimdışı outbox kuyruğuna alarak internet geldiğinde senkronlar.
    */
   const handleUpdateSingleBooking = useCallback(
     async (updated: Booking, successMsg?: string) => {
@@ -1165,17 +1232,35 @@ export default function AdminDashboard({
           body: JSON.stringify(updated),
         });
         if (!res.ok) {
-          setBookings(prevBookings);
-          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-          showToast('⚠️ Bulut kayıt hatası: Değişiklik sunucuya kaydedilemedi, geri alındı.');
+          if (res.status >= 400 && res.status < 500) {
+            setBookings(prevBookings);
+            localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+            showToast('⚠️ Bulut kayıt hatası: Sunucu isteği kabul etmedi, değişiklik geri alındı.');
+          } else {
+            await enqueueMutation({
+              type: 'PUT_BOOKING',
+              url: '/api/bookings',
+              method: 'PUT',
+              body: updated,
+              description: `${updated.customerName} rezervasyon güncellemesi`,
+            });
+            setPendingSyncCount((c) => c + 1);
+            showToast('📶 Çevrimdışı kaydedildi: Sunucu geçici yanıt veremedi, kuyruğa alındı.');
+          }
         }
       } catch {
-        setBookings(prevBookings);
-        localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-        showToast('⚠️ Ağ hatası: Rezervasyon buluta kaydedilemedi, geri alındı.');
+        await enqueueMutation({
+          type: 'PUT_BOOKING',
+          url: '/api/bookings',
+          method: 'PUT',
+          body: updated,
+          description: `${updated.customerName} rezervasyon güncellemesi`,
+        });
+        setPendingSyncCount((c) => c + 1);
+        showToast('📶 Çevrimdışı kaydedildi: Değişiklik internet gelince buluta aktarılacak.');
       }
     },
-    [bookings, showToast]
+    [bookings, showToast, setPendingSyncCount]
   );
   const saveTours = (next: TourItem[]) => {
     setTours(next);
@@ -1353,15 +1438,29 @@ export default function AdminDashboard({
       void fetch(`/api/bookings?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).then(
         (res) => {
           if (!res.ok) {
-            setBookings(prevBookings);
-            localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-            showToast('⚠️ Bulut silme hatası: Yetki veya sunucu sorunu nedeniyle geri alındı.');
+            if (res.status >= 400 && res.status < 500) {
+              setBookings(prevBookings);
+              localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+              showToast('⚠️ Bulut silme hatası: Yetki veya sunucu sorunu nedeniyle geri alındı.');
+            } else {
+              void enqueueMutation({
+                type: 'DELETE_BOOKING',
+                url: `/api/bookings?id=${encodeURIComponent(id)}`,
+                method: 'DELETE',
+                description: `${name} rezervasyon silme (${id})`,
+              }).then(() => setPendingSyncCount((c) => c + 1));
+              showToast('📶 Çevrimdışı silindi: Sunucu geçici yanıt vermiyor, sıraya alındı.');
+            }
           }
         },
         () => {
-          setBookings(prevBookings);
-          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-          showToast('⚠️ Bulut silme hatası: Ağ bağlantısı kurulamadı, geri alındı.');
+          void enqueueMutation({
+            type: 'DELETE_BOOKING',
+            url: `/api/bookings?id=${encodeURIComponent(id)}`,
+            method: 'DELETE',
+            description: `${name} rezervasyon silme (${id})`,
+          }).then(() => setPendingSyncCount((c) => c + 1));
+          showToast('📶 Çevrimdışı silindi: İnternet bağlandığında buluttan silinecektir.');
         }
       );
     }
@@ -1445,15 +1544,31 @@ export default function AdminDashboard({
         }).then(
           (res) => {
             if (!res.ok) {
-              setBookings(prevBookings);
-              localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-              showToast('⚠️ Bulut kayıt hatası: Değişiklik kaydedilemedi, geri alındı.');
+              if (res.status >= 400 && res.status < 500) {
+                setBookings(prevBookings);
+                localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+                showToast('⚠️ Bulut kayıt hatası: Sunucu isteği reddetti, geri alındı.');
+              } else {
+                void enqueueMutation({
+                  type: 'PUT_BOOKING',
+                  url: '/api/bookings',
+                  method: 'PUT',
+                  body: target,
+                  description: `${target.customerName} güncelleme`,
+                }).then(() => setPendingSyncCount((c) => c + 1));
+                showToast('📶 Çevrimdışı kaydedildi: Sunucu geçici yanıt veremedi, sıraya alındı.');
+              }
             }
           },
           () => {
-            setBookings(prevBookings);
-            localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-            showToast('⚠️ Ağ hatası: Rezervasyon güncellenemedi, geri alındı.');
+            void enqueueMutation({
+              type: 'PUT_BOOKING',
+              url: '/api/bookings',
+              method: 'PUT',
+              body: target,
+              description: `${target.customerName} güncelleme`,
+            }).then(() => setPendingSyncCount((c) => c + 1));
+            showToast('📶 Çevrimdışı kaydedildi: Değişiklik internet gelince buluta aktarılacak.');
           }
         );
       }
@@ -1507,15 +1622,31 @@ export default function AdminDashboard({
       }).then(
         (res) => {
           if (!res.ok) {
-            setBookings(prevBookings);
-            localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-            showToast('⚠️ Bulut kayıt hatası: Yeni rezervasyon sunucuya yazılamadı, geri alındı.');
+            if (res.status >= 400 && res.status < 500) {
+              setBookings(prevBookings);
+              localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+              showToast('⚠️ Bulut kayıt hatası: Yeni rezervasyon sunucuya yazılamadı, geri alındı.');
+            } else {
+              void enqueueMutation({
+                type: 'POST_BOOKING',
+                url: '/api/bookings',
+                method: 'POST',
+                body: newBooking,
+                description: `${newBooking.customerName} yeni rezervasyon`,
+              }).then(() => setPendingSyncCount((c) => c + 1));
+              showToast('📶 Çevrimdışı kaydedildi: Sunucu geçici yanıt veremedi, sıraya alındı.');
+            }
           }
         },
         () => {
-          setBookings(prevBookings);
-          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-          showToast('⚠️ Ağ hatası: Yeni rezervasyon sunucuya aktarılamadı, geri alındı.');
+          void enqueueMutation({
+            type: 'POST_BOOKING',
+            url: '/api/bookings',
+            method: 'POST',
+            body: newBooking,
+            description: `${newBooking.customerName} yeni rezervasyon`,
+          }).then(() => setPendingSyncCount((c) => c + 1));
+          showToast('📶 Çevrimdışı kaydedildi: Yeni rezervasyon internet gelince buluta aktarılacak.');
         }
       );
     }
@@ -1528,6 +1659,9 @@ export default function AdminDashboard({
    *
    * `tourIndex >= 0` ise atama ilgili tur kalemine, değilse rezervasyonun
    * kendisine yazılır (tek turlu kayıtlar için).
+   *
+   * Çevrimdışı veya iskelede internet kesintisinde IndexedDB kuyruğuna alınır,
+   * asla geri alınmaz (rollback yapılmaz).
    */
   const applyAssignment = async (
     bookingId: string,
@@ -1535,7 +1669,7 @@ export default function AdminDashboard({
     patch: Partial<Pick<BookingTourSchedule, 'assignedVehicle' | 'assignedDriver' | 'pickupStatus' | 'pickedUpAt'>>
   ) => {
     const target = bookings.find((b) => b.id === bookingId);
-    if (!target) return;
+    if (!target) return null;
 
     const full = { ...target };
     if (tourIndex >= 0 && full.tours && full.tours[tourIndex]) {
@@ -1552,8 +1686,7 @@ export default function AdminDashboard({
 
     const prevBookings = bookings;
     const updated = bookings.map((b) => (b.id === bookingId ? full : b));
-    setBookings(updated);
-    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
+    saveBookings(updated);
 
     // Bulut yazımı /api/bookings üzerinden.
     try {
@@ -1563,16 +1696,33 @@ export default function AdminDashboard({
         body: JSON.stringify(full),
       });
       if (!res.ok) {
-        setBookings(prevBookings);
-        localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-        showToast('⚠️ Bulut atama senkron hatası: Değişiklik sunucuya kaydedilemedi, geri alındı.');
-        return null;
+        if (res.status >= 400 && res.status < 500) {
+          setBookings(prevBookings);
+          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+          showToast('⚠️ Bulut atama senkron hatası: Sunucu isteği reddetti, geri alındı.');
+          return null;
+        } else {
+          await enqueueMutation({
+            type: 'PUT_BOOKING',
+            url: '/api/bookings',
+            method: 'PUT',
+            body: full,
+            description: `${full.customerName} atama/durum güncellemesi`,
+          });
+          setPendingSyncCount((c) => c + 1);
+          showToast('📶 Çevrimdışı kaydedildi: Sunucu geçici yanıt veremedi, sıraya alındı.');
+        }
       }
-    } catch (err) {
-      setBookings(prevBookings);
-      localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-      showToast('⚠️ Ağ hatası: Atama buluta kaydedilemedi, geri alındı.');
-      return null;
+    } catch {
+      await enqueueMutation({
+        type: 'PUT_BOOKING',
+        url: '/api/bookings',
+        method: 'PUT',
+        body: full,
+        description: `${full.customerName} atama/durum güncellemesi`,
+      });
+      setPendingSyncCount((c) => c + 1);
+      showToast('📶 Çevrimdışı kaydedildi: Atama internet gelince buluta aktarılacak.');
     }
 
     return full;
@@ -2604,6 +2754,28 @@ export default function AdminDashboard({
                   ⌘K
                 </kbd>
               </button>
+
+              {/* Çevrimdışı Durum Göstergesi (Aşama 4) */}
+              {!isOnline ? (
+                <div
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-500/15 dark:bg-amber-400/15 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700/60 text-[11px] font-bold"
+                  title="Cihaz çevrimdışı. Yapılan tüm bilet ve operasyon işlemleri güvenle IndexedDB'de saklanır."
+                >
+                  <WifiOff className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 animate-pulse" />
+                  <span>Çevrimdışı {pendingSyncCount > 0 ? `(${pendingSyncCount})` : ''}</span>
+                </div>
+              ) : pendingSyncCount > 0 ? (
+                <button
+                  type="button"
+                  onClick={handleManualSync}
+                  disabled={isSyncing}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-blue-500/15 dark:bg-blue-400/15 hover:bg-blue-500/25 text-blue-700 dark:text-blue-300 border border-blue-300 dark:border-blue-700/60 text-[11px] font-bold cursor-pointer transition-all"
+                  title="Kuyrukta bekleyen çevrimdışı işlemleri hemen buluta gönder"
+                >
+                  <CloudUpload className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 animate-bounce" />
+                  <span>{pendingSyncCount} Eşitle</span>
+                </button>
+              ) : null}
 
               {/* Canlı Bulut Senkronizasyon Durumu & Manuel Yenileme */}
               <button
