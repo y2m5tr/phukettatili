@@ -202,7 +202,7 @@ describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated P
   });
 
   it('misafir iletişim bilgilerini (telefon & e-posta) desteklemeli ve telefon numarası formatlama kurallarını karşılamalı', () => {
-    const proposal = buildCuratedProposal('Selin & Burak', 'honeymoon', 4);
+    const proposal = buildCuratedProposal('Selin & Burak', 'honeymoon', 5);
     proposal.customerPhone = '+90 532 555 12 34';
     proposal.customerEmail = 'burak@example.com';
 

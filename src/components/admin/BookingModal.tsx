@@ -95,20 +95,80 @@ export default function BookingModal({
   showToast,
 }: BookingModalProps) {
   const [activeTab, setActiveTab] = useState<'main' | 'finance' | 'supplier_b2b'>('main');
+  const [selectedTourIndex, setSelectedTourIndex] = useState<number>(0);
 
   if (!isOpen) return null;
 
-  const currentRange = parsePickupRange(formData.pickupTime);
+  const toursList =
+    formData.tours && formData.tours.length > 0
+      ? formData.tours
+      : [
+          {
+            tourTitle: formData.tourTitle || tours[0]?.title || 'Phuket Turu',
+            tourDate: formData.tourDate || new Date().toISOString().split('T')[0],
+            pickupTime: formData.pickupTime || '07:30 - 07:45',
+            priceThb: formData.totalPriceThb || 2200,
+          },
+        ];
+
+  const activeTourIndex = Math.min(
+    selectedTourIndex,
+    Math.max(0, toursList.length - 1)
+  );
+  const activeTour = toursList[activeTourIndex] || toursList[0];
+  const activeTourDate =
+    activeTour?.tourDate || formData.tourDate || new Date().toISOString().split('T')[0];
+  const activeTourPickup =
+    activeTour?.pickupTime || (activeTourIndex === 0 ? formData.pickupTime : '') || '07:30 - 07:45';
+
+  const currentRange = parsePickupRange(activeTourPickup);
 
   const applyTimeRange = (start: string, end: string) => {
     const rangeStr = `${start.trim()} - ${end.trim()}`;
-    const updatedTours = (formData.tours || []).map((t, idx) =>
-      idx === 0 ? { ...t, pickupTime: rangeStr } : t
+    const curTours =
+      formData.tours && formData.tours.length > 0
+        ? [...formData.tours]
+        : [
+            {
+              tourTitle: formData.tourTitle || tours[0]?.title || 'Phuket Turu',
+              tourDate: formData.tourDate || new Date().toISOString().split('T')[0],
+              pickupTime: rangeStr,
+              priceThb: formData.totalPriceThb || 2200,
+            },
+          ];
+
+    const updatedTours = curTours.map((t, idx) =>
+      idx === activeTourIndex ? { ...t, pickupTime: rangeStr } : t
     );
+
     setFormData((prev) => ({
       ...prev,
-      pickupTime: rangeStr,
-      tours: updatedTours.length > 0 ? updatedTours : prev.tours,
+      pickupTime: activeTourIndex === 0 ? rangeStr : prev.pickupTime,
+      tours: updatedTours,
+    }));
+  };
+
+  const handlePickupDateChange = (newDate: string) => {
+    const curTours =
+      formData.tours && formData.tours.length > 0
+        ? [...formData.tours]
+        : [
+            {
+              tourTitle: formData.tourTitle || tours[0]?.title || 'Phuket Turu',
+              tourDate: newDate,
+              pickupTime: formData.pickupTime || '07:30 - 07:45',
+              priceThb: formData.totalPriceThb || 2200,
+            },
+          ];
+
+    const updatedTours = curTours.map((t, idx) =>
+      idx === activeTourIndex ? { ...t, tourDate: newDate } : t
+    );
+
+    setFormData((prev) => ({
+      ...prev,
+      tourDate: activeTourIndex === 0 ? newDate : prev.tourDate,
+      tours: updatedTours,
     }));
   };
 
@@ -505,265 +565,9 @@ export default function BookingModal({
                 </div>
               )}
 
-              {/* Konaklama & 2'li Alış Saati Kartı */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3.5">
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
-                  {/* Otel Adı */}
-                  <div className="sm:col-span-8">
-                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                      🏨 Otel Adı *
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Örn: Millennium Resort Patong"
-                      value={formData.hotel || ''}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        const detected = detectHotelZone(val);
-                        setFormData((prev) => {
-                          const currentZone = prev.hotelZone || 'Patong & Kalim';
-                          const shouldAutoZone =
-                            !prev.hotelZone ||
-                            prev.hotelZone === 'Patong & Kalim' ||
-                            prev.hotelZone === 'Genel Phuket';
-                          const nextZone = shouldAutoZone && detected ? detected : currentZone;
-                          return {
-                            ...prev,
-                            hotel: val,
-                            hotelZone: nextZone,
-                          };
-                        });
-                      }}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white"
-                    />
-                  </div>
-
-                  {/* Oda No */}
-                  <div className="sm:col-span-4">
-                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                      🚪 Oda No
-                    </label>
-                    <input
-                      type="text"
-                      placeholder="Örn: 402"
-                      value={formData.roomNumber || ''}
-                      onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
-                      className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white"
-                    />
-                  </div>
-                </div>
-
-                {/* Bölge ve 2'li Alış Saati Aralığı */}
-                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5 pt-0.5">
-                  {/* Bölge Seçimi */}
-                  <div className="sm:col-span-5">
-                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                      📍 Bölge / Hat *
-                    </label>
-                    <select
-                      value={activeZone}
-                      onChange={(e) => setFormData({ ...formData, hotelZone: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white font-medium"
-                    >
-                      {HOTEL_ZONES.map((zone) => (
-                        <option key={zone} value={zone}>
-                          {zone}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* ⏰ 2'Lİ ALIŞ SAATİ ARALIĞI (08:30 - 09:00 GİBİ) */}
-                  <div className="sm:col-span-7 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 flex items-center gap-1">
-                        <span>⏰</span> Alınış Saati Aralığı *
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => applyTimeRange(recStart, recEnd)}
-                        className="text-[10px] text-amber-600 dark:text-amber-400 font-bold hover:underline cursor-pointer"
-                        title="Bölge için önerilen standart aralığı doldur"
-                      >
-                        ⚡ Önerilen: {recStart} - {recEnd}
-                      </button>
-                    </div>
-
-                    {/* 2'li Saat Kutuları */}
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 relative">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 uppercase">
-                          Başla
-                        </span>
-                        <input
-                          type="text"
-                          required
-                          placeholder="08:30"
-                          value={currentRange.start}
-                          onChange={(e) => handleStartChange(e.target.value)}
-                          className="w-full pl-12 pr-2 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-500/40 focus:border-amber-500 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none"
-                        />
-                      </div>
-
-                      <span className="text-slate-400 font-bold text-xs shrink-0">➔</span>
-
-                      <div className="flex-1 relative">
-                        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 uppercase">
-                          Bitiş
-                        </span>
-                        <input
-                          type="text"
-                          required
-                          placeholder="09:00"
-                          value={currentRange.end}
-                          onChange={(e) => handleEndChange(e.target.value)}
-                          className="w-full pl-12 pr-2 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-500/40 focus:border-amber-500 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Hızlı 2'li Aralık Butonları */}
-                    <div className="flex items-center gap-1 flex-wrap pt-0.5">
-                      <span className="text-[10px] text-slate-400 font-semibold">Hızlı:</span>
-                      {[
-                        '07:00 - 07:15',
-                        '07:15 - 07:30',
-                        '07:30 - 07:45',
-                        '07:45 - 08:00',
-                        '08:00 - 08:30',
-                        '08:30 - 09:00',
-                        '09:00 - 09:15',
-                        '11:30 - 12:00',
-                        '12:30 - 13:00',
-                      ].map((range) => {
-                        const isSelected =
-                          (formData.pickupTime || '').replace(/\s+/g, '') === range.replace(/\s+/g, '');
-                        return (
-                          <button
-                            key={range}
-                            type="button"
-                            onClick={() => {
-                              const [s, e] = range.split('-').map((t) => t.trim());
-                              applyTimeRange(s, e);
-                            }}
-                            className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-amber-500 text-slate-950 shadow-xs'
-                                : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-slate-700'
-                            }`}
-                          >
-                            {range}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* 🏨 Ek Konaklama Otelleri (Farklı Otelde Kalış) */}
-                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                      <Hotel className="w-3.5 h-3.5 text-amber-500" />
-                      <span>Ek Konaklama Otelleri {bookingHotels.length > 0 ? `(${bookingHotels.length} Ek Otel)` : ''}</span>
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleAddBookingHotel}
-                      className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>+ Başka Otel Ekle (Farklı Otelde Kalış)</span>
-                    </button>
-                  </div>
-
-                  {bookingHotels.length > 0 && (
-                    <div className="space-y-2.5 pt-1">
-                      {bookingHotels.map((h, hIdx) => (
-                        <div
-                          key={h.id || hIdx}
-                          className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs space-y-2"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400">
-                              #{hIdx + 2}. Konaklama Oteli
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveBookingHotel(hIdx)}
-                              className="text-slate-400 hover:text-rose-500 p-1 text-xs transition cursor-pointer"
-                              title="Bu oteli kaldır"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
-                            <div className="sm:col-span-8">
-                              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
-                                Otel Adı *
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Örn: SAii Laguna Phuket"
-                                value={h.hotelName}
-                                onChange={(e) => handleUpdateBookingHotel(hIdx, 'hotelName', e.target.value)}
-                                className="w-full px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white"
-                              />
-                            </div>
-                            <div className="sm:col-span-4">
-                              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
-                                Oda No
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Örn: 204"
-                                value={h.roomNumber || ''}
-                                onChange={(e) => handleUpdateBookingHotel(hIdx, 'roomNumber', e.target.value)}
-                                className="w-full px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white"
-                              />
-                            </div>
-                          </div>
-
-                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 text-xs">
-                            <div className="sm:col-span-5">
-                              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
-                                Bölge *
-                              </label>
-                              <select
-                                value={h.hotelZone || 'Patong & Kalim'}
-                                onChange={(e) => handleUpdateBookingHotel(hIdx, 'hotelZone', e.target.value)}
-                                className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
-                              >
-                                {HOTEL_ZONES.map((zone) => (
-                                  <option key={zone} value={zone}>
-                                    {zone}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                            <div className="sm:col-span-7">
-                              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
-                                Konaklama Tarih Aralığı / Not:
-                              </label>
-                              <input
-                                type="text"
-                                placeholder="Örn: 23-26 Ekim (Laguna etabı)"
-                                value={h.notes || ''}
-                                onChange={(e) => handleUpdateBookingHotel(hIdx, 'notes', e.target.value)}
-                                className="w-full px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Çoklu Tur Programı (Paket) Desteği */}
+              {/* ========================================================= */}
+              {/* 1. ÇOKLU TUR PROGRAMI & TARİHLERİ (PAKET) DESTEĞİ */}
+              {/* ========================================================= */}
               <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
@@ -799,6 +603,7 @@ export default function BookingModal({
                         tours: nextTours,
                         totalPriceThb: calculatedTotal > 0 ? calculatedTotal : formData.totalPriceThb,
                       });
+                      setSelectedTourIndex(nextTours.length - 1);
                     }}
                     className="px-2.5 py-1 rounded-lg bg-brand-primary text-white text-xs font-bold hover:bg-brand-primary/90 transition-all shadow-xs flex items-center gap-1 cursor-pointer"
                   >
@@ -810,12 +615,32 @@ export default function BookingModal({
                   {(formData.tours || []).map((tourSchedule, idx) => (
                     <div
                       key={idx}
-                      className="p-3.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs space-y-2.5 relative"
+                      className={`p-3.5 rounded-xl bg-white dark:bg-slate-800 border transition-all shadow-2xs space-y-2.5 relative ${
+                        activeTourIndex === idx
+                          ? 'border-amber-500/80 ring-1 ring-amber-500/30'
+                          : 'border-slate-200 dark:border-slate-700'
+                      }`}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase bg-brand-primary text-white">
-                          #{idx + 1} Tur Programı
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedTourIndex(idx)}
+                            className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase cursor-pointer transition-colors ${
+                              activeTourIndex === idx
+                                ? 'bg-amber-500 text-slate-950 font-black'
+                                : 'bg-brand-primary text-white'
+                            }`}
+                            title="Bu turun alınış detaylarını alttaki panelde görüntüle ve düzenle"
+                          >
+                            #{idx + 1} Tur Programı {activeTourIndex === idx ? '· Seçili' : ''}
+                          </button>
+                          {tourSchedule.tourDate && (
+                            <span className="text-xs font-mono font-bold text-slate-700 dark:text-slate-300">
+                              📅 {tourSchedule.tourDate}
+                            </span>
+                          )}
+                        </div>
 
                         {(formData.tours || []).length > 1 && (
                           <button
@@ -831,6 +656,9 @@ export default function BookingModal({
                                 totalPriceThb:
                                   calculatedTotal > 0 ? calculatedTotal : formData.totalPriceThb,
                               });
+                              if (activeTourIndex >= updated.length) {
+                                setSelectedTourIndex(Math.max(0, updated.length - 1));
+                              }
                             }}
                             className="text-slate-400 hover:text-red-500 p-1 text-xs font-bold transition-colors cursor-pointer"
                             title="Bu turu kaldır"
@@ -906,7 +734,11 @@ export default function BookingModal({
                               const updated = (formData.tours || []).map((item, i) =>
                                 i === idx ? { ...item, tourDate: e.target.value } : item
                               );
-                              setFormData({ ...formData, tours: updated });
+                              setFormData({
+                                ...formData,
+                                tourDate: idx === 0 ? e.target.value : formData.tourDate,
+                                tours: updated,
+                              });
                             }}
                             className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none font-semibold"
                           />
@@ -1059,6 +891,335 @@ export default function BookingModal({
                         })()}
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* ========================================================= */}
+              {/* 2. KONAKLAMA OTELİ & ⏰ LOBİ ALINIŞ TARİHİ VE SAAT ARALIĞI */}
+              {/* (Tur Programının Altında Konumlandırılmıştır) */}
+              {/* ========================================================= */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3.5">
+                <div className="flex items-center justify-between pb-1 border-b border-slate-200/60 dark:border-slate-800">
+                  <div>
+                    <h3 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider flex items-center gap-1.5">
+                      <Hotel className="w-4 h-4 text-amber-500" />
+                      <span>🏨 Konaklama Oteli & ⏰ Alınış Detayları</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500">
+                      Tur lobi alınışı için otel, alınış tarihi ve saat aralığını belirleyin.
+                    </p>
+                  </div>
+                  {activeTour && (
+                    <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-700 dark:text-amber-400 text-[10px] font-bold">
+                      <span>🎯 Düzenlenen Tur:</span>
+                      <strong className="truncate max-w-[140px]">{activeTour.tourTitle}</strong>
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+                  {/* Otel Adı */}
+                  <div className="sm:col-span-8">
+                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                      🏨 Ana Konaklama Oteli *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Örn: Millennium Resort Patong"
+                      value={formData.hotel || ''}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const detected = detectHotelZone(val);
+                        setFormData((prev) => {
+                          const currentZone = prev.hotelZone || 'Patong & Kalim';
+                          const shouldAutoZone =
+                            !prev.hotelZone ||
+                            prev.hotelZone === 'Patong & Kalim' ||
+                            prev.hotelZone === 'Genel Phuket';
+                          const nextZone = shouldAutoZone && detected ? detected : currentZone;
+                          return {
+                            ...prev,
+                            hotel: val,
+                            hotelZone: nextZone,
+                          };
+                        });
+                      }}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white"
+                    />
+                  </div>
+
+                  {/* Oda No */}
+                  <div className="sm:col-span-4">
+                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                      🚪 Oda No
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Örn: 402"
+                      value={formData.roomNumber || ''}
+                      onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Bölge Seçimi */}
+                <div>
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                    📍 Otel Bölgesi / Servis Hattı *
+                  </label>
+                  <select
+                    value={activeZone}
+                    onChange={(e) => setFormData({ ...formData, hotelZone: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white font-medium"
+                  >
+                    {HOTEL_ZONES.map((zone) => (
+                      <option key={zone} value={zone}>
+                        {zone}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* ⏰ ALINIŞ TARİHİ VE SAAT ARALIĞI KUTUSU */}
+                <div className="p-3.5 rounded-2xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/60 space-y-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label className="text-xs font-bold uppercase text-amber-950 dark:text-amber-200 flex items-center gap-1.5">
+                      <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                      <span>⏰ Alınış Tarihi & Saat Aralığı *</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => applyTimeRange(recStart, recEnd)}
+                      className="text-[11px] text-amber-700 dark:text-amber-400 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                      title="Bölge için önerilen standart aralığı doldur"
+                    >
+                      <span>⚡ Önerilen ({activeZone}): {recStart} - {recEnd}</span>
+                    </button>
+                  </div>
+
+                  {/* Çoklu Tur Varsa Seçici Sekmeler */}
+                  {(formData.tours || []).length > 1 && (
+                    <div className="space-y-1.5 pt-0.5">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase block">
+                        🎯 Hangi turun lobi alınışı belirleniyor? (Tura tıklayarak seçin):
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(formData.tours || []).map((t, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => setSelectedTourIndex(idx)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                              activeTourIndex === idx
+                                ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
+                                : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-amber-400'
+                            }`}
+                          >
+                            <span>#{idx + 1}</span>
+                            <span className="truncate max-w-[140px]">{t.tourTitle}</span>
+                            <span className="font-mono text-[10px] opacity-75">
+                              ({t.tourDate || 'Tarihsiz'})
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Tarih ve 2'li Saat Kutuları Yan Yana */}
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                    {/* 📅 ALINIŞ TARİHİ */}
+                    <div className="sm:col-span-5">
+                      <label className="block text-[11px] font-bold uppercase text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Alınış Tarihi *</span>
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={activeTourDate}
+                        onChange={(e) => handlePickupDateChange(e.target.value)}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-500/40 focus:border-amber-500 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
+                      />
+                    </div>
+
+                    {/* ⏰ 2'Lİ SAAT KUTULARI */}
+                    <div className="sm:col-span-7">
+                      <label className="block text-[11px] font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                        Saat Aralığı (Lobi Bekleme) *
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 relative">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 uppercase">
+                            Başla
+                          </span>
+                          <input
+                            type="text"
+                            required
+                            placeholder="08:30"
+                            value={currentRange.start}
+                            onChange={(e) => handleStartChange(e.target.value)}
+                            className="w-full pl-12 pr-2 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-500/40 focus:border-amber-500 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none"
+                          />
+                        </div>
+
+                        <span className="text-slate-400 font-bold text-xs shrink-0">➔</span>
+
+                        <div className="flex-1 relative">
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] font-bold text-slate-400 uppercase">
+                            Bitiş
+                          </span>
+                          <input
+                            type="text"
+                            required
+                            placeholder="09:00"
+                            value={currentRange.end}
+                            onChange={(e) => handleEndChange(e.target.value)}
+                            className="w-full pl-12 pr-2 py-2 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-500/40 focus:border-amber-500 text-xs font-bold text-slate-900 dark:text-white text-center focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hızlı 2'li Aralık Butonları */}
+                  <div className="flex items-center gap-1 flex-wrap pt-0.5">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold">Hızlı Saat:</span>
+                    {[
+                      '07:00 - 07:15',
+                      '07:15 - 07:30',
+                      '07:30 - 07:45',
+                      '07:45 - 08:00',
+                      '08:00 - 08:30',
+                      '08:30 - 09:00',
+                      '09:00 - 09:15',
+                      '11:30 - 12:00',
+                      '12:30 - 13:00',
+                    ].map((range) => {
+                      const isSelected =
+                        (activeTourPickup || '').replace(/\s+/g, '') === range.replace(/\s+/g, '');
+                      return (
+                        <button
+                          key={range}
+                          type="button"
+                          onClick={() => {
+                            const [s, e] = range.split('-').map((t) => t.trim());
+                            applyTimeRange(s, e);
+                          }}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold transition-all cursor-pointer ${
+                            isSelected
+                              ? 'bg-amber-500 text-slate-950 shadow-xs'
+                              : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          {range}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 🏨 Ek Konaklama Otelleri (Farklı Otelde Kalış) */}
+                <div className="pt-3 border-t border-slate-200 dark:border-slate-800 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                      <Hotel className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Ek Konaklama Otelleri {bookingHotels.length > 0 ? `(${bookingHotels.length} Ek Otel)` : ''}</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleAddBookingHotel}
+                      className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:text-amber-700 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>+ Başka Otel Ekle (Farklı Otelde Kalış)</span>
+                    </button>
+                  </div>
+
+                  {bookingHotels.length > 0 && (
+                    <div className="space-y-2.5 pt-1">
+                      {bookingHotels.map((h, hIdx) => (
+                        <div
+                          key={h.id || hIdx}
+                          className="p-3 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-2xs space-y-2"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                              #{hIdx + 2}. Konaklama Oteli
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveBookingHotel(hIdx)}
+                              className="text-slate-400 hover:text-rose-500 p-1 text-xs transition cursor-pointer"
+                              title="Bu oteli kaldır"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5">
+                            <div className="sm:col-span-8">
+                              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
+                                Otel Adı *
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="Örn: SAii Laguna Phuket"
+                                value={h.hotelName}
+                                onChange={(e) => handleUpdateBookingHotel(hIdx, 'hotelName', e.target.value)}
+                                className="w-full px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white"
+                              />
+                            </div>
+                            <div className="sm:col-span-4">
+                              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
+                                Oda No
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="Örn: 204"
+                                value={h.roomNumber || ''}
+                                onChange={(e) => handleUpdateBookingHotel(hIdx, 'roomNumber', e.target.value)}
+                                className="w-full px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-medium text-slate-900 dark:text-white"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2.5 text-xs">
+                            <div className="sm:col-span-5">
+                              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
+                                Bölge *
+                              </label>
+                              <select
+                                value={h.hotelZone || 'Patong & Kalim'}
+                                onChange={(e) => handleUpdateBookingHotel(hIdx, 'hotelZone', e.target.value)}
+                                className="w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
+                              >
+                                {HOTEL_ZONES.map((zone) => (
+                                  <option key={zone} value={zone}>
+                                    {zone}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="sm:col-span-7">
+                              <label className="block text-[10px] font-bold uppercase text-slate-500 mb-0.5">
+                                Konaklama Tarih Aralığı / Not:
+                              </label>
+                              <input
+                                type="text"
+                                placeholder="Örn: 23-26 Ekim (Laguna etabı)"
+                                value={h.notes || ''}
+                                onChange={(e) => handleUpdateBookingHotel(hIdx, 'notes', e.target.value)}
+                                className="w-full px-3 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
