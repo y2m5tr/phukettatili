@@ -10,6 +10,9 @@ import {
   Zap,
   Globe,
   Waves,
+  Package,
+  ShieldAlert,
+  Coins,
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
 import type { AdminTab, NavItem } from './AdminDashboard';
@@ -24,6 +27,9 @@ interface CommandPaletteModalProps {
   onOpenQrScanner: () => void;
   onOpenPoliceManifest: () => void;
   onOpenBulkReschedule?: () => void;
+  onOpenLostFound?: () => void;
+  onOpenDietaryManifest?: () => void;
+  onOpenFieldCashier?: () => void;
   onSelectBooking: (b: Booking) => void;
   onSetNavMode: (mode: 'operations' | 'cms') => void;
 }
@@ -148,6 +154,45 @@ export default function CommandPaletteModal({
         handler: () => {
           onClose();
           if (onOpenBulkReschedule) onOpenBulkReschedule();
+        },
+      },
+      {
+        id: 'act-lost-found',
+        type: 'action',
+        title: 'Kayıp Eşya Masası (Lost & Found)',
+        subtitle: 'Araçta ve teknede unutulan eşyalar, şoför/otel koordinasyonu',
+        icon: Package,
+        badge: 'Saha Takip',
+        badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
+        handler: () => {
+          onClose();
+          if (onOpenLostFound) onOpenLostFound();
+        },
+      },
+      {
+        id: 'act-dietary-manifest',
+        type: 'action',
+        title: 'Misafir Diyet & Medikal Emniyet Manifestosu',
+        subtitle: 'Hamilelik, deniz ürünü alerjisi ve tekne helal yemek brifingi',
+        icon: ShieldAlert,
+        badge: 'Emniyet & Sağlık',
+        badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30',
+        handler: () => {
+          onClose();
+          if (onOpenDietaryManifest) onOpenDietaryManifest();
+        },
+      },
+      {
+        id: 'act-field-cashier',
+        type: 'action',
+        title: 'Saha Çoklu Döviz & Para Üstü Kasa Hesaplayıcı',
+        subtitle: 'USD, EUR, TRY nakit tahsilat, kur hesaplama ve WhatsApp makbuzu',
+        icon: Coins,
+        badge: 'Kasa & Döviz',
+        badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
+        handler: () => {
+          onClose();
+          if (onOpenFieldCashier) onOpenFieldCashier();
         },
       },
     ];

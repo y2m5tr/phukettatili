@@ -110,3 +110,145 @@ export function convertThbToForeign(
   if (rate <= 0) return 0;
   return Number((thbAmount / rate).toFixed(2));
 }
+
+export interface CashChangeResult {
+  dueThb: number;
+  paidCurrency: SupportedCurrency | 'THB';
+  paidAmount: number;
+  effectiveRate: number;
+  paidInThb: number;
+  changeDueThb: number;
+  remainingDebtThb: number;
+  isExact: boolean;
+  isUnderpaid: boolean;
+  changeBreakdown: {
+    bill1000: number;
+    bill500: number;
+    bill100: number;
+    bill50: number;
+    bill20: number;
+    coins: number;
+  };
+}
+
+/**
+ * Saha Nakit Para Üstü ve Banknot Dağılımı Hesaplayıcı
+ */
+export function calculateCashChange(params: {
+  dueThb: number;
+  paidCurrency: SupportedCurrency | 'THB';
+  paidAmount: number;
+  customRate?: number;
+  rates?: Record<SupportedCurrency, number>;
+}): CashChangeResult {
+  const { dueThb, paidCurrency, paidAmount, customRate, rates } = params;
+  const activeRates = rates || DEFAULT_EXCHANGE_RATES;
+
+  let effectiveRate = 1;
+  if (paidCurrency !== 'THB') {
+    effectiveRate =
+      customRate && customRate > 0
+        ? customRate
+        : activeRates[paidCurrency as SupportedCurrency] || 1;
+  }
+
+  const paidInThb = Math.round(paidAmount * effectiveRate);
+  const diff = paidInThb - dueThb;
+
+  const changeDueThb = diff > 0 ? diff : 0;
+  const remainingDebtThb = diff < 0 ? Math.abs(diff) : 0;
+  const isExact = diff === 0;
+  const isUnderpaid = diff < 0;
+
+  // Tayland Bahtı Banknot Kırılımı (1000฿, 500฿, 100฿, 50฿, 20฿ ve Madeni Para)
+  let remainder = changeDueThb;
+  const bill1000 = Math.floor(remainder / 1000);
+  remainder %= 1000;
+  const bill500 = Math.floor(remainder / 500);
+  remainder %= 500;
+  const bill100 = Math.floor(remainder / 100);
+  remainder %= 100;
+  const bill50 = Math.floor(remainder / 50);
+  remainder %= 50;
+  const bill20 = Math.floor(remainder / 20);
+  remainder %= 20;
+  const coins = remainder;
+
+  return {
+    dueThb,
+    paidCurrency,
+    paidAmount,
+    effectiveRate,
+    paidInThb,
+    changeDueThb,
+    remainingDebtThb,
+    isExact,
+    isUnderpaid,
+    changeBreakdown: {
+      bill1000,
+      bill500,
+      bill100,
+      bill50,
+      bill20,
+      coins,
+    },
+  };
+}
+
+/**
+ * Saha Tahsilat & Para Üstü WhatsApp Makbuzu Oluşturur
+ */
+export function generateCashPaymentSlipWhatsApp(params: {
+  guestName: string;
+  serviceTitle: string;
+  dueThb: number;
+  paidCurrency: SupportedCurrency | 'THB';
+  paidAmount: number;
+  effectiveRate: number;
+  changeDueThb: number;
+  remainingDebtThb: number;
+  collectorName?: string;
+  hotelOrLocation?: string;
+}): string {
+  const guest = params.guestName || 'Değerli Misafirimiz';
+  const collector = params.collectorName || 'Phuket Tatili Saha Ekibi';
+  const location = params.hotelOrLocation ? `📍 Konum: ${params.hotelOrLocation}\n` : '';
+  const isForeign = params.paidCurrency !== 'THB';
+
+  let paymentDetails = `💵 Alınan Ödeme: ${params.paidAmount.toLocaleString()} ${params.paidCurrency}\n`;
+  if (isForeign) {
+    paymentDetails += `📈 Uygulanan Kur: 1 ${params.paidCurrency} = ${params.effectiveRate} THB\n`;
+    paymentDetails += `🇹🇭 Tahsil Edilen Karşılık: ${Math.round(params.paidAmount * params.effectiveRate).toLocaleString()} THB\n`;
+  }
+
+  let balanceLine = '';
+  if (params.changeDueThb > 0) {
+    balanceLine = `🪙 Verilen Para Üstü: ${params.changeDueThb.toLocaleString()} THB\n`;
+  } else if (params.remainingDebtThb > 0) {
+    balanceLine = `⚠️ Kalan Bakiye: ${params.remainingDebtThb.toLocaleString()} THB\n`;
+  } else {
+    balanceLine = `✅ Tam Ödeme Alındı (Para Üstü Yok)\n`;
+  }
+
+  return `🧾 PHUKET TATİLİ - SAHA NAKİT TAHSİLAT MAKBUZU
+══════════════════════════════════════
+👤 Misafir: ${guest}
+🚗 Hizmet: ${params.serviceTitle}
+${location}💰 Hizmet Bedeli: ${params.dueThb.toLocaleString()} THB
+${paymentDetails}══════════════════════════════════════
+${balanceLine}══════════════════════════════════════
+👨‍✈️ Tahsil Eden: ${collector}
+📅 Tarih: ${new Date().toLocaleDateString('tr-TR')} ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+✨ İşleminiz sisteme işlenmiştir. İyi tatiller dileriz!`;
+}
+
+/**
+ * Makbuz için WhatsApp URL
+ */
+export function getCashPaymentSlipWhatsAppUrl(phone?: string, text?: string): string {
+  if (!text) return '#';
+  const cleanPhone = phone ? phone.replace(/[^0-9]/g, '') : '';
+  const encodedText = encodeURIComponent(text);
+  return cleanPhone ? `https://wa.me/${cleanPhone}?text=${encodedText}` : `https://wa.me/?text=${encodedText}`;
+}
+

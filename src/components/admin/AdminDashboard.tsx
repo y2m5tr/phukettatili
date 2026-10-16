@@ -35,6 +35,9 @@ import {
   Camera,
   Globe,
   Search,
+  Package,
+  ShieldAlert,
+  Coins,
 } from 'lucide-react';
 import {
   initialBookings,
@@ -95,6 +98,9 @@ import { AddMediaModal, MediaLightboxModal } from './MediaModals';
 import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
 import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
 import QrScannerModal from '../shared/QrScannerModal';
+import LostFoundModal from './LostFoundModal';
+import DietaryManifestModal from './DietaryManifestModal';
+import FieldCashierModal from './FieldCashierModal';
 import {
   loadCmsCollections,
   saveCmsCollection,
@@ -530,6 +536,16 @@ export default function AdminDashboard({
   // Hava Muhalefeti & Toplu Tur Erteleme Modalı
   const [isBulkRescheduleOpen, setIsBulkRescheduleOpen] = useState<boolean>(false);
 
+  // Kayıp Eşya Masası Modalı
+  const [isLostFoundOpen, setIsLostFoundOpen] = useState<boolean>(false);
+
+  // Misafir Diyet & Medikal Emniyet Manifestosu Modalı
+  const [isDietaryManifestOpen, setIsDietaryManifestOpen] = useState<boolean>(false);
+
+  // Saha Döviz & Para Üstü Kasa Hesaplayıcı Modalı
+  const [isFieldCashierOpen, setIsFieldCashierOpen] = useState<boolean>(false);
+  const [cashierBooking, setCashierBooking] = useState<Booking | null>(null);
+
   const handleBulkReschedule = async (
     bookingIds: string[],
     newDate: string,
@@ -835,6 +851,10 @@ export default function AdminDashboard({
     Boolean(whatsAppModalBooking) ||
     isPoliceManifestOpen ||
     isQrScannerOpen ||
+    isBulkRescheduleOpen ||
+    isLostFoundOpen ||
+    isDietaryManifestOpen ||
+    isFieldCashierOpen ||
     isTourModalOpen ||
     isAddMediaModalOpen ||
     Boolean(assignMediaModal) ||
@@ -2222,6 +2242,39 @@ export default function AdminDashboard({
             </button>
 
             <button
+              type="button"
+              onClick={() => setIsLostFoundOpen(true)}
+              className="hidden lg:flex px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer"
+              title="Kayıp Eşya Masası & Bagaj Güvenlik Protokolü"
+            >
+              <Package className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Kayıp Eşya</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsDietaryManifestOpen(true)}
+              className="hidden lg:flex px-3 py-1.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/30 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer"
+              title="Misafir Diyet & Medikal Emniyet Manifestosu"
+            >
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
+              <span>Diyet & Medikal</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setCashierBooking(null);
+                setIsFieldCashierOpen(true);
+              }}
+              className="hidden sm:flex px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer"
+              title="Saha Çoklu Döviz & Para Üstü Kasa Hesaplayıcı"
+            >
+              <Coins className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Saha Kasa</span>
+            </button>
+
+            <button
               onClick={handleOpenCreateBooking}
               className="px-3.5 py-1.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
             >
@@ -2287,6 +2340,11 @@ export default function AdminDashboard({
             setWhatsAppModalBooking={setWhatsAppModalBooking}
             onQuickCollect={(_b) => setActiveTab('finance')}
             onOpenQuotePdf={(b) => setQuoteModalData({ booking: b })}
+            onOpenDietaryManifest={() => setIsDietaryManifestOpen(true)}
+            onOpenFieldCashier={(b) => {
+              setCashierBooking(b || null);
+              setIsFieldCashierOpen(true);
+            }}
           />
         )}
 
@@ -2329,6 +2387,12 @@ export default function AdminDashboard({
             setVoucherBooking={setVoucherBooking}
             onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
             onOpenQrScanner={() => setIsQrScannerOpen(true)}
+            onOpenLostFound={() => setIsLostFoundOpen(true)}
+            onOpenDietaryManifest={() => setIsDietaryManifestOpen(true)}
+            onOpenFieldCashier={() => {
+              setCashierBooking(null);
+              setIsFieldCashierOpen(true);
+            }}
           />
         )}
 
@@ -4247,6 +4311,12 @@ export default function AdminDashboard({
         onOpenQrScanner={() => setIsQrScannerOpen(true)}
         onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
         onOpenBulkReschedule={() => setIsBulkRescheduleOpen(true)}
+        onOpenLostFound={() => setIsLostFoundOpen(true)}
+        onOpenDietaryManifest={() => setIsDietaryManifestOpen(true)}
+        onOpenFieldCashier={() => {
+          setCashierBooking(null);
+          setIsFieldCashierOpen(true);
+        }}
         onSelectBooking={(b) => handleOpenEditBooking(b)}
         onSetNavMode={(mode) => {
           setNavMode(mode);
@@ -4266,6 +4336,55 @@ export default function AdminDashboard({
           bookings={bookings}
           onBulkReschedule={handleBulkReschedule}
           managerPhone={siteSettings.whatsappNumber}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 16: KAYIP EŞYA MASASI (LOST & FOUND HUB) */}
+      {/* ==================================================== */}
+      {isLostFoundOpen && (
+        <LostFoundModal
+          isOpen={isLostFoundOpen}
+          onClose={() => setIsLostFoundOpen(false)}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 17: DİYET & MEDİKAL EMNİYET MANİFESTOSU */}
+      {/* ==================================================== */}
+      {isDietaryManifestOpen && (
+        <DietaryManifestModal
+          isOpen={isDietaryManifestOpen}
+          onClose={() => setIsDietaryManifestOpen(false)}
+          bookings={bookings}
+          showToast={showToast}
+          defaultDate={manifestDate}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 18: SAHA ÇOKLU DÖVİZ & PARA ÜSTÜ KASA HESAPLAYICI */}
+      {/* ==================================================== */}
+      {isFieldCashierOpen && (
+        <FieldCashierModal
+          isOpen={isFieldCashierOpen}
+          onClose={() => {
+            setIsFieldCashierOpen(false);
+            setCashierBooking(null);
+          }}
+          bookings={bookings}
+          initialBooking={cashierBooking}
+          showToast={showToast}
+          onRecordPayment={(payment) => {
+            handleAddPayment({
+              bookingId: payment.bookingId,
+              amountThb: payment.amountThb,
+              method: 'cash_thb',
+              collectedBy: 'Saha Kasa / Şoför',
+              note: payment.note,
+            });
+          }}
         />
       )}
 

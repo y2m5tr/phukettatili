@@ -4,10 +4,11 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 import { getCrossSellWhatsAppUrl } from '../../lib/crossSell';
+import { analyzeBookingDietaryAndMedical, DIETARY_CATEGORIES } from '../../lib/dietaryManifest';
 
 interface BookingsTabProps {
   /** Arama + durum + tarih filtresinden geçmiş liste. */
@@ -27,6 +28,8 @@ interface BookingsTabProps {
   setWhatsAppModalBooking: (b: Booking) => void;
   onQuickCollect?: (b: Booking) => void;
   onOpenQuotePdf?: (b: Booking) => void;
+  onOpenDietaryManifest?: () => void;
+  onOpenFieldCashier?: (b?: Booking) => void;
 }
 
 export default function BookingsTab({
@@ -46,6 +49,8 @@ export default function BookingsTab({
   setWhatsAppModalBooking,
   onQuickCollect,
   onOpenQuotePdf,
+  onOpenDietaryManifest,
+  onOpenFieldCashier,
 }: BookingsTabProps) {
   return (
     <div className="space-y-6">
@@ -98,7 +103,31 @@ export default function BookingsTab({
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          {onOpenDietaryManifest && (
+            <button
+              type="button"
+              onClick={onOpenDietaryManifest}
+              className="px-3.5 py-2.5 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-300 border border-rose-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Misafir Diyet & Medikal Emniyet Manifestosu"
+            >
+              <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+              <span>Diyet & Medikal</span>
+            </button>
+          )}
+
+          {onOpenFieldCashier && (
+            <button
+              type="button"
+              onClick={() => onOpenFieldCashier()}
+              className="px-3.5 py-2.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+              title="Saha Çoklu Döviz & Para Üstü Kasa Hesaplayıcı"
+            >
+              <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Saha Döviz Kasa</span>
+            </button>
+          )}
+
           <button
             onClick={onExportCSV}
             className="px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 transition-colors flex items-center gap-1.5"
@@ -152,6 +181,27 @@ export default function BookingsTab({
                       >
                         <Phone className="w-3 h-3" /> {b.phone}
                       </a>
+                      {(() => {
+                        const alert = analyzeBookingDietaryAndMedical(b);
+                        if (!alert || alert.categories.length === 0) return null;
+                        return (
+                          <div className="flex flex-wrap gap-1 mt-1.5">
+                            {alert.categories.map((c) => {
+                              const meta = DIETARY_CATEGORIES[c];
+                              return (
+                                <span
+                                  key={c}
+                                  className={`px-1.5 py-0.2 rounded text-[9px] font-bold flex items-center gap-0.5 ${meta.badgeClass}`}
+                                  title={alert.safetyInstructions.join('; ')}
+                                >
+                                  <span>{meta.icon}</span>
+                                  <span>{meta.shortLabel}</span>
+                                </span>
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </td>
 
                     <td className="py-4 px-5">
@@ -231,15 +281,28 @@ export default function BookingsTab({
                             <span className="text-amber-600 font-semibold">
                               Kalan: {b.remainingAmountThb.toLocaleString()} THB
                             </span>
-                            {onQuickCollect && (
-                              <button
-                                type="button"
-                                onClick={() => onQuickCollect(b)}
-                                className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all cursor-pointer"
-                              >
-                                + Tahsilat Al
-                              </button>
-                            )}
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              {onQuickCollect && (
+                                <button
+                                  type="button"
+                                  onClick={() => onQuickCollect(b)}
+                                  className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all cursor-pointer"
+                                >
+                                  + Tahsilat Al
+                                </button>
+                              )}
+                              {onOpenFieldCashier && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenFieldCashier(b)}
+                                  className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-all cursor-pointer flex items-center gap-1"
+                                  title="Saha Döviz & Para Üstü Kasa Hesaplayıcı"
+                                >
+                                  <Coins className="w-3 h-3" />
+                                  <span>💱 Döviz Kasa</span>
+                                </button>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>

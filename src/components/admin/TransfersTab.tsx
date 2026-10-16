@@ -19,6 +19,9 @@ import {
   Wind,
   AlertTriangle,
   RefreshCw,
+  Package,
+  ShieldAlert,
+  Coins,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
@@ -49,6 +52,9 @@ interface TransfersTabProps {
   setVoucherBooking: (b: Booking) => void;
   onOpenPoliceManifest: () => void;
   onOpenQrScanner?: () => void;
+  onOpenLostFound?: () => void;
+  onOpenDietaryManifest?: () => void;
+  onOpenFieldCashier?: () => void;
 }
 
 export default function TransfersTab({
@@ -65,6 +71,8 @@ export default function TransfersTab({
   setVoucherBooking,
   onOpenPoliceManifest,
   onOpenQrScanner,
+  onOpenLostFound,
+  onOpenDietaryManifest,
 }: TransfersTabProps) {
   // Günlük alınışlar — mantık src/lib/adminFilters.ts'te (testli tek kaynak).
   const dailyPickups: PickupItem[] = buildDailyPickups(bookings, manifestDate);
@@ -356,6 +364,42 @@ export default function TransfersTab({
             <ShieldCheck className="w-4 h-4" />
             <span>🛂 Deniz Polisi Manifestosu</span>
           </button>
+
+          {onOpenLostFound && (
+            <button
+              type="button"
+              onClick={onOpenLostFound}
+              className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs sm:text-sm font-bold shadow-md shadow-amber-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Araçta ve teknede unutulan kayıp eşya takibi"
+            >
+              <Package className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span>📦 Kayıp Eşya Masası</span>
+            </button>
+          )}
+
+          {onOpenDietaryManifest && (
+            <button
+              type="button"
+              onClick={onOpenDietaryManifest}
+              className="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-800 dark:text-rose-300 border border-rose-500/30 text-xs sm:text-sm font-bold shadow-md shadow-rose-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Misafir Diyet, Alerji ve Tekne Güvenlik Manifestosu"
+            >
+              <ShieldAlert className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+              <span>🛡️ Diyet & Emniyet</span>
+            </button>
+          )}
+
+          {onOpenFieldCashier && (
+            <button
+              type="button"
+              onClick={onOpenFieldCashier}
+              className="px-4 py-2 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-500/30 text-xs sm:text-sm font-bold shadow-md shadow-emerald-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Saha Çoklu Döviz & Para Üstü Kasa Hesaplayıcı"
+            >
+              <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>💱 Saha Döviz Kasa</span>
+            </button>
+          )}
         </div>
       </div>
 
