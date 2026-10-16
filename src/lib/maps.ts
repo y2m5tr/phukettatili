@@ -72,3 +72,21 @@ export function detectDeparturePier(tourTitle: string = ''): string {
   // Phi Phi, Katamaran ve genel turlar
   return 'Royal Phuket Marina, Phuket, Thailand';
 }
+
+/**
+ * Phuket coğrafi rota sıralaması (Kuzeyden Güneye / İskelelere doğru doğal sıra)
+ */
+export function getZoneOrder(zone?: string): number {
+  const z = (zone || '').toLowerCase();
+  if (z.includes('kuzey') || z.includes('havalimanı') || z.includes('maikhao') || z.includes('nai yang')) return 1;
+  if (z.includes('bang tao') || z.includes('surin') || z.includes('laguna')) return 2;
+  if (z.includes('kamala')) return 3;
+  if (z.includes('patong') || z.includes('kalim')) return 4;
+  if (z.includes('karon') || z.includes('kata')) return 5;
+  if (z.includes('rawai') || z.includes('nai harn')) return 6;
+  if (z.includes('chalong')) return 7;
+  if (z.includes('panwa')) return 8;
+  if (z.includes('town') || z.includes('şehir')) return 9;
+  return 10;
+}
+

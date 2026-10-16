@@ -25,7 +25,8 @@ import {
   Waves,
 } from 'lucide-react';
 import type { AdminTab } from './AdminDashboard';
-import { type Booking, getPhuketSeason } from '../../data/adminInitialData';
+import { type Booking, type TourItem, getPhuketSeason } from '../../data/adminInitialData';
+import { calculateTourOccupancy, getTourCapacity } from '../../lib/allotment';
 
 /** AdminDashboard'taki stats useMemo çıktısı — alan isimleri birebir. */
 export interface OverviewStats {
@@ -44,6 +45,7 @@ export interface OverviewStats {
 interface OverviewTabProps {
   stats: OverviewStats;
   bookings?: Booking[];
+  tours?: TourItem[];
   /** Sekme kısayolları için sayım ve geçiş. */
   bookingsCount: number;
   toursCount: number;
@@ -61,6 +63,7 @@ interface OverviewTabProps {
 export default function OverviewTab({
   stats,
   bookings = [],
+  tours = [],
   bookingsCount,
   toursCount,
   servicesCount,
@@ -168,6 +171,21 @@ export default function OverviewTab({
       todayItems: items,
     };
   }, [bookings, todayStr]);
+
+  // Tur doluluk ve kontenjan barometresi (Bugün ve yaklaşan turlar)
+  const tourOccupancies = useMemo(() => {
+    const list = tours.length > 0
+      ? tours.map((t) => ({ title: t.title, capacity: t.maxCapacity || getTourCapacity(t.title, t) }))
+      : Array.from(new Set(bookings.map((b) => b.tourTitle))).map((title) => ({
+          title,
+          capacity: getTourCapacity(title),
+        }));
+
+    return list
+      .map((item) => calculateTourOccupancy(item.title, todayStr, bookings, item.capacity))
+      .filter((occ) => occ.bookedPax > 0 || occ.capacity > 0)
+      .slice(0, 6);
+  }, [tours, bookings, todayStr]);
 
   return (
     <div className="space-y-8">
@@ -462,6 +480,102 @@ export default function OverviewTab({
           </div>
           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Otelde tahsil edilecek</p>
         </div>
+      </div>
+
+      {/* ==================================================== */}
+      {/* ⛵ TUR KONTENJAN & TEKNE DOLULUK BAROMETRESİ */}
+      {/* ==================================================== */}
+      <div className="bg-white dark:bg-surface-2 p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+          <div className="flex items-center gap-2.5">
+            <span className="w-9 h-9 rounded-xl bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center font-bold text-lg">
+              ⛵
+            </span>
+            <div>
+              <h3 className="font-bold text-base text-slate-900 dark:text-white">
+                Tur Kontenjan & Tekne Doluluk Barometresi
+              </h3>
+              <p className="text-xs text-slate-500">
+                Bugünün turlarındaki canlı koltuk doluluğu ve overbooking koruması.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab('tours')}
+            className="text-xs font-bold text-brand-primary dark:text-brand-accent hover:underline flex items-center gap-1 self-start sm:self-auto"
+          >
+            Tüm Tur Kataloğunu İncele →
+          </button>
+        </div>
+
+        {tourOccupancies.length === 0 ? (
+          <div className="py-8 text-center text-slate-400 text-xs">
+            Bugün için planlanmış tekne turu bulunmuyor.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {tourOccupancies.map((occ) => (
+              <div
+                key={occ.tourTitle}
+                className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <h4 className="font-bold text-xs text-slate-900 dark:text-white line-clamp-1">
+                      {occ.tourTitle}
+                    </h4>
+                    <span
+                      className={`px-2 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${
+                        occ.isOverbooked
+                          ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-950/60 dark:text-red-300 dark:border-red-800 animate-pulse'
+                          : occ.isFull
+                          ? 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800'
+                          : occ.status === 'critical'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'
+                          : 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+                      }`}
+                    >
+                      {occ.statusLabel}
+                    </span>
+                  </div>
+
+                  <div className="mt-3 flex items-baseline justify-between">
+                    <div className="text-xl font-extrabold text-slate-900 dark:text-white">
+                      {occ.bookedPax} <span className="text-xs font-normal text-slate-400">/ {occ.capacity} Koltuk</span>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-slate-600 dark:text-slate-300">
+                      %{occ.occupancyPercent}
+                    </span>
+                  </div>
+
+                  {/* Progress bar */}
+                  <div className="w-full bg-slate-200 dark:bg-slate-800 h-2 rounded-full overflow-hidden mt-2">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        occ.isOverbooked
+                          ? 'bg-red-500'
+                          : occ.isFull
+                          ? 'bg-rose-500'
+                          : occ.occupancyPercent >= 80
+                          ? 'bg-amber-500'
+                          : 'bg-emerald-500'
+                      }`}
+                      style={{ width: `${Math.min(100, occ.occupancyPercent)}%` }}
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between text-[11px] text-slate-500">
+                  <span>Kalan Boş Yer:</span>
+                  <span className={`font-bold ${occ.remainingSeats <= 3 ? 'text-amber-600 dark:text-amber-400' : 'text-slate-700 dark:text-slate-300'}`}>
+                    {Math.max(0, occ.remainingSeats)} Koltuk
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Quick Content Navigation Cards */}

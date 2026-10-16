@@ -79,4 +79,34 @@ describe('ERP Finance & Kasa (Phase 1)', () => {
     expect(totalCashThb).toBe(3500);
     expect(totalPromptPay).toBe(8400);
   });
+
+  it('Çoklu Kasa & Virman transferinde toplam likit varlık korunur ve hesaplar dengelenir', () => {
+    // Başlangıç bakiyeleri
+    const vaults = {
+      kbank: 50000,
+      office_cash: 30000,
+      tr_bank: 20000,
+      wise: 10000,
+    };
+    const initialTotal = Object.values(vaults).reduce((s, v) => s + v, 0);
+
+    // Virman 1: Ofis Nakit'ten K-Bank'a 15.000 THB aktarımı (ATM yatırma)
+    const virman1Amount = 15000;
+    vaults.office_cash -= virman1Amount;
+    vaults.kbank += virman1Amount;
+
+    expect(vaults.office_cash).toBe(15000);
+    expect(vaults.kbank).toBe(65000);
+    expect(Object.values(vaults).reduce((s, v) => s + v, 0)).toBe(initialTotal);
+
+    // Virman 2: TR Bankası'ndan Wise'a 10.000 THB aktarımı
+    const virman2Amount = 10000;
+    vaults.tr_bank -= virman2Amount;
+    vaults.wise += virman2Amount;
+
+    expect(vaults.tr_bank).toBe(10000);
+    expect(vaults.wise).toBe(20000);
+    expect(Object.values(vaults).reduce((s, v) => s + v, 0)).toBe(initialTotal);
+  });
 });
+

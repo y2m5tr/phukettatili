@@ -4,7 +4,7 @@
  * Not: Diğer CMS sekmeleri gibi YEREL kaydeder (localStorage);
  * canlıya yansıtma ayrı bir iş maddesidir (Keystatic entegrasyonu).
  */
-import { Plus, Star, Clock, Edit2, Eye, Trash2 } from 'lucide-react';
+import { Plus, Star, Clock, Edit2, Eye, Trash2, FileText } from 'lucide-react';
 import type { TourItem } from '../../data/adminInitialData';
 
 interface ToursTabProps {
@@ -23,6 +23,7 @@ interface ToursTabProps {
   onOpenEdit: (t: TourItem) => void;
   onToggleFeatured: (id: string) => void;
   onDelete: (id: string, title: string) => void;
+  onOpenQuotePdf?: (t: TourItem) => void;
 }
 
 export default function ToursTab({
@@ -38,6 +39,7 @@ export default function ToursTab({
   onOpenEdit,
   onToggleFeatured,
   onDelete,
+  onOpenQuotePdf,
 }: ToursTabProps) {
   return (
     <div className="space-y-6">
@@ -132,6 +134,16 @@ export default function ToursTab({
                 </div>
 
                 <div className="flex items-center gap-1.5">
+                  {onOpenQuotePdf && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenQuotePdf(t)}
+                      className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-colors"
+                      title="Bu Tur İçin Kurumsal Teklif PDF Oluştur"
+                    >
+                      <FileText className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                   <button
                     onClick={() => onOpenEdit(t)}
                     className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"

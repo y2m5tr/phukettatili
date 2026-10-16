@@ -4,6 +4,7 @@ import {
   getSingleHotelMapUrl,
   generateMultiStopMapUrl,
   detectDeparturePier,
+  getZoneOrder,
 } from '../src/lib/maps';
 
 describe('formatHotelLocation', () => {
@@ -80,5 +81,30 @@ describe('detectDeparturePier', () => {
   it('Phi Phi ve tanınmayan turlar Royal Phuket Marina varsayılanı', () => {
     expect(detectDeparturePier('Phi Phi, Maya ve Bamboo Adası')).toContain('Royal Phuket Marina');
     expect(detectDeparturePier('')).toContain('Royal Phuket Marina');
+  });
+});
+
+describe('getZoneOrder', () => {
+  it('Kuzey ve havalimanı otellerini en başa sıralar', () => {
+    expect(getZoneOrder('Havalimanı & Nai Yang')).toBe(1);
+    expect(getZoneOrder('Maikhao Beach')).toBe(1);
+  });
+
+  it('Bang Tao ve Kamala sıralamasını doğru belirler', () => {
+    expect(getZoneOrder('Bang Tao & Laguna')).toBe(2);
+    expect(getZoneOrder('Kamala')).toBe(3);
+  });
+
+  it('Patong, Karon/Kata ve Rawai güney sırasını korur', () => {
+    expect(getZoneOrder('Patong')).toBe(4);
+    expect(getZoneOrder('Karon')).toBe(5);
+    expect(getZoneOrder('Kata')).toBe(5);
+    expect(getZoneOrder('Rawai')).toBe(6);
+    expect(getZoneOrder('Chalong')).toBe(7);
+  });
+
+  it('Bilinmeyen bölgeleri listenin sonuna atar', () => {
+    expect(getZoneOrder('')).toBe(10);
+    expect(getZoneOrder(undefined)).toBe(10);
   });
 });

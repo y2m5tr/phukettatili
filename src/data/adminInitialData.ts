@@ -308,6 +308,7 @@ export interface TourItem {
   featured: boolean;
   active: boolean;
   image: string;
+  maxCapacity?: number;
   excerpt?: string;
   gallery?: string[];
   included?: string[];

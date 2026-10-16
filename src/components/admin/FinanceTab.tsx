@@ -15,6 +15,8 @@ import {
   Car,
   ShieldCheck,
   ArrowRight,
+  ArrowRightLeft,
+  Landmark,
   Clock,
   Coins,
 } from 'lucide-react';
@@ -28,6 +30,48 @@ import {
   convertToThb,
   DEFAULT_EXCHANGE_RATES,
 } from '../../data/adminInitialData';
+
+export type VaultAccountId = 'kbank' | 'office_cash' | 'tr_bank' | 'wise';
+
+export interface VirmanRecord {
+  id: string;
+  sourceAccount: VaultAccountId;
+  targetAccount: VaultAccountId;
+  amountThb: number;
+  date: string;
+  transferredBy: string;
+  note: string;
+}
+
+export const VAULT_ACCOUNTS: Record<
+  VaultAccountId,
+  { name: string; icon: string; detail: string; currency: string }
+> = {
+  kbank: {
+    name: 'K-Bank (Kasikorn Thai QR)',
+    icon: '🏦',
+    detail: 'PromptPay / K-Bank Phuket No: 142-8-39281-0',
+    currency: 'THB',
+  },
+  office_cash: {
+    name: 'Merkez Ofis Nakit Kasası',
+    icon: '💵',
+    detail: 'Patong Ana Ofis Fiziksel Çelik Kasa',
+    currency: 'THB',
+  },
+  tr_bank: {
+    name: 'TR Banka Hesabı (Havale/EFT)',
+    icon: '🇹🇷',
+    detail: 'Garanti BBVA TR & USD Hesabı',
+    currency: 'TRY / USD',
+  },
+  wise: {
+    name: 'Wise & Uluslararası Hesap',
+    icon: '🌐',
+    detail: 'Wise Multi-Currency & Stripe POS',
+    currency: 'Multi',
+  },
+};
 
 interface FinanceTabProps {
   bookings: Booking[];
@@ -68,6 +112,34 @@ export default function FinanceTab({
   const [collectLocation, setCollectLocation] = useState<CollectionLocation>('hotel_lobby');
   const [collectedBy, setCollectedBy] = useState<string>('Murat Gençer (Ofis)');
   const [collectNote, setCollectNote] = useState<string>('');
+
+  // Çoklu Kasa & Virman State'i
+  const STORAGE_KEY_VIRMANS = 'phuket_tatili_crm_virmans_v1';
+  const [virmans, setVirmans] = useState<VirmanRecord[]>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_VIRMANS) : null;
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [
+      {
+        id: 'VRM-101',
+        sourceAccount: 'office_cash',
+        targetAccount: 'kbank',
+        amountThb: 35000,
+        date: '2026-10-15',
+        transferredBy: 'Murat Gençer',
+        note: 'Haftalık şoför nakit tahsilatlarının K-Bank ATM hesabına yatırılması',
+      },
+    ];
+  });
+
+  const [isVirmanModalOpen, setIsVirmanModalOpen] = useState(false);
+  const [virmanSource, setVirmanSource] = useState<VaultAccountId>('office_cash');
+  const [virmanTarget, setVirmanTarget] = useState<VaultAccountId>('kbank');
+  const [virmanAmount, setVirmanAmount] = useState<number>(10000);
+  const [virmanDate, setVirmanDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [virmanBy, setVirmanBy] = useState<string>('Murat Gençer (Ofis)');
+  const [virmanNote, setVirmanNote] = useState<string>('');
 
   // 1. Finansal KPI Özet Hesaplamaları
   const validBookings = useMemo(
@@ -139,6 +211,73 @@ export default function FinanceTab({
 
     return acc;
   }, [payments]);
+
+  // Çoklu Kasa Bakiyeleri & Virman Dengelemesi
+  const vaultBalances = useMemo(() => {
+    const rawBalances: Record<VaultAccountId, number> = {
+      kbank: (methodTotals.promptpay || 0) + (methodTotals.kbank_transfer || 0),
+      office_cash: (methodTotals.cash_thb || 0) + (methodTotals.cash_usd || 0) + (methodTotals.cash_eur || 0),
+      tr_bank: methodTotals.tr_bank_transfer || 0,
+      wise: (methodTotals.wise || 0) + (methodTotals.credit_card || 0),
+    };
+
+    // Apply virmans
+    virmans.forEach((v) => {
+      if (rawBalances[v.sourceAccount] !== undefined) {
+        rawBalances[v.sourceAccount] -= v.amountThb;
+      }
+      if (rawBalances[v.targetAccount] !== undefined) {
+        rawBalances[v.targetAccount] += v.amountThb;
+      }
+    });
+
+    const totalLiquid = Object.values(rawBalances).reduce((sum, b) => sum + b, 0);
+
+    return {
+      balances: rawBalances,
+      totalLiquid,
+    };
+  }, [methodTotals, virmans]);
+
+  const handleSaveVirman = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (virmanSource === virmanTarget) {
+      showToast('Kaynak ve hedef kasa aynı olamaz! Lütfen farklı bir hesap seçin.');
+      return;
+    }
+    if (virmanAmount <= 0) {
+      showToast('Lütfen geçerli bir virman tutarı giriniz.');
+      return;
+    }
+
+    const newVirman: VirmanRecord = {
+      id: `VRM-${Date.now().toString().slice(-4)}`,
+      sourceAccount: virmanSource,
+      targetAccount: virmanTarget,
+      amountThb: virmanAmount,
+      date: virmanDate,
+      transferredBy: virmanBy,
+      note: virmanNote || `${VAULT_ACCOUNTS[virmanSource].name} ➔ ${VAULT_ACCOUNTS[virmanTarget].name} virman işlemi`,
+    };
+
+    const nextVirmans = [newVirman, ...virmans];
+    setVirmans(nextVirmans);
+    try {
+      localStorage.setItem(STORAGE_KEY_VIRMANS, JSON.stringify(nextVirmans));
+    } catch {}
+
+    setIsVirmanModalOpen(false);
+    showToast(`✓ ${virmanAmount.toLocaleString()} THB virman transferi başarıyla kaydedildi! 🔄`);
+  };
+
+  const handleDeleteVirman = (id: string) => {
+    const nextVirmans = virmans.filter((v) => v.id !== id);
+    setVirmans(nextVirmans);
+    try {
+      localStorage.setItem(STORAGE_KEY_VIRMANS, JSON.stringify(nextVirmans));
+    } catch {}
+    showToast('Virman transfer kaydı silindi.');
+  };
 
   // Filtrelenmiş Kasa Defteri Hareketleri
   const filteredPayments = useMemo(() => {
@@ -808,58 +947,237 @@ export default function FinanceTab({
       )}
 
       {/* ==================================================== */}
-      {/* 5. GÖRÜNÜM C: KASA HESAPLARI DAĞILIMI */}
+      {/* 5. GÖRÜNÜM C: ÇOKLU KASA & BANKA HESAPLARI YÖNETİMİ (VAULT ENGINE) */}
       {/* ==================================================== */}
       {subTab === 'accounts' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {Object.entries(PAYMENT_METHOD_LABELS).map(([key, info]) => {
-            const amount = methodTotals[key as PaymentMethod] || 0;
-            const txCount = payments.filter((p) => p.method === key).length;
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Vault Top Control & Overview Bar */}
+          <div className="bg-white dark:bg-surface-2 p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-2xl bg-brand-primary/10 text-brand-primary dark:text-brand-accent flex items-center justify-center font-bold text-xl">
+                <Landmark className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>Kurumsal Kasa & Banka Hesapları (Multi-Account Vault)</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Nakit ofis kasası, K-Bank PromptPay, TR bankası ve Wise döviz bakiyeleri canlı virman yönetimi.
+                </p>
+              </div>
+            </div>
 
-            return (
-              <div
-                key={key}
-                className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm space-y-3"
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="bg-slate-50 dark:bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-200 dark:border-slate-800 text-right">
+                <span className="text-[10px] uppercase font-bold text-slate-400 block">Konsolide Likit Varlık</span>
+                <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-serif">
+                  {vaultBalances.totalLiquid.toLocaleString()} THB
+                </span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsVirmanModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold shadow-md shadow-brand-primary/20 flex items-center gap-2 transition-all cursor-pointer"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-2xl">{info.icon}</span>
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                        {info.label}
-                      </h4>
-                      <span className="text-[11px] text-slate-400">
-                        {txCount} İşlem Kaydı
+                <ArrowRightLeft className="w-4 h-4" />
+                <span>Hesaplar Arası Virman Yap</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4 Ana Kurumsal Kasa Kartı */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {(Object.keys(VAULT_ACCOUNTS) as VaultAccountId[]).map((vaultKey) => {
+              const info = VAULT_ACCOUNTS[vaultKey];
+              const balance = vaultBalances.balances[vaultKey] || 0;
+              const share = vaultBalances.totalLiquid > 0 ? Math.round((balance / vaultBalances.totalLiquid) * 100) : 0;
+
+              return (
+                <div
+                  key={vaultKey}
+                  className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand-primary/40 transition-all"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-2xl">{info.icon}</span>
+                        <div>
+                          <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
+                            {info.name}
+                          </h4>
+                          <span className="text-[10px] text-slate-400 block truncate max-w-[170px]" title={info.detail}>
+                            {info.detail}
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                        {info.currency}
                       </span>
                     </div>
-                  </div>
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
-                      info.category === 'cash'
-                        ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
-                        : info.category === 'bank'
-                        ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300'
-                        : 'bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300'
-                    }`}
-                  >
-                    {info.category === 'cash'
-                      ? 'Nakit Kasa'
-                      : info.category === 'bank'
-                      ? 'Banka Hesabı'
-                      : 'POS / Online'}
-                  </span>
-                </div>
 
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-baseline justify-between">
-                  <span className="text-xs text-slate-500 font-medium">Bakiye:</span>
-                  <span className="text-xl font-black text-slate-900 dark:text-white font-serif">
-                    {amount.toLocaleString()}{' '}
-                    <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
-                  </span>
+                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Kasa Bakiyesi</span>
+                      <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-serif mt-0.5">
+                        {balance.toLocaleString()}{' '}
+                        <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
+                      </div>
+
+                      {/* Pay bar */}
+                      <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mt-3">
+                        <div
+                          className="bg-brand-primary dark:bg-brand-accent h-full rounded-full transition-all"
+                          style={{ width: `${Math.min(100, Math.max(0, share))}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                        <span>Likit Payı: %{share}</span>
+                        <span>Aktif Kasa</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 pt-2 flex items-center justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setVirmanSource(vaultKey);
+                        setIsVirmanModalOpen(true);
+                      }}
+                      className="text-xs font-bold text-brand-primary dark:text-brand-accent hover:underline flex items-center gap-1"
+                    >
+                      <span>Buradan Fon Aktar</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
                 </div>
+              );
+            })}
+          </div>
+
+          {/* Virman Transfer Geçmişi Tablosu */}
+          <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <ArrowRightLeft className="w-4 h-4 text-brand-primary dark:text-brand-accent" />
+                  <span>Son Hesaplar Arası Virman Transferleri</span>
+                </h4>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Kasalar arasında aktarılan nakit ve banka fon kayıtları.
+                </p>
               </div>
-            );
-          })}
+              <span className="text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-300">
+                {virmans.length} Virman Kaydı
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200/80 dark:border-slate-800">
+                  <tr>
+                    <th className="py-3 px-4">Tarih & Kod</th>
+                    <th className="py-3 px-4">Kaynak Kasa</th>
+                    <th className="py-3 px-4">Hedef Kasa</th>
+                    <th className="py-3 px-4">Tutar (THB)</th>
+                    <th className="py-3 px-4">İşlemi Yapan</th>
+                    <th className="py-3 px-4">Açıklama</th>
+                    <th className="py-3 px-4 text-right">İşlem</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {virmans.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-8 text-center text-slate-400">
+                        Henüz kaydedilmiş virman transferi bulunmuyor.
+                      </td>
+                    </tr>
+                  ) : (
+                    virmans.map((v) => {
+                      const src = VAULT_ACCOUNTS[v.sourceAccount];
+                      const dst = VAULT_ACCOUNTS[v.targetAccount];
+                      return (
+                        <tr key={v.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="py-3 px-4">
+                            <span className="font-mono font-bold text-slate-900 dark:text-white block">{v.id}</span>
+                            <span className="text-[10px] text-slate-400">{v.date}</span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                              <span>{src.icon}</span>
+                              <span>{src.name}</span>
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                              <span>{dst.icon}</span>
+                              <span>{dst.name}</span>
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <span className="font-mono font-black text-slate-900 dark:text-white">
+                              {v.amountThb.toLocaleString()} THB
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                            {v.transferredBy}
+                          </td>
+                          <td className="py-3 px-4 text-slate-500 max-w-xs truncate" title={v.note}>
+                            {v.note}
+                          </td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteVirman(v.id)}
+                              className="text-slate-400 hover:text-rose-500 p-1 text-xs transition-colors"
+                              title="Virman Kaydını Sil"
+                            >
+                              Sil
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Alt Bölüm: Ödeme Yöntemleri Bazında Detaylı Kırılım */}
+          <div>
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
+              Ödeme Yöntemleri Bazında Ham Tahsilat Dağılımı
+            </h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {Object.entries(PAYMENT_METHOD_LABELS).map(([key, info]) => {
+                const amount = methodTotals[key as PaymentMethod] || 0;
+                const txCount = payments.filter((p) => p.method === key).length;
+
+                return (
+                  <div
+                    key={key}
+                    className="bg-white dark:bg-surface-2 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xl">{info.icon}</span>
+                      <div>
+                        <h5 className="text-xs font-bold text-slate-900 dark:text-white">
+                          {info.label}
+                        </h5>
+                        <span className="text-[10px] text-slate-400">
+                          {txCount} Tahsilat Fişi
+                        </span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-bold font-mono text-slate-900 dark:text-white">
+                      {amount.toLocaleString()} THB
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       )}
 
@@ -1218,6 +1536,173 @@ export default function FinanceTab({
                   className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20"
                 >
                   ✓ Kasaya İşle & Makbuz Kes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL: HESAPLAR ARASI VİRMAN TRANSFERİ */}
+      {/* ==================================================== */}
+      {isVirmanModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+            {/* Modal Başlığı */}
+            <div className="p-5 bg-slate-50 dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-brand-primary/10 text-brand-primary dark:text-brand-accent flex items-center justify-center font-bold">
+                  <ArrowRightLeft className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                    Hesaplar Arası Virman / Para Transferi
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Nakit kasa ve banka hesapları arasında fon aktarımı yapın.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsVirmanModalOpen(false)}
+                className="p-1.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveVirman} className="p-5 space-y-4">
+              {/* Kaynak ve Hedef Kasa */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Çıkış Yapılacak (Kaynak) Kasa *
+                  </label>
+                  <select
+                    value={virmanSource}
+                    onChange={(e) => setVirmanSource(e.target.value as VaultAccountId)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none"
+                  >
+                    {(Object.keys(VAULT_ACCOUNTS) as VaultAccountId[]).map((k) => (
+                      <option key={k} value={k}>
+                        {VAULT_ACCOUNTS[k].icon} {VAULT_ACCOUNTS[k].name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Giriş Yapılacak (Hedef) Kasa *
+                  </label>
+                  <select
+                    value={virmanTarget}
+                    onChange={(e) => setVirmanTarget(e.target.value as VaultAccountId)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none"
+                  >
+                    {(Object.keys(VAULT_ACCOUNTS) as VaultAccountId[]).map((k) => (
+                      <option key={k} value={k} disabled={k === virmanSource}>
+                        {VAULT_ACCOUNTS[k].icon} {VAULT_ACCOUNTS[k].name} {k === virmanSource ? '(Aynı Kasa Seçilemez)' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              {/* Tutar & Hızlı Butonlar */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Virman Tutarı (THB) *
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    step="100"
+                    required
+                    value={virmanAmount || ''}
+                    onChange={(e) => setVirmanAmount(Number(e.target.value) || 0)}
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-black font-mono text-slate-900 dark:text-white focus:outline-none"
+                    placeholder="0"
+                  />
+                  <span className="absolute right-3.5 top-3 text-xs font-bold text-slate-400">
+                    THB
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                  {[5000, 10000, 25000, 50000].map((amt) => (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => setVirmanAmount(amt)}
+                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-brand-primary/10 hover:text-brand-primary text-slate-600 dark:text-slate-300 transition-colors"
+                    >
+                      +{amt.toLocaleString()} THB
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tarih & Personel */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    İşlem Tarihi
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={virmanDate}
+                    onChange={(e) => setVirmanDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    İşlemi Yapan Personel
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={virmanBy}
+                    onChange={(e) => setVirmanBy(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              {/* Açıklama */}
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Açıklama / Dekont Notu
+                </label>
+                <input
+                  type="text"
+                  value={virmanNote}
+                  onChange={(e) => setVirmanNote(e.target.value)}
+                  placeholder="Örn: Şoför nakit tahsilatlarının K-Bank ATM hesabına yatırılması"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
+                />
+              </div>
+
+              {/* Butonlar */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsVirmanModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
+                >
+                  <ArrowRightLeft className="w-3.5 h-3.5" />
+                  <span>Virmanı Kaydet</span>
                 </button>
               </div>
             </form>

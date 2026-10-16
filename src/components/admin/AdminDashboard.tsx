@@ -68,6 +68,7 @@ import {
 } from '../../data/adminInitialData';
 import CommandPaletteModal from './CommandPaletteModal';
 import BulkRescheduleModal from './BulkRescheduleModal';
+import TourQuotePdfModal from './TourQuotePdfModal';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
 import SupplierSettlementManager from './SupplierSettlementManager';
@@ -101,6 +102,7 @@ import {
   type CmsCollectionKey,
 } from '../../lib/cmsSync';
 import { filterBookings, filterTours } from '../../lib/adminFilters';
+import { calculateTourOccupancy, getTourCapacity } from '../../lib/allotment';
 import {
   isSupabaseConfigured,
   subscribeBookingsSignal,
@@ -513,6 +515,9 @@ export default function AdminDashboard({
   // Voucher / Ticket Modal State
   const [voucherBooking, setVoucherBooking] = useState<Booking | null>(null);
 
+  // Kurumsal PDF Teklif & Fiyatlandırma / Proforma Modalı
+  const [quoteModalData, setQuoteModalData] = useState<{ booking?: Booking; tour?: TourItem } | null>(null);
+
   // WhatsApp Automation Templates Modal
   const [whatsAppModalBooking, setWhatsAppModalBooking] = useState<Booking | null>(null);
 
@@ -826,6 +831,7 @@ export default function AdminDashboard({
   const isAnyModalOpen =
     isModalOpen ||
     Boolean(voucherBooking) ||
+    Boolean(quoteModalData) ||
     Boolean(whatsAppModalBooking) ||
     isPoliceManifestOpen ||
     isQrScannerOpen ||
@@ -2245,6 +2251,7 @@ export default function AdminDashboard({
           <OverviewTab
             stats={stats}
             bookings={bookings}
+            tours={tours}
             bookingsCount={bookings.length}
             toursCount={tours.length}
             servicesCount={services.length}
@@ -2279,6 +2286,7 @@ export default function AdminDashboard({
             setVoucherBooking={setVoucherBooking}
             setWhatsAppModalBooking={setWhatsAppModalBooking}
             onQuickCollect={(_b) => setActiveTab('finance')}
+            onOpenQuotePdf={(b) => setQuoteModalData({ booking: b })}
           />
         )}
 
@@ -2400,6 +2408,7 @@ export default function AdminDashboard({
             onOpenEdit={handleOpenEditTour}
             onToggleFeatured={handleToggleTourFeatured}
             onDelete={handleDeleteTour}
+            onOpenQuotePdf={(t) => setQuoteModalData({ tour: t })}
           />
         )}
 
@@ -2806,6 +2815,48 @@ export default function AdminDashboard({
                           />
                         </div>
                       </div>
+
+                      {/* Canlı Kontenjan & Overbooking Barı */}
+                      {tourSchedule.tourTitle && tourSchedule.tourDate && (() => {
+                        const curPax = (Number(formData.adultCount) || 1) + (Number(formData.childCount) || 0);
+                        const matchedTour = tours.find((t) => t.title === tourSchedule.tourTitle);
+                        const capacity = matchedTour?.maxCapacity || getTourCapacity(tourSchedule.tourTitle, matchedTour);
+                        const occ = calculateTourOccupancy(
+                          tourSchedule.tourTitle,
+                          tourSchedule.tourDate,
+                          bookings.filter((b) => b.id !== editingBooking?.id),
+                          capacity
+                        );
+                        const remainingAfterThis = occ.remainingSeats - curPax;
+                        const isOverbooking = remainingAfterThis < 0;
+
+                        return (
+                          <div
+                            className={`p-2.5 rounded-xl text-xs flex flex-wrap items-center justify-between gap-2 border ${
+                              isOverbooking
+                                ? 'bg-red-50 text-red-800 border-red-300 dark:bg-red-950/60 dark:text-red-200 dark:border-red-800 font-bold'
+                                : occ.remainingSeats <= 5
+                                ? 'bg-amber-50 text-amber-800 border-amber-300 dark:bg-amber-950/60 dark:text-amber-200 dark:border-amber-800'
+                                : 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-200 dark:border-emerald-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span>⛵ Kontenjan Durumu:</span>
+                              <strong>{occ.bookedPax} / {occ.capacity} Koltuk Dolu (%{occ.occupancyPercent})</strong>
+                            </div>
+
+                            {isOverbooking ? (
+                              <span className="text-red-700 dark:text-red-300 font-bold">
+                                ⚠️ OVERBOOKING RİSKİ! {curPax} kişi eklendiğinde kapasite {Math.abs(remainingAfterThis)} kişi aşılacak!
+                              </span>
+                            ) : (
+                              <span>
+                                Bu Rezervasyon Sonrası Kalan: <strong>{remainingAfterThis} Boş Koltuk</strong>
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   ))}
                 </div>
@@ -4129,6 +4180,19 @@ export default function AdminDashboard({
           tourIndex={0}
           managerPhone={siteSettings.whatsappNumber}
           onClose={() => setVoucherBooking(null)}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 10.5: CORPORATE TOUR QUOTE & PROFORMA PDF ENGINE */}
+      {/* ==================================================== */}
+      {quoteModalData && (
+        <TourQuotePdfModal
+          booking={quoteModalData.booking}
+          tour={quoteModalData.tour}
+          onClose={() => setQuoteModalData(null)}
+          showToast={showToast}
+          whatsappNumber={siteSettings.whatsappNumber}
         />
       )}
 

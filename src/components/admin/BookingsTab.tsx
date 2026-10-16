@@ -4,7 +4,7 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 
 interface BookingsTabProps {
@@ -24,6 +24,7 @@ interface BookingsTabProps {
   setVoucherBooking: (b: Booking) => void;
   setWhatsAppModalBooking: (b: Booking) => void;
   onQuickCollect?: (b: Booking) => void;
+  onOpenQuotePdf?: (b: Booking) => void;
 }
 
 export default function BookingsTab({
@@ -42,6 +43,7 @@ export default function BookingsTab({
   setVoucherBooking,
   setWhatsAppModalBooking,
   onQuickCollect,
+  onOpenQuotePdf,
 }: BookingsTabProps) {
   return (
     <div className="space-y-6">
@@ -273,6 +275,16 @@ export default function BookingsTab({
                         >
                           <Ticket className="w-4 h-4" />
                         </button>
+                        {onOpenQuotePdf && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenQuotePdf(b)}
+                            className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-colors"
+                            title="Kurumsal Teklif / Voucher (PDF) Oluştur"
+                          >
+                            <FileText className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => setWhatsAppModalBooking(b)}
