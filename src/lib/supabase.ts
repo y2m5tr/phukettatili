@@ -51,12 +51,12 @@ export const BOOKINGS_SIGNAL_CHANNEL = 'bookings-changed';
  * Temizleme fonksiyonu döner.
  */
 export function subscribeBookingsSignal(
-  onSignal: () => void
+  onSignal: (payload?: { source?: string; rev?: number }) => void
 ): () => void {
   if (!supabase) return () => undefined;
   const channel = supabase
     .channel(BOOKINGS_SIGNAL_CHANNEL, { config: { broadcast: { self: false } } })
-    .on('broadcast', { event: 'changed' }, () => onSignal())
+    .on('broadcast', { event: 'changed' }, (e: any) => onSignal(e?.payload))
     .subscribe();
   return () => {
     supabase.removeChannel(channel);

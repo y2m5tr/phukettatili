@@ -30,6 +30,8 @@ export interface AdminStoreState {
 
   // Cloud & Feedback State
   isCloudConnected: boolean;
+  isSyncing: boolean;
+  lastSyncedAt: Date | null;
   toastMessage: string;
 
   // Modal Visibility & Payloads
@@ -71,6 +73,8 @@ export interface AdminStoreState {
   showToast: (msg: string) => void;
   setToastMessage: (msg: string) => void;
   setIsCloudConnected: (v: boolean) => void;
+  setIsSyncing: (v: boolean) => void;
+  setLastSyncedAt: (date: Date | null) => void;
 
   // Modal Controls
   setIsCommandPaletteOpen: (v: boolean | ((prev: boolean) => boolean)) => void;
@@ -107,6 +111,8 @@ export const useAdminStore = create<AdminStoreState>((set) => ({
   isQuickToolsDropdownOpen: false,
 
   isCloudConnected: false,
+  isSyncing: false,
+  lastSyncedAt: null,
   toastMessage: '',
 
   isCommandPaletteOpen: false,
@@ -195,6 +201,8 @@ export const useAdminStore = create<AdminStoreState>((set) => ({
 
   setToastMessage: (toastMessage) => set({ toastMessage }),
   setIsCloudConnected: (isCloudConnected) => set({ isCloudConnected }),
+  setIsSyncing: (isSyncing) => set({ isSyncing }),
+  setLastSyncedAt: (lastSyncedAt) => set({ lastSyncedAt }),
 
   setIsCommandPaletteOpen: (v) =>
     set((state) => ({

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Users,
   Compass,
@@ -13,6 +13,7 @@ import {
   Sparkles,
   Settings,
   HelpCircle,
+  RefreshCw,
   Save,
   ChevronLeft,
   ChevronRight,
@@ -126,6 +127,7 @@ import {
   subscribeBookingsSignal,
 } from '../../lib/supabase';
 import { generateTicketCode } from '../../lib/ticketCodes';
+import { useAdminStore } from '../../stores/useAdminStore';
 
 const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v2';
 const STORAGE_KEY_TOURS = 'phuket_tatili_crm_tours_v2';
@@ -518,8 +520,16 @@ export default function AdminDashboard({
     setTimeout(() => setToastMessage(''), isError ? 8000 : 3000);
   };
 
-  // Cloud Database Sync State
-  const [isCloudConnected, setIsCloudConnected] = useState<boolean>(false);
+  // Cloud Database Sync State (Zustand Store)
+  const {
+    isCloudConnected,
+    setIsCloudConnected,
+    isSyncing,
+    setIsSyncing,
+    lastSyncedAt,
+    setLastSyncedAt,
+  } = useAdminStore();
+  const hasSyncedOnce = useRef<boolean>(false);
 
   // 1. Bookings State
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -1009,39 +1019,44 @@ export default function AdminDashboard({
       const savedSettings = localStorage.getItem(STORAGE_KEY_SITE);
       if (savedSettings) setSiteSettings(JSON.parse(savedSettings));
 
-      // ☁️ Bulut verisi: tablo erişimi /api/bookings üzerinden (oturum
-      // cookie'si ile). Client Supabase anahtarı tabloyu okuyamaz — RLS kapalı.
+      // ☁️ Bulut verisi & CMS koleksiyonları: ilk açılışta paralel senkronize et
       void fetchBookingsFromServer(true);
-
-      // 2) CMS koleksiyonları (tours/blog/sss/…): bulut > yerel > initial.
-      //    Bulutta kayıt varsa yerelin üstüne yazar; yoksa yerel kalır.
-      void (async () => {
-        const { items } = await loadCmsCollections();
-        const apply = <T,>(key: CmsCollectionKey, setValue: (v: T) => void, fallback: T) => {
-          const cloud = items[key];
-          if (cloud === undefined) return; // bulutta yok — yerel/initial geçerli
-          setValue(cloud as T);
-          // Bulut değerini yerel cache'e da yaz — çevrimdışı açılışta taze.
-          writeLocalCollection(key, cloud);
-          void fallback; // fallback yalnızca tip çıkarımı için
-        };
-        apply('tours', setTours, initialTours);
-        apply('blogs', setBlogs, initialBlogs);
-        apply('services', setServices, initialServices);
-        apply('faqs', setFaqs, initialFaqs);
-        apply('testimonials', setTestimonials, initialTestimonials);
-        apply('media', setMediaList, []);
-        apply('site-settings', setSiteSettings, initialSiteSettings);
-        apply('vehicles', setVehicles, initialVehicles);
-        apply('drivers', setDrivers, initialDrivers);
-        apply('payments', setPayments, initialPayments);
-        apply('agents', setAgents, initialAgents);
-        apply('suppliers', setSuppliers, initialSuppliers);
-        apply('tour-costs', setTourCosts, initialTourCosts);
-      })();
+      void refreshCmsFromServer();
     } catch {
       setBookings(initialBookings);
       setTours(initialTours);
+    }
+  }, []);
+
+  /**
+   * CMS koleksiyonlarını (turlar, araçlar, şoförler, kasalar vb.) buluttan
+   * çeker ve state + localStorage cache'ini günceller.
+   */
+  const refreshCmsFromServer = useCallback(async (): Promise<void> => {
+    try {
+      const { items, offline } = await loadCmsCollections();
+      if (offline) return;
+      const apply = <T,>(key: CmsCollectionKey, setValue: (v: T) => void) => {
+        const cloud = items[key];
+        if (cloud === undefined) return;
+        setValue(cloud as T);
+        writeLocalCollection(key, cloud);
+      };
+      apply('tours', setTours);
+      apply('blogs', setBlogs);
+      apply('services', setServices);
+      apply('faqs', setFaqs);
+      apply('testimonials', setTestimonials);
+      apply('media', setMediaList);
+      apply('site-settings', setSiteSettings);
+      apply('vehicles', setVehicles);
+      apply('drivers', setDrivers);
+      apply('payments', setPayments);
+      apply('agents', setAgents);
+      apply('suppliers', setSuppliers);
+      apply('tour-costs', setTourCosts);
+    } catch {
+      // Çevrimdışı veya JSON parse hatası
     }
   }, []);
 
@@ -1050,6 +1065,7 @@ export default function AdminDashboard({
    * cache'ini tazeler. silent=true iken hata durumunda toast gösterilmez.
    */
   const fetchBookingsFromServer = useCallback(async (silent = false): Promise<void> => {
+    setIsSyncing(true);
     try {
       const res = await fetch('/api/bookings');
       if (!res.ok) {
@@ -1059,30 +1075,66 @@ export default function AdminDashboard({
       }
       const payload = (await res.json()) as { bookings?: Booking[] };
       if (Array.isArray(payload.bookings)) {
-        if (payload.bookings.length > 0) {
+        if (payload.bookings.length > 0 || hasSyncedOnce.current) {
           setBookings(payload.bookings);
           localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(payload.bookings));
+        } else if (payload.bookings.length === 0 && !localStorage.getItem(STORAGE_KEY_BOOKINGS)) {
+          setBookings(initialBookings);
         }
+        hasSyncedOnce.current = true;
         setIsCloudConnected(true);
+        setLastSyncedAt(new Date());
       }
     } catch {
       setIsCloudConnected(false);
+    } finally {
+      setTimeout(() => setIsSyncing(false), 300);
     }
-  }, []);
+  }, [showToast, setIsCloudConnected, setIsSyncing, setLastSyncedAt]);
 
   /**
-   * Canlı senkronizasyon: sunucunun "bookings değişti" Broadcast sinyalini
-   * dinler. Sinyal veri taşımaz; veri her seferinde /api/bookings üzerinden
-   * yeniden çekilir. Abonelik self:false ile kurulur — kendi yazmamızın
-   * yankısı bize geri dönmez.
+   * Kullanıcının üst bardaki senkronize et butonuna basarak tetiklediği
+   * manuel tam senkronizasyon (Rezervasyonlar + CMS/Operasyon).
+   */
+  const handleManualSync = useCallback(async () => {
+    setIsSyncing(true);
+    try {
+      await Promise.all([
+        fetchBookingsFromServer(false),
+        refreshCmsFromServer(),
+      ]);
+      showToast('✅ Bulut verileri başarıyla eşitlendi.');
+    } catch {
+      showToast('⚠️ Eşitleme sırasında hata oluştu.');
+    } finally {
+      setTimeout(() => setIsSyncing(false), 400);
+    }
+  }, [fetchBookingsFromServer, refreshCmsFromServer, setIsSyncing, showToast]);
+
+  /**
+   * Canlı senkronizasyon: sunucunun "bookings/cms değişti" Broadcast sinyalini
+   * dinler. Sinyal payload'ındaki source bilgisine göre ilgili veri kümesini tazeler.
    */
   useEffect(() => {
     if (!isSupabaseConfigured) return;
-    const unsubscribe = subscribeBookingsSignal(() => {
-      void fetchBookingsFromServer(true);
+    const unsubscribe = subscribeBookingsSignal(async (payload) => {
+      setIsSyncing(true);
+      try {
+        const promises: Promise<void>[] = [];
+        if (!payload || payload.source !== 'admin-cms') {
+          promises.push(fetchBookingsFromServer(true));
+        }
+        if (!payload || payload.source === 'admin-cms') {
+          promises.push(refreshCmsFromServer());
+        }
+        await Promise.all(promises);
+        setLastSyncedAt(new Date());
+      } finally {
+        setTimeout(() => setIsSyncing(false), 400);
+      }
     });
     return unsubscribe;
-  }, [isSupabaseConfigured, fetchBookingsFromServer]);
+  }, [isSupabaseConfigured, fetchBookingsFromServer, refreshCmsFromServer, setIsSyncing, setLastSyncedAt]);
 
   // Save helpers — her kayıt yerele VE buluta (/api/content) yazılır.
   // Bulut yazma yangın-and-forget; hata toast'u yerel kopyanın geçerli
@@ -1091,6 +1143,37 @@ export default function AdminDashboard({
     setBookings(next);
     localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(next));
   };
+
+  /**
+   * Tek bir rezervasyonu hem yerel state'te günceller hem de buluta (/api/bookings PUT)
+   * optimistic update ile yazar. Hata durumunda eski duruma geri alır (rollback).
+   */
+  const handleUpdateSingleBooking = useCallback(
+    async (updated: Booking, successMsg?: string) => {
+      const prevBookings = bookings;
+      const next = bookings.map((b) => (b.id === updated.id ? updated : b));
+      saveBookings(next);
+      if (successMsg) showToast(successMsg);
+
+      try {
+        const res = await fetch('/api/bookings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updated),
+        });
+        if (!res.ok) {
+          setBookings(prevBookings);
+          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+          showToast('⚠️ Bulut kayıt hatası: Değişiklik sunucuya kaydedilemedi, geri alındı.');
+        }
+      } catch {
+        setBookings(prevBookings);
+        localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+        showToast('⚠️ Ağ hatası: Rezervasyon buluta kaydedilemedi, geri alındı.');
+      }
+    },
+    [bookings, showToast]
+  );
   const saveTours = (next: TourItem[]) => {
     setTours(next);
     saveCmsCollection('tours', next, showToast);
@@ -1258,6 +1341,7 @@ export default function AdminDashboard({
       return;
     }
     if (window.confirm(`"${name}" rezervasyonunu silmek istediğinize emin misiniz?`)) {
+      const prevBookings = bookings;
       saveBookings(bookings.filter((b) => b.id !== id));
       showToast('Rezervasyon silindi.');
 
@@ -1265,9 +1349,17 @@ export default function AdminDashboard({
       // oturumuyla yapılabilir (API tarafında guard 'admin' ister).
       void fetch(`/api/bookings?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).then(
         (res) => {
-          if (!res.ok) showToast('⚠️ Bulut silme hatası: yetki veya sunucu sorunu.');
+          if (!res.ok) {
+            setBookings(prevBookings);
+            localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+            showToast('⚠️ Bulut silme hatası: Yetki veya sunucu sorunu nedeniyle geri alındı.');
+          }
         },
-        () => showToast('⚠️ Bulut silme hatası: ağ bağlantısı kurulamadı.')
+        () => {
+          setBookings(prevBookings);
+          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+          showToast('⚠️ Bulut silme hatası: Ağ bağlantısı kurulamadı, geri alındı.');
+        }
       );
     }
   };
@@ -1336,6 +1428,7 @@ export default function AdminDashboard({
             } as Booking)
           : b
       );
+      const prevBookings = bookings;
       saveBookings(updated);
       showToast('Rezervasyon güncellendi!');
 
@@ -1348,9 +1441,17 @@ export default function AdminDashboard({
           body: JSON.stringify(target),
         }).then(
           (res) => {
-            if (!res.ok) console.warn('Bulut güncelleme hatası:', res.status);
+            if (!res.ok) {
+              setBookings(prevBookings);
+              localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+              showToast('⚠️ Bulut kayıt hatası: Değişiklik kaydedilemedi, geri alındı.');
+            }
           },
-          (err) => console.warn('Bulut güncelleme hatası:', err)
+          () => {
+            setBookings(prevBookings);
+            localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+            showToast('⚠️ Ağ hatası: Rezervasyon güncellenemedi, geri alındı.');
+          }
         );
       }
     } else {
@@ -1391,6 +1492,7 @@ export default function AdminDashboard({
         ticketCode: generateTicketCode(),
         createdAt: new Date().toISOString().split('T')[0],
       };
+      const prevBookings = bookings;
       saveBookings([newBooking, ...bookings]);
       showToast(`Yeni rezervasyon eklendi — bilet kodu: ${newBooking.ticketCode}`);
 
@@ -1401,9 +1503,17 @@ export default function AdminDashboard({
         body: JSON.stringify(newBooking),
       }).then(
         (res) => {
-          if (!res.ok) console.warn('Bulut ekleme hatası:', res.status);
+          if (!res.ok) {
+            setBookings(prevBookings);
+            localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+            showToast('⚠️ Bulut kayıt hatası: Yeni rezervasyon sunucuya yazılamadı, geri alındı.');
+          }
         },
-        (err) => console.warn('Bulut ekleme hatası:', err)
+        () => {
+          setBookings(prevBookings);
+          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+          showToast('⚠️ Ağ hatası: Yeni rezervasyon sunucuya aktarılamadı, geri alındı.');
+        }
       );
     }
     setIsModalOpen(false);
@@ -1437,6 +1547,7 @@ export default function AdminDashboard({
       full.status = 'completed';
     }
 
+    const prevBookings = bookings;
     const updated = bookings.map((b) => (b.id === bookingId ? full : b));
     setBookings(updated);
     localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
@@ -1448,9 +1559,17 @@ export default function AdminDashboard({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(full),
       });
-      if (!res.ok) console.warn('Bulut atama senkron hatası:', res.status);
+      if (!res.ok) {
+        setBookings(prevBookings);
+        localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+        showToast('⚠️ Bulut atama senkron hatası: Değişiklik sunucuya kaydedilemedi, geri alındı.');
+        return null;
+      }
     } catch (err) {
-      console.warn('Bulut atama senkron hatası:', err);
+      setBookings(prevBookings);
+      localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
+      showToast('⚠️ Ağ hatası: Atama buluta kaydedilemedi, geri alındı.');
+      return null;
     }
 
     return full;
@@ -2483,14 +2602,42 @@ export default function AdminDashboard({
                 </kbd>
               </button>
 
-              {/* Canlı Bağlantı Durumu */}
-              <div
-                className="hidden sm:flex items-center gap-1.5 px-2 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-[11px] font-semibold text-slate-600 dark:text-slate-300"
-                title={isCloudConnected ? 'Bulut Canlı (Supabase)' : 'Yerel Mod'}
+              {/* Canlı Bulut Senkronizasyon Durumu & Manuel Yenileme */}
+              <button
+                type="button"
+                onClick={handleManualSync}
+                disabled={isSyncing}
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700/80 text-[11px] font-semibold text-slate-700 dark:text-slate-200 border border-slate-200/60 dark:border-slate-700/60 transition-all cursor-pointer disabled:opacity-75 disabled:cursor-wait"
+                title={
+                  isSyncing
+                    ? 'Bulut ile senkronize ediliyor...'
+                    : isCloudConnected
+                    ? `Bulut Canlı (Supabase Realtime Aktif)${lastSyncedAt ? ` • Son Eşitleme: ${lastSyncedAt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}` : ''} • Tıklayarak şimdi eşitle`
+                    : 'Yerel Mod (Buluta bağlanılamadı) • Tıklayarak tekrar dene'
+                }
               >
-                <span className={`w-2 h-2 rounded-full ${isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
-                <span className="hidden 2xl:inline">{isCloudConnected ? 'Canlı' : 'Yerel'}</span>
-              </div>
+                {isSyncing ? (
+                  <RefreshCw className="w-3.5 h-3.5 text-blue-500 animate-spin" />
+                ) : (
+                  <span
+                    className={`w-2 h-2 rounded-full ${
+                      isCloudConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-400'
+                    }`}
+                  />
+                )}
+                <span className="hidden xl:inline">
+                  {isSyncing
+                    ? 'Eşitleniyor...'
+                    : isCloudConnected
+                    ? 'Bulut Canlı'
+                    : 'Yerel Mod'}
+                </span>
+                {lastSyncedAt && !isSyncing && (
+                  <span className="hidden 2xl:inline text-[10px] text-slate-400 font-normal">
+                    {lastSyncedAt.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                )}
+              </button>
 
               <button
                 onClick={handleOpenCreateBooking}
@@ -2592,14 +2739,9 @@ export default function AdminDashboard({
             bookings={bookings}
             payments={payments}
             onAddPayment={handleAddPayment}
-            onUpdateBooking={(updated) => {
-              saveBookings(bookings.map((b) => (b.id === updated.id ? updated : b)));
-              void fetch('/api/bookings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updated),
-              });
-            }}
+            onUpdateBooking={(updated) =>
+              handleUpdateSingleBooking(updated, 'Ödeme ve bakiye durumu güncellendi! 💳')
+            }
             showToast={showToast}
             setVoucherBooking={setVoucherBooking}
           />
@@ -2649,15 +2791,9 @@ export default function AdminDashboard({
         {activeTab === 'settlements' && (
           <SupplierSettlementManager
             bookings={bookings}
-            onUpdateBooking={(updated) => {
-              saveBookings(bookings.map((b) => (b.id === updated.id ? updated : b)));
-              void fetch('/api/bookings', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updated),
-              });
-              showToast('Tedarikçi maliyeti güncellendi! 💰');
-            }}
+            onUpdateBooking={(updated) =>
+              handleUpdateSingleBooking(updated, 'Tedarikçi maliyeti güncellendi! 💰')
+            }
             managerPhone={siteSettings.whatsappNumber}
           />
         )}
