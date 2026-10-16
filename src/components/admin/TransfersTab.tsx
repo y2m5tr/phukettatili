@@ -24,6 +24,7 @@ import {
   Coins,
   Plane,
   Fuel,
+  Luggage,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
@@ -59,6 +60,8 @@ interface TransfersTabProps {
   onOpenFieldCashier?: () => void;
   onOpenFlightRadar?: () => void;
   onOpenDriverExpense?: () => void;
+  onOpenWelcomeBoard?: (b?: Booking) => void;
+  onOpenLuggageExpress?: () => void;
 }
 
 export default function TransfersTab({
@@ -80,6 +83,8 @@ export default function TransfersTab({
   onOpenFieldCashier,
   onOpenFlightRadar,
   onOpenDriverExpense,
+  onOpenWelcomeBoard,
+  onOpenLuggageExpress,
 }: TransfersTabProps) {
   const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
   const safeDrivers = Array.isArray(drivers) ? drivers : [];
@@ -441,6 +446,29 @@ export default function TransfersTab({
             >
               <Fuel className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               <span>⛽ Şoför Masrafı</span>
+            </button>
+          )}
+
+          {onOpenWelcomeBoard && (
+            <button
+              type="button"
+              onClick={() => onOpenWelcomeBoard()}
+              className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs sm:text-sm font-bold shadow-md shadow-amber-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Havalimanı VIP Karşılama İsimliği & Tablet Tabelası"
+            >
+              <span>🪧 VIP İsimlik</span>
+            </button>
+          )}
+
+          {onOpenLuggageExpress && (
+            <button
+              type="button"
+              onClick={onOpenLuggageExpress}
+              className="px-4 py-2 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-800 dark:text-indigo-300 border border-indigo-500/30 text-xs sm:text-sm font-bold shadow-md shadow-indigo-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Oteller Arası Bagaj Transfer & Emanet Takip Masası"
+            >
+              <Luggage className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span>🧳 Bagaj Transferi</span>
             </button>
           )}
         </div>

@@ -1,0 +1,224 @@
+---
+import '../../styles/global.css';
+import { initialBookings, type Booking } from '../../data/adminInitialData';
+import {
+  WELCOME_BOARD_THEMES,
+  GREETINGS,
+  formatNameboardGuestName,
+  type WelcomeBoardTheme,
+} from '../../lib/welcomeBoard';
+
+export const prerender = false;
+
+const { code } = Astro.params;
+const rawTheme = (Astro.url.searchParams.get('theme') || 'luxury_dark') as WelcomeBoardTheme;
+const rawLang = (Astro.url.searchParams.get('lang') || 'tr') as 'tr' | 'en' | 'th';
+
+const themeKey = WELCOME_BOARD_THEMES[rawTheme] ? rawTheme : 'luxury_dark';
+const theme = WELCOME_BOARD_THEMES[themeKey];
+const langKey = GREETINGS[rawLang] ? rawLang : 'tr';
+const greeting = GREETINGS[langKey];
+
+// URL query override veya booking lookup
+const queryName = Astro.url.searchParams.get('name');
+const queryFlight = Astro.url.searchParams.get('flight');
+const queryHotel = Astro.url.searchParams.get('hotel');
+const queryGuests = Astro.url.searchParams.get('pax');
+
+let booking: Booking | undefined;
+if (code && code !== 'demo') {
+  booking = initialBookings.find(
+    (b) => b.id.toLowerCase() === code.toLowerCase() || (b.ticketCode && b.ticketCode.toLowerCase() === code.toLowerCase())
+  );
+}
+
+const guestName = formatNameboardGuestName(queryName || booking?.customerName || 'MURAT YILMAZ');
+const flightNumber = (queryFlight || booking?.flightNumber || 'TK 172').toUpperCase();
+const hotelName = queryHotel || booking?.hotel || 'The Shore at Katathani';
+const passengerCount = queryGuests || (booking ? (booking.adultCount || 1) + (booking.childCount || 0) : 2);
+---
+
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>{`${guestName} - VIP Karşılama Tabelası | Phuket Tatili`}</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  </head>
+  <body class="antialiased selection:bg-brand-accent selection:text-slate-950 overflow-x-hidden">
+    <div class={`min-h-screen flex flex-col justify-between p-6 sm:p-12 transition-colors duration-300 relative select-none ${theme.bgClass}`}>
+    
+    <!-- Üst Kontrol & Marka Çubuğu (Baskıda Gizlenir) -->
+    <header class="flex flex-wrap items-center justify-between gap-4 border-b pb-6 print:hidden border-current/20">
+      <div class="flex items-center gap-3">
+        <a href="/" class="flex items-center gap-2 group">
+          <span class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-xl shadow-inner">
+            🌴
+          </span>
+          <div>
+            <span class="text-lg font-black tracking-wider uppercase block font-serif">PHUKET TATİLİ</span>
+            <span class="text-[10px] tracking-widest uppercase opacity-70 block font-mono">VIP CONCIERGE & TRANSFER</span>
+          </div>
+        </a>
+      </div>
+
+      <!-- Araç Çubuğu: Tema, Dil, Tam Ekran & Yazdır -->
+      <div class="flex flex-wrap items-center gap-2 text-xs">
+        <!-- Dil Seçimi -->
+        <div class="flex items-center rounded-xl bg-black/20 p-1 border border-current/20">
+          <a
+            href={`/tabela/${code || 'demo'}?theme=${themeKey}&lang=tr&name=${encodeURIComponent(guestName)}&flight=${encodeURIComponent(flightNumber)}&hotel=${encodeURIComponent(hotelName)}`}
+            class={`px-2.5 py-1 rounded-lg font-bold transition ${langKey === 'tr' ? 'bg-amber-500 text-slate-950 font-black' : 'opacity-70 hover:opacity-100'}`}
+          >
+            TR
+          </a>
+          <a
+            href={`/tabela/${code || 'demo'}?theme=${themeKey}&lang=en&name=${encodeURIComponent(guestName)}&flight=${encodeURIComponent(flightNumber)}&hotel=${encodeURIComponent(hotelName)}`}
+            class={`px-2.5 py-1 rounded-lg font-bold transition ${langKey === 'en' ? 'bg-amber-500 text-slate-950 font-black' : 'opacity-70 hover:opacity-100'}`}
+          >
+            EN
+          </a>
+          <a
+            href={`/tabela/${code || 'demo'}?theme=${themeKey}&lang=th&name=${encodeURIComponent(guestName)}&flight=${encodeURIComponent(flightNumber)}&hotel=${encodeURIComponent(hotelName)}`}
+            class={`px-2.5 py-1 rounded-lg font-bold transition ${langKey === 'th' ? 'bg-amber-500 text-slate-950 font-black' : 'opacity-70 hover:opacity-100'}`}
+          >
+            TH
+          </a>
+        </div>
+
+        <!-- Tema Seçimi -->
+        <div class="hidden sm:flex items-center rounded-xl bg-black/20 p-1 border border-current/20">
+          <a
+            href={`/tabela/${code || 'demo'}?theme=luxury_dark&lang=${langKey}&name=${encodeURIComponent(guestName)}&flight=${encodeURIComponent(flightNumber)}&hotel=${encodeURIComponent(hotelName)}`}
+            class={`px-2.5 py-1 rounded-lg font-semibold transition ${themeKey === 'luxury_dark' ? 'bg-white/20 font-bold' : 'opacity-60 hover:opacity-100'}`}
+            title="Karanlık Lüks"
+          >
+            🌙 Gece
+          </a>
+          <a
+            href={`/tabela/${code || 'demo'}?theme=bright_airport&lang=${langKey}&name=${encodeURIComponent(guestName)}&flight=${encodeURIComponent(flightNumber)}&hotel=${encodeURIComponent(hotelName)}`}
+            class={`px-2.5 py-1 rounded-lg font-semibold transition ${themeKey === 'bright_airport' ? 'bg-slate-900 text-amber-400 font-bold' : 'opacity-60 hover:opacity-100'}`}
+            title="Yüksek Görünürlük Sarı"
+          >
+            ⚡ Sarı
+          </a>
+          <a
+            href={`/tabela/${code || 'demo'}?theme=gold_vip&lang=${langKey}&name=${encodeURIComponent(guestName)}&flight=${encodeURIComponent(flightNumber)}&hotel=${encodeURIComponent(hotelName)}`}
+            class={`px-2.5 py-1 rounded-lg font-semibold transition ${themeKey === 'gold_vip' ? 'bg-amber-400 text-slate-950 font-bold' : 'opacity-60 hover:opacity-100'}`}
+            title="Royal Gold"
+          >
+            👑 Gold
+          </a>
+        </div>
+
+        <!-- Tam Ekran Butonu -->
+        <button
+          type="button"
+          id="btn-fullscreen"
+          class="px-3 py-1.5 rounded-xl bg-black/20 hover:bg-black/30 border border-current/20 font-bold flex items-center gap-1.5 transition cursor-pointer"
+          title="Tableti tam ekran moduna al"
+        >
+          <span>⛶</span>
+          <span class="hidden sm:inline">Tam Ekran</span>
+        </button>
+
+        <!-- Yazdır Butonu -->
+        <button
+          type="button"
+          onclick="window.print()"
+          class="px-3 py-1.5 rounded-xl bg-black/20 hover:bg-black/30 border border-current/20 font-bold flex items-center gap-1.5 transition cursor-pointer"
+          title="A4 renkli çıktı al"
+        >
+          <span>🖨️</span>
+          <span class="hidden sm:inline">Yazdır</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Ana Karşılama İsimlik Gövdesi -->
+    <main class="flex-1 flex flex-col justify-center items-center text-center my-auto py-10 sm:py-16">
+      
+      <!-- Dekoratif Başlık Rozeti -->
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs sm:text-sm font-black uppercase tracking-widest border mb-6 shadow-sm backdrop-blur-md border-current/30 bg-current/5">
+        <span class="animate-pulse">✨</span>
+        <span>{greeting.subtitle}</span>
+        <span class="animate-pulse">✨</span>
+      </div>
+
+      <!-- Hoş Geldiniz Mesajı -->
+      <h2 class="text-2xl sm:text-3xl md:text-4xl font-serif font-light tracking-wide opacity-80 mb-2">
+        {greeting.title}
+      </h2>
+
+      <!-- BÜYÜK MİSAFİR ADI (Havalanında 20 metreden okunacak puntolar) -->
+      <div class="my-6 sm:my-10 w-full max-w-5xl px-4">
+        <div class="border-y-2 border-current/40 py-6 sm:py-10">
+          <h1 class="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-black font-serif tracking-tight leading-none break-words uppercase drop-shadow-sm">
+            {guestName}
+          </h1>
+        </div>
+      </div>
+
+      <!-- Alt Detay Kartları: Uçuş No, Otel ve Kişi Sayısı -->
+      <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-8 max-w-4xl text-left">
+        <div class="p-4 sm:p-5 rounded-2xl border border-current/20 bg-current/5 backdrop-blur-md min-w-[160px] sm:min-w-[190px]">
+          <span class="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-60 block">
+            ✈️ {greeting.flight}
+          </span>
+          <span class="text-lg sm:text-2xl font-mono font-black mt-0.5 block tracking-wide">
+            {flightNumber}
+          </span>
+        </div>
+
+        <div class="p-4 sm:p-5 rounded-2xl border border-current/20 bg-current/5 backdrop-blur-md min-w-[200px] sm:min-w-[260px]">
+          <span class="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-60 block">
+            🏨 {greeting.hotel}
+          </span>
+          <span class="text-sm sm:text-base font-bold mt-0.5 block truncate max-w-[260px]">
+            {hotelName}
+          </span>
+        </div>
+
+        <div class="p-4 sm:p-5 rounded-2xl border border-current/20 bg-current/5 backdrop-blur-md min-w-[120px]">
+          <span class="text-[10px] sm:text-xs uppercase tracking-wider font-bold opacity-60 block">
+            👥 {greeting.guests}
+          </span>
+          <span class="text-lg sm:text-2xl font-black mt-0.5 block">
+            {passengerCount} Pax
+          </span>
+        </div>
+      </div>
+    </main>
+
+    <!-- Alt Bilgi & 24/7 Concierge Desteği -->
+    <footer class="border-t pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs opacity-75 border-current/20">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+        <span class="font-mono">HKT GATE EXIT · DRIVER CONCIERGE ASSIGNED</span>
+      </div>
+      <div class="text-center sm:text-right">
+        <span>Phuket Tatili 24/7 Destek & WhatsApp: </span>
+        <strong class="font-mono">+66 82 890 0000</strong>
+      </div>
+    </footer>
+  </div>
+
+  <script is:inline>
+    // Tam Ekran Tıklama Davranışı
+    const fsBtn = document.getElementById('btn-fullscreen');
+    if (fsBtn) {
+      fsBtn.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+          fsBtn.innerHTML = '<span>✕</span><span class="hidden sm:inline">Kapat</span>';
+        } else {
+          document.exitFullscreen().catch(() => {});
+          fsBtn.innerHTML = '<span>⛶</span><span class="hidden sm:inline">Tam Ekran</span>';
+        }
+      });
+    }
+  </script>
+</body>
+</html>

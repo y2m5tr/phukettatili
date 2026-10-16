@@ -31,6 +31,8 @@ interface BookingsTabProps {
   onOpenDietaryManifest?: () => void;
   onOpenFieldCashier?: (b?: Booking) => void;
   onOpenFlightRadar?: (flight?: string, guestName?: string) => void;
+  onOpenWelcomeBoard?: (b: Booking) => void;
+  onOpenTourMedia?: (b: Booking) => void;
 }
 
 export default function BookingsTab({
@@ -53,6 +55,8 @@ export default function BookingsTab({
   onOpenDietaryManifest,
   onOpenFieldCashier,
   onOpenFlightRadar,
+  onOpenWelcomeBoard,
+  onOpenTourMedia,
 }: BookingsTabProps) {
   return (
     <div className="space-y-6">
@@ -378,6 +382,35 @@ export default function BookingsTab({
                             title="Kurumsal Teklif / Voucher (PDF) Oluştur"
                           >
                             <FileText className="w-4 h-4" />
+                          </button>
+                        )}
+                        {onOpenWelcomeBoard && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenWelcomeBoard(b)}
+                            className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors"
+                            title="🪧 VIP Karşılama İsimlik & Tablet Tabelası"
+                          >
+                            <span className="text-sm">🪧</span>
+                          </button>
+                        )}
+                        <a
+                          href={`/foto/${b.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
+                          title="📸 Misafir Fotoğraf Kasası (/foto/[kod])"
+                        >
+                          <span className="text-sm">📸</span>
+                        </a>
+                        {onOpenTourMedia && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenTourMedia(b)}
+                            className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-colors"
+                            title="📂 Fotoğraf Albüm Linki Ekle & WhatsApp Gönder"
+                          >
+                            <span className="text-sm">📂</span>
                           </button>
                         )}
                         <button

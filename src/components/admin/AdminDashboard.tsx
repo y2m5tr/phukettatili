@@ -105,6 +105,9 @@ import DietaryManifestModal from './DietaryManifestModal';
 import FieldCashierModal from './FieldCashierModal';
 import FlightRadarModal from './FlightRadarModal';
 import DriverExpenseModal from './DriverExpenseModal';
+import WelcomeBoardModal from './WelcomeBoardModal';
+import TourMediaModal from './TourMediaModal';
+import LuggageExpressModal from './LuggageExpressModal';
 import AdminErrorBoundary from './AdminErrorBoundary';
 import {
   loadCmsCollections,
@@ -558,6 +561,17 @@ export default function AdminDashboard({
 
   // Şoför Saha Yakıt, Otopark & Harç Masraf Masası Modalı
   const [isDriverExpenseOpen, setIsDriverExpenseOpen] = useState<boolean>(false);
+
+  // VIP Karşılama Tabela Stüdyosu Modalı
+  const [isWelcomeBoardOpen, setIsWelcomeBoardOpen] = useState<boolean>(false);
+  const [welcomeBoardBooking, setWelcomeBoardBooking] = useState<Booking | null>(null);
+
+  // Misafir Tur Fotoğraf & Video Teslim Kasası Modalı
+  const [isTourMediaOpen, setIsTourMediaOpen] = useState<boolean>(false);
+  const [tourMediaBooking, setTourMediaBooking] = useState<Booking | null>(null);
+
+  // Oteller Arası Bagaj Transfer Masası Modalı
+  const [isLuggageExpressOpen, setIsLuggageExpressOpen] = useState<boolean>(false);
 
   const handleBulkReschedule = async (
     bookingIds: string[],
@@ -2314,6 +2328,28 @@ export default function AdminDashboard({
             </button>
 
             <button
+              type="button"
+              onClick={() => {
+                setWelcomeBoardBooking(null);
+                setIsWelcomeBoardOpen(true);
+              }}
+              className="hidden 2xl:flex px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer"
+              title="Havalimanı VIP Karşılama İsimlik Stüdyosu (Tablet & Baskı)"
+            >
+              <span>🪧 İsimlik</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsLuggageExpressOpen(true)}
+              className="hidden 2xl:flex px-3 py-1.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/30 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer"
+              title="Oteller Arası Bagaj Transfer Masası"
+            >
+              <Luggage className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>Bagaj Masası</span>
+            </button>
+
+            <button
               onClick={handleOpenCreateBooking}
               className="px-3.5 py-1.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
             >
@@ -2393,6 +2429,14 @@ export default function AdminDashboard({
               setFlightRadarGuest(guest || '');
               setIsFlightRadarOpen(true);
             }}
+            onOpenWelcomeBoard={(b) => {
+              setWelcomeBoardBooking(b);
+              setIsWelcomeBoardOpen(true);
+            }}
+            onOpenTourMedia={(b) => {
+              setTourMediaBooking(b);
+              setIsTourMediaOpen(true);
+            }}
           />
         )}
 
@@ -2447,6 +2491,11 @@ export default function AdminDashboard({
               setIsFlightRadarOpen(true);
             }}
             onOpenDriverExpense={() => setIsDriverExpenseOpen(true)}
+            onOpenWelcomeBoard={(b) => {
+              setWelcomeBoardBooking(b || null);
+              setIsWelcomeBoardOpen(true);
+            }}
+            onOpenLuggageExpress={() => setIsLuggageExpressOpen(true)}
           />
         )}
 
@@ -4465,6 +4514,46 @@ export default function AdminDashboard({
           onClose={() => setIsDriverExpenseOpen(false)}
           drivers={drivers}
           vehicles={vehicles}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 21: VIP KARŞILAMA TABELA STÜDYOSU (TABLET & BASKI) */}
+      {/* ==================================================== */}
+      {isWelcomeBoardOpen && (
+        <WelcomeBoardModal
+          isOpen={isWelcomeBoardOpen}
+          onClose={() => setIsWelcomeBoardOpen(false)}
+          bookings={bookings}
+          drivers={drivers}
+          initialBooking={welcomeBoardBooking}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 22: MİSAFİR TUR FOTOĞRAF & VİDEO TESLİM KASASI */}
+      {/* ==================================================== */}
+      {isTourMediaOpen && (
+        <TourMediaModal
+          isOpen={isTourMediaOpen}
+          onClose={() => setIsTourMediaOpen(false)}
+          bookings={bookings}
+          initialBooking={tourMediaBooking}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 23: OTELLER ARASI BAGAJ TRANSFER MASASI */}
+      {/* ==================================================== */}
+      {isLuggageExpressOpen && (
+        <LuggageExpressModal
+          isOpen={isLuggageExpressOpen}
+          onClose={() => setIsLuggageExpressOpen(false)}
+          bookings={bookings}
+          drivers={drivers}
           showToast={showToast}
         />
       )}

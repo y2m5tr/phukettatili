@@ -191,6 +191,45 @@ const whatsappNumber = siteSettings.whatsappNumber || '905321112233';
           ))}
         </div>
 
+        <!-- Misafir Yardımcı Araçları: Fotoğraflar & Tayca Asistan -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <a
+            href={`/foto/${code}`}
+            class="p-4 rounded-2xl bg-gradient-to-r from-purple-950/40 to-slate-900 border border-purple-500/30 hover:border-purple-400 transition flex items-center justify-between gap-3 group"
+          >
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center text-xl">
+                📸
+              </span>
+              <div>
+                <strong class="text-xs sm:text-sm font-bold text-white block group-hover:text-purple-300 transition">
+                  Tur Fotoğraf Kasanız
+                </strong>
+                <span class="text-[11px] text-slate-400">Yüksek çözünürlüklü hatıra fotoğrafları</span>
+              </div>
+            </div>
+            <span class="text-purple-400 text-xs font-bold">Aç →</span>
+          </a>
+
+          <a
+            href="/tayca"
+            class="p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 to-slate-900 border border-emerald-500/30 hover:border-emerald-400 transition flex items-center justify-between gap-3 group"
+          >
+            <div class="flex items-center gap-3">
+              <span class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-300 flex items-center justify-center text-xl">
+                🗣️
+              </span>
+              <div>
+                <strong class="text-xs sm:text-sm font-bold text-white block group-hover:text-emerald-300 transition">
+                  Tayca Sesli İletişim Kartları
+                </strong>
+                <span class="text-[11px] text-slate-400">Acısız yemek, taksi ve acil durumlar</span>
+              </div>
+            </div>
+            <span class="text-emerald-400 text-xs font-bold">Aç →</span>
+          </a>
+        </div>
+
         <!-- 24/7 Operations Concierge Card -->
         <div class="p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div class="space-y-0.5 text-center sm:text-left">
