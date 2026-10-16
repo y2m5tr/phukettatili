@@ -128,6 +128,7 @@ import {
 } from '../../lib/supabase';
 import { generateTicketCode } from '../../lib/ticketCodes';
 import { useAdminStore } from '../../stores/useAdminStore';
+import { getRolePermissions, getRoleBadge } from '../../lib/rbac';
 
 const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v2';
 const STORAGE_KEY_TOURS = 'phuket_tatili_crm_tours_v2';
@@ -415,28 +416,30 @@ export default function AdminDashboard({
   // client'ta şifre tutulmaz; çıkış da sunucuya bırakılır.
   const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
 
-  const visibleNavItems = useMemo(
-    () => NAV_ITEMS.filter((i) => i.id !== 'users' || viewerRole === 'owner'),
-    [viewerRole],
-  );
-  const canDeleteBookings = viewerRole === 'owner' || viewerRole === null;
+  // Rol Bazlı Yetki Matrisi (RBAC)
+  const perms = useMemo(() => getRolePermissions(viewerRole), [viewerRole]);
+  const roleBadge = useMemo(() => getRoleBadge(viewerRole), [viewerRole]);
 
-  // Active Tab — son seçim localStorage'da tutulur; sayfa yenilense bile
-  // kullanıcı kaldığı bölüme döner (operasyonda sık yenileme yapılır).
-  // URL'de ?tab=... varsa o ÖNCE gelir: "tarih filtreli müşteri listesi"
-  // gibi linkler ekip içinde paylaşılabilir.
+  const visibleNavItems = useMemo(
+    () => NAV_ITEMS.filter((i) => perms.allowedTabs.includes(i.id)),
+    [perms],
+  );
+  const canDeleteBookings = perms.canDeleteBookings;
+
+  // Active Tab — izinli sekmelere göre filtrelenir; yetkisiz sekmeye düşmez.
+  // URL'de ?tab=... varsa ve role izinliyse o gelir, yoksa rolün varsayılan sekmesi (örn. şoför için 'transfers').
   const [activeTab, setActiveTabState] = useState<AdminTab>(() => {
     if (typeof window !== 'undefined') {
       try {
         const isAllowedTab = (t: string | null): t is AdminTab =>
-          Boolean(t && (t !== 'users' || viewerRole === 'owner') && NAV_ITEMS.some((i) => i.id === t));
+          Boolean(t && perms.allowedTabs.includes(t as AdminTab));
         const urlTab = new URL(window.location.href).searchParams.get('tab');
         if (isAllowedTab(urlTab)) return urlTab;
         const saved = window.localStorage.getItem('ptt_admin_active_tab');
         if (isAllowedTab(saved)) return saved;
       } catch { /* gizli mod / kota: sessizce varsayılana düş */ }
     }
-    return 'overview';
+    return perms.defaultTab;
   });
   const setActiveTab = (tab: AdminTab) => {
     setActiveTabState(tab);
@@ -2280,13 +2283,13 @@ export default function AdminDashboard({
                 <div className="min-w-0">
                   <p className="text-xs font-bold truncate text-slate-800 dark:text-slate-200">Murat Gençer</p>
                   <p className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
-                    {viewerRole === 'owner' ? '👑 Yönetici' : '🧭 Müdür'}
+                    {roleBadge.label}
                   </p>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex justify-center py-1" title="Murat Gençer (👑 Yönetici)">
+            <div className="flex justify-center py-1" title={`Murat Gençer (${roleBadge.label})`}>
               <div className="w-8 h-8 rounded-xl bg-brand-primary/10 text-brand-primary dark:text-brand-accent flex items-center justify-center font-bold text-xs">
                 MG
               </div>
@@ -2639,14 +2642,16 @@ export default function AdminDashboard({
                 )}
               </button>
 
-              <button
-                onClick={handleOpenCreateBooking}
-                className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Yeni Rezervasyon</span>
-                <span className="sm:hidden">Yeni</span>
-              </button>
+              {perms.canCreateBookings && (
+                <button
+                  onClick={handleOpenCreateBooking}
+                  className="px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer shrink-0"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span className="hidden sm:inline">Yeni Rezervasyon</span>
+                  <span className="sm:hidden">Yeni</span>
+                </button>
+              )}
 
               <button
                 onClick={handleLogout}
@@ -2681,11 +2686,12 @@ export default function AdminDashboard({
             blogsCount={blogs.length}
             faqsCount={faqs.length}
             testimonialsCount={testimonials.length}
+            canViewFinancialMargins={perms.canViewFinancialMargins}
             setActiveTab={setActiveTab}
-            onOpenCreateBooking={handleOpenCreateBooking}
+            onOpenCreateBooking={perms.canCreateBookings ? handleOpenCreateBooking : undefined}
             onOpenQrScanner={() => setIsQrScannerOpen(true)}
             onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
-            onOpenBulkReschedule={() => setIsBulkRescheduleOpen(true)}
+            onOpenBulkReschedule={perms.canAssignTransfers ? () => setIsBulkRescheduleOpen(true) : undefined}
           />
         )}
 
@@ -2734,7 +2740,7 @@ export default function AdminDashboard({
         {/* ==================================================== */}
         {/* TAB 2.3: ERP FINANCE & CASHFLOW */}
         {/* ==================================================== */}
-        {activeTab === 'finance' && (
+        {activeTab === 'finance' && perms.allowedTabs.includes('finance') && (
           <FinanceTab
             bookings={bookings}
             payments={payments}
@@ -2788,7 +2794,7 @@ export default function AdminDashboard({
         {/* ==================================================== */}
         {/* TAB 2.55: SUPPLIER SETTLEMENTS & PROFIT ENGINE */}
         {/* ==================================================== */}
-        {activeTab === 'settlements' && (
+        {activeTab === 'settlements' && perms.canViewFinancialMargins && (
           <SupplierSettlementManager
             bookings={bookings}
             onUpdateBooking={(updated) =>
@@ -2935,7 +2941,7 @@ export default function AdminDashboard({
         {/* ==================================================== */}
         {/* TAB 9: SITE & HERO SETTINGS */}
         {/* ==================================================== */}
-        {activeTab === 'settings' && (
+        {activeTab === 'settings' && perms.canManageSettings && (
           <SettingsTab
             siteSettings={siteSettings}
             setSiteSettings={setSiteSettings}
@@ -2952,7 +2958,7 @@ export default function AdminDashboard({
         {/* TAB 10: EKİP ÜYELERİ — yalnızca owner (üyelik sistemi).
             manager paneli görür ama bu sekmeyi görmez; API tarafında
             ayrıca owner-only guard çalışır (UI gizlemesi kozmetik). */}
-        {activeTab === 'users' && viewerRole === 'owner' && (
+        {activeTab === 'users' && perms.canManageUsers && (
           <UsersTab showToast={showToast} />
         )}
           </AdminErrorBoundary>

@@ -55,7 +55,9 @@ function validKey(key: unknown): key is string {
 }
 
 export const GET: APIRoute = async (context) => {
-  const guard = guardApi(context, 'manager');
+  // Tüm yetkili personel (şoför ve rehber dahil) araç/şoför/tur listelerini okuyabilir.
+  // Yazma (PUT) işlemi aşağıda 'manager' seviyesine kilitlidir.
+  const guard = guardApi(context);
   if (!guard.allowed) return guard.response!;
 
   if (!isSupabaseAdminConfigured()) {

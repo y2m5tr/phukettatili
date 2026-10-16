@@ -19,7 +19,7 @@ export const prerender = false;
 const cookieVal = Astro.cookies.get(SESSION_COOKIE)?.value;
 const membershipSession = readMembershipSession(cookieVal);
 const oldSession = readSessionValue(cookieVal);
-const viewerRole = membershipSession?.role || (oldSession === 'admin' ? 'owner' : null);
+const viewerRole = membershipSession?.role || (oldSession === 'admin' ? 'owner' : oldSession === 'field' ? 'guide' : null);
 
 // 1. Tours — gallery ve tüm operasyonel ayrıntılar dahil
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
