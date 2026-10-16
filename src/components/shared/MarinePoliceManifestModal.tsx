@@ -66,7 +66,7 @@ export default function MarinePoliceManifestModal({
           passportNo: p.passportNo || 'GİRİLMEDİ',
           nationality: p.nationality || 'TÜRKİYE (TUR)',
           birthDate: p.birthDate || '-',
-          gender: p.gender || '-',
+          gender: (p.gender === 'male' || p.gender === 'M') ? 'M' : (p.gender === 'female' || p.gender === 'F') ? 'F' : '-',
         });
       });
     } else {

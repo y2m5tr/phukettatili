@@ -1807,7 +1807,6 @@ export default function AdminDashboard({
   // Tour CRUD
   const handleOpenCreateTour = () => {
     setEditingTour(null);
-    setTourActiveTab('general');
     setTourFormData({
       title: '',
       category: 'island-tours',
@@ -1861,7 +1860,6 @@ export default function AdminDashboard({
 
   const handleOpenEditTour = (t: TourItem) => {
     setEditingTour(t);
-    setTourActiveTab('general');
     setTourFormData({
       ...t,
       gallery: t.gallery || [],
@@ -3183,6 +3181,8 @@ export default function AdminDashboard({
         setTourFormData={setTourFormData}
         onSubmit={handleSubmitTour}
         getImageUrl={getImageUrl}
+        handleFileUpload={handleFileUpload}
+        allImageOptions={allImageOptions}
       />
 
       {/* ==================================================== */}
@@ -3479,7 +3479,7 @@ export default function AdminDashboard({
           showToast={showToast}
           onRecordPayment={(payment) => {
             handleAddPayment({
-              bookingId: payment.bookingId,
+              bookingId: payment.bookingId || cashierBooking?.id || '',
               amountThb: payment.amountThb,
               method: 'cash_thb',
               collectedBy: 'Saha Kasa / Şoför',

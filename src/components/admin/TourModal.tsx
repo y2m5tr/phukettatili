@@ -21,6 +21,8 @@ interface TourModalProps {
   setTourFormData: React.Dispatch<React.SetStateAction<Partial<TourItem>>>;
   onSubmit: (e: React.FormEvent) => void;
   getImageUrl?: (url?: string) => string;
+  handleFileUpload?: (file: File, callback?: (url: string) => void) => void;
+  allImageOptions?: string[];
 }
 
 export default function TourModal({
@@ -35,6 +37,16 @@ export default function TourModal({
     if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) return url;
     return `/images/${url}`;
   },
+  handleFileUpload = (file: File, callback?: (url: string) => void) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      if (e.target?.result && callback) {
+        callback(e.target.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+  },
+  allImageOptions = [],
 }: TourModalProps) {
   if (!isOpen) return null;
 

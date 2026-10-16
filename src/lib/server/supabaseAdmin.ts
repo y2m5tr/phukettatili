@@ -90,7 +90,9 @@ export function getSupabaseAdmin(): SupabaseClient | null {
  */
 const BOOKINGS_SIGNAL_CHANNEL = 'bookings-changed';
 
-export async function broadcastBookingsChanged(source: 'admin' | 'field' | 'admin-cms'): Promise<void> {
+export async function broadcastBookingsChanged(
+  source: 'admin' | 'field' | 'admin-cms' | 'public-web'
+): Promise<void> {
   const admin = getSupabaseAdmin();
   if (!admin) return;
   try {

@@ -3,17 +3,45 @@ import React from 'react';
 import { renderToString } from 'react-dom/server';
 import AdminDashboard from '../src/components/admin/AdminDashboard';
 import {
-  initialTours,
-  initialBlogs,
-  initialServices,
-  initialFaqs,
-  initialTestimonials,
-  initialSiteSettings,
   initialBookings,
   initialVehicles,
   initialDrivers,
+  type TourItem,
+  type BlogItem,
+  type ServiceItem,
+  type FaqItem,
+  type TestimonialItem,
 } from '../src/data/adminInitialData';
+import type { SiteSettingsState } from '../src/components/admin/SettingsTab';
 import TransfersTab from '../src/components/admin/TransfersTab';
+
+const initialTours: TourItem[] = [
+  {
+    id: 'phi-phi-island',
+    title: 'Phi Phi, Maya Bay ve Bamboo Adası',
+    category: 'island-tours',
+    categoryLabel: 'Ada Turları',
+    priceThb: 3200,
+    duration: 'Tam Gün (08:00 - 17:00)',
+    featured: true,
+    active: true,
+    image: 'phuket_hero.webp',
+    excerpt: 'Turkuaz sular ve eşsiz koylar.',
+  },
+];
+const initialBlogs: BlogItem[] = [];
+const initialServices: ServiceItem[] = [];
+const initialFaqs: FaqItem[] = [];
+const initialTestimonials: TestimonialItem[] = [];
+const initialSiteSettings: SiteSettingsState = {
+  whatsappNumber: '66828950665',
+  email: 'info@phukettatili.com',
+  siteTitle: 'Phuket Tatili',
+  instagramUrl: 'https://instagram.com/phukettatili',
+  heroTitle: 'Phuket Tatili',
+  heroSubtitle: 'En İyi Turlar',
+  heroImage: 'phuket_hero.webp',
+};
 
 describe('AdminDashboard & TransfersTab deep test', () => {
   it('renders TransfersTab with various booking states', () => {
@@ -31,8 +59,9 @@ describe('AdminDashboard & TransfersTab deep test', () => {
         adultCount: 2,
         childCount: 0,
         totalPriceThb: 5000,
+        paidAmountThb: 0,
         status: 'confirmed' as const,
-        paymentStatus: 'pending' as const,
+        paymentStatus: 'unpaid' as const,
         createdAt: '2026-10-16',
         remainingAmountThb: undefined as any,
         pickupTime: undefined,
@@ -51,8 +80,9 @@ describe('AdminDashboard & TransfersTab deep test', () => {
         adultCount: 1,
         childCount: 1,
         totalPriceThb: 4000,
+        paidAmountThb: 0,
         status: 'confirmed' as const,
-        paymentStatus: 'pending' as const,
+        paymentStatus: 'unpaid' as const,
         createdAt: '2026-10-16',
         remainingAmountThb: null as any,
         pickupTime: null as any,
@@ -68,6 +98,7 @@ describe('AdminDashboard & TransfersTab deep test', () => {
         adultCount: 2,
         childCount: 0,
         totalPriceThb: 6000,
+        paidAmountThb: 6000,
         status: 'confirmed' as const,
         paymentStatus: 'paid' as const,
         createdAt: '2026-10-16',

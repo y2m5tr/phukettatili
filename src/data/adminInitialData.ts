@@ -24,11 +24,13 @@ export type DietaryPreference =
   | 'seafood_allergy';
 
 export interface PassengerItem {
+  id?: string;
   fullName: string;
   passportNo?: string;
+  passportNumber?: string;
   nationality?: string;
   birthDate?: string;
-  gender?: 'M' | 'F';
+  gender?: 'M' | 'F' | 'male' | 'female' | '-';
   dietaryPreference?: DietaryPreference;
 }
 
@@ -71,7 +73,7 @@ export interface Booking {
   email?: string;
   hotel: string;
   roomNumber?: string;
-  tourId: string;
+  tourId?: string;
   tourTitle: string;
   tourDate: string;
   pickupTime?: string;
@@ -83,6 +85,7 @@ export interface Booking {
   supplier?: string;
   paidAmountThb: number;
   remainingAmountThb: number;
+  flightNumber?: string;
   nationalParkFeeIncluded?: boolean;
   status: 'inquiry' | 'confirmed' | 'completed' | 'cancelled';
   pickupStatus?: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show';
@@ -115,7 +118,7 @@ export interface Booking {
   lastWhatsAppNotifiedAt?: string;
   whatsAppReminderSent?: boolean;
   whatsAppReviewSent?: boolean;
-  createdAt: string;
+  createdAt?: string;
 }
 
 /**
@@ -287,10 +290,12 @@ export interface VehicleItem {
 export interface DriverItem {
   id: string;
   fullName: string;
+  name?: string;
   phone?: string;
   role: 'driver' | 'guide' | 'both';
   licenseNo?: string;
   vehicleId?: string;
+  assignedVehicle?: string;
   active: boolean;
   notes?: string;
 }

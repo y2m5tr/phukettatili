@@ -55,6 +55,9 @@ export default function CommandPaletteModal({
   onOpenQrScanner,
   onOpenPoliceManifest,
   onOpenBulkReschedule,
+  onOpenLostFound,
+  onOpenDietaryManifest,
+  onOpenFieldCashier,
   onSelectBooking,
   onSetNavMode,
 }: CommandPaletteModalProps) {

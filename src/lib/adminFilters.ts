@@ -56,13 +56,14 @@ export interface PickupItem {
   hotel: string;
   roomNumber?: string;
   tourTitle: string;
+  tourDate?: string;
   pickupTime: string;
   adultCount: number;
   childCount: number;
   remainingAmountThb: number;
   specialNotes?: string;
   supplier?: string;
-  status: string;
+  status?: string;
   assignedVehicle?: string;
   assignedDriver?: string;
   hotelZone: string;

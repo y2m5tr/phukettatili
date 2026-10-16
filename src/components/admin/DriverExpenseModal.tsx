@@ -80,12 +80,16 @@ export default function DriverExpenseModal({
     }
   }, [expenses]);
 
-  const activeDriver = useMemo(() => {
+  const activeDriver = useMemo<DriverItem>(() => {
     return (
       drivers.find((d) => d.id === selectedDriverId) || {
         id: selectedDriverId,
+        fullName: 'Somchai Prasert',
         name: 'Somchai Prasert',
         phone: '+66812345678',
+        role: 'driver',
+        active: true,
+        vehicleId: 'veh-minibus-2',
         assignedVehicle: 'VIP Van 35-1249',
       }
     );
@@ -109,7 +113,7 @@ export default function DriverExpenseModal({
       id: `DEXP-${Date.now().toString().slice(-4)}`,
       date: selectedDate,
       driverId: activeDriver.id,
-      driverName: activeDriver.name,
+      driverName: (activeDriver as any).fullName || (activeDriver as any).name || 'Şoför',
       vehiclePlate: (activeDriver as any).assignedVehicle || 'Van 35-1249',
       category,
       amountThb: amount,
@@ -142,7 +146,7 @@ export default function DriverExpenseModal({
 
   const whatsappMessage = useMemo(() => {
     return generateDriverDayEndSettlementWhatsApp({
-      driverName: activeDriver.name,
+      driverName: activeDriver.fullName || activeDriver.name || 'Şoför',
       vehiclePlate: (activeDriver as any).assignedVehicle || 'VIP Van 35-1249',
       date: selectedDate,
       collectedCashThb: collectedCash,
@@ -160,7 +164,7 @@ export default function DriverExpenseModal({
         onAddFinanceExpense({
           category: 'fuel',
           amountThb: exp.amountThb,
-          description: `Şoför Saha Fişi (${activeDriver.name} - ${exp.vehiclePlate}): ${exp.description}`,
+          description: `Şoför Saha Fişi (${activeDriver.fullName || activeDriver.name || 'Şoför'} - ${exp.vehiclePlate}): ${exp.description}`,
           date: exp.date,
         });
       });
@@ -220,7 +224,7 @@ export default function DriverExpenseModal({
                 {drivers.length > 0 ? (
                   drivers.map((d) => (
                     <option key={d.id} value={d.id}>
-                      {d.name} ({d.assignedVehicle || 'Araçsız'})
+                      {d.fullName || d.name} ({d.assignedVehicle || d.vehicleId || 'Araçsız'})
                     </option>
                   ))
                 ) : (
