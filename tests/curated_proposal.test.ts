@@ -3,6 +3,11 @@ import {
   buildCuratedProposal,
   calculateProposalFinancials,
   generateCuratedProposalWhatsAppMessage,
+  PROPOSAL_CATALOG_TOURS,
+  TRANSPORT_META,
+  MEAL_PLAN_META,
+  NATIONAL_PARK_META,
+  type CuratedProposalDay,
 } from '../src/lib/curatedProposal';
 
 describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated Proposal Generator)', () => {
@@ -21,11 +26,15 @@ describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated P
     expect(proposal.hotelName).toBe('The Shore at Katathani');
     expect(proposal.days.length).toBe(5);
     expect(proposal.proposalNumber).toMatch(/^PT-PROP-\d{4}-\d{4}$/);
+    expect(proposal.agentInfo.name).toBe('Murat Gençer');
+    expect(proposal.welcomeMessage).toContain('Begüm & Canberk Özkan');
 
-    // Her günün alınış saati aralığı ve dahil olanlar bulunmalı
+    // Her günün alınış saati aralığı, transport ve dahil olanları bulunmalı
     proposal.days.forEach((day) => {
       expect(day.pickupWindow).toBeDefined();
       expect(day.tourDuration).toBeDefined();
+      expect(day.transportType).toBeDefined();
+      expect(day.mealPlan).toBeDefined();
       expect(day.included.length).toBeGreaterThan(0);
       expect(day.priceThb).toBeGreaterThan(0);
     });
@@ -40,6 +49,7 @@ describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated P
       tryRate: 1.0,
       usdRate: 35,
       eurRate: 38,
+      gbpRate: 45,
     });
 
     expect(financials.subtotalThb).toBeGreaterThan(0);
@@ -49,6 +59,9 @@ describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated P
     expect(financials.remainingThb).toBe(financials.totalThb - financials.depositThb);
     expect(financials.totalTry).toBe(financials.totalThb);
     expect(financials.totalUsd).toBe(Math.round(financials.totalThb / 35));
+    expect(financials.totalEur).toBe(Math.round(financials.totalThb / 38));
+    expect(financials.totalGbp).toBe(Math.round(financials.totalThb / 45));
+    expect(financials.perPersonThb).toBeGreaterThan(0);
   });
 
   it('WhatsApp teklif özetini zengin ve kurumsal formatta üretmeli', () => {
@@ -63,5 +76,51 @@ describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated P
     expect(text).toContain('FİYATLANDIRMA & ÖDEME PLANI:');
     expect(text).toContain(`${financials.totalThb.toLocaleString()} THB`);
     expect(text).toContain('TAT License: 34/02819');
+    expect(text).toContain('Murat Gençer');
+  });
+
+  it('zengin katalog turları ve ulaşım/yemek metadataları eksiksiz olmalı', () => {
+    expect(PROPOSAL_CATALOG_TOURS.length).toBeGreaterThanOrEqual(10);
+    const phiPhi = PROPOSAL_CATALOG_TOURS.find((t) => t.id === 'phi_phi_speed');
+    expect(phiPhi).toBeDefined();
+    expect(phiPhi?.transportType).toBe('speedboat');
+    expect(phiPhi?.pickupWindow).toBe('07:15 - 07:30');
+
+    expect(TRANSPORT_META.catamaran.label).toContain('Katamaran');
+    expect(MEAL_PLAN_META.buffet_lunch.label).toContain('Açık Büfe');
+    expect(NATIONAL_PARK_META.included.label).toContain('Milli Park Dahil');
+  });
+
+  it('teklife yeni gün ekleme, düzenleme ve silme işlemlerini desteklemeli', () => {
+    const proposal = buildCuratedProposal('Zeynep Demir', 'honeymoon', 3);
+    const initialCount = proposal.days.length;
+
+    // Yeni gün ekleme
+    const newDay: CuratedProposalDay = {
+      id: 'DAY-EXTRA-1',
+      dayNumber: initialCount + 1,
+      dayTitle: 'Ekstra Özel Katamaran Turu',
+      tourTitle: 'Coral & Racha Katamaran',
+      pickupWindow: '10:30 - 11:00',
+      tourDuration: '12:00 - 19:30',
+      category: 'island',
+      transportType: 'catamaran',
+      mealPlan: 'buffet_lunch',
+      nationalParkFeeStatus: 'included',
+      highlight: 'Özel günbatımı yelkeni',
+      included: ['Yelkenli', 'Yemek'],
+      image: '/assets/vip_transfer.webp',
+      priceThb: 8000,
+    };
+
+    proposal.days.push(newDay);
+    expect(proposal.days.length).toBe(initialCount + 1);
+
+    const financials = calculateProposalFinancials(proposal);
+    expect(financials.subtotalThb).toBeGreaterThan(0);
+
+    // Günü silme
+    proposal.days = proposal.days.filter((d) => d.id !== 'DAY-EXTRA-1');
+    expect(proposal.days.length).toBe(initialCount);
   });
 });
