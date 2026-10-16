@@ -25,6 +25,7 @@ import {
   Plane,
   Fuel,
   Luggage,
+  Compass,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
@@ -35,6 +36,7 @@ import {
   type MarineSafetyReport,
   getWeatherPostponeWhatsAppUrl,
 } from '../../lib/marineWeather';
+import { type RouteSortMode } from '../../lib/routeSequencer';
 
 interface TransfersTabProps {
   bookings?: Booking[];
@@ -124,6 +126,10 @@ export default function TransfersTab({
   const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
   const [isRefreshingMarine, setIsRefreshingMarine] = useState(false);
 
+  // Akıllı Rota Sıralayıcısı Durumları
+  const [routeSortModes, setRouteSortModes] = useState<Record<string, RouteSortMode>>({});
+  const [customStopOrder, setCustomStopOrder] = useState<Record<string, string[]>>({});
+
   useEffect(() => {
     let isMounted = true;
     getMarineSafetyStatus().then((rep) => {
@@ -152,7 +158,7 @@ export default function TransfersTab({
     }
   };
 
-  // Hat bazlı rota sıralaması: her araç için oteller saat ve bölgeye göre sıralanır
+  // Hat bazlı rota sıralaması: her araç için oteller seçilen moda veya manuel sıraya göre dizilir
   const vehicleRoutes = useMemo(() => {
     const groups: Record<string, PickupItem[]> = {};
     dailyPickups.forEach((p) => {
@@ -162,12 +168,37 @@ export default function TransfersTab({
     });
 
     return Object.entries(groups).map(([vehicle, items]) => {
-      // Sıralama mantığı: önce pickupTime, sonra getZoneOrder
-      const sortedStops = [...items].sort((a, b) => {
-        const timeCompare = (a.pickupTime || '07:30').localeCompare(b.pickupTime || '07:30');
-        if (timeCompare !== 0) return timeCompare;
-        return getZoneOrder(a.hotelZone) - getZoneOrder(b.hotelZone);
+      const currentMode: RouteSortMode = routeSortModes[vehicle] || 'pier_bound';
+
+      let sortedStops = [...items].sort((a, b) => {
+        if (currentMode === 'time') {
+          const timeCompare = (a.pickupTime || '07:30').localeCompare(b.pickupTime || '07:30');
+          if (timeCompare !== 0) return timeCompare;
+          return getZoneOrder(a.hotelZone) - getZoneOrder(b.hotelZone);
+        } else if (currentMode === 'reverse') {
+          const zoneCompare = getZoneOrder(b.hotelZone) - getZoneOrder(a.hotelZone);
+          if (zoneCompare !== 0) return zoneCompare;
+          return (a.pickupTime || '07:30').localeCompare(b.pickupTime || '07:30');
+        } else {
+          // pier_bound: İskele yönü (Kuzeyden Güneye doğal coğrafi akış)
+          const zoneCompare = getZoneOrder(a.hotelZone) - getZoneOrder(b.hotelZone);
+          if (zoneCompare !== 0) return zoneCompare;
+          return (a.pickupTime || '07:30').localeCompare(b.pickupTime || '07:30');
+        }
       });
+
+      // Manuel sıra özelleştirmesi varsa uygula
+      const manualOrder = customStopOrder[vehicle];
+      if (manualOrder && manualOrder.length > 0) {
+        sortedStops = [...sortedStops].sort((a, b) => {
+          const keyA = `${a.bookingId}-${a.tourIndex}`;
+          const keyB = `${b.bookingId}-${b.tourIndex}`;
+          const idxA = manualOrder.indexOf(keyA);
+          const idxB = manualOrder.indexOf(keyB);
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          return 0;
+        });
+      }
 
       const uniqueHotels = Array.from(new Set(sortedStops.map((s) => s.hotel)));
       const pier = detectDeparturePier(sortedStops[0]?.tourTitle || '');
@@ -176,6 +207,9 @@ export default function TransfersTab({
       const driverId = sortedStops.find((s) => s.assignedDriver)?.assignedDriver;
       const driver = safeDrivers.find((d) => d && d.id === driverId);
 
+      const firstHotelLocation = uniqueHotels[0] ? uniqueHotels[0] : pier;
+      const wazeUrl = `https://waze.com/ul?q=${encodeURIComponent(firstHotelLocation + ', Phuket, Thailand')}&navigate=yes`;
+
       return {
         vehicle,
         driver,
@@ -183,10 +217,80 @@ export default function TransfersTab({
         uniqueHotels,
         pier,
         mapsUrl,
+        wazeUrl,
         totalGuests,
+        sortMode: currentMode,
       };
     });
-  }, [dailyPickups, safeDrivers]);
+  }, [dailyPickups, safeDrivers, routeSortModes, customStopOrder]);
+
+  const handleMoveStop = (vehicle: string, index: number, direction: 'up' | 'down') => {
+    const route = vehicleRoutes.find((r) => r.vehicle === vehicle);
+    if (!route) return;
+    const currentKeys = route.stops.map((s) => `${s.bookingId}-${s.tourIndex}`);
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= currentKeys.length) return;
+
+    const newKeys = [...currentKeys];
+    const [moved] = newKeys.splice(index, 1);
+    newKeys.splice(targetIndex, 0, moved);
+
+    setCustomStopOrder((prev) => ({
+      ...prev,
+      [vehicle]: newKeys,
+    }));
+    showToast('Durak sırası güncellendi 📍');
+  };
+
+  const handleSendWhatsAppRouteToDriver = (route: (typeof vehicleRoutes)[0]) => {
+    const dateStr = (() => {
+      try {
+        const d = new Date(safeDate);
+        return isNaN(d.getTime()) ? safeDate : d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+      } catch {
+        return safeDate;
+      }
+    })();
+
+    const cleanPhone = (route.driver?.phone || '66828950665').replace(/[^0-9]/g, '');
+    const lines = [
+      `🚐 *PHUKET TATİLİ — TRANSFER GÖREV EMRİ & ROTA PLANI*`,
+      `📅 *Tarih:* ${dateStr}`,
+      `🚐 *Hat:* ${route.vehicle}`,
+      `🧑‍✈️ *Şoför:* ${route.driver ? `${route.driver.fullName} (${route.driver.phone || 'Tel Yok'})` : 'Atanmadı'}`,
+      `👥 *Toplam Yolcu:* ${route.totalGuests} Kişi (${route.stops.length} Alınış)`,
+      `🏁 *Varış İskelesi:* ${route.pier}`,
+      `🧭 *Sıralama Modu:* ${
+        route.sortMode === 'pier_bound'
+          ? '🗺️ İskele İstikameti (Kuzey➔Güney)'
+          : route.sortMode === 'time'
+          ? '🕒 Alınış Saatine Göre'
+          : '🔄 Güney➔Kuzey'
+      }`,
+      `───────────────────────────────`,
+      `🗺️ *Canlı Google Haritalar Rotası:*`,
+      `${route.mapsUrl}`,
+      ``,
+      `🚙 *Waze Navigasyon (1. Durak):*`,
+      `${route.wazeUrl}`,
+      `───────────────────────────────`,
+      `📍 *DURAK VE YOLCU SIRALAMASI:*`,
+      ...route.stops.map((s, idx) => {
+        const pax = `${s.adultCount || 1} Yetişkin${(s.childCount || 0) > 0 ? ` + ${s.childCount} Çocuk` : ''}`;
+        const remaining = Number(s.remainingAmountThb) || 0;
+        const cash = remaining > 0 ? `\n   💵 *ALINACAK NAKİT:* ${remaining.toLocaleString()} THB` : ' \n   ✅ *Ödeme Alındı*';
+        const room = s.roomNumber ? ` (Oda: ${s.roomNumber})` : '';
+        const singleMap = getSingleHotelMapUrl(s.hotel);
+        return `${idx + 1}️⃣ [⏰ *${s.pickupTime || '07:30'}*] *${s.hotel}*${room}\n   👤 ${s.customerName} (${pax}) · 📞 ${s.phone}${cash}\n   📍 Harita: ${singleMap}`;
+      }),
+      `───────────────────────────────`,
+      `İyi ve güvenli sürüşler dileriz! 🌴🇹🇭`,
+    ];
+
+    const message = lines.join('\n');
+    const url = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
+  };
 
   const handleCopyRouteForDriver = (route: (typeof vehicleRoutes)[0]) => {
     const dateStr = (() => {
@@ -1025,45 +1129,160 @@ export default function TransfersTab({
                         )}
                       </div>
 
+                      {/* Akıllı Sıralama Modu Seçici */}
+                      <div className="mt-3 p-2 rounded-xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-between gap-2 flex-wrap text-xs">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1">
+                          <Compass className="w-3.5 h-3.5 text-brand-primary" />
+                          <span>Rota Sıralaması:</span>
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRouteSortModes((prev) => ({ ...prev, [route.vehicle]: 'pier_bound' }));
+                              setCustomStopOrder((prev) => {
+                                const next = { ...prev };
+                                delete next[route.vehicle];
+                                return next;
+                              });
+                            }}
+                            className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              route.sortMode === 'pier_bound'
+                                ? 'bg-brand-primary text-white shadow-xs'
+                                : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                            }`}
+                          >
+                            🗺️ İskele Yönü (Kuzey➔Güney)
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRouteSortModes((prev) => ({ ...prev, [route.vehicle]: 'time' }));
+                              setCustomStopOrder((prev) => {
+                                const next = { ...prev };
+                                delete next[route.vehicle];
+                                return next;
+                              });
+                            }}
+                            className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              route.sortMode === 'time'
+                                ? 'bg-brand-primary text-white shadow-xs'
+                                : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                            }`}
+                          >
+                            🕒 Saate Göre
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRouteSortModes((prev) => ({ ...prev, [route.vehicle]: 'reverse' }));
+                              setCustomStopOrder((prev) => {
+                                const next = { ...prev };
+                                delete next[route.vehicle];
+                                return next;
+                              });
+                            }}
+                            className={`px-2 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                              route.sortMode === 'reverse'
+                                ? 'bg-brand-primary text-white shadow-xs'
+                                : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                            }`}
+                          >
+                            🔄 Ters Sıra
+                          </button>
+                        </div>
+                      </div>
+
                       {/* Action Buttons for Route */}
-                      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="mt-3 grid grid-cols-1 sm:grid-cols-4 gap-2">
                         <a
                           href={route.mapsUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="px-3.5 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+                          className="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
                         >
-                          <Navigation className="w-4 h-4" />
-                          <span>Google Haritalar Navigasyonu</span>
+                          <Navigation className="w-3.5 h-3.5" />
+                          <span>Google Maps</span>
+                        </a>
+                        <a
+                          href={route.wazeUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                        >
+                          <Navigation className="w-3.5 h-3.5" />
+                          <span>Waze</span>
                         </a>
                         <button
                           type="button"
-                          onClick={() => handleCopyRouteForDriver(route)}
-                          className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+                          onClick={() => handleSendWhatsAppRouteToDriver(route)}
+                          className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
                         >
-                          <Copy className="w-4 h-4" />
-                          <span>Şoför Görev Emrini Kopyala</span>
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span>Şoföre Rota At</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleCopyRouteForDriver(route)}
+                          className="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                        >
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Kopyala</span>
                         </button>
                       </div>
                     </div>
 
                     {/* Timeline Stops */}
                     <div className="p-5 divide-y divide-slate-100 dark:divide-slate-800/60 flex-1">
-                      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-3">
-                        📍 Durak Sıralaması (Kuzeyden Güneye / İskele Hattı)
-                      </p>
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                          📍 Durak Sıralaması ({route.stops.length} Otel)
+                        </p>
+                        <span className="text-[10px] text-slate-400">
+                          ▲/▼ ile sırayı değiştirebilirsiniz
+                        </span>
+                      </div>
                       <div className="space-y-4">
                         {route.stops.map((stop, idx) => (
-                          <div key={`${stop.bookingId}-${stop.tourIndex}`} className="pt-3 first:pt-0 flex items-start gap-3">
-                            <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
-                              {idx + 1}
-                            </span>
+                          <div key={`${stop.bookingId}-${stop.tourIndex}`} className="pt-3 first:pt-0 flex items-start gap-2.5">
+                            <div className="flex flex-col items-center gap-0.5 shrink-0 mt-0.5">
+                              <span className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold flex items-center justify-center">
+                                {idx + 1}
+                              </span>
+                              <div className="flex items-center gap-0.5">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => handleMoveStop(route.vehicle, idx, 'up')}
+                                  className="w-4 h-4 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white disabled:opacity-20 cursor-pointer flex items-center justify-center"
+                                  title="Yukarı taşı"
+                                >
+                                  ▲
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === route.stops.length - 1}
+                                  onClick={() => handleMoveStop(route.vehicle, idx, 'down')}
+                                  className="w-4 h-4 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white disabled:opacity-20 cursor-pointer flex items-center justify-center"
+                                  title="Aşağı taşı"
+                                >
+                                  ▼
+                                </button>
+                              </div>
+                            </div>
 
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="font-bold text-slate-900 dark:text-white text-xs truncate">
-                                  {stop.hotel}
-                                </span>
+                                <a
+                                  href={getSingleHotelMapUrl(stop.hotel)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="font-bold text-slate-900 dark:text-white text-xs truncate hover:text-brand-primary flex items-center gap-1"
+                                  title="Google Haritalar'da Gör"
+                                >
+                                  <span>{stop.hotel}</span>
+                                  <ExternalLink className="w-2.5 h-2.5 text-slate-400 shrink-0" />
+                                </a>
                                 <span className="px-2 py-0.5 rounded-md font-mono text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
                                   ⏰ {stop.pickupTime || '07:30'}
                                 </span>

@@ -14,6 +14,8 @@ import HomeFaq from '../components/home/HomeFaq.astro';
 import HomeMarineSentinel from '../components/home/HomeMarineSentinel.astro';
 import HomeTourWizard from '../components/home/HomeTourWizard';
 import TourStoriesReel from '../components/tour/TourStoriesReel';
+import LiveTourSafetyRadar from '../components/weather/LiveTourSafetyRadar';
+import PhuketHolidayPlanner from '../components/tour/PhuketHolidayPlanner';
 import siteSettings from '../content/settings/site.json';
 import testimonialsData from '../content/settings/testimonials.json';
 import faqData from '../content/settings/faq.json';
@@ -145,9 +147,10 @@ const guestMoments = [
 
   <!-- Extracted Home Modules -->
   <TourStoriesReel client:load />
+  <LiveTourSafetyRadar client:load />
   <HomeBento />
-  <HomeMarineSentinel />
   <HomeFeaturedTours featuredTours={featuredTours} />
+  <PhuketHolidayPlanner client:visible />
   <HomeTourWizard client:visible tours={wizardTours} whatsappNumber={siteSettings?.whatsappNumber} />
   <HomeVideoShowcase />
   <HomeMarquee />
