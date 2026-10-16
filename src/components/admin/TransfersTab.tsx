@@ -706,21 +706,21 @@ export default function TransfersTab({
         <div
           className={`p-4 sm:p-5 rounded-3xl border shadow-xs transition-all ${
             marineReport.level === 'severe'
-              ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+              ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800/60'
               : marineReport.level === 'moderate'
-              ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+              ? 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800/60'
+              : 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800/60'
           }`}
         >
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div
-                className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border shadow-xs ${
                   marineReport.level === 'severe'
-                    ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
+                    ? 'bg-rose-100 dark:bg-rose-500/20 border-rose-300 dark:border-rose-500/40 text-rose-700 dark:text-rose-400'
                     : marineReport.level === 'moderate'
-                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
-                    : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+                    ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-400'
+                    : 'bg-emerald-100 dark:bg-emerald-500/20 border-emerald-300 dark:border-emerald-500/40 text-emerald-700 dark:text-emerald-400'
                 }`}
               >
                 {marineReport.level === 'severe' ? (
@@ -730,17 +730,25 @@ export default function TransfersTab({
                 )}
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black uppercase tracking-wider text-white">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span
+                    className={`text-xs font-black uppercase tracking-wider ${
+                      marineReport.level === 'severe'
+                        ? 'text-rose-950 dark:text-rose-100'
+                        : marineReport.level === 'moderate'
+                        ? 'text-amber-950 dark:text-amber-100'
+                        : 'text-emerald-950 dark:text-emerald-100'
+                    }`}
+                  >
                     🌊 Andaman Denizi Canlı Güvenlik Radarı
                   </span>
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${
+                    className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase border shadow-xs ${
                       marineReport.level === 'severe'
-                        ? 'bg-rose-500 text-slate-950 border-rose-400 font-black'
+                        ? 'bg-rose-600 text-white border-rose-700 dark:border-rose-500 font-black'
                         : marineReport.level === 'moderate'
-                        ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold'
-                        : 'bg-emerald-500 text-slate-950 border-emerald-400 font-bold'
+                        ? 'bg-amber-500 text-slate-950 border-amber-600 dark:border-amber-400 font-bold'
+                        : 'bg-emerald-600 text-white dark:bg-emerald-500 dark:text-slate-950 border-emerald-700 dark:border-emerald-400 font-bold'
                     }`}
                   >
                     {marineReport.level === 'severe'
@@ -750,23 +758,47 @@ export default function TransfersTab({
                       : '🟢 Sakin Deniz'}
                   </span>
                 </div>
-                <p className="text-xs font-medium text-slate-300 dark:text-slate-300 mt-0.5">
+                <p
+                  className={`text-xs font-medium mt-0.5 ${
+                    marineReport.level === 'severe'
+                      ? 'text-rose-900/90 dark:text-rose-200/90'
+                      : marineReport.level === 'moderate'
+                      ? 'text-amber-900/90 dark:text-amber-200/90'
+                      : 'text-emerald-900/90 dark:text-emerald-200/90'
+                  }`}
+                >
                   {marineReport.summary}
                 </p>
               </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-3 text-xs">
-              <div className="bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800 font-mono flex items-center gap-1.5 text-slate-200">
-                <Waves className="w-3.5 h-3.5 text-sky-400" />
+              <div
+                className={`px-3 py-1.5 rounded-xl border font-mono flex items-center gap-1.5 shadow-xs ${
+                  marineReport.level === 'severe'
+                    ? 'bg-white/90 dark:bg-slate-950/70 border-rose-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200'
+                    : marineReport.level === 'moderate'
+                    ? 'bg-white/90 dark:bg-slate-950/70 border-amber-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200'
+                    : 'bg-white/90 dark:bg-slate-950/70 border-emerald-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                <Waves className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
                 <span>
-                  Dalga: <strong className="text-white">{marineReport.waveHeightMeters}m</strong>
+                  Dalga: <strong className="text-slate-950 dark:text-white font-bold">{marineReport.waveHeightMeters}m</strong>
                 </span>
               </div>
-              <div className="bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800 font-mono flex items-center gap-1.5 text-slate-200">
-                <Wind className="w-3.5 h-3.5 text-sky-400" />
+              <div
+                className={`px-3 py-1.5 rounded-xl border font-mono flex items-center gap-1.5 shadow-xs ${
+                  marineReport.level === 'severe'
+                    ? 'bg-white/90 dark:bg-slate-950/70 border-rose-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200'
+                    : marineReport.level === 'moderate'
+                    ? 'bg-white/90 dark:bg-slate-950/70 border-amber-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200'
+                    : 'bg-white/90 dark:bg-slate-950/70 border-emerald-200/90 dark:border-slate-800 text-slate-700 dark:text-slate-200'
+                }`}
+              >
+                <Wind className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
                 <span>
-                  Rüzgar: <strong className="text-white">{marineReport.windSpeedKnots} Kts</strong> (
+                  Rüzgar: <strong className="text-slate-950 dark:text-white font-bold">{marineReport.windSpeedKnots} Kts</strong> (
                   {marineReport.windDirectionText})
                 </span>
               </div>
@@ -774,7 +806,7 @@ export default function TransfersTab({
                 type="button"
                 onClick={handleRefreshMarine}
                 disabled={isRefreshingMarine}
-                className="p-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-400 hover:text-white transition disabled:opacity-50 cursor-pointer"
+                className="p-2 rounded-xl bg-white/90 dark:bg-slate-950/70 border border-slate-200 dark:border-slate-800 text-slate-600 hover:text-slate-950 dark:text-slate-400 dark:hover:text-white transition disabled:opacity-50 cursor-pointer shadow-xs"
                 title="Radarı Yenile"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingMarine ? 'animate-spin' : ''}`} />
@@ -783,14 +815,14 @@ export default function TransfersTab({
               <button
                 type="button"
                 onClick={() => setIsWeatherModalOpen(true)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md ${
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-sm ${
                   marineReport.level === 'severe'
                     ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-950/40'
-                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                    : 'bg-slate-900 hover:bg-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 text-white'
                 }`}
                 title="Hava Durumu Nedeniyle Misafirlere WhatsApp Bilgilendirmesi Gönder"
               >
-                <AlertTriangle className="w-3.5 h-3.5" />
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-300" />
                 <span>⚠️ Hava Durumu Erteleme Çağrısı</span>
               </button>
             </div>
