@@ -1,0 +1,108 @@
+---
+import siteSettings from '../content/settings/site.json';
+import { SITE_CURRENCIES, type DisplayCurrency } from '../lib/siteCurrency';
+
+const isEnabled = (siteSettings as any)?.topBarEnabled !== false;
+const announcementText = (siteSettings as any)?.topBarText || '🌴 Phuket Tatili · Resmi TAT Lisanslı VIP Acente · 24/7 Türkçe Destek';
+const currencies: DisplayCurrency[] = ['THB', 'TRY', 'USD', 'EUR'];
+---
+
+{isEnabled && (
+  <div id="top-announcement-bar" class="bg-slate-950/95 text-slate-300 border-b border-slate-800/80 text-[11px] sm:text-xs py-2 px-4 sm:px-6 relative z-50 transition-colors backdrop-blur-md">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5">
+      
+      <!-- Sol: Güven & Acente Lisansı -->
+      <div class="flex items-center gap-2 overflow-hidden text-ellipsis whitespace-nowrap">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+        <span class="font-medium text-slate-200">
+          {announcementText}
+        </span>
+      </div>
+
+      <!-- Sağ: Hızlı Araçlar (Bilet Sorgula, Tayca, Para Birimi) -->
+      <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+        
+        <!-- Bilet & Plan Sorgula Butonu -->
+        <button
+          type="button"
+          id="btn-quick-ticket-lookup"
+          class="flex items-center gap-1.5 text-slate-300 hover:text-white transition font-medium cursor-pointer"
+          title="Bilet veya Gezi Takvimi Kodu Sorgula"
+        >
+          <span>🎟️</span>
+          <span class="hidden sm:inline">Biletini Sorgula</span>
+        </button>
+
+        <!-- Tayca Asistan Bağlantısı -->
+        <a
+          href="/tayca"
+          class="flex items-center gap-1.5 text-slate-300 hover:text-emerald-400 transition font-medium"
+          title="Türkçe Telaffuzlu Sesli Tayca İletişim Kartları"
+        >
+          <span>🇹🇭</span>
+          <span class="hidden sm:inline">Tayca Asistan</span>
+        </a>
+
+        <!-- Para Birimi Seçici Butonları -->
+        <div class="flex items-center bg-slate-900 border border-slate-800 rounded-lg p-0.5" id="currency-selector-bar">
+          {currencies.map((curr) => (
+            <button
+              type="button"
+              data-currency-btn={curr}
+              class={`px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer ${
+                curr === 'THB' ? 'bg-amber-500 text-slate-950 font-black' : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title={SITE_CURRENCIES[curr].label}
+            >
+              {SITE_CURRENCIES[curr].symbol} {curr}
+            </button>
+          ))}
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <script is:inline>
+    // Para Birimi Seçimi & Senkronizasyonu
+    const savedCurrency = localStorage.getItem('ptt_currency') || 'THB';
+    const currencyButtons = document.querySelectorAll('[data-currency-btn]');
+
+    function updateCurrencyUI(active) {
+      currencyButtons.forEach((btn) => {
+        const c = btn.getAttribute('data-currency-btn');
+        if (c === active) {
+          btn.className = 'px-2 py-0.5 rounded text-[10px] font-black transition cursor-pointer bg-amber-500 text-slate-950 shadow-xs';
+        } else {
+          btn.className = 'px-2 py-0.5 rounded text-[10px] font-bold transition cursor-pointer text-slate-400 hover:text-slate-200';
+        }
+      });
+    }
+
+    updateCurrencyUI(savedCurrency);
+
+    currencyButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const selected = btn.getAttribute('data-currency-btn');
+        if (selected) {
+          localStorage.setItem('ptt_currency', selected);
+          updateCurrencyUI(selected);
+          window.dispatchEvent(new CustomEvent('ptt:currency-changed', { detail: { currency: selected } }));
+        }
+      });
+    });
+
+    // Bilet Kodu Hızlı Sorgulama Dialogu
+    const ticketBtn = document.getElementById('btn-quick-ticket-lookup');
+    if (ticketBtn) {
+      ticketBtn.addEventListener('click', () => {
+        const code = prompt('Lütfen Bilet veya Rezervasyon Kodunuzu girin (Örn: BK-8291):');
+        if (code && code.trim()) {
+          const clean = code.trim().toUpperCase();
+          window.location.href = `/bilet/${clean}`;
+        }
+      });
+    }
+  </script>
+)}

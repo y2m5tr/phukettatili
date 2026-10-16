@@ -11,6 +11,8 @@ import HomeWhyUs from '../components/home/HomeWhyUs.astro';
 import HomeTestimonials from '../components/home/HomeTestimonials.astro';
 import HomeGuestMoments from '../components/home/HomeGuestMoments.astro';
 import HomeFaq from '../components/home/HomeFaq.astro';
+import HomeMarineSentinel from '../components/home/HomeMarineSentinel.astro';
+import HomeTourWizard from '../components/home/HomeTourWizard';
 import siteSettings from '../content/settings/site.json';
 import testimonialsData from '../content/settings/testimonials.json';
 import faqData from '../content/settings/faq.json';
@@ -21,6 +23,14 @@ const whatsappUrl = `https://wa.me/${siteSettings?.whatsappNumber || '6682895066
 
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
 const featuredTours: CollectionEntry<'tours'>[] = tours.filter((tour) => tour.data.featured).slice(0, 3);
+const wizardTours = tours.map((t) => ({
+  id: t.id,
+  title: t.data.title,
+  priceThb: t.data.price_thb || 0,
+  duration: t.data.duration,
+  category: t.data.category,
+  image: t.data.image,
+}));
 
 interface TestimonialItem {
   name: string;
@@ -134,7 +144,9 @@ const guestMoments = [
 
   <!-- Extracted Home Modules -->
   <HomeBento />
+  <HomeMarineSentinel />
   <HomeFeaturedTours featuredTours={featuredTours} />
+  <HomeTourWizard client:visible tours={wizardTours} whatsappNumber={siteSettings?.whatsappNumber} />
   <HomeVideoShowcase />
   <HomeMarquee />
   <HomeWhyUs />

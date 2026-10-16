@@ -5,7 +5,7 @@
  * (localStorage) ve /api/content üzerinden buluta senkronlar.
  */
 import { useState } from 'react';
-import { Upload, Check, Save, KeyRound } from 'lucide-react';
+import { Upload, Check, Save, KeyRound, Globe, Coins, Waves, Compass, Zap } from 'lucide-react';
 
 export interface SiteSettingsState {
   whatsappNumber: string;
@@ -15,6 +15,32 @@ export interface SiteSettingsState {
   heroTitle: string;
   heroSubtitle: string;
   heroImage: string;
+
+  // 1. Üst Duyuru Barı & Hızlı Bağlantılar
+  topBarEnabled?: boolean;
+  topBarText?: string;
+
+  // 2. Canlı Para Birimleri & Kur Yönetimi
+  currencyEnabled?: boolean;
+  currencyMode?: 'live' | 'manual';
+  customRateTry?: number;
+  customRateUsd?: number;
+  customRateEur?: number;
+
+  // 3. Phuket Canlı Deniz Durumu & Güvenlik
+  marineSentinelEnabled?: boolean;
+  marineSentinelMode?: 'auto' | 'manual';
+  manualMarineStatus?: 'calm' | 'moderate' | 'severe';
+  manualMarineText?: string;
+  manualMarineWave?: number;
+
+  // 4. Akıllı Rota & Tur Sihirbazı
+  tourWizardEnabled?: boolean;
+  tourWizardTitle?: string;
+  tourWizardSubtitle?: string;
+
+  // 5. Mobil Hızlı Teklif Çekmecesi
+  stickyBookingBarEnabled?: boolean;
 }
 
 interface SettingsTabProps {
@@ -215,6 +241,292 @@ export default function SettingsTab({
                   </div>
                 )}
               </div>
+            </div>
+          </div>
+
+          {/* ==================================================== */}
+          {/* BÖLÜM 2: ÜST DUYURU BARI & BİLET SORGULAMA ARAÇLARI */}
+          {/* ==================================================== */}
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-brand-accent" />
+                  <span>Üst Duyuru & Bilgi Çubuğu (Top Announcement Bar)</span>
+                </h3>
+                <p className="text-xs text-slate-500">Sitenin en üstünde yer alan acente lisansı, para birimi seçici ve hızlı bilet sorgulama barı.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={siteSettings.topBarEnabled !== false}
+                  onChange={(e) => setSiteSettings({ ...siteSettings, topBarEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+              </label>
+            </div>
+
+            {siteSettings.topBarEnabled !== false && (
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                  Duyuru Metni
+                </label>
+                <input
+                  type="text"
+                  value={siteSettings.topBarText || '🌴 Phuket Tatili · Resmi TAT Lisanslı VIP Acente · 24/7 Türkçe Destek'}
+                  onChange={(e) => setSiteSettings({ ...siteSettings, topBarText: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                />
+              </div>
+            )}
+          </div>
+
+          {/* ==================================================== */}
+          {/* BÖLÜM 3: CANLI DÖVİZ & PARA BİRİMİ KONTROLÜ */}
+          {/* ==================================================== */}
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <Coins className="w-4 h-4 text-amber-500" />
+                  <span>Canlı Para Birimleri & Kur Çevirici (THB ⇄ TRY ⇄ USD ⇄ EUR)</span>
+                </h3>
+                <p className="text-xs text-slate-500">Ziyaretçilerin sitedeki fiyatları Türk Lirası, Dolar veya Euro olarak görmesini sağlar.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={siteSettings.currencyEnabled !== false}
+                  onChange={(e) => setSiteSettings({ ...siteSettings, currencyEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
+            </div>
+
+            {siteSettings.currencyEnabled !== false && (
+              <div className="space-y-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                <div className="flex flex-wrap items-center gap-4">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Kur Kaynağı:</label>
+                  <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer">
+                    <input
+                      type="radio"
+                      name="currencyMode"
+                      value="live"
+                      checked={siteSettings.currencyMode !== 'manual'}
+                      onChange={() => setSiteSettings({ ...siteSettings, currencyMode: 'live' })}
+                    />
+                    <span>Otomatik Canlı Kurlar (Açık Piyasa API)</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer">
+                    <input
+                      type="radio"
+                      name="currencyMode"
+                      value="manual"
+                      checked={siteSettings.currencyMode === 'manual'}
+                      onChange={() => setSiteSettings({ ...siteSettings, currencyMode: 'manual' })}
+                    />
+                    <span>Sabit / Manuel Özel Kurlar</span>
+                  </label>
+                </div>
+
+                {siteSettings.currencyMode === 'manual' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 mb-1">1 TRY = X THB</label>
+                      <input
+                        type="number"
+                        step="0.05"
+                        value={siteSettings.customRateTry || 1.2}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, customRateTry: parseFloat(e.target.value) || 1.2 })}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-mono font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 mb-1">1 USD = X THB</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={siteSettings.customRateUsd || 36.0}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, customRateUsd: parseFloat(e.target.value) || 36.0 })}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-mono font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 mb-1">1 EUR = X THB</label>
+                      <input
+                        type="number"
+                        step="0.5"
+                        value={siteSettings.customRateEur || 39.0}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, customRateEur: parseFloat(e.target.value) || 39.0 })}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-mono font-bold"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ==================================================== */}
+          {/* BÖLÜM 4: PHUKET CANLI DENİZ DURUMU & GÜVENLİK SENTİNELİ */}
+          {/* ==================================================== */}
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <Waves className="w-4 h-4 text-sky-400" />
+                  <span>Phuket Canlı Deniz & Hava Durumu Sentineli</span>
+                </h3>
+                <p className="text-xs text-slate-500">Ana sayfada günlük ada turları deniz durumu, dalga boyu ve kaptan notu paneli.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={siteSettings.marineSentinelEnabled !== false}
+                  onChange={(e) => setSiteSettings({ ...siteSettings, marineSentinelEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-sky-500"></div>
+              </label>
+            </div>
+
+            {siteSettings.marineSentinelEnabled !== false && (
+              <div className="space-y-4 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                <div className="flex flex-wrap items-center gap-4">
+                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Mod:</label>
+                  <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer">
+                    <input
+                      type="radio"
+                      name="marineMode"
+                      value="auto"
+                      checked={siteSettings.marineSentinelMode !== 'manual'}
+                      onChange={() => setSiteSettings({ ...siteSettings, marineSentinelMode: 'auto' })}
+                    />
+                    <span>Otomatik (Canlı Açık Deniz Meteoroloji Radarı)</span>
+                  </label>
+                  <label className="flex items-center gap-1.5 text-xs font-bold cursor-pointer">
+                    <input
+                      type="radio"
+                      name="marineMode"
+                      value="manual"
+                      checked={siteSettings.marineSentinelMode === 'manual'}
+                      onChange={() => setSiteSettings({ ...siteSettings, marineSentinelMode: 'manual' })}
+                    />
+                    <span>Manuel Operatör Duyurusu / Müdahalesi</span>
+                  </label>
+                </div>
+
+                {siteSettings.marineSentinelMode === 'manual' && (
+                  <div className="space-y-3 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-400 mb-1">Deniz Durumu Seviyesi</label>
+                        <select
+                          value={siteSettings.manualMarineStatus || 'calm'}
+                          onChange={(e) => setSiteSettings({ ...siteSettings, manualMarineStatus: e.target.value as any })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold"
+                        >
+                          <option value="calm">🟢 Sakin & Seyir İçin Mükemmel (&lt;0.8m)</option>
+                          <option value="moderate">🟡 Orta Dalgalı (0.8 - 1.8m)</option>
+                          <option value="severe">🔴 Liman Uyarısı / Fırtına (&gt;1.8m)</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-bold text-slate-400 mb-1">Tahmini Dalga Boyu (Metre)</label>
+                        <input
+                          type="number"
+                          step="0.1"
+                          value={siteSettings.manualMarineWave || 0.6}
+                          onChange={(e) => setSiteSettings({ ...siteSettings, manualMarineWave: parseFloat(e.target.value) || 0.6 })}
+                          className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-bold font-mono"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-bold text-slate-400 mb-1">Özel Kaptan & Operasyon Tavsiyesi</label>
+                      <input
+                        type="text"
+                        value={siteSettings.manualMarineText || 'Andaman Denizi sakin ve ada turları için ideal koşullarda.'}
+                        onChange={(e) => setSiteSettings({ ...siteSettings, manualMarineText: e.target.value })}
+                        className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* ==================================================== */}
+          {/* BÖLÜM 5: AKILLI TUR & ROTA SİHİRBAZI */}
+          {/* ==================================================== */}
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <Compass className="w-4 h-4 text-emerald-500" />
+                  <span>Akıllı Rota & Tur Sihirbazı ("Phuket Tatil Asistanı")</span>
+                </h3>
+                <p className="text-xs text-slate-500">Ziyaretçilere balayı, aile veya macera profillerine göre otomatik tur paketi önerir.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={siteSettings.tourWizardEnabled !== false}
+                  onChange={(e) => setSiteSettings({ ...siteSettings, tourWizardEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
+              </label>
+            </div>
+
+            {siteSettings.tourWizardEnabled !== false && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Sihirbaz Başlığı</label>
+                  <input
+                    type="text"
+                    value={siteSettings.tourWizardTitle || 'Phuket Tatil Asistanı: Size Özel İdeal Rota'}
+                    onChange={(e) => setSiteSettings({ ...siteSettings, tourWizardTitle: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Alt Açıklama</label>
+                  <input
+                    type="text"
+                    value={siteSettings.tourWizardSubtitle || '3 adımda seyahat tarzınızı seçin, uzman rehberlerimizin sizin için hazırladığı en iyi tur kombinasyonunu anında görün.'}
+                    onChange={(e) => setSiteSettings({ ...siteSettings, tourWizardSubtitle: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ==================================================== */}
+          {/* BÖLÜM 6: MOBİL SABİT REZERVASYON BARI & ÇEKMECESİ */}
+          {/* ==================================================== */}
+          <div className="pt-6 border-t border-slate-100 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-amber-500" />
+                  <span>Mobil Hızlı Rezervasyon Barı & Açılır Çekmece</span>
+                </h3>
+                <p className="text-xs text-slate-500">Tur detay sayfalarında ekranda sabit duran ve tek tıkla tarih/kişi seçtirip WhatsApp'a yönlendiren lüks bar.</p>
+              </div>
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={siteSettings.stickyBookingBarEnabled !== false}
+                  onChange={(e) => setSiteSettings({ ...siteSettings, stickyBookingBarEnabled: e.target.checked })}
+                  className="sr-only peer"
+                />
+                <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+              </label>
             </div>
           </div>
 
