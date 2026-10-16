@@ -7,8 +7,16 @@ import {
   Send,
 } from 'lucide-react';
 import { type Booking, generateSupplierBookingOrder } from '../../data/adminInitialData';
+import {
+  generateEveningBreakfastReminder,
+  generateVehicleInZoneAlert,
+  generateLobbyArrivalAlert,
+} from '../../lib/guestConcierge';
+import { generate1830ReviewInviteMessage } from '../../lib/reviewBooster';
 
 export type TemplateId =
+  | 'concierge_evening_breakfast'
+  | 'concierge_vehicle_in_zone'
   | 'pre_tour_reminder'
   | 'driver_arrived'
   | 'balance_reminder'
@@ -45,6 +53,12 @@ export default function WhatsAppTemplatesModal({
     const displayPhone = managerPhone.startsWith('+') ? managerPhone : `+${managerPhone}`;
 
     switch (tpl) {
+      case 'concierge_evening_breakfast':
+        return generateEveningBreakfastReminder(booking, { managerPhone });
+
+      case 'concierge_vehicle_in_zone':
+        return generateVehicleInZoneAlert(booking, booking.hotelZone || 'bölgeniz', 8, { managerPhone });
+
       case 'pre_tour_reminder':
         return `🌴 *PHUKET TATİLİ — TUR & TRANSFER HATIRLATMASI* 🌴
 
@@ -104,17 +118,7 @@ Lütfen yanınızda kişi başı nakit Baht (THB) hazır bulundurmayı unutmayı
 Keyifli bir gün dileriz! 🌊`;
 
       case 'post_tour_review':
-        return `✨ *PHUKET TATİLİ — TEŞEKKÜR EDERİZ!* ✨
-
-Sayın *${booking.customerName}*,
-
-Bugünkü *${booking.tourTitle}* turumuza katıldığınız için çok teşekkür ederiz. Umarız unutulmaz ve harika anılar biriktirmişsinizdir! 🌴📸
-
-Deneyiminizi 1 dakikanızı ayırarak Google Haritalar profilimizde paylaşarak diğer Türk gezginlere rehberlik etmek ister misiniz?
-⭐ *Google Yorum Linkimiz:* https://g.page/r/phukettatili/review
-
-Phuket'teki sonraki günleriniz için her türlü transfer, restoran ve tur desteğinde yanınızdayız!
-Whatsapp: ${displayPhone}`;
+        return generate1830ReviewInviteMessage(booking, { managerPhone });
 
       case 'checkin_request':
         return `🛂 *PHUKET TATİLİ — TAYLAND DENİZ POLİSİ & LİMAN CHECK-IN* 🛂
@@ -190,6 +194,18 @@ Keyifli bir tatil geçirmenizi dileriz! ✨🇹🇭`;
   };
 
   const templatesList: { id: TemplateId; label: string; icon: string; desc: string }[] = [
+    {
+      id: 'concierge_evening_breakfast',
+      label: '🌙 Akşam 20:00 Hatırlatması & Kahvaltı Kutusu',
+      icon: '🥪',
+      desc: '2 ayrı saat satırlı (Alınış Penceresi + Lobide Olma Saati) ve resepsiyondan kahvaltı kutusu (breakfast box) uyarısı.',
+    },
+    {
+      id: 'concierge_vehicle_in_zone',
+      label: '🚐 Minivan Bölgeye Girdi (Lobiye Geçiniz)',
+      icon: '⚡',
+      desc: 'Minivan bölgeye ulaştığında 2 saat satırlı acil lobi çağrısı gönderir.',
+    },
     {
       id: 'pre_tour_reminder',
       label: '1 Gün Önce Alınış Hatırlatması',

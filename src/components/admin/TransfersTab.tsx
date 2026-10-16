@@ -26,6 +26,10 @@ import {
   Fuel,
   Luggage,
   Compass,
+  Wifi,
+  Star,
+  Moon,
+  FileText,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
@@ -37,6 +41,8 @@ import {
   getWeatherPostponeWhatsAppUrl,
 } from '../../lib/marineWeather';
 import { type RouteSortMode } from '../../lib/routeSequencer';
+import { getConciergeWhatsAppUrl } from '../../lib/guestConcierge';
+import { getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 
 interface TransfersTabProps {
   bookings?: Booking[];
@@ -64,6 +70,8 @@ interface TransfersTabProps {
   onOpenDriverExpense?: () => void;
   onOpenWelcomeBoard?: (b?: Booking) => void;
   onOpenLuggageExpress?: () => void;
+  onOpenCaptainVault?: () => void;
+  onOpenCuratedProposal?: (b?: Booking) => void;
 }
 
 export default function TransfersTab({
@@ -87,6 +95,8 @@ export default function TransfersTab({
   onOpenDriverExpense,
   onOpenWelcomeBoard,
   onOpenLuggageExpress,
+  onOpenCaptainVault,
+  onOpenCuratedProposal,
 }: TransfersTabProps) {
   const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
   const safeDrivers = Array.isArray(drivers) ? drivers : [];
@@ -575,6 +585,30 @@ export default function TransfersTab({
               <span>🧳 Bagaj Transferi</span>
             </button>
           )}
+
+          {onOpenCaptainVault && (
+            <button
+              type="button"
+              onClick={onOpenCaptainVault}
+              className="px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-800 dark:text-cyan-300 border border-cyan-500/30 text-xs sm:text-sm font-bold shadow-md shadow-cyan-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Andaman Denizi Çevrimdışı Kaptan Kasası & Acil Durum Rehberi (PWA)"
+            >
+              <Wifi className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+              <span>📶 Kaptan Kasası (PWA)</span>
+            </button>
+          )}
+
+          {onOpenCuratedProposal && (
+            <button
+              type="button"
+              onClick={() => onOpenCuratedProposal()}
+              className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs sm:text-sm font-bold shadow-md shadow-amber-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Kişiye Özel Logolu A4 PDF Tur Teklifi & Tatil Broşürü"
+            >
+              <FileText className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span>📄 PDF Teklif Broşürü</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -1005,6 +1039,43 @@ export default function TransfersTab({
 
                     <td className="py-4 px-5 text-right">
                       <div className="flex items-center justify-end gap-1.5">
+                        {(() => {
+                          const target = bookings.find((b) => b.id === p.bookingId);
+                          if (!target) return null;
+                          return (
+                            <>
+                              <a
+                                href={getConciergeWhatsAppUrl('evening_breakfast', target)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
+                                title="🌙 Akşam 20:00 Hatırlatması & Kahvaltı Kutusu (2 Saat Satırlı)"
+                              >
+                                <Moon className="w-4 h-4" />
+                              </a>
+                              <a
+                                href={getConciergeWhatsAppUrl('vehicle_in_zone', target, p.hotelZone || 'bölgeniz')}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors"
+                                title="🚐 Minivan Bölgede / Lobiye İnin Acil Bildirimi"
+                              >
+                                <Car className="w-4 h-4" />
+                              </a>
+                              {p.pickupStatus === 'completed' && (
+                                <a
+                                  href={getGoogleReviewWhatsAppUrl(target)}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="p-2 rounded-xl bg-yellow-50 dark:bg-yellow-950/40 text-yellow-600 dark:text-yellow-400 hover:bg-yellow-500 hover:text-slate-950 transition-colors"
+                                  title="⭐ 18:30 Tur Sonu Akıllı Yorum İste (Google Review Booster)"
+                                >
+                                  <Star className="w-4 h-4" />
+                                </a>
+                              )}
+                            </>
+                          );
+                        })()}
                         <a
                           href={getSingleHotelMapUrl(p.hotel)}
                           target="_blank"

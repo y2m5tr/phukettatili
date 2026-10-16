@@ -117,6 +117,8 @@ import TourMediaModal from './TourMediaModal';
 import LuggageExpressModal from './LuggageExpressModal';
 import PierManifestModal from './PierManifestModal';
 import SupplierDispatchModal from './SupplierDispatchModal';
+import CuratedProposalModal from './CuratedProposalModal';
+import CaptainOfflineDrawer from './CaptainOfflineDrawer';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
 import AdminErrorBoundary from './AdminErrorBoundary';
 import {
@@ -125,7 +127,7 @@ import {
   writeLocalCollection,
   type CmsCollectionKey,
 } from '../../lib/cmsSync';
-import { filterBookings, filterTours } from '../../lib/adminFilters';
+import { filterBookings, filterTours, buildDailyPickups } from '../../lib/adminFilters';
 import { calculateTourOccupancy, getTourCapacity } from '../../lib/allotment';
 import {
   isSupabaseConfigured,
@@ -565,6 +567,16 @@ export default function AdminDashboard({
   // Kurumsal PDF Teklif & Fiyatlandırma / Proforma Modalı
   const [quoteModalData, setQuoteModalData] = useState<{ booking?: Booking; tour?: TourItem } | null>(null);
 
+  // Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı Modalı
+  const [curatedProposalData, setCuratedProposalData] = useState<{
+    customerName?: string;
+    hotel?: string;
+    zone?: string;
+  } | null>(null);
+
+  // Andaman Denizi Çevrimdışı Kaptan Kasası & Acil Durum Rehberi (PWA)
+  const [isCaptainDrawerOpen, setIsCaptainDrawerOpen] = useState<boolean>(false);
+
   // WhatsApp Automation Templates Modal
   const [whatsAppModalBooking, setWhatsAppModalBooking] = useState<Booking | null>(null);
 
@@ -929,6 +941,8 @@ export default function AdminDashboard({
     isModalOpen ||
     Boolean(voucherBooking) ||
     Boolean(quoteModalData) ||
+    Boolean(curatedProposalData) ||
+    isCaptainDrawerOpen ||
     Boolean(whatsAppModalBooking) ||
     isPoliceManifestOpen ||
     isQrScannerOpen ||
@@ -3033,6 +3047,14 @@ export default function AdminDashboard({
               setIsWelcomeBoardOpen(true);
             }}
             onOpenLuggageExpress={() => setIsLuggageExpressOpen(true)}
+            onOpenCaptainVault={() => setIsCaptainDrawerOpen(true)}
+            onOpenCuratedProposal={(b) => {
+              setCuratedProposalData(
+                b
+                  ? { customerName: b.customerName, hotel: b.hotel, zone: b.hotelZone }
+                  : { customerName: 'Begüm & Canberk Özkan', hotel: 'The Shore at Katathani', zone: 'Kata & Karon' }
+              );
+            }}
           />
         )}
 
@@ -3676,6 +3698,33 @@ export default function AdminDashboard({
             });
             showToast(`✅ ${amt.toLocaleString()} THB PromptPay tahsilatı işlendi!`);
           }}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 27: KİŞİYE ÖZEL LOGOLU PDF TUR TEKLİFİ & TATİL BROŞÜRÜ */}
+      {/* ==================================================== */}
+      {curatedProposalData && (
+        <CuratedProposalModal
+          isOpen={Boolean(curatedProposalData)}
+          onClose={() => setCuratedProposalData(null)}
+          showToast={showToast}
+          initialCustomerName={curatedProposalData.customerName}
+          initialHotel={curatedProposalData.hotel}
+          initialZone={curatedProposalData.zone}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 28: ANDAMAN DENİZİ ÇEVRİMDIŞI KAPTAN KASASI & ACİL REHBER (PWA) */}
+      {/* ==================================================== */}
+      {isCaptainDrawerOpen && (
+        <CaptainOfflineDrawer
+          isOpen={isCaptainDrawerOpen}
+          onClose={() => setIsCaptainDrawerOpen(false)}
+          currentDate={manifestDate || new Date().toISOString().split('T')[0]}
+          pickups={buildDailyPickups(bookings || [], manifestDate || new Date().toISOString().split('T')[0])}
           showToast={showToast}
         />
       )}

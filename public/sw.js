@@ -6,7 +6,7 @@
  * API çağrıları ağ önceliklidir; ağ yoksa IndexedDB çevrimdışı kuyruğu devreye girer.
  */
 
-const CACHE_NAME = 'phuket-tatili-pwa-v1';
+const CACHE_NAME = 'phuket-tatili-pwa-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/admin',
@@ -69,7 +69,7 @@ self.addEventListener('fetch', (event) => {
           const adminCached = await caches.match('/admin');
           if (adminCached) return adminCached;
           return new Response(
-            `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Çevrimdışı | Phuket Tatili</title><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="font-family:sans-serif;padding:2rem;text-align:center;background:#09121f;color:#fff;"><h1>📶 Çevrimdışı Mod</h1><p>Şu anda internet bağlantısı bulunmuyor. Bağlantı sağlandığında ekran otomatik yenilenecektir.</p><button onclick="location.reload()" style="padding:0.75rem 1.5rem;background:#0ea5e9;border:none;border-radius:0.5rem;color:#fff;font-weight:bold;cursor:pointer;">Tekrar Dene</button></body></html>`,
+            `<!DOCTYPE html><html lang="tr"><head><meta charset="utf-8"><title>Çevrimdışı Kaptan & Saha | Phuket Tatili</title><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{font-family:-apple-system,sans-serif;padding:1.5rem;text-align:center;background:#09121f;color:#fff;max-width:500px;margin:auto;}h1{color:#f59e0b;font-size:1.4rem;}p{color:#94a3b8;font-size:0.9rem;}a.btn{display:inline-block;margin:0.4rem;padding:0.75rem 1.25rem;background:#0284c7;color:#fff;text-decoration:none;border-radius:0.75rem;font-weight:bold;font-size:0.85rem;}a.sos{background:#e11d48;}</style></head><body><h1>📶 Andaman Denizi Çevrimdışı Mod</h1><p>Şu anda internet bağlantısı bulunmuyor. Yerel hafızadaki manifesto korunmaktadır.</p><div style="margin:1.5rem 0;"><a class="btn sos" href="tel:1155">🚨 Turist Polisi (1155)</a><a class="btn sos" href="tel:+6676211883">🚤 Deniz Polisi</a><a class="btn" href="tel:+66828950665">🇹🇭 7/24 Saha Destek</a></div><button onclick="location.reload()" style="padding:0.75rem 1.5rem;background:#334155;border:none;border-radius:0.5rem;color:#fff;font-weight:bold;cursor:pointer;">Sayfayı Yenile</button></body></html>`,
             { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
           );
         })
