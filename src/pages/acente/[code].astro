@@ -1,0 +1,240 @@
+---
+export const prerender = false;
+
+import { getCollection } from 'astro:content';
+import AgentPortalApp from '../../components/agent/AgentPortalApp';
+import { initialAgents, initialBookings, type Booking, type TourItem } from '../../data/adminInitialData';
+import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../lib/server/supabaseAdmin';
+import { checkRateLimit } from '../../lib/server/rateLimit';
+import { rowToBooking } from '../../lib/supabase';
+import siteSettings from '../../content/settings/site.json';
+
+const rawCode = (Astro.params.code || '').trim();
+const cleanCode = rawCode.toUpperCase();
+
+// Rate limiting
+const clientIp =
+  Astro.clientAddress ||
+  (Astro.request.headers.get('x-forwarded-for') || '').split(',')[0].trim() ||
+  'unknown';
+
+const limiter = await checkRateLimit('b2b-portal-page', clientIp, 40, 60);
+if (!limiter.allowed) {
+  Astro.response.status = 429;
+}
+
+// Acente eşleştirme
+const matchedAgent = initialAgents.find(
+  (a) => a.code.toUpperCase() === cleanCode && a.active
+);
+
+// Turları getCollection ile çekip TourItem formatına dönüştür
+let tourList: TourItem[] = [];
+try {
+  const collectionTours = await getCollection('tours');
+  tourList = collectionTours
+    .filter((t) => (t.data as any).draft !== true)
+    .map((t) => {
+      const data = t.data as any;
+      return {
+        id: t.id,
+        title: data.title || t.id,
+        category: data.category || 'island',
+        categoryLabel: data.categoryLabel || 'Ada Turları',
+        priceThb: Number(data.priceThb) || 2800,
+        costThb: Number(data.costThb) || 1600,
+        supplier: data.supplier || 'Phuket Tatili Marine',
+        duration: data.duration || 'Tam Gün',
+        featured: Boolean(data.featured),
+        active: true,
+        image: data.image || data.heroImage || '/assets/phuket_hero.webp',
+        excerpt: data.description || '',
+      };
+    })
+    .sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+} catch {
+  tourList = [];
+}
+
+// Eğer turlar boş gelirse fallback turlar tanımla
+if (tourList.length === 0) {
+  tourList = [
+    {
+      id: 'phi-phi-maya-bamboo',
+      title: 'Phi Phi & Maya Bay & Bamboo Island Sürat Teknesi',
+      category: 'island',
+      categoryLabel: 'Ada Turları',
+      priceThb: 3200,
+      costThb: 1800,
+      duration: 'Tam Gün (07:30 - 17:00)',
+      featured: true,
+      active: true,
+      image: '/assets/phuket_hero.webp',
+    },
+    {
+      id: 'james-bond-phang-nga',
+      title: 'James Bond Adası & Phang Nga Körfezi Kano & Sürat Teknesi',
+      category: 'island',
+      categoryLabel: 'Ada Turları',
+      priceThb: 2900,
+      costThb: 1650,
+      duration: 'Tam Gün (08:00 - 17:30)',
+      featured: true,
+      active: true,
+      image: '/assets/phuket_hero.webp',
+    },
+    {
+      id: 'similan-islands-speed-catamaran',
+      title: 'Similan Adaları Erken Çıkışlı Katamaran Turu',
+      category: 'island',
+      categoryLabel: 'Milli Park Turları',
+      priceThb: 3900,
+      costThb: 2400,
+      duration: 'Tam Gün (05:45 - 18:30)',
+      featured: true,
+      active: true,
+      image: '/assets/phuket_hero.webp',
+    },
+    {
+      id: 'phuket-vip-city-tour',
+      title: 'Özel VIP Phuket Şehir & Big Buddha Turu',
+      category: 'cultural',
+      categoryLabel: 'VIP Şehir Turları',
+      priceThb: 3500,
+      costThb: 1800,
+      duration: 'Yarım Gün (6 Saat)',
+      featured: false,
+      active: true,
+      image: '/assets/phuket_hero.webp',
+    },
+  ];
+}
+
+// Acenteye ait rezervasyonları çek
+let agentBookings: Booking[] = [];
+if (matchedAgent) {
+  if (isSupabaseAdminConfigured()) {
+    const db = getSupabaseAdmin();
+    if (db) {
+      try {
+        const { data, error } = await db
+          .from('bookings')
+          .select('*')
+          .or(`agent_id.eq.${matchedAgent.id},special_notes.ilike.%${matchedAgent.code}%`)
+          .order('created_at', { ascending: false })
+          .limit(50);
+
+        if (!error && data) {
+          agentBookings = data.map(rowToBooking);
+        }
+      } catch {
+        agentBookings = initialBookings.filter(
+          (b) => b.agentId === matchedAgent.id || (b.specialNotes || '').includes(matchedAgent.code)
+        );
+      }
+    }
+  } else {
+    agentBookings = initialBookings.filter(
+      (b) => b.agentId === matchedAgent.id || (b.specialNotes || '').includes(matchedAgent.code)
+    );
+  }
+}
+---
+
+<!doctype html>
+<html lang="tr" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>
+      {matchedAgent
+        ? `${matchedAgent.name} — B2B Acente & Concierge Portalı | Phuket Tatili`
+        : 'B2B Acente Portalı — Yetkisiz Giriş | Phuket Tatili'}
+    </title>
+  </head>
+  <body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-amber-500 selection:text-slate-950">
+    {!limiter.allowed ? (
+      <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-md w-full bg-slate-900 border border-red-500/30 rounded-2xl p-8 text-center shadow-2xl">
+          <div class="w-16 h-16 bg-red-500/10 border border-red-500/30 rounded-full flex items-center justify-center mx-auto mb-4 text-red-400">
+            <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h1 class="text-xl font-bold text-white mb-2">Çok Fazla İstek Yapıldı</h1>
+          <p class="text-slate-400 text-sm mb-6">
+            Lütfen birkaç dakika bekleyip portalı yeniden yükleyiniz. Güvenlik gereği kısa süreliğine erişim sınırlandırıldı.
+          </p>
+          <a
+            href="/"
+            class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold transition"
+          >
+            Ana Sayfaya Dön
+          </a>
+        </div>
+      </div>
+    ) : !matchedAgent ? (
+      <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-lg w-full bg-slate-900 border border-slate-800 rounded-3xl p-8 md:p-10 shadow-2xl text-center">
+          <div class="w-20 h-20 bg-amber-500/10 border border-amber-500/30 rounded-2xl flex items-center justify-center mx-auto mb-6 text-amber-400">
+            <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <span class="inline-block px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-semibold tracking-wider uppercase mb-3">
+            B2B Acente / Concierge Girişi
+          </span>
+          <h1 class="text-2xl font-black text-white tracking-tight mb-3">
+            Acente Kodu Bulunamadı
+          </h1>
+          <p class="text-slate-400 text-sm leading-relaxed mb-6">
+            <code class="px-2 py-0.5 rounded bg-slate-800 text-amber-300 font-mono font-semibold">{cleanCode || 'BOŞ'}</code> koduna ait aktif bir acente veya otel concierge kaydı sistemde bulunamadı. Lütfen size iletilen özel bağlantıyı kontrol ediniz.
+          </p>
+
+          <div class="bg-slate-950/70 border border-slate-800/80 rounded-2xl p-4 mb-6 text-left text-xs text-slate-300 space-y-2">
+            <div class="font-semibold text-white flex items-center gap-1.5">
+              <span>💡</span> Deneyebileceğiniz Örnek Acente Kodları:
+            </div>
+            <div class="flex flex-wrap gap-2 pt-1">
+              <a href="/acente/IST-TRV" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono font-semibold transition">
+                /acente/IST-TRV
+              </a>
+              <a href="/acente/ALI-PAT" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-amber-400 font-mono font-semibold transition">
+                /acente/ALI-PAT
+              </a>
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+            <a
+              href="https://wa.me/66828950665?text=Merhaba,%20Phuket%20Tatili%20B2B%20acente%20portalı%20için%20kod%20almak%20istiyorum."
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-semibold shadow-lg shadow-emerald-900/30 transition"
+            >
+              <span>WhatsApp Yetkili Destek</span>
+            </a>
+            <a
+              href="/"
+              class="w-full sm:w-auto inline-flex items-center justify-center px-6 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition"
+            >
+              Ana Sayfa
+            </a>
+          </div>
+        </div>
+      </div>
+    ) : (
+      <main>
+        <AgentPortalApp
+          client:load
+          agent={matchedAgent}
+          tours={tourList}
+          existingBookings={agentBookings}
+          supportPhone={siteSettings.whatsappNumber || '66828950665'}
+        />
+      </main>
+    )}
+  </body>
+</html>

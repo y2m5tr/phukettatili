@@ -4,8 +4,9 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
+import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 
 interface BookingsTabProps {
   /** Arama + durum + tarih filtresinden geçmiş liste. */
@@ -285,6 +286,21 @@ export default function BookingsTab({
                             <FileText className="w-4 h-4" />
                           </button>
                         )}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = getGoogleReviewWhatsAppUrl(b);
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                          }}
+                          className={`p-2 rounded-xl transition-colors ${
+                            isTourEligibleForReview(b)
+                              ? 'bg-amber-400/20 text-amber-500 hover:bg-amber-400 hover:text-slate-950 dark:bg-amber-400/10 dark:text-amber-400 dark:hover:bg-amber-400 dark:hover:text-slate-950'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-amber-500'
+                          }`}
+                          title="⭐ 5-Yıldızlı Google Yorum İste (WhatsApp Review Booster)"
+                        >
+                          <Star className="w-4 h-4 fill-current" />
+                        </button>
                         <button
                           type="button"
                           onClick={() => setWhatsAppModalBooking(b)}

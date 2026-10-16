@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   DollarSign,
   TrendingUp,
@@ -19,6 +19,7 @@ import {
   Landmark,
   Clock,
   Coins,
+  RefreshCw,
 } from 'lucide-react';
 import {
   type Booking,
@@ -30,6 +31,7 @@ import {
   convertToThb,
   DEFAULT_EXCHANGE_RATES,
 } from '../../data/adminInitialData';
+import { getLiveExchangeRates, type SupportedCurrency } from '../../lib/exchangeRates';
 
 export type VaultAccountId = 'kbank' | 'office_cash' | 'tr_bank' | 'wise';
 
@@ -94,10 +96,48 @@ export default function FinanceTab({
   const [subTab, setSubTab] = useState<'ledger' | 'outstanding' | 'accounts' | 'driver_handover'>('ledger');
   const [settledDrivers, setSettledDrivers] = useState<string[]>([]);
 
-  // Döviz Çevirici State'i
+  // Döviz Çevirici State'i & Canlı Kurlar
   const [showCurrencyCalc, setShowCurrencyCalc] = useState(false);
   const [foreignAmount, setForeignAmount] = useState<number>(0);
-  const [foreignCurrency, setForeignCurrency] = useState<'TRY' | 'USD' | 'EUR' | 'GBP'>('TRY');
+  const [foreignCurrency, setForeignCurrency] = useState<SupportedCurrency>('TRY');
+  const [exchangeRates, setExchangeRates] = useState<Record<SupportedCurrency, number>>(DEFAULT_EXCHANGE_RATES);
+  const [ratesSource, setRatesSource] = useState<'live' | 'fallback'>('fallback');
+  const [ratesLastUpdated, setRatesLastUpdated] = useState<string>('');
+  const [isRefreshingRates, setIsRefreshingRates] = useState<boolean>(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    getLiveExchangeRates().then((data) => {
+      if (isMounted) {
+        setExchangeRates(data.rates);
+        setRatesSource(data.source);
+        setRatesLastUpdated(data.lastUpdated);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleRefreshRates = async () => {
+    setIsRefreshingRates(true);
+    try {
+      const res = await fetch('/api/exchange-rates?refresh=true');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.ok && json.rates) {
+          setExchangeRates(json.rates);
+          setRatesSource(json.source);
+          setRatesLastUpdated(json.lastUpdated);
+          showToast('💱 Canlı banka kurları güncellendi!');
+        }
+      }
+    } catch {
+      showToast('⚠️ Kur servisine ulaşılamadı, sabit kurlar kullanılıyor.');
+    } finally {
+      setIsRefreshingRates(false);
+    }
+  };
 
   // Filtreler
   const [searchQuery, setSearchQuery] = useState('');
@@ -1378,6 +1418,36 @@ export default function FinanceTab({
 
                 {showCurrencyCalc && (
                   <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
+                    <div className="flex items-center justify-between pb-1">
+                      <div className="flex items-center gap-1.5">
+                        <span
+                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                            ratesSource === 'live'
+                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                          }`}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${ratesSource === 'live' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                          {ratesSource === 'live' ? 'Canlı Banka Kurları (BOT/FX)' : 'Sabit Kurlar'}
+                        </span>
+                        {ratesLastUpdated && (
+                          <span className="text-[10px] text-slate-400">
+                            {new Date(ratesLastUpdated).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleRefreshRates}
+                        disabled={isRefreshingRates}
+                        className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-600 dark:text-sky-400 hover:underline cursor-pointer disabled:opacity-50"
+                        title="Kurları Şimdi Güncelle"
+                      >
+                        <RefreshCw className={`w-3 h-3 ${isRefreshingRates ? 'animate-spin' : ''}`} />
+                        <span>{isRefreshingRates ? 'Güncelleniyor...' : 'Kurları Yenile'}</span>
+                      </button>
+                    </div>
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
@@ -1401,10 +1471,10 @@ export default function FinanceTab({
                           onChange={(e) => setForeignCurrency(e.target.value as any)}
                           className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
                         >
-                          <option value="TRY">🇹🇷 Türk Lirası (1 TRY ≈ {DEFAULT_EXCHANGE_RATES.TRY} THB)</option>
-                          <option value="USD">🇺🇸 ABD Doları (1 USD ≈ {DEFAULT_EXCHANGE_RATES.USD} THB)</option>
-                          <option value="EUR">🇪🇺 Euro (1 EUR ≈ {DEFAULT_EXCHANGE_RATES.EUR} THB)</option>
-                          <option value="GBP">🇬🇧 İngiliz Sterlini (1 GBP ≈ {DEFAULT_EXCHANGE_RATES.GBP} THB)</option>
+                          <option value="TRY">🇹🇷 Türk Lirası (1 TRY ≈ {exchangeRates.TRY} THB)</option>
+                          <option value="USD">🇺🇸 ABD Doları (1 USD ≈ {exchangeRates.USD} THB)</option>
+                          <option value="EUR">🇪🇺 Euro (1 EUR ≈ {exchangeRates.EUR} THB)</option>
+                          <option value="GBP">🇬🇧 İngiliz Sterlini (1 GBP ≈ {exchangeRates.GBP} THB)</option>
                         </select>
                       </div>
                     </div>
@@ -1413,16 +1483,16 @@ export default function FinanceTab({
                       <div className="text-xs text-slate-600 dark:text-slate-400">
                         Karşılığı:{' '}
                         <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono text-sm">
-                          {convertToThb(foreignAmount, foreignCurrency).toLocaleString()} THB
+                          {convertToThb(foreignAmount, foreignCurrency, exchangeRates).toLocaleString()} THB
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={() => {
-                          const converted = convertToThb(foreignAmount, foreignCurrency);
+                          const converted = convertToThb(foreignAmount, foreignCurrency, exchangeRates);
                           setCollectAmount(converted);
                           setCollectNote(
-                            `${foreignAmount.toLocaleString()} ${foreignCurrency} nakit/havale alındı (Kur: ${DEFAULT_EXCHANGE_RATES[foreignCurrency]})`
+                            `${foreignAmount.toLocaleString()} ${foreignCurrency} nakit/havale alındı (Canlı Kur: ${exchangeRates[foreignCurrency]})`
                           );
                           showToast(`💱 ${converted.toLocaleString()} THB olarak tahsilat kutusuna aktarıldı!`);
                         }}
