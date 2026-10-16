@@ -123,4 +123,36 @@ describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated P
     proposal.days = proposal.days.filter((d) => d.id !== 'DAY-EXTRA-1');
     expect(proposal.days.length).toBe(initialCount);
   });
+
+  it('birden fazla otelde konaklama durumunu ve gün bazında farklı otel alınışlarını desteklemeli', () => {
+    const proposal = buildCuratedProposal('Kemal & Ayşe Sunal', 'honeymoon', 5, 'Amari Phuket', 'Patong & Kalim');
+    expect(proposal.hotels).toBeDefined();
+    expect(proposal.hotels?.length).toBe(1);
+
+    // 2. otel ekle (Laguna etabı)
+    proposal.hotels?.push({
+      id: 'hotel-2',
+      hotelName: 'SAii Laguna Phuket',
+      hotelZone: 'Bang Tao & Surin',
+      checkInDate: '2026-11-23',
+      checkOutDate: '2026-11-26',
+      notes: 'Laguna etabı (3 Gece)',
+    });
+    expect(proposal.hotels?.length).toBe(2);
+
+    // 2. turun alınışını 2. otelden ayarla
+    if (proposal.days[1]) {
+      proposal.days[1].hotelName = 'SAii Laguna Phuket';
+      proposal.days[1].hotelZone = 'Bang Tao & Surin';
+    }
+
+    const financials = calculateProposalFinancials(proposal);
+    const wa = generateCuratedProposalWhatsAppMessage(proposal, financials);
+
+    // WhatsApp çıktısında 2 otelin de listelendiğini doğrula
+    expect(wa).toContain('Konaklama Otelleri (2 Farklı Otel)');
+    expect(wa).toContain('Amari Phuket');
+    expect(wa).toContain('SAii Laguna Phuket');
+    expect(wa).toContain('Alınış Oteli: *SAii Laguna Phuket*');
+  });
 });

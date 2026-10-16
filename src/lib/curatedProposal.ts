@@ -23,6 +23,18 @@ export interface CuratedProposalDay {
   included: string[];
   image: string;
   priceThb: number;
+  hotelName?: string; // Gün/tur bazında özel alınış oteli (farklı otelde konaklama)
+  hotelZone?: string;
+}
+
+export interface CuratedProposalHotelStay {
+  id: string;
+  hotelName: string;
+  hotelZone: string;
+  checkInDate?: string;
+  checkOutDate?: string;
+  roomType?: string;
+  notes?: string;
 }
 
 export interface ProposalAgentInfo {
@@ -42,6 +54,7 @@ export interface CuratedProposalData {
   customerEmail?: string;
   hotelName: string;
   hotelZone: string;
+  hotels?: CuratedProposalHotelStay[]; // Çoklu otel konaklamaları (örn: 3 gün Patong, 4 gün Kata)
   adultCount: number;
   childCount: number;
   packageTitle: string;
@@ -427,6 +440,16 @@ export function buildCuratedProposal(
 
   const welcomeMessage = `Sayın ${customerName}, Phuket tatiliniz için tropikal adalar, turkuaz lagünler ve unutulmaz anılarla dolu kişiye özel bir seyahat programı hazırladık. Tüm detaylar konforunuz ve güvenliğiniz ön planda tutularak planlanmıştır.`;
 
+  const hotels: CuratedProposalHotelStay[] = [
+    {
+      id: `hotel-1`,
+      hotelName,
+      hotelZone,
+      checkInDate: formatIsoDate(today),
+      checkOutDate: formatIsoDate(new Date(today.getTime() + duration * 24 * 60 * 60 * 1000)),
+    },
+  ];
+
   return {
     proposalNumber,
     createdAtDate: formatIsoDate(today),
@@ -434,6 +457,7 @@ export function buildCuratedProposal(
     customerName,
     hotelName,
     hotelZone,
+    hotels,
     adultCount,
     childCount,
     packageTitle: packagePlan.packageName,
@@ -519,9 +543,10 @@ export function generateCuratedProposalWhatsAppMessage(
       const trans = TRANSPORT_META[d.transportType]?.label || 'Tekne / Transfer';
       const meal = MEAL_PLAN_META[d.mealPlan]?.label || 'Öğle Yemeği';
       const np = d.nationalParkFeeStatus === 'included' ? '✅ Milli Park Dahil' : d.nationalParkFeeStatus === 'not_included' ? '⚠️ Milli Park Hariç' : 'ℹ️ Harçsız';
+      const hotelInfo = d.hotelName ? `\n   • Alınış Oteli: *${d.hotelName}* (${d.hotelZone || proposal.hotelZone})` : '';
       return `📍 *Gün ${d.dayNumber}: ${d.dayTitle}*\n` +
         `   • Tur: *${d.tourTitle}*\n` +
-        `   • Lobi Alınış: *${d.pickupWindow}* | Süre: ${d.tourDuration}\n` +
+        `   • Lobi Alınış: *${d.pickupWindow}* | Süre: ${d.tourDuration}${hotelInfo}\n` +
         `   • Ulaşım: ${trans} | Yemek: ${meal}\n` +
         `   • Durum: ${np}\n` +
         `   • Öne Çıkan: _${d.highlight}_\n` +
@@ -535,6 +560,12 @@ export function generateCuratedProposalWhatsAppMessage(
       ? `\n🎁 *Kişiye Özel İkram & Sürprizler:*\n` + proposal.specialGifts.map((g) => `• ${g}`).join('\n') + `\n`
       : '';
 
+  let accommodationText = `🏨 *Konaklama:* ${proposal.hotelName} (${proposal.hotelZone})`;
+  if (proposal.hotels && proposal.hotels.length > 1) {
+    accommodationText = `🏨 *Konaklama Otelleri (${proposal.hotels.length} Farklı Otel):*\n` +
+      proposal.hotels.map((h, i) => `   ${i + 1}. *${h.hotelName}* (${h.hotelZone || 'Phuket'})${h.checkInDate && h.checkOutDate ? ` · 📅 ${h.checkInDate} ➔ ${h.checkOutDate}` : ''}${h.notes ? ` (${h.notes})` : ''}`).join('\n');
+  }
+
   return `🌴 *PHUKET TATİLİ — KİŞİYE ÖZEL TATİL & TUR TEKLİFİ* 🌴
 🏢 *Lisanslı Tur Operatörü · TAT License: 34/02819*
 📋 *Teklif No:* ${proposal.proposalNumber}
@@ -545,7 +576,7 @@ Sayın *${proposal.customerName}*,
 
 ${proposal.welcomeMessage || 'Sizin için özenle hazırladığımız tatil programı detayları aşağıdadır:'}
 
-🏨 *Konaklama:* ${proposal.hotelName} (${proposal.hotelZone})
+${accommodationText}
 👥 *Kişi Sayısı:* ${paxStr}
 ✨ *Paket:* ${proposal.packageTitle}
 

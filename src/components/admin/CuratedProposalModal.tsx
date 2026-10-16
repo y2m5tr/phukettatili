@@ -43,6 +43,7 @@ import {
   DEFAULT_GIFTS,
   type CuratedProposalData,
   type CuratedProposalDay,
+  type CuratedProposalHotelStay,
   type TransportType,
   type MealPlanType,
   type NationalParkStatus,
@@ -51,6 +52,7 @@ import {
   type CatalogTourPreset,
 } from '../../lib/curatedProposal';
 import type { TravelStyle, PackageDuration } from '../../lib/holidayPlanner';
+import { HOTEL_ZONES, detectHotelZone } from '../../data/adminInitialData';
 
 interface Props {
   isOpen: boolean;
@@ -99,6 +101,81 @@ export default function CuratedProposalModal({
   const financials = useMemo(() => {
     return calculateProposalFinancials(proposal);
   }, [proposal]);
+
+  // Çoklu Otel Konaklaması Yönetimi
+  const proposalHotels: CuratedProposalHotelStay[] = useMemo(() => {
+    if (proposal.hotels && proposal.hotels.length > 0) return proposal.hotels;
+    return [
+      {
+        id: 'hotel-1',
+        hotelName: proposal.hotelName || '',
+        hotelZone: proposal.hotelZone || 'Patong & Kalim',
+        checkInDate: proposal.createdAtDate,
+        checkOutDate: proposal.validUntilDate,
+      },
+    ];
+  }, [proposal.hotels, proposal.hotelName, proposal.hotelZone, proposal.createdAtDate, proposal.validUntilDate]);
+
+  const handleAddProposalHotel = () => {
+    const newId = `hotel-${Date.now()}`;
+    const nextHotels: CuratedProposalHotelStay[] = [
+      ...proposalHotels,
+      {
+        id: newId,
+        hotelName: '',
+        hotelZone: 'Patong & Kalim',
+        checkInDate: '',
+        checkOutDate: '',
+        notes: '',
+      },
+    ];
+    setProposal((prev) => ({
+      ...prev,
+      hotels: nextHotels,
+    }));
+    showToast('🏨 Yeni konaklama oteli eklendi');
+  };
+
+  const handleUpdateProposalHotel = (
+    hotelId: string,
+    patch: Partial<CuratedProposalHotelStay>
+  ) => {
+    const nextHotels = proposalHotels.map((h) => {
+      if (h.id === hotelId) {
+        const updated = { ...h, ...patch };
+        if (patch.hotelName && !patch.hotelZone) {
+          const detected = detectHotelZone(patch.hotelName);
+          if (detected) updated.hotelZone = detected;
+        }
+        return updated;
+      }
+      return h;
+    });
+
+    const first = nextHotels[0];
+    setProposal((prev) => ({
+      ...prev,
+      hotels: nextHotels,
+      hotelName: first?.hotelName || prev.hotelName,
+      hotelZone: first?.hotelZone || prev.hotelZone,
+    }));
+  };
+
+  const handleRemoveProposalHotel = (hotelId: string) => {
+    if (proposalHotels.length <= 1) {
+      showToast('⚠️ En az bir konaklama oteli bulunmalıdır');
+      return;
+    }
+    const nextHotels = proposalHotels.filter((h) => h.id !== hotelId);
+    const first = nextHotels[0];
+    setProposal((prev) => ({
+      ...prev,
+      hotels: nextHotels,
+      hotelName: first?.hotelName || prev.hotelName,
+      hotelZone: first?.hotelZone || prev.hotelZone,
+    }));
+    showToast('🗑️ Otel tekliften kaldırıldı');
+  };
 
   // Hızlı Hazır Paket Şablonu Yükleme
   const handleApplyPreset = (style: TravelStyle, duration: PackageDuration) => {
@@ -438,30 +515,104 @@ export default function CuratedProposalModal({
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                        Konaklama Oteli:
+                  {/* Konaklama Otelleri (Çoklu Otel Destekli) */}
+                  <div className="space-y-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between">
+                      <label className="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
+                        <Hotel className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Konaklama Oteli / Otelleri ({proposalHotels.length})</span>
                       </label>
-                      <input
-                        type="text"
-                        value={proposal.hotelName}
-                        onChange={(e) => setProposal({ ...proposal, hotelName: e.target.value })}
-                        placeholder="Örn: The Shore at Katathani"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                      />
+                      <button
+                        type="button"
+                        onClick={handleAddProposalHotel}
+                        className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>+ Başka Otel Ekle</span>
+                      </button>
                     </div>
-                    <div>
-                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                        Bölge:
-                      </label>
-                      <input
-                        type="text"
-                        value={proposal.hotelZone}
-                        onChange={(e) => setProposal({ ...proposal, hotelZone: e.target.value })}
-                        placeholder="Örn: Kata & Karon"
-                        className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white"
-                      />
+
+                    <div className="space-y-2">
+                      {proposalHotels.map((h, hIdx) => (
+                        <div
+                          key={h.id || hIdx}
+                          className="p-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 space-y-2 shadow-2xs"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400">
+                              #{hIdx + 1} {hIdx === 0 ? 'Ana Konaklama' : `${hIdx + 1}. Otel`}
+                            </span>
+                            {proposalHotels.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveProposalHotel(h.id)}
+                                className="text-slate-400 hover:text-rose-500 p-0.5 text-xs transition cursor-pointer"
+                                title="Bu oteli kaldır"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
+                            <div className="sm:col-span-7">
+                              <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">
+                                Otel Adı *
+                              </label>
+                              <input
+                                type="text"
+                                value={h.hotelName}
+                                onChange={(e) =>
+                                  handleUpdateProposalHotel(h.id, { hotelName: e.target.value })
+                                }
+                                placeholder="Örn: The Shore at Katathani"
+                                className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-medium"
+                              />
+                            </div>
+                            <div className="sm:col-span-5">
+                              <label className="text-[10px] font-semibold text-slate-500 block mb-0.5">
+                                Bölge *
+                              </label>
+                              <select
+                                value={h.hotelZone || 'Patong & Kalim'}
+                                onChange={(e) =>
+                                  handleUpdateProposalHotel(h.id, { hotelZone: e.target.value })
+                                }
+                                className="w-full px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-semibold"
+                              >
+                                {HOTEL_ZONES.map((zone) => (
+                                  <option key={zone} value={zone}>
+                                    {zone}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 text-[10px]">
+                            <div>
+                              <label className="text-slate-500 block mb-0.5">Tarih Aralığı (Opsiyonel):</label>
+                              <input
+                                type="text"
+                                value={h.notes || (h.checkInDate && h.checkOutDate ? `${h.checkInDate} - ${h.checkOutDate}` : '')}
+                                onChange={(e) => handleUpdateProposalHotel(h.id, { notes: e.target.value })}
+                                placeholder="Örn: 20-23 Ekim (3 Gece)"
+                                className="w-full px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs"
+                              />
+                            </div>
+                            <div>
+                              <label className="text-slate-500 block mb-0.5">Oda Tipi / Not:</label>
+                              <input
+                                type="text"
+                                value={h.roomType || ''}
+                                onChange={(e) => handleUpdateProposalHotel(h.id, { roomType: e.target.value })}
+                                placeholder="Örn: Seaview Pool Villa"
+                                className="w-full px-2 py-1 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-xs"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
@@ -676,6 +827,32 @@ export default function CuratedProposalModal({
                                 className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs"
                               />
                             </div>
+
+                            {proposalHotels.length > 1 && (
+                              <div>
+                                <label className="text-[10px] font-bold text-slate-500 block mb-0.5">
+                                  🏨 Bu Günün Alınış Oteli:
+                                </label>
+                                <select
+                                  value={day.hotelName || proposalHotels[0]?.hotelName || ''}
+                                  onChange={(e) => {
+                                    const val = e.target.value;
+                                    const matched = proposalHotels.find((h) => h.hotelName === val);
+                                    handleUpdateDay(day.id, {
+                                      hotelName: val,
+                                      hotelZone: matched?.hotelZone || proposal.hotelZone,
+                                    });
+                                  }}
+                                  className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold"
+                                >
+                                  {proposalHotels.map((h, hIdx) => (
+                                    <option key={h.id || hIdx} value={h.hotelName}>
+                                      #{hIdx + 1}: {h.hotelName || `Otel ${hIdx + 1}`} ({h.hotelZone})
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            )}
 
                             <div className="grid grid-cols-2 gap-2">
                               <div>
@@ -1097,9 +1274,31 @@ export default function CuratedProposalModal({
                   <h2 className="text-xl font-extrabold text-slate-950">
                     {proposal.customerName}
                   </h2>
-                  <p className="text-xs text-slate-600">
-                    🏨 Konaklama: <span className="font-bold text-slate-900">{proposal.hotelName}</span> ({proposal.hotelZone})
-                  </p>
+                  {proposalHotels.length > 1 ? (
+                    <div className="pt-1 space-y-1">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 block">
+                        🏨 Konaklama Otelleri ({proposalHotels.length} Farklı Otel):
+                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {proposalHotels.map((h, i) => (
+                          <span
+                            key={h.id || i}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-semibold text-slate-900 shadow-2xs"
+                          >
+                            <span className="font-extrabold text-amber-600">#{i + 1}</span>
+                            <span>{h.hotelName || `Otel ${i + 1}`}</span>
+                            <span className="text-[10px] text-slate-500 font-normal">
+                              ({h.hotelZone}){h.notes ? ` · ${h.notes}` : ''}
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-600">
+                      🏨 Konaklama: <span className="font-bold text-slate-900">{proposal.hotelName}</span> ({proposal.hotelZone})
+                    </p>
+                  )}
                 </div>
 
                 <div className="sm:text-right space-y-1 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
@@ -1185,6 +1384,14 @@ export default function CuratedProposalModal({
                               <Clock className="w-3 h-3 text-amber-600" />
                               <span>Lobi Alınış: {day.pickupWindow}</span>
                             </span>
+
+                            {/* Alınış Oteli Rozeti (Çoklu otel varsa) */}
+                            {day.hotelName && (
+                              <span className="flex items-center gap-1 text-slate-800 bg-slate-100 px-2.5 py-0.5 rounded-lg font-medium border border-slate-200">
+                                <Hotel className="w-3 h-3 text-amber-600" />
+                                <span>Alınış Oteli: {day.hotelName}</span>
+                              </span>
+                            )}
 
                             {/* Tur Süresi */}
                             <span className="px-2 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-medium">

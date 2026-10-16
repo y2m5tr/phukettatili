@@ -250,4 +250,62 @@ describe('buildDailyPickups', () => {
   it('tarih eşleşmesi olmayan gün boş liste döner', () => {
     expect(buildDailyPickups(bookings, '2030-01-01')).toEqual([]);
   });
+
+  it('birden fazla otelde konaklayan misafirin farklı turlarda farklı otellerden alınmasını desteklemeli', () => {
+    const multiHotelBooking: Booking = {
+      ...baseBooking,
+      id: 'BK-MULTI-HOTEL',
+      customerName: 'Can & Sinem Yılmaz',
+      hotel: 'Amari Phuket', // Ana Otel (Patong)
+      hotelZone: 'Patong & Kalim',
+      hotels: [
+        {
+          id: 'h-1',
+          hotelName: 'Amari Phuket',
+          hotelZone: 'Patong & Kalim',
+          roomNumber: '101',
+        },
+        {
+          id: 'h-2',
+          hotelName: 'SAii Laguna Phuket',
+          hotelZone: 'Bang Tao & Surin',
+          roomNumber: '502',
+        },
+      ],
+      tours: [
+        {
+          tourId: 'phi-phi',
+          tourTitle: 'Phi Phi Adaları',
+          tourDate: '2026-03-10',
+          pickupTime: '07:30',
+          hotel: 'Amari Phuket',
+          hotelZone: 'Patong & Kalim',
+          roomNumber: '101',
+        },
+        {
+          tourId: 'james-bond',
+          tourTitle: 'James Bond Kano',
+          tourDate: '2026-03-14',
+          pickupTime: '08:15',
+          hotel: 'SAii Laguna Phuket',
+          hotelZone: 'Bang Tao & Surin',
+          roomNumber: '502',
+        },
+      ],
+    };
+
+    // 10 Mart günü turu: Amari Phuket'ten alınmalı
+    const pickups10 = buildDailyPickups([multiHotelBooking], '2026-03-10');
+    expect(pickups10).toHaveLength(1);
+    expect(pickups10[0].hotel).toBe('Amari Phuket');
+    expect(pickups10[0].roomNumber).toBe('101');
+    expect(pickups10[0].hotelZone).toBe('Patong & Kalim');
+
+    // 14 Mart günü turu: SAii Laguna Phuket'ten alınmalı
+    const pickups14 = buildDailyPickups([multiHotelBooking], '2026-03-14');
+    expect(pickups14).toHaveLength(1);
+    expect(pickups14[0].hotel).toBe('SAii Laguna Phuket');
+    expect(pickups14[0].roomNumber).toBe('502');
+    expect(pickups14[0].hotelZone).toBe('Bang Tao & Surin');
+  });
 });

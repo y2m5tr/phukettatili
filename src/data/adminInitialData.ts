@@ -12,8 +12,20 @@ export interface BookingTourSchedule {
   assignedVehicle?: string;
   assignedDriver?: string;
   hotelZone?: string;
+  hotel?: string; // Tur bazında özel alınış oteli (farklı otelde konaklama)
+  roomNumber?: string; // Tur bazında oda numarası
   supplierRefCode?: string;
   supplierStatus?: 'pending' | 'confirmed' | 'cancelled';
+}
+
+export interface BookingHotelStay {
+  id: string;
+  hotelName: string;
+  hotelZone?: string;
+  roomNumber?: string;
+  checkInDate?: string;
+  checkOutDate?: string;
+  notes?: string;
 }
 
 export type DietaryPreference =
@@ -74,6 +86,7 @@ export interface Booking {
   email?: string;
   hotel: string;
   roomNumber?: string;
+  hotels?: BookingHotelStay[]; // Misafirin birden fazla konaklama oteli (örn: 3 gece Patong, 4 gece Kata)
   tourId?: string;
   tourTitle: string;
   tourDate: string;
