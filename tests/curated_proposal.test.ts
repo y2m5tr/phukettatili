@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   buildCuratedProposal,
+  buildSingleTourProposal,
   calculateProposalFinancials,
   generateCuratedProposalWhatsAppMessage,
   PROPOSAL_CATALOG_TOURS,
@@ -155,4 +156,49 @@ describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated P
     expect(wa).toContain('SAii Laguna Phuket');
     expect(wa).toContain('Alınış Oteli: *SAii Laguna Phuket*');
   });
+
+  it('tekli tur ve tekli paket teklifi (single_tour) oluşturma ve saatlik akış dökümünü doğru yapmalı', () => {
+    const singleProposal = buildSingleTourProposal(
+      'Mert & Selin Çetin',
+      'phi_phi_speed',
+      '2026-11-15',
+      'Katathani Phuket Beach Resort',
+      'Kata Noi',
+      2,
+      1
+    );
+
+    expect(singleProposal.proposalType).toBe('single_tour');
+    expect(singleProposal.singleTourDate).toBe('2026-11-15');
+    expect(singleProposal.customerName).toBe('Mert & Selin Çetin');
+    expect(singleProposal.hotelName).toBe('Katathani Phuket Beach Resort');
+    expect(singleProposal.days.length).toBe(1);
+    expect(singleProposal.proposalNumber).toMatch(/^PT-TOUR-\d{4}-\d{4}$/);
+
+    // Saatlik tur akış adımları (Timeline)
+    expect(singleProposal.singleTourTimeline).toBeDefined();
+    expect(singleProposal.singleTourTimeline?.length).toBeGreaterThanOrEqual(4);
+    expect(singleProposal.singleTourTimeline?.[0].time).toBe('07:15 - 07:30');
+    expect(singleProposal.singleTourTimeline?.[0].title).toContain('Otel Lobisinden Alınış');
+
+    // Tavsiyeler (Tips)
+    expect(singleProposal.singleTourTips?.length).toBeGreaterThan(0);
+
+    // Finansal özet
+    const financials = calculateProposalFinancials(singleProposal);
+    expect(financials.subtotalThb).toBeGreaterThan(0);
+    expect(financials.totalThb).toBe(financials.subtotalThb);
+    expect(financials.depositThb).toBe(Math.round(financials.totalThb * 0.3));
+
+    // WhatsApp tekli tur formatı
+    const wa = generateCuratedProposalWhatsAppMessage(singleProposal, financials);
+    expect(wa).toContain('KİŞİYE ÖZEL TEK TUR TEKLİFİ');
+    expect(wa).toContain('Mert & Selin Çetin');
+    expect(wa).toContain('2026-11-15');
+    expect(wa).toContain('ÖNGÖRÜLEN TUR AKIŞI & SAATLER:');
+    expect(wa).toContain('Otel Lobisinden Alınış');
+    expect(wa).toContain('Yanınızda Getirmeniz Önerilenler:');
+    expect(wa).toContain('Katathani Phuket Beach Resort');
+  });
 });
+

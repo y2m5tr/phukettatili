@@ -26,9 +26,16 @@ import {
   CreditCard,
   Globe,
   Share2,
+  Save,
+  FolderOpen,
+  Ship,
+  MapPin,
+  ListOrdered,
+  Bookmark,
 } from 'lucide-react';
 import {
   buildCuratedProposal,
+  buildSingleTourProposal,
   calculateProposalFinancials,
   generateCuratedProposalWhatsAppMessage,
   getCategoryIcon,
@@ -41,9 +48,12 @@ import {
   DEFAULT_INCLUSIONS,
   DEFAULT_EXCLUSIONS,
   DEFAULT_GIFTS,
+  DEFAULT_SINGLE_TOUR_TIPS,
   type CuratedProposalData,
   type CuratedProposalDay,
   type CuratedProposalHotelStay,
+  type ProposalTimelineStep,
+  type ProposalType,
   type TransportType,
   type MealPlanType,
   type NationalParkStatus,
@@ -53,6 +63,17 @@ import {
 } from '../../lib/curatedProposal';
 import type { TravelStyle, PackageDuration } from '../../lib/holidayPlanner';
 import { HOTEL_ZONES, detectHotelZone } from '../../data/adminInitialData';
+
+export interface SavedProposalItem {
+  id: string;
+  savedAt: string;
+  title: string;
+  customerName: string;
+  proposalType: ProposalType;
+  data: CuratedProposalData;
+}
+
+const STORAGE_KEY_PROPOSALS = 'ptt_saved_curated_proposals_v1';
 
 interface Props {
   isOpen: boolean;
@@ -64,7 +85,7 @@ interface Props {
   isEmbedded?: boolean;
 }
 
-type EditorTab = 'overview' | 'days' | 'inclusions' | 'financials';
+type EditorTab = 'overview' | 'days' | 'timeline' | 'inclusions' | 'financials';
 
 export default function CuratedProposalModal({
   isOpen,
@@ -98,9 +119,220 @@ export default function CuratedProposalModal({
   const [newExclusionText, setNewExclusionText] = useState<string>('');
   const [newGiftText, setNewGiftText] = useState<string>('');
 
+  // Single tour & timeline states
+  const [newStepTime, setNewStepTime] = useState<string>('09:00');
+  const [newStepTitle, setNewStepTitle] = useState<string>('');
+  const [newStepDesc, setNewStepDesc] = useState<string>('');
+  const [newTipText, setNewTipText] = useState<string>('');
+
+  // Saved proposals state & modal
+  const [showSavedModal, setShowSavedModal] = useState<boolean>(false);
+  const [savedProposals, setSavedProposals] = useState<SavedProposalItem[]>(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY_PROPOSALS);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const isSingleTour = proposal.proposalType === 'single_tour';
+  const singleDay = proposal.days[0] || ({} as CuratedProposalDay);
+
   const financials = useMemo(() => {
     return calculateProposalFinancials(proposal);
   }, [proposal]);
+
+  // Teklif Türü Değiştirme (Çok Günlü Paket vs Tekli Tur)
+  const handleSwitchProposalType = (type: ProposalType) => {
+    if (proposal.proposalType === type) return;
+    if (type === 'single_tour') {
+      const defaultTour = PROPOSAL_CATALOG_TOURS[0];
+      const newProp = buildSingleTourProposal(
+        proposal.customerName,
+        defaultTour.id,
+        proposal.singleTourDate || proposal.createdAtDate,
+        proposal.hotelName,
+        proposal.hotelZone,
+        proposal.adultCount,
+        proposal.childCount
+      );
+      newProp.currency = proposal.currency;
+      newProp.agentInfo = proposal.agentInfo;
+      setProposal(newProp);
+      setActiveTab('overview');
+      showToast('🎯 Tekli Tur & VIP Paket Teklifi moduna geçildi.');
+    } else {
+      const newProp = buildCuratedProposal(
+        proposal.customerName,
+        proposal.travelStyle || 'honeymoon',
+        5,
+        proposal.hotelName,
+        proposal.hotelZone,
+        proposal.adultCount,
+        proposal.childCount
+      );
+      newProp.currency = proposal.currency;
+      newProp.agentInfo = proposal.agentInfo;
+      setProposal(newProp);
+      setActiveTab('overview');
+      showToast('🌟 Çok Günlü Tatil Paketi moduna geçildi.');
+    }
+  };
+
+  // Tekli Tur için Hazır Katalog Şablonu Yükleme
+  const handleApplySingleTourPreset = (preset: CatalogTourPreset) => {
+    const updated = buildSingleTourProposal(
+      proposal.customerName,
+      preset.id,
+      proposal.singleTourDate || proposal.createdAtDate,
+      proposal.hotelName,
+      proposal.hotelZone,
+      proposal.adultCount,
+      proposal.childCount
+    );
+    updated.currency = proposal.currency;
+    updated.agentInfo = proposal.agentInfo;
+    setProposal(updated);
+    showToast(`🎯 "${preset.tourTitle}" şablonu ve saatlik tur akışı yüklendi!`);
+  };
+
+  // Tekli Turun tek gününü güncelleme
+  const handleUpdateSingleDay = (updates: Partial<CuratedProposalDay>) => {
+    setProposal((prev) => {
+      const d0 = prev.days[0] || {
+        id: 'DAY-1',
+        dayNumber: 1,
+        dayTitle: prev.packageTitle,
+        tourTitle: prev.packageTitle,
+        pickupWindow: '08:00 - 08:30',
+        tourDuration: '09:00 - 17:00',
+        category: 'island',
+        transportType: 'speedboat',
+        mealPlan: 'buffet_lunch',
+        nationalParkFeeStatus: 'included',
+        guideLanguage: 'turkish',
+        highlight: '',
+        included: [],
+        image: '/assets/phi_phi_island.webp',
+        priceThb: 0,
+        hotelName: prev.hotelName,
+        hotelZone: prev.hotelZone,
+      };
+      const updatedD0 = { ...d0, ...updates };
+      return {
+        ...prev,
+        days: [updatedD0, ...prev.days.slice(1)],
+      };
+    });
+  };
+
+  // Saatlik Tur Akışı Adımı Ekleme / Güncelleme / Silme
+  const handleAddTimelineStep = () => {
+    if (!newStepTitle.trim()) {
+      showToast('⚠️ Lütfen adım başlığı giriniz (Örn: Maya Bay Molası)');
+      return;
+    }
+    const step: ProposalTimelineStep = {
+      id: `step-${Date.now()}`,
+      time: newStepTime.trim() || '10:00',
+      title: newStepTitle.trim(),
+      description: newStepDesc.trim(),
+    };
+    setProposal((prev) => ({
+      ...prev,
+      singleTourTimeline: [...(prev.singleTourTimeline || []), step],
+    }));
+    setNewStepTitle('');
+    setNewStepDesc('');
+    showToast('➕ Yeni saatlik adım akışa eklendi');
+  };
+
+  const handleUpdateTimelineStep = (stepId: string, patch: Partial<ProposalTimelineStep>) => {
+    setProposal((prev) => ({
+      ...prev,
+      singleTourTimeline: (prev.singleTourTimeline || []).map((s) => (s.id === stepId ? { ...s, ...patch } : s)),
+    }));
+  };
+
+  const handleDeleteTimelineStep = (stepId: string) => {
+    setProposal((prev) => ({
+      ...prev,
+      singleTourTimeline: (prev.singleTourTimeline || []).filter((s) => s.id !== stepId),
+    }));
+    showToast('🗑️ Saatlik adım kaldırıldı');
+  };
+
+  const handleMoveTimelineStep = (idx: number, direction: 'up' | 'down') => {
+    const steps = proposal.singleTourTimeline || [];
+    const target = direction === 'up' ? idx - 1 : idx + 1;
+    if (target < 0 || target >= steps.length) return;
+    const copy = [...steps];
+    const [moved] = copy.splice(idx, 1);
+    copy.splice(target, 0, moved);
+    setProposal((prev) => ({
+      ...prev,
+      singleTourTimeline: copy,
+    }));
+  };
+
+  // Yanınızda Getirilecekler Ekle / Sil
+  const handleAddTip = () => {
+    if (!newTipText.trim()) return;
+    setProposal((prev) => ({
+      ...prev,
+      singleTourTips: [...(prev.singleTourTips || []), newTipText.trim()],
+    }));
+    setNewTipText('');
+  };
+
+  const handleDeleteTip = (index: number) => {
+    setProposal((prev) => ({
+      ...prev,
+      singleTourTips: (prev.singleTourTips || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  // Teklifi Yerel Hafızaya Kaydetme
+  const handleSaveProposal = () => {
+    try {
+      const item: SavedProposalItem = {
+        id: proposal.proposalNumber || `prop-${Date.now()}`,
+        savedAt: new Date().toLocaleString('tr-TR'),
+        title: proposal.packageTitle || 'Özel Teklif',
+        customerName: proposal.customerName || 'Misafir',
+        proposalType: proposal.proposalType || 'package_multiday',
+        data: proposal,
+      };
+      const raw = localStorage.getItem(STORAGE_KEY_PROPOSALS);
+      const existing: SavedProposalItem[] = raw ? JSON.parse(raw) : [];
+      const updated = [item, ...existing.filter((p) => p.id !== item.id)].slice(0, 30);
+      localStorage.setItem(STORAGE_KEY_PROPOSALS, JSON.stringify(updated));
+      setSavedProposals(updated);
+      showToast(`💾 "${item.title}" teklifi kaydedildi!`);
+    } catch {
+      showToast('⚠️ Teklif kaydedilirken bir hata oluştu');
+    }
+  };
+
+  const handleLoadSavedProposal = (item: SavedProposalItem) => {
+    setProposal(item.data);
+    setShowSavedModal(false);
+    setActiveTab('overview');
+    showToast(`📂 "${item.title}" teklifi yüklendi.`);
+  };
+
+  const handleDeleteSavedProposal = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      const updated = savedProposals.filter((p) => p.id !== id);
+      localStorage.setItem(STORAGE_KEY_PROPOSALS, JSON.stringify(updated));
+      setSavedProposals(updated);
+      showToast('🗑️ Kayıtlı teklif silindi');
+    } catch {
+      showToast('⚠️ Silinemedi');
+    }
+  };
 
   // Çoklu Otel Konaklaması Yönetimi
   const proposalHotels: CuratedProposalHotelStay[] = useMemo(() => {
@@ -347,18 +579,41 @@ export default function CuratedProposalModal({
             </div>
             <div>
               <h3 id="curated-proposal-modal-title" className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Kişiye Özel Logolu PDF Tur Teklifi & Tatil Broşürü</span>
+                <span>Teklifler · Özel Tur & Paket Teklif Stüdyosu</span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+                  {isSingleTour ? '🎯 Tekli VIP Tur' : '🌟 Çok Günlü Paket'}
+                </span>
+                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
                   A4 Kurumsal · Multi-Currency
                 </span>
               </h3>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Misafirin adına özel gün gün program, transfer saatleri, araç/yemek dökümü ve indirimli teklif dosyası.
+                Kişiye özel çok günlü tatil paketi veya tekli VIP tur teklifleri hazırlayın, saatlik tur akışı belirleyin ve anında paylaşın.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={handleSaveProposal}
+              className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Teklifi tarayıcı hafızasına kaydet"
+            >
+              <Save className="w-4 h-4 text-amber-600" />
+              <span>Kaydet</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowSavedModal(true)}
+              className="px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Kayıtlı teklifleri görüntüle ve geri yükle"
+            >
+              <FolderOpen className="w-4 h-4 text-sky-500" />
+              <span>Kayıtlılar ({savedProposals.length})</span>
+            </button>
+
             <button
               type="button"
               onClick={handleCopyWhatsApp}
@@ -379,14 +634,16 @@ export default function CuratedProposalModal({
               <span>🖨️ A4 PDF İndir / Yazdır</span>
             </button>
 
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Kapat"
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Kapat"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
 
@@ -398,59 +655,591 @@ export default function CuratedProposalModal({
           {/* SOL PANEL: AYRINTILI TEKLİF MİMARI (PRINTTE GİZLENİR) */}
           <div className="w-full lg:w-[420px] p-5 space-y-4 shrink-0 bg-slate-50/70 dark:bg-slate-950/60 print:hidden overflow-y-auto">
             
-            {/* 4 Ana Düzenleme Sekmesi */}
-            <div className="flex rounded-2xl bg-slate-200/70 dark:bg-slate-900 p-1 border border-slate-300/60 dark:border-slate-800">
+            {/* ========================================================= */}
+            {/* 0. TEKLİF FORMATI SEÇİCİ (ÇOK GÜNLÜ vs TEKLİ TUR) */}
+            {/* ========================================================= */}
+            <div className="p-1 rounded-2xl bg-slate-200/80 dark:bg-slate-900 border border-slate-300/70 dark:border-slate-800 flex gap-1">
               <button
                 type="button"
-                onClick={() => setActiveTab('overview')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'overview'
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                onClick={() => handleSwitchProposalType('package_multiday')}
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  !isSingleTour
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                🎯 Genel
+                <span>🌟 Çok Günlü Tatil Paketi</span>
               </button>
               <button
                 type="button"
-                onClick={() => setActiveTab('days')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all relative ${
-                  activeTab === 'days'
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                onClick={() => handleSwitchProposalType('single_tour')}
+                className={`flex-1 py-2 px-2.5 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  isSingleTour
+                    ? 'bg-amber-500 text-slate-950 shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
-                <span>🗓️ Günler</span>
-                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-600 text-[10px]">
-                  {proposal.days.length}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('inclusions')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'inclusions'
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                📋 Dahil/Hariç
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('financials')}
-                className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
-                  activeTab === 'financials'
-                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
-                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                }`}
-              >
-                💰 Fiyat
+                <span>🎯 Tekli Tur & VIP Paket</span>
               </button>
             </div>
 
-            {/* TAB 1: GENEL & MİSAFİR */}
-            {activeTab === 'overview' && (
+            {/* Düzenleme Sekmeleri (Moda Göre Dinamik) */}
+            {isSingleTour ? (
+              <div className="flex rounded-2xl bg-slate-200/70 dark:bg-slate-900 p-1 border border-slate-300/60 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('overview')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'overview'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  🎯 Tur & Misafir
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('timeline')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all relative ${
+                    activeTab === 'timeline'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <span>⏰ Saatlik Akış</span>
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-600 text-[10px]">
+                    {(proposal.singleTourTimeline || []).length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('inclusions')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'inclusions'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  📋 İpuçları
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('financials')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'financials'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  💰 Fiyat
+                </button>
+              </div>
+            ) : (
+              <div className="flex rounded-2xl bg-slate-200/70 dark:bg-slate-900 p-1 border border-slate-300/60 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('overview')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'overview'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  🎯 Genel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('days')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all relative ${
+                    activeTab === 'days'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <span>🗓️ Günler</span>
+                  <span className="ml-1 px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-600 text-[10px]">
+                    {proposal.days.length}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('inclusions')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'inclusions'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  📋 Dahil/Hariç
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('financials')}
+                  className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold transition-all ${
+                    activeTab === 'financials'
+                      ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  💰 Fiyat
+                </button>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* TAB 1 (TEKLİ TUR): TUR, MİSAFİR & LOJİSTİK BİLGİLERİ */}
+            {/* ========================================================= */}
+            {isSingleTour && activeTab === 'overview' && (
+              <div className="space-y-4 text-xs">
+                {/* Hızlı Katalog Şablonları */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                      <span>Hazır Katalog Şablonu Yükle:</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400">Tek tıkla saatlik akış yükler</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
+                    {PROPOSAL_CATALOG_TOURS.map((preset) => (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => handleApplySingleTourPreset(preset)}
+                        className={`p-2 rounded-xl text-left border transition-all cursor-pointer ${
+                          (singleDay.tourTitle === preset.tourTitle || proposal.packageTitle === preset.tourTitle)
+                            ? 'border-amber-500 bg-amber-500/10 text-amber-950 dark:text-amber-300 font-bold'
+                            : 'border-slate-200 dark:border-slate-800 hover:border-amber-400/50 hover:bg-slate-100 dark:hover:bg-slate-900'
+                        }`}
+                      >
+                        <span className="block truncate font-bold text-[11px]">
+                          {getCategoryIcon(preset.category)} {preset.tourTitle}
+                        </span>
+                        <span className="text-[10px] text-slate-500 block">
+                          {preset.priceThb.toLocaleString()} THB · {preset.tourDuration}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Misafir Bilgileri */}
+                <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                      Misafir Adı / Hitap:
+                    </label>
+                    <input
+                      type="text"
+                      value={proposal.customerName}
+                      onChange={(e) => setProposal({ ...proposal, customerName: e.target.value })}
+                      placeholder="Örn: Mert & Selin Çetin"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                        Yetişkin Sayısı:
+                      </label>
+                      <input
+                        type="number"
+                        min={1}
+                        value={proposal.adultCount}
+                        onChange={(e) => setProposal({ ...proposal, adultCount: Math.max(1, parseInt(e.target.value) || 1) })}
+                        className="w-full px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                        Çocuk Sayısı:
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        value={proposal.childCount}
+                        onChange={(e) => setProposal({ ...proposal, childCount: Math.max(0, parseInt(e.target.value) || 0) })}
+                        className="w-full px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Tur Tarihi & Alınış Oteli */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1 flex items-center gap-1">
+                        <Calendar className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Tur Tarihi:</span>
+                      </label>
+                      <input
+                        type="date"
+                        value={proposal.singleTourDate || singleDay.date || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProposal((prev) => ({
+                            ...prev,
+                            singleTourDate: val,
+                            days: prev.days.map((d, i) => (i === 0 ? { ...d, date: val } : d)),
+                          }));
+                        }}
+                        className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-semibold"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1 flex items-center gap-1">
+                        <Hotel className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Alınış Bölgesi:</span>
+                      </label>
+                      <select
+                        value={proposal.hotelZone || 'Patong & Kalim'}
+                        onChange={(e) => {
+                          const zone = e.target.value;
+                          setProposal((prev) => ({
+                            ...prev,
+                            hotelZone: zone,
+                            days: prev.days.map((d, i) => (i === 0 ? { ...d, hotelZone: zone } : d)),
+                          }));
+                        }}
+                        className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-semibold text-[11px]"
+                      >
+                        {HOTEL_ZONES.map((z) => (
+                          <option key={z} value={z}>{z}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                      Alınış Oteli:
+                    </label>
+                    <input
+                      type="text"
+                      value={proposal.hotelName}
+                      onChange={(e) => {
+                        const h = e.target.value;
+                        const detected = detectHotelZone(h);
+                        setProposal((prev) => ({
+                          ...prev,
+                          hotelName: h,
+                          hotelZone: detected || prev.hotelZone,
+                          days: prev.days.map((d, i) => (i === 0 ? { ...d, hotelName: h, hotelZone: detected || d.hotelZone } : d)),
+                        }));
+                      }}
+                      placeholder="Örn: Katathani Phuket Beach Resort"
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
+                      Tur Başlığı:
+                    </label>
+                    <input
+                      type="text"
+                      value={proposal.packageTitle}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setProposal((prev) => ({
+                          ...prev,
+                          packageTitle: val,
+                          days: prev.days.map((d, i) => (i === 0 ? { ...d, tourTitle: val } : d)),
+                        }));
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-bold"
+                    />
+                  </div>
+
+                  {/* Lojistik Saatler & Donanım */}
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 block mb-0.5">
+                        ⏰ Lobi Alınış Aralığı:
+                      </label>
+                      <input
+                        type="text"
+                        value={singleDay.pickupWindow || ''}
+                        onChange={(e) => handleUpdateSingleDay({ pickupWindow: e.target.value })}
+                        placeholder="07:15 - 07:30"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono font-bold text-[11px]"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 block mb-0.5">
+                        ⏱️ Tur Süresi:
+                      </label>
+                      <input
+                        type="text"
+                        value={singleDay.tourDuration || ''}
+                        onChange={(e) => handleUpdateSingleDay({ tourDuration: e.target.value })}
+                        placeholder="08:30 - 16:30"
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 block mb-0.5">
+                        🚤 Ulaşım / Araç Tipi:
+                      </label>
+                      <select
+                        value={singleDay.transportType || 'speedboat'}
+                        onChange={(e) => {
+                          const t = e.target.value as TransportType;
+                          handleUpdateSingleDay({ transportType: t });
+                          setProposal((prev) => ({
+                            ...prev,
+                            singleTourVesselInfo: TRANSPORT_META[t]?.label || prev.singleTourVesselInfo,
+                          }));
+                        }}
+                        className="w-full px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] font-semibold"
+                      >
+                        {(Object.keys(TRANSPORT_META) as TransportType[]).map((k) => (
+                          <option key={k} value={k}>{TRANSPORT_META[k].icon} {TRANSPORT_META[k].label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 block mb-0.5">
+                        🍽️ Yemek Planı:
+                      </label>
+                      <select
+                        value={singleDay.mealPlan || 'buffet_lunch'}
+                        onChange={(e) => handleUpdateSingleDay({ mealPlan: e.target.value as MealPlanType })}
+                        className="w-full px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] font-semibold"
+                      >
+                        {(Object.keys(MEAL_PLAN_META) as MealPlanType[]).map((k) => (
+                          <option key={k} value={k}>{MEAL_PLAN_META[k].icon} {MEAL_PLAN_META[k].label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 block mb-0.5">
+                        🏞️ Milli Park Harcı:
+                      </label>
+                      <select
+                        value={singleDay.nationalParkFeeStatus || 'included'}
+                        onChange={(e) => handleUpdateSingleDay({ nationalParkFeeStatus: e.target.value as NationalParkStatus })}
+                        className="w-full px-2 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px] font-semibold"
+                      >
+                        {(Object.keys(NATIONAL_PARK_META) as NationalParkStatus[]).map((k) => (
+                          <option key={k} value={k}>{NATIONAL_PARK_META[k].label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 block mb-0.5">
+                        💵 Tur Fiyatı (THB):
+                      </label>
+                      <input
+                        type="number"
+                        min={0}
+                        step={100}
+                        value={singleDay.priceThb || 0}
+                        onChange={(e) => handleUpdateSingleDay({ priceThb: Math.max(0, parseInt(e.target.value) || 0) })}
+                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono font-bold text-xs"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 dark:text-slate-400 block mb-0.5">
+                      Öne Çıkan Vurgu & Açıklama:
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={singleDay.highlight || ''}
+                      onChange={(e) => handleUpdateSingleDay({ highlight: e.target.value })}
+                      placeholder="Turun öne çıkan özellikleri..."
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-[11px]"
+                    />
+                  </div>
+
+                  {/* Danışman Bilgileri */}
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 space-y-2">
+                    <span className="text-[10px] uppercase font-bold text-amber-700 dark:text-amber-400 block">
+                      👨‍💼 Teklifi Hazırlayan Danışman:
+                    </span>
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        type="text"
+                        value={proposal.agentInfo.name}
+                        onChange={(e) =>
+                          setProposal({
+                            ...proposal,
+                            agentInfo: { ...proposal.agentInfo, name: e.target.value },
+                          })
+                        }
+                        className="px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-white dark:bg-slate-900 text-xs font-bold"
+                      />
+                      <input
+                        type="text"
+                        value={proposal.agentInfo.phone}
+                        onChange={(e) =>
+                          setProposal({
+                            ...proposal,
+                            agentInfo: { ...proposal.agentInfo, phone: e.target.value },
+                          })
+                        }
+                        className="px-2.5 py-1.5 rounded-lg border border-amber-500/30 bg-white dark:bg-slate-900 text-xs font-mono"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ========================================================= */}
+            {/* TAB 2 (TEKLİ TUR): SAATLİK TUR AKIŞI (TIMELINE) */}
+            {/* ========================================================= */}
+            {isSingleTour && activeTab === 'timeline' && (
+              <div className="space-y-4 text-xs">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-amber-500" />
+                    <span>Saatlik Tur Akış Durakları ({(proposal.singleTourTimeline || []).length}):</span>
+                  </label>
+                  <span className="text-[10px] text-slate-500 font-semibold">A4 Belgesine Yansır</span>
+                </div>
+
+                {/* Adımlar Listesi */}
+                <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
+                  {(!proposal.singleTourTimeline || proposal.singleTourTimeline.length === 0) ? (
+                    <div className="p-6 text-center rounded-xl border border-dashed border-slate-300 dark:border-slate-700 text-slate-400">
+                      Henüz saatlik adım eklenmedi. Aşağıdan ilk adımı ekleyebilir veya Genel sekmesinden bir katalog turu seçebilirsiniz.
+                    </div>
+                  ) : (
+                    proposal.singleTourTimeline.map((step, idx) => (
+                      <div
+                        key={step.id || idx}
+                        className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2 shadow-2xs"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-black px-2 py-0.5 rounded bg-amber-500/15 text-amber-700 dark:text-amber-400 font-mono">
+                            #{idx + 1}
+                          </span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              disabled={idx === 0}
+                              onClick={() => handleMoveTimelineStep(idx, 'up')}
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                              title="Yukarı taşı"
+                            >
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={idx === (proposal.singleTourTimeline?.length || 1) - 1}
+                              onClick={() => handleMoveTimelineStep(idx, 'down')}
+                              className="p-1 rounded text-slate-400 hover:text-slate-700 disabled:opacity-30 cursor-pointer"
+                              title="Aşağı taşı"
+                            >
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTimelineStep(step.id)}
+                              className="p-1 rounded text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                              title="Bu adımı sil"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-12 gap-2">
+                          <div className="col-span-4">
+                            <label className="text-[10px] text-slate-500 block mb-0.5">Saat / Aralık:</label>
+                            <input
+                              type="text"
+                              value={step.time}
+                              onChange={(e) => handleUpdateTimelineStep(step.id, { time: e.target.value })}
+                              placeholder="08:30"
+                              className="w-full px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono font-bold text-xs"
+                            />
+                          </div>
+                          <div className="col-span-8">
+                            <label className="text-[10px] text-slate-500 block mb-0.5">Aşama / Durak Başlığı:</label>
+                            <input
+                              type="text"
+                              value={step.title}
+                              onChange={(e) => handleUpdateTimelineStep(step.id, { title: e.target.value })}
+                              placeholder="Maya Bay Plaj Molası"
+                              className="w-full px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-xs"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] text-slate-500 block mb-0.5">Açıklama (Opsiyonel):</label>
+                          <input
+                            type="text"
+                            value={step.description || ''}
+                            onChange={(e) => handleUpdateTimelineStep(step.id, { description: e.target.value })}
+                            placeholder="Örn: The Beach filmiyle ünlü koyda kumsal ve fotoğraf..."
+                            className="w-full px-2 py-1 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-[11px]"
+                          />
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* Yeni Adım Ekleme Formu */}
+                <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2">
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block text-xs">
+                    ➕ Yeni Saatlik Akış Adımı Ekle:
+                  </span>
+                  <div className="grid grid-cols-12 gap-2">
+                    <div className="col-span-4">
+                      <input
+                        type="text"
+                        placeholder="Saat (09:00)"
+                        value={newStepTime}
+                        onChange={(e) => setNewStepTime(e.target.value)}
+                        className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-mono font-bold text-xs"
+                      />
+                    </div>
+                    <div className="col-span-8">
+                      <input
+                        type="text"
+                        placeholder="Aşama Adı (Örn: Şnorkel Molası)"
+                        value={newStepTitle}
+                        onChange={(e) => setNewStepTitle(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddTimelineStep()}
+                        className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 font-bold text-xs"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Detaylı açıklama (Opsiyonel)..."
+                      value={newStepDesc}
+                      onChange={(e) => setNewStepDesc(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddTimelineStep()}
+                      className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleAddTimelineStep}
+                    className="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs transition cursor-pointer"
+                  >
+                    + Bu Adımı Akışa Ekle
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 1 (ÇOK GÜNLÜ): GENEL & MİSAFİR */}
+            {!isSingleTour && activeTab === 'overview' && (
               <div className="space-y-4">
                 {/* Hızlı Şablonlar */}
                 <div>
@@ -703,8 +1492,8 @@ export default function CuratedProposalModal({
               </div>
             )}
 
-            {/* TAB 2: GÜN GÜN PROGRAM MİMARI */}
-            {activeTab === 'days' && (
+            {/* TAB 2 (ÇOK GÜNLÜ): GÜN GÜN PROGRAM MİMARI */}
+            {!isSingleTour && activeTab === 'days' && (
               <div className="space-y-4">
                 {/* Hızlı Katalogdan Tur Ekleme */}
                 <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-2">
@@ -971,6 +1760,52 @@ export default function CuratedProposalModal({
             {/* TAB 3: DAHİL / HARİÇ VE VIP SÜRPRİZLER */}
             {activeTab === 'inclusions' && (
               <div className="space-y-4 text-xs">
+                {/* Yanınızda Getirmeniz Önerilenler (Özellikle Tekli Turda Çok Önemli) */}
+                {isSingleTour && (
+                  <div className="pb-3 border-b border-slate-200 dark:border-slate-800">
+                    <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5 flex items-center gap-1.5">
+                      <span>🎒</span>
+                      <span>Yanınızda Getirmeniz Önerilenler ({(proposal.singleTourTips || []).length}):</span>
+                    </label>
+                    <div className="space-y-1.5 max-h-40 overflow-y-auto pr-1">
+                      {(proposal.singleTourTips || []).map((tip, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between gap-2 p-2 rounded-xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800/40 text-[11px]"
+                        >
+                          <span className="text-amber-900 dark:text-amber-300 font-medium">🎒 {tip}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTip(idx)}
+                            className="text-slate-400 hover:text-rose-600 shrink-0 cursor-pointer"
+                            title="Sil"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex gap-2 mt-2">
+                      <input
+                        type="text"
+                        placeholder="Örn: Güneş gözlüğü, su geçirmez kılıf..."
+                        value={newTipText}
+                        onChange={(e) => setNewTipText(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleAddTip()}
+                        className="flex-1 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleAddTip}
+                        className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs cursor-pointer"
+                      >
+                        Ekle
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {/* Dahil Olanlar */}
                 <div>
                   <label className="font-bold text-slate-800 dark:text-slate-200 block mb-1.5 flex items-center gap-1.5">
@@ -1233,6 +2068,282 @@ export default function CuratedProposalModal({
           <div className="flex-1 p-6 sm:p-10 bg-slate-100/60 dark:bg-slate-950/40 text-slate-900 overflow-y-auto print:p-0 print:bg-white print:overflow-visible">
             <div className="max-w-[780px] mx-auto bg-white p-8 sm:p-10 rounded-3xl shadow-xl print:shadow-none print:p-0 print:rounded-none space-y-6 border border-slate-200/80 print:border-none">
               
+              {isSingleTour ? (
+                <>
+                  {/* ANTET / LÜKS OPERATÖR BAŞLIĞI */}
+                  <div className="flex items-start justify-between border-b-2 border-amber-500 pb-5">
+                    <div>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-2xl font-black tracking-tight text-slate-950 font-serif">
+                          PHUKET TATİLİ
+                        </span>
+                        <span className="text-[10px] px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black uppercase tracking-wider">
+                          VIP TUR & AKTİVİTE TEKLİFİ
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-1 font-semibold">
+                        Siam Horizon Co., Ltd. · Licensed Inbound Tour Operator · TAT License: 34/02819
+                      </p>
+                      <p className="text-[10px] text-slate-400">
+                        Phuket Head Office: 48/12 Moo 5, Chalong, Mueang Phuket, 83130 Thailand
+                      </p>
+                    </div>
+
+                    <div className="text-right">
+                      <span className="text-xs font-mono font-black text-amber-600 block">
+                        {proposal.proposalNumber}
+                      </span>
+                      <span className="text-[11px] text-slate-500 block">
+                        Düzenleme: {proposal.createdAtDate}
+                      </span>
+                      <span className="text-[11px] text-emerald-600 font-bold block">
+                        Geçerlilik: {proposal.validUntilDate}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* MİSAFİR & TUR KARTI */}
+                  <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <span className="text-[10px] text-amber-600 font-black uppercase tracking-wider block">
+                        Kişiye Özel Hazırlanan VIP Tur Teklifi
+                      </span>
+                      <h2 className="text-xl font-extrabold text-slate-950">
+                        {proposal.customerName}
+                      </h2>
+                      <div className="text-xs text-slate-600 flex flex-wrap items-center gap-2 pt-0.5">
+                        <span>🏨 Alınış Oteli: <strong className="text-slate-900">{proposal.hotelName}</strong> ({proposal.hotelZone})</span>
+                        {proposal.singleTourDate && (
+                          <>
+                            <span>·</span>
+                            <span className="inline-flex items-center gap-1 font-bold text-amber-800 bg-amber-100 px-2 py-0.5 rounded-md">
+                              <Calendar className="w-3 h-3 text-amber-600" />
+                              <span>Tur Tarihi: {proposal.singleTourDate}</span>
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="sm:text-right space-y-1 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-200">
+                      <span className="px-3 py-1 rounded-xl bg-amber-100 text-amber-950 text-xs font-black inline-block shadow-2xs">
+                        {singleDay.tourTitle || proposal.packageTitle}
+                      </span>
+                      <div className="text-xs text-slate-600 flex sm:justify-end items-center gap-1.5">
+                        <span>👥 {proposal.adultCount} Yetişkin {proposal.childCount > 0 ? `+ ${proposal.childCount} Çocuk` : ''}</span>
+                        <span>·</span>
+                        <span className="font-bold text-emerald-700">Özel / VIP Tur</span>
+                      </div>
+                      <p className="text-[10px] text-slate-400">
+                        👨‍💼 Danışman: <span className="font-semibold text-slate-700">{proposal.agentInfo.name}</span> ({proposal.agentInfo.phone})
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* LOJİSTİK VE DONANIM BİLGİ ROZETLERİ */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                    <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/70">
+                      <span className="text-[10px] text-amber-700 font-bold block">⏰ Lobi Alınış:</span>
+                      <span className="text-xs font-extrabold text-slate-900 font-mono block mt-0.5">
+                        {singleDay.pickupWindow || '07:30 - 07:45'}
+                      </span>
+                      <span className="text-[10px] text-slate-500">Süre: {singleDay.tourDuration || 'Tam Gün'}</span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-sky-50/70 border border-sky-200/70">
+                      <span className="text-[10px] text-sky-700 font-bold block">🚤 Ulaşım / Araç:</span>
+                      <span className="text-xs font-extrabold text-slate-900 block mt-0.5 truncate" title={proposal.singleTourVesselInfo || TRANSPORT_META[singleDay.transportType]?.label}>
+                        {proposal.singleTourVesselInfo || TRANSPORT_META[singleDay.transportType]?.label || 'VIP Klimalı Araç'}
+                      </span>
+                      <span className="text-[10px] text-slate-500">Konforlu Seyahat</span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200/70">
+                      <span className="text-[10px] text-emerald-700 font-bold block">🍽️ Yemek Planı:</span>
+                      <span className="text-xs font-extrabold text-slate-900 block mt-0.5 truncate">
+                        {MEAL_PLAN_META[singleDay.mealPlan]?.label || 'Açık Büfe Yemek'}
+                      </span>
+                      <span className="text-[10px] text-slate-500">Meyve & Soğuk Su Dahil</span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-purple-50/70 border border-purple-200/70">
+                      <span className="text-[10px] text-purple-700 font-bold block">🎫 Milli Park Durumu:</span>
+                      <span className="text-xs font-extrabold text-slate-900 block mt-0.5 truncate">
+                        {NATIONAL_PARK_META[singleDay.nationalParkFeeStatus]?.label || 'Dahil'}
+                      </span>
+                      <span className="text-[10px] text-slate-500">Resmi İzinli</span>
+                    </div>
+                  </div>
+
+                  {/* ÖNE ÇIKAN VURGU */}
+                  {singleDay.highlight && (
+                    <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-200/60 text-xs text-amber-950 italic flex items-start gap-2">
+                      <span className="text-base leading-none">✨</span>
+                      <span>"{singleDay.highlight}"</span>
+                    </div>
+                  )}
+
+                  {/* SAATLİK TUR AKIŞI & ZAMAN ÇİZELGESİ (TIMELINE) */}
+                  <div className="p-5 rounded-2xl border border-slate-200 bg-white shadow-2xs space-y-4 break-inside-avoid" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+                      <h3 className="text-xs font-black text-slate-900 uppercase tracking-wider flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Öngörülen Saatlik Tur Akışı & Zaman Çizelgesi:</span>
+                      </h3>
+                      <span className="text-[10px] font-semibold text-amber-700 bg-amber-100/70 px-2 py-0.5 rounded-full">
+                        {(proposal.singleTourTimeline || []).length} Durak / Aşama
+                      </span>
+                    </div>
+
+                    {(!proposal.singleTourTimeline || proposal.singleTourTimeline.length === 0) ? (
+                      <p className="text-xs text-slate-400 py-3 text-center">
+                        Henüz saatlik adım eklenmedi. Sol panelden "Saatlik Tur Akışı" sekmesinden adımları ekleyebilirsiniz.
+                      </p>
+                    ) : (
+                      <div className="relative pl-6 space-y-3.5 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-amber-400/40">
+                        {proposal.singleTourTimeline.map((step, sIdx) => (
+                          <div key={step.id || sIdx} className="relative flex items-start gap-3 text-xs">
+                            {/* Dot */}
+                            <div className="absolute -left-6 top-1 w-4 h-4 rounded-full bg-white border-2 border-amber-500 flex items-center justify-center shadow-2xs">
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            </div>
+                            
+                            {/* Zaman rozeti */}
+                            <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-950 font-mono font-bold text-[11px] shrink-0">
+                              {step.time}
+                            </span>
+
+                            {/* Detay */}
+                            <div className="flex-1 min-w-0">
+                              <span className="font-black text-slate-900 block">{step.title}</span>
+                              {step.description && (
+                                <span className="text-[11px] text-slate-600 block mt-0.5 leading-relaxed">
+                                  {step.description}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* DAHİL OLANLAR & YANINIZDA GETİRECEKLERİNİZ */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-2xl bg-slate-50 border border-slate-200 break-inside-avoid" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div>
+                      <h4 className="text-[11px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1.5 mb-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Fiyata Dahil Olan Güvenceler:</span>
+                      </h4>
+                      <ul className="space-y-1 text-[10px] text-slate-700">
+                        {(singleDay.included && singleDay.included.length > 0 ? singleDay.included : proposal.inclusions.slice(0, 5)).map((inc, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="text-emerald-600 font-bold">✓</span>
+                            <span>{inc}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <h4 className="text-[11px] font-black uppercase tracking-wider text-amber-800 flex items-center gap-1.5 mb-2">
+                        <span>🎒</span>
+                        <span>Yanınızda Getirmeniz Önerilenler:</span>
+                      </h4>
+                      <ul className="space-y-1 text-[10px] text-slate-700">
+                        {(proposal.singleTourTips && proposal.singleTourTips.length > 0 ? proposal.singleTourTips : DEFAULT_SINGLE_TOUR_TIPS).map((tip, i) => (
+                          <li key={i} className="flex items-start gap-1.5">
+                            <span className="text-amber-600 font-bold">•</span>
+                            <span>{tip}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* FİNANSAL TABLO & İNDİRİMLİ ÖDEME PLANI */}
+                  <div className="p-5 rounded-3xl bg-slate-950 text-white space-y-3.5 shadow-lg break-inside-avoid" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-800 text-slate-400">
+                      <span>Tur Liste Fiyatı:</span>
+                      <span className="font-mono">{financials.subtotalThb.toLocaleString()} THB</span>
+                    </div>
+
+                    {proposal.discountPercent > 0 && (
+                      <div className="flex items-center justify-between text-xs text-amber-400 font-bold">
+                        <span>Özel İndirim (%{proposal.discountPercent}):</span>
+                        <span className="font-mono">-{financials.discountThb.toLocaleString()} THB</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-baseline justify-between pt-1 border-t border-slate-800">
+                      <div>
+                        <span className="text-base font-black text-white block">Net Tur Bedeli:</span>
+                        <span className="text-[11px] text-slate-400">
+                          (~{financials.totalTry.toLocaleString()} TL · ~{financials.totalUsd.toLocaleString()} USD · ~{financials.totalEur.toLocaleString()} EUR)
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-2xl sm:text-3xl font-black text-amber-400 font-mono tracking-tight">
+                          {financials.totalThb.toLocaleString()} <span className="text-sm font-normal">THB</span>
+                        </span>
+                        <span className="text-[11px] text-slate-400 block mt-0.5">
+                          (Kişi başı: {financials.perPersonThb.toLocaleString()} THB)
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800 text-xs">
+                      <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800">
+                        <span className="text-slate-400 text-[10px] uppercase font-bold block">
+                          Rezervasyon Kapora Bedeli (%{proposal.depositPercent}):
+                        </span>
+                        <span className="font-black text-emerald-400 font-mono text-sm sm:text-base mt-0.5 block">
+                          {financials.depositThb.toLocaleString()} THB
+                        </span>
+                        <span className="text-[10px] text-slate-400 block mt-0.5">
+                          Türkiye IBAN / Kredi Kartı / PromptPay
+                        </span>
+                      </div>
+
+                      <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800">
+                        <span className="text-slate-400 text-[10px] uppercase font-bold block">
+                          Tur Günü Kalan Bakiye:
+                        </span>
+                        <span className="font-black text-amber-300 font-mono text-sm sm:text-base mt-0.5 block">
+                          {financials.remainingThb.toLocaleString()} THB
+                        </span>
+                        <span className="text-[10px] text-slate-400 block mt-0.5">
+                          Sabah transferde / marinada nakit Baht
+                        </span>
+                      </div>
+                    </div>
+
+                    {proposal.paymentMethodsNote && (
+                      <p className="text-[10px] text-slate-400 pt-1 border-t border-slate-900">
+                        💳 <strong>Ödeme Kanalları:</strong> {proposal.paymentMethodsNote}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* GÜVENCELER & RESMİ MÜHÜR */}
+                  <div className="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-1.5 text-[10px] text-slate-600 break-inside-avoid" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
+                    <div className="flex items-center gap-1.5 font-bold text-slate-900 text-xs">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      <span>Phuket Tatili Resmi Operatör Güvenceleri:</span>
+                    </div>
+                    <p>
+                      • <strong>Hava Muhalefeti Güvencesi:</strong> Andaman Denizi liman başkanlığı tarafından dalga/fırtına nedeniyle tur iptali kararı verilirse %100 kesintisiz tarih değişimi veya tam ücret iadesi uygulanır.
+                    </p>
+                    <p>
+                      • <strong>Sigorta Kapsamı:</strong> Tayland Turizm Bakanlığı (TAT: 34/02819) nezdinde geçerli seyahat kaza sigortası dahildir.
+                    </p>
+                    <p className="pt-1 text-slate-500 font-medium">
+                      Rezervasyon Onayı & 7/24 Türkçe Saha Asistanı: +66 82 895 0665 · info@phukettatili.com
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
               {/* ANTET / LÜKS OPERATÖR BAŞLIĞI */}
               <div className="flex items-start justify-between border-b-2 border-amber-500 pb-5">
                 <div>
@@ -1569,11 +2680,94 @@ export default function CuratedProposalModal({
                   Rezervasyon Onayı & 7/24 Türkçe Saha Asistanı: +66 82 895 0665 · info@phukettatili.com · www.phukettatili.com
                 </p>
               </div>
+                </>
+              )}
 
             </div>
           </div>
 
         </div>
+
+        {/* KAYITLI TEKLİFLER MODALI */}
+        {showSavedModal && (
+          <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 max-w-lg w-full shadow-2xl space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                <h4 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <FolderOpen className="w-5 h-5 text-sky-500" />
+                  <span>Kayıtlı Teklifler ({savedProposals.length})</span>
+                </h4>
+                <button
+                  type="button"
+                  onClick={() => setShowSavedModal(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="max-h-80 overflow-y-auto space-y-2 pr-1">
+                {savedProposals.length === 0 ? (
+                  <p className="text-xs text-slate-400 text-center py-8">
+                    Henüz kayıtlı bir teklif bulunmuyor. Üst bardaki "Kaydet" butonuna tıklayarak tekliflerinizi buraya kaydedebilirsiniz.
+                  </p>
+                ) : (
+                  savedProposals.map((item) => (
+                    <div
+                      key={item.id}
+                      onClick={() => handleLoadSavedProposal(item)}
+                      className="p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 hover:border-amber-500/60 transition cursor-pointer flex items-center justify-between gap-3 group"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400">
+                            {item.proposalType === 'single_tour' ? '🎯 Tekli Tur' : '🌟 Çok Günlü'}
+                          </span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-white truncate">
+                            {item.title}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-slate-500 flex items-center gap-2 mt-1">
+                          <span>👤 {item.customerName}</span>
+                          <span>·</span>
+                          <span>📅 {item.savedAt}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleLoadSavedProposal(item)}
+                          className="px-2.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition cursor-pointer"
+                        >
+                          Aç
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => handleDeleteSavedProposal(item.id, e)}
+                          className="p-1.5 rounded-xl text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                          title="Teklifi sil"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowSavedModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
+                >
+                  Kapat
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
   );

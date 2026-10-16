@@ -37,6 +37,15 @@ export interface CuratedProposalHotelStay {
   notes?: string;
 }
 
+export type ProposalType = 'package_multiday' | 'single_tour';
+
+export interface ProposalTimelineStep {
+  id: string;
+  time: string;
+  title: string;
+  description?: string;
+}
+
 export interface ProposalAgentInfo {
   name: string;
   title: string;
@@ -46,6 +55,11 @@ export interface ProposalAgentInfo {
 }
 
 export interface CuratedProposalData {
+  proposalType?: ProposalType;
+  singleTourDate?: string;
+  singleTourTimeline?: ProposalTimelineStep[];
+  singleTourVesselInfo?: string;
+  singleTourTips?: string[];
   proposalNumber: string;
   createdAtDate: string;
   validUntilDate: string;
@@ -186,7 +200,16 @@ export interface CatalogTourPreset {
   highlight: string;
   image: string;
   included: string[];
+  timeline?: { time: string; title: string; description?: string }[];
 }
+
+export const DEFAULT_SINGLE_TOUR_TIPS: string[] = [
+  'Güneş kremi, güneş gözlüğü ve şapka',
+  'Yedek tişört / şort ve plaj havlusu',
+  'Su geçirmez telefon kılıfı',
+  'Deniz ayakkabısı (mercanlı plajlar için önerilir)',
+  'Milli park nakit harcı (varsa) ve kişisel harcamalar',
+];
 
 export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
   {
@@ -203,6 +226,16 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: 'The Beach filminin çekildiği efsanevi Maya Bay, Viking Mağarası ve Bamboo Adası şnorkeli.',
     image: '/assets/phi_phi_island.webp',
     included: ['VIP Klimalı Transfer', 'Açık Büfe Öğle Yemeği', 'Şnorkel & Can Yeleği', 'Kaza Sigortası'],
+    timeline: [
+      { time: '07:15 - 07:30', title: 'Otel Lobisinden Alınış', description: 'Klimalı VIP minivan ile otelinizden alınış' },
+      { time: '08:30', title: 'Marina Karşılama & Brifing', description: 'İskelede çay, kahve ikramı ve lisanslı rehber brifingi' },
+      { time: '09:00', title: 'Andaman Denizi\'ne Hareket', description: 'Modern sürat teknesi ile hareket' },
+      { time: '10:15', title: 'Maya Bay & Plaj Yürüyüşü', description: 'The Beach filmiyle ünlü koyda kumsal ve fotoğraf molası' },
+      { time: '11:30', title: 'Pileh Lagoon & Viking Mağarası', description: 'Turkuaz lagünde yüzme molası ve tarihi mağara' },
+      { time: '12:30', title: 'Phi Phi Don Açık Büfe Yemek', description: 'Ada sahilinde deniz manzaralı zengin açık büfe' },
+      { time: '14:00', title: 'Bamboo Adası Şnorkel', description: 'Kristal berrak sularda rengarenk mercanlar ve balıklar' },
+      { time: '16:30', title: 'Otele Konforlu Dönüş', description: 'İskeleden klimalı araçla otele transfer' },
+    ],
   },
   {
     id: 'james_bond_canoe',
@@ -218,6 +251,15 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: 'Devasa kireçtaşı adaları arasında çift kişilik kano gezisi ve Koh Panyee yüzen köyü.',
     image: '/assets/james_bond.webp',
     included: ['Klimalı Minivan', 'Kano Ekipmanı & Kürekçi', 'Öğle Yemeği', 'Milli Park Girişleri Dahil'],
+    timeline: [
+      { time: '08:00 - 08:30', title: 'Otel Lobisinden Alınış', description: 'Phang Nga Körfezi iskelesine transfer' },
+      { time: '09:30', title: 'İskeleden Tekneye Biniş', description: 'Güvenlik brifingi ve seyre başlama' },
+      { time: '10:30', title: 'Panak & Hong Adası Kano', description: 'Dev kayalar altında kürekçiler eşliğinde lagün keşfi' },
+      { time: '12:00', title: 'Koh Panyee Yüzen Köy', description: 'Tarihi yüzen köyde lezzetli açık büfe öğle yemeği' },
+      { time: '13:30', title: 'James Bond Adası (Khao Phing Kan)', description: '007 filmiyle ikonikleşen dikilitaş ve fotoğraf molası' },
+      { time: '15:00', title: 'Plaj Dinlenmesi & Yüzme', description: 'Sakin kumsalda dinlenme ve serbest yüzme' },
+      { time: '17:00', title: 'Otele Dönüş Transferi', description: 'Akşam üzeri otele varış' },
+    ],
   },
   {
     id: 'sunset_yacht_catamaran',
@@ -233,6 +275,14 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: 'Geniş fileli lüks katamaranda yelken keyfi, şeffaf koylarda yüzme ve günbatımı akşam yemeği.',
     image: '/assets/vip_transfer.webp',
     included: ['Katamaran Yelkenlisi', 'Öğle Yemeği & Meyve', 'Olta & Şnorkel', 'Günbatımı İçeceği'],
+    timeline: [
+      { time: '10:30 - 11:00', title: 'Otel Lobisinden Alınış', description: 'Chalong İskelesi VIP lounge alanına geçiş' },
+      { time: '12:00', title: 'Lüks Katamarana Biniş', description: 'Geniş fileli yelkende hoş geldiniz kokteyli ve hareket' },
+      { time: '13:30', title: 'Coral Adası Şnorkel & Plaj', description: 'Bembeyaz kumsalda serbest zaman ve su sporları' },
+      { time: '15:30', title: 'Racha Yai Adası Şeffaf Koy', description: 'Akvaryum berraklığındaki sularda şnorkel ve olta balıkçılığı' },
+      { time: '17:30', title: 'Günbatımı Yemeği & Müzik', description: 'Promthep Burnu açıklarında enfes günbatımı ve akşam yemeği' },
+      { time: '19:30', title: 'İskele ve Otele VIP Transfer', description: 'Unutulmaz bir günün ardından otele dönüş' },
+    ],
   },
   {
     id: 'similan_islands',
@@ -248,6 +298,16 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: 'Yelkenli Kaya (Sail Rock) manzarası, bembeyaz pudra kumsal ve deniz kaplumbağaları ile şnorkel.',
     image: '/assets/phi_phi_island.webp',
     included: ['Uzun Mesafe Transfer', '3 Öğün İkram & Yemek', 'Milli Park Girişi Dahil', 'Palet & Şnorkel'],
+    timeline: [
+      { time: '05:45 - 06:15', title: 'Erken Otel Alınışı', description: 'Khaolak özel iskelesine klimalı VIP transfer' },
+      { time: '08:00', title: 'Marina Kahvaltısı & Brifing', description: 'Sıcak kruvasan, çay, kahve ve şnorkel ekipman teslimi' },
+      { time: '08:30', title: 'Similan Takımadalarına Hareket', description: 'Hızlı sürat teknesiyle berrak sulara yolculuk' },
+      { time: '10:00', title: 'Donald Duck Koyu & Sail Rock', description: 'İkonik yelkenli kayaya tırmanış ve muhteşem manzara' },
+      { time: '11:15', title: 'Kaplumbağa Koyu Şnorkel (No. 9)', description: 'Deniz kaplumbağaları ve palyaço balıklarıyla yüzme' },
+      { time: '12:30', title: 'Adada Piknik Öğle Yemeği', description: 'Gölge ağaçlar altında açık büfe Tay lezzetleri' },
+      { time: '14:00', title: 'Honeymoon Bay & Prenses Koyu (No. 4)', description: 'Pudra gibi bembeyaz kumlar ve turkuaz lagün' },
+      { time: '16:30', title: 'İskele ve Otele Dönüş', description: 'İskelede dondurma ikramı sonrası otele transfer' },
+    ],
   },
   {
     id: 'elephant_sanctuary',
@@ -263,6 +323,14 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: 'Kurtarılmış filleri ellerinizle muzla besleme, çamur spa masajı ve birlikte nehir banyosu.',
     image: '/assets/elephant_sanctuary.webp',
     included: ['Etik Barınak Girişi', 'Muz & Besleme Sepeti', 'Tay Pişirme Dersi / Yemek', 'Otel Transferi'],
+    timeline: [
+      { time: '09:00 - 09:30', title: 'Otel Lobisinden Alınış', description: 'Doğal orman vadisine transfer' },
+      { time: '10:00', title: 'Barınak Karşılama & Hikaye', description: 'Kurtarılmış fillerin hikayeleri ve etik bakım brifingi' },
+      { time: '10:30', title: 'Besleme Sepeti Hazırlığı', description: 'Muz, şeker kamışı ve vitamin toplarıyla filleri besleme' },
+      { time: '11:15', title: 'Çamur Spa Masajı & Nehir', description: 'Fillerle çamur havuzunda eğlenceli cilt bakımı ve nehirde yıkanma' },
+      { time: '12:15', title: 'Tay Yemek Workshop & Öğle Yemeği', description: 'Geleneksel Pad Thai yapımı ve organik açık büfe' },
+      { time: '13:30', title: 'Otele Dönüş Transferi', description: 'Unutulmaz anılarla otele dönüş' },
+    ],
   },
   {
     id: 'hanuman_zipline',
@@ -278,6 +346,14 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: 'Asırlık tropik ağaçlar üzerinde 16-30 platformlu zipline, asma köprüler ve roller zipline.',
     image: '/assets/elephant_sanctuary.webp',
     included: ['Petzl Güvenlik Ekipmanı', 'Profesyonel Zipline Eğitmenleri', 'Açık Büfe Tay Yemeği', 'Transfer'],
+    timeline: [
+      { time: '09:00 - 09:30', title: 'Otel Lobisinden Alınış', description: 'Khao Rang ormanlık tepesine transfer' },
+      { time: '10:00', title: 'Güvenlik Donanımı & Brifing', description: 'Petzl emniyet kemeri, kask ve test parkuru brifingi' },
+      { time: '10:30', title: 'Kanopi Zipline Parkuru', description: 'Ağaç tepelerinde 400 metrelik hatlar ve asma köprüler' },
+      { time: '12:00', title: 'Roller Zipline Heyecanı', description: 'Ağaçların arasından kıvrılan yüksek hızlı raylı zipline' },
+      { time: '12:45', title: 'Orman İçi Açık Büfe Yemek', description: 'Doğayla iç içe dinlenme ve leziz Tay menüsü' },
+      { time: '14:00', title: 'Otele Dönüş', description: 'Otel lobisine konforlu bırakılış' },
+    ],
   },
   {
     id: 'carnival_magic',
@@ -293,6 +369,14 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: '40 milyondan fazla ışıkla Guinness rekorlu ışık sarayı, açık büfe kraliyet yemeği ve geçit töreni.',
     image: '/assets/simon_cabaret.webp',
     included: ['Giriş Bileti', 'Krallık Açık Büfe Yemeği', 'Dev Gösteri Girişi', 'Gidiş-Dönüş Transfer'],
+    timeline: [
+      { time: '16:30 - 17:00', title: 'Otel Lobisinden Alınış', description: 'Kamala bölgesindeki eğlence parkına transfer' },
+      { time: '17:30', title: 'Karnaval Caddesi & Eğlenceler', description: 'Işıltılı karnaval sokakları, maskotlar ve interaktif oyunlar' },
+      { time: '18:30', title: 'Bird of Paradise Açık Büfe', description: 'Devasa salonda dünya mutfakları ve deniz ürünleri ziyafeti' },
+      { time: '20:00', title: 'River Carnival Dev Gösterisi', description: 'Dünyanın en büyük kapalı sahnesinde ışık ve müzik şovu' },
+      { time: '21:00', title: 'Kingdom of Lights Işık Parkı', description: '40 milyon led ışıkla parlayan masal sarayında yürüyüş' },
+      { time: '21:30', title: 'Otele Dönüş', description: 'VIP minibüsle otele transfer' },
+    ],
   },
   {
     id: 'simon_cabaret',
@@ -308,6 +392,13 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: 'Phuket\'in dünyaca ünlü kabare tiyatrosunda büyüleyici kostümler ve VIP ön sıra konforu.',
     image: '/assets/simon_cabaret.webp',
     included: ['VIP Koltuk Bileti', 'Klimalı Otel Transferi', 'Hoş Geldiniz İçeceği'],
+    timeline: [
+      { time: '18:15 - 18:45', title: 'Otel Lobisinden Alınış', description: 'Patong Simon Cabaret Tiyatrosuna transfer' },
+      { time: '19:00', title: 'Tiyatroya Giriş & VIP Koltuklar', description: 'Hoş geldiniz içeceği eşliğinde yerinize geçiş' },
+      { time: '19:30 - 20:45', title: 'Büyüleyici Simon Cabaret Şovu', description: 'Görkemli kostümler, Broadway müzikleri ve ışık şovları' },
+      { time: '20:45', title: 'Sanatçılarla Fotoğraf Molası', description: 'Tiyatro avlusunda anı fotoğrafları' },
+      { time: '21:00', title: 'Otele Dönüş Transferi', description: 'Klimalı minibüsle otele rahat dönüş' },
+    ],
   },
   {
     id: 'vip_airport_transfer',
@@ -323,6 +414,12 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: 'Havalimanı çıkış kapısında isminize özel pano ile karşılama ve lüks minibüsle otele transfer.',
     image: '/assets/vip_transfer.webp',
     included: ['İsimli Karşılama Panosu', 'Klimalı VIP Minivan', 'Bagaj Yardımı', 'Soğuk Su & Havlu'],
+    timeline: [
+      { time: 'Uçuş İniş Saati', title: 'Uçağın Phuket\'e (HKT) İnişi', description: 'Pasaport ve bagaj alım işlemlerinin tamamlanması' },
+      { time: '+30 Dk', title: 'Kapıda İsimli Pano ile Karşılama', description: '3 Numaralı kapıda Türkçe/İngilizce isim panosuyla buluşma' },
+      { time: '+45 Dk', title: 'VIP Minivana Yerleşim', description: 'Bagaj yardımı, soğuk su ikramı ve hareket' },
+      { time: '~1 Saat Yol', title: 'Otel Lobisine VIP Ulaşım', description: 'Doğrudan otelinizin lobisine güvenli varış' },
+    ],
   },
   {
     id: 'city_viewpoints',
@@ -338,6 +435,15 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: '45 metrelik beyaz mermer Büyük Buddha, tarihi Wat Chalong Tapınağı ve renkli Old Phuket Town.',
     image: '/assets/vip_transfer.webp',
     included: ['Özel Şoförlü Minibüs', 'Tüm Tapınak Girişleri', 'Öğle Yemeği', 'Bölge Rehberi'],
+    timeline: [
+      { time: '09:00 - 09:30', title: 'Otel Lobisinden Alınış', description: 'Özel klimalı minibüs ve rehberiniz ile hareket' },
+      { time: '10:00', title: 'Karon & Kata Manzara Tepesi', description: 'Üç hilal koyun nefes kesen panoramik fotoğrafı' },
+      { time: '11:00', title: 'Big Buddha Zirve Tapınağı', description: 'Phuket adasını kuşbakışı gören dev beyaz mermer heykel' },
+      { time: '12:30', title: 'Wat Chalong Tapınağı', description: 'Phuket\'in en büyük ve en kutsal Budist manastırı ziyareti' },
+      { time: '13:30', title: 'Geleneksel Tay Öğle Yemeği', description: 'Tarihi restoranda yerel lezzetler' },
+      { time: '14:30', title: 'Old Phuket Town & Sino-Portekiz Evleri', description: 'Renkli tarihi sokaklar, butik kahveciler ve sokak sanatı' },
+      { time: '15:30', title: 'Otele Konforlu Dönüş', description: 'Günün sonunda otele transfer' },
+    ],
   },
   {
     id: 'free_day_leisure',
@@ -353,6 +459,11 @@ export const PROPOSAL_CATALOG_TOURS: CatalogTourPreset[] = [
     highlight: 'Otelinizin havuzunda ve Phuket\'in altın kumlu plajlarında dilediğinizce dinlenme günü.',
     image: '/assets/phi_phi_island.webp',
     included: ['7/24 WhatsApp Restoran & Plaj Öneri Desteği'],
+    timeline: [
+      { time: 'Sabah', title: 'Tropikal Kahvaltı & Havuz Keyfi', description: 'Otelinizde dinlendirici sabah' },
+      { time: 'Öğleden Sonra', title: 'Plaj & Deniz Sezonu', description: 'Yakın plajlarda güneşlenme ve masaj keyfi' },
+      { time: 'Akşam', title: 'Günbatımı Kokteyli & Akşam Yemeği', description: 'Önerdiğimiz yerel restoran veya beach club ziyareti' },
+    ],
   },
 ];
 
@@ -451,6 +562,7 @@ export function buildCuratedProposal(
   ];
 
   return {
+    proposalType: 'package_multiday',
     proposalNumber,
     createdAtDate: formatIsoDate(today),
     validUntilDate: formatIsoDate(validUntil),
@@ -475,6 +587,105 @@ export function buildCuratedProposal(
     customNotes:
       'Teklifimiz rezervasyon talebinden itibaren 7 gün boyunca fiyat garantilidir. Hava muhalefetinde liman başkanlığı kararıyla %100 tarih değişimi veya tam ücret iadesi uygulanır.',
     paymentMethodsNote: 'Kapora: Türkiye İş Bankası / Garanti Bankası TL Havale, Kredi Kartı veya Wise. Kalan bakiye tur günü nakit Baht olarak teslim edilir.',
+  };
+}
+
+/**
+ * Tekli tur ve tekli paket teklifleri için zengin şablon üretir.
+ */
+export function buildSingleTourProposal(
+  customerName: string = 'Sayın Misafirimiz',
+  presetId: string = 'phi_phi_speed',
+  tourDate: string = '',
+  hotelName: string = 'Amari Phuket',
+  hotelZone: string = 'Patong & Kalim',
+  adultCount: number = 2,
+  childCount: number = 0
+): CuratedProposalData {
+  const preset = PROPOSAL_CATALOG_TOURS.find((p) => p.id === presetId) || PROPOSAL_CATALOG_TOURS[0];
+  const today = new Date();
+  const validUntil = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const formatIsoDate = (d: Date) => d.toISOString().split('T')[0];
+  const effectiveTourDate = tourDate || formatIsoDate(new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000));
+
+  const dayPrice = preset.priceThb * adultCount + Math.round(preset.priceThb * 0.7 * childCount);
+
+  const timelineSteps: ProposalTimelineStep[] = (preset.timeline || [
+    { time: preset.pickupWindow, title: 'Otel Lobisinden Alınış', description: 'Klimalı VIP minivan ile transfer' },
+    { time: '09:00', title: 'Aktivite Başlangıcı', description: preset.highlight },
+    { time: '12:30', title: 'Öğle Yemeği & Dinlenme', description: MEAL_PLAN_META[preset.mealPlan]?.label || 'Yemek molası' },
+    { time: '16:30', title: 'Otele Güvenli Dönüş', description: 'Lobide teslim ediliş' },
+  ]).map((t, idx) => ({
+    id: `step-${idx + 1}-${Date.now().toString().slice(-4)}`,
+    time: t.time,
+    title: t.title,
+    description: t.description || '',
+  }));
+
+  const singleDay: CuratedProposalDay = {
+    id: `DAY-1-${Date.now().toString().slice(-4)}`,
+    dayNumber: 1,
+    dayTitle: preset.defaultDayTitle,
+    tourTitle: preset.tourTitle,
+    date: effectiveTourDate,
+    pickupWindow: preset.pickupWindow,
+    tourDuration: preset.tourDuration,
+    category: preset.category,
+    transportType: preset.transportType,
+    mealPlan: preset.mealPlan,
+    nationalParkFeeStatus: preset.nationalParkFeeStatus,
+    guideLanguage: 'turkish',
+    highlight: preset.highlight,
+    included: [...preset.included],
+    image: preset.image,
+    priceThb: dayPrice,
+    hotelName,
+    hotelZone,
+  };
+
+  const proposalNumber = `PT-TOUR-${today.getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+  const welcomeMessage = `Sayın ${customerName}, ${effectiveTourDate} tarihli "${preset.tourTitle}" turunuz için kişiye özel VIP teklifiniz ve detaylı saatlik tur akışınız hazırlanmıştır.`;
+
+  const hotels: CuratedProposalHotelStay[] = [
+    {
+      id: `hotel-1`,
+      hotelName,
+      hotelZone,
+      checkInDate: effectiveTourDate,
+      checkOutDate: effectiveTourDate,
+    },
+  ];
+
+  return {
+    proposalType: 'single_tour',
+    singleTourDate: effectiveTourDate,
+    singleTourTimeline: timelineSteps,
+    singleTourVesselInfo: TRANSPORT_META[preset.transportType]?.label || 'VIP Klimalı Araç & Konforlu Tekne',
+    singleTourTips: [...DEFAULT_SINGLE_TOUR_TIPS],
+    proposalNumber,
+    createdAtDate: formatIsoDate(today),
+    validUntilDate: formatIsoDate(validUntil),
+    customerName,
+    hotelName,
+    hotelZone,
+    hotels,
+    adultCount,
+    childCount,
+    packageTitle: preset.tourTitle,
+    packageSubtitle: `${preset.defaultDayTitle} · Özel VIP Tur Teklifi`,
+    travelStyle: 'adventure',
+    currency: 'THB',
+    days: [singleDay],
+    inclusions: [...DEFAULT_INCLUSIONS],
+    exclusions: [...DEFAULT_EXCLUSIONS],
+    specialGifts: ['Soğuk Su, Taze Meyve & İçecek İkramları 🥥', 'WhatsApp Türkçe Saha Desteği 🇹🇷'],
+    agentInfo: { ...DEFAULT_AGENT_INFO },
+    welcomeMessage,
+    discountPercent: 0,
+    depositPercent: 30,
+    customNotes:
+      'Teklifimiz rezervasyon talebinden itibaren 7 gün boyunca fiyat garantilidir. Andaman Denizi hava muhalefetinde liman başkanlığı kararıyla %100 tarih değişimi veya tam ücret iadesi uygulanır.',
+    paymentMethodsNote: 'Kapora: Türkiye IBAN (TL), Kredi Kartı veya Wise. Kalan bakiye tur günü araçta / marinada nakit Baht olarak ödenir.',
   };
 }
 
@@ -538,32 +749,113 @@ export function generateCuratedProposalWhatsAppMessage(
     proposal.childCount > 0 ? ` + ${proposal.childCount} Çocuk` : ''
   }`;
 
-  const daysSummary = proposal.days
-    .map((d) => {
-      const trans = TRANSPORT_META[d.transportType]?.label || 'Tekne / Transfer';
-      const meal = MEAL_PLAN_META[d.mealPlan]?.label || 'Öğle Yemeği';
-      const np = d.nationalParkFeeStatus === 'included' ? '✅ Milli Park Dahil' : d.nationalParkFeeStatus === 'not_included' ? '⚠️ Milli Park Hariç' : 'ℹ️ Harçsız';
-      const hotelInfo = d.hotelName ? `\n   • Alınış Oteli: *${d.hotelName}* (${d.hotelZone || proposal.hotelZone})` : '';
-      return `📍 *Gün ${d.dayNumber}: ${d.dayTitle}*\n` +
-        `   • Tur: *${d.tourTitle}*\n` +
-        `   • Lobi Alınış: *${d.pickupWindow}* | Süre: ${d.tourDuration}${hotelInfo}\n` +
-        `   • Ulaşım: ${trans} | Yemek: ${meal}\n` +
-        `   • Durum: ${np}\n` +
-        `   • Öne Çıkan: _${d.highlight}_\n` +
-        `   • Tutar: *${d.priceThb.toLocaleString()} THB*`;
-    })
-    .join('\n\n');
-
   const inclusionsSummary = proposal.inclusions.slice(0, 5).map((i) => `✓ ${i}`).join('\n');
   const giftsSummary =
     proposal.specialGifts && proposal.specialGifts.length > 0
       ? `\n🎁 *Kişiye Özel İkram & Sürprizler:*\n` + proposal.specialGifts.map((g) => `• ${g}`).join('\n') + `\n`
       : '';
 
+  // TEKLİ TUR TEKLİFİ WHATSAPP METNİ
+  if (proposal.proposalType === 'single_tour') {
+    const singleDay = proposal.days[0] || ({} as CuratedProposalDay);
+    const trans = TRANSPORT_META[singleDay.transportType]?.label || 'Tekne / VIP Araç';
+    const meal = MEAL_PLAN_META[singleDay.mealPlan]?.label || 'Öğle Yemeği';
+    const np =
+      singleDay.nationalParkFeeStatus === 'included'
+        ? '✅ Milli Park Dahil'
+        : singleDay.nationalParkFeeStatus === 'not_included'
+        ? '⚠️ Milli Park Harcı Hariç (Gişede Nakit)'
+        : 'ℹ️ Harçsız';
+
+    const timelineStr =
+      proposal.singleTourTimeline && proposal.singleTourTimeline.length > 0
+        ? `\n⏰ *ÖNGÖRÜLEN TUR AKIŞI & SAATLER:*\n` +
+          proposal.singleTourTimeline
+            .map((s) => `• *${s.time}* - ${s.title}${s.description ? ` (${s.description})` : ''}`)
+            .join('\n') +
+          `\n`
+        : '';
+
+    const tipsStr =
+      proposal.singleTourTips && proposal.singleTourTips.length > 0
+        ? `\n🎒 *Yanınızda Getirmeniz Önerilenler:*\n` + proposal.singleTourTips.map((t) => `• ${t}`).join('\n') + `\n`
+        : '';
+
+    return `🌴 *PHUKET TATİLİ — KİŞİYE ÖZEL TEK TUR TEKLİFİ* 🌴
+🏢 *Lisanslı Tur Operatörü · TAT License: 34/02819*
+📋 *Teklif No:* ${proposal.proposalNumber}
+📅 *Tur Tarihi:* ${proposal.singleTourDate || singleDay.date || 'Belirtilecek'}
+👨‍💼 *Operasyon Danışmanı:* ${proposal.agentInfo.name} (${proposal.agentInfo.phone})
+
+Sayın *${proposal.customerName}*,
+
+${proposal.welcomeMessage || 'Talep ettiğiniz tur için hazırladığımız özel teklif detayları aşağıdadır:'}
+
+🎯 *Tur:* *${singleDay.tourTitle || proposal.packageTitle}*
+🏨 *Alınış Oteli:* ${proposal.hotelName} (${proposal.hotelZone})
+⏰ *Lobi Alınış Saati:* *${singleDay.pickupWindow}* (Süre: ${singleDay.tourDuration})
+👥 *Kişi Sayısı:* ${paxStr}
+🚤 *Ulaşım:* ${trans}
+🍽️ *Yemek Planı:* ${meal}
+🎫 *Milli Park Durumu:* ${np}
+✨ *Öne Çıkan:* _${singleDay.highlight}_
+${timelineStr}
+───────────────────────────────
+💰 *FİYATLANDIRMA & ÖDEME:*
+• Tur Liste Fiyatı: ${financials.subtotalThb.toLocaleString()} THB
+${proposal.discountPercent > 0 ? `• Özel İndirim (%${proposal.discountPercent}): -${financials.discountThb.toLocaleString()} THB\n` : ''}💎 *NET TUR TUTARI:* *${financials.totalThb.toLocaleString()} THB*
+   (~${financials.totalTry.toLocaleString()} TL / ~${financials.totalUsd.toLocaleString()} USD / ~${financials.totalEur.toLocaleString()} EUR)
+   (Kişi başı: ${financials.perPersonThb.toLocaleString()} THB)
+
+💵 *Rezervasyon Kapora Bedeli (%${proposal.depositPercent}):* *${financials.depositThb.toLocaleString()} THB*
+💵 *Tur Günü Kalan Bakiye:* *${financials.remainingThb.toLocaleString()} THB* (Nakit Baht)
+${giftsSummary}
+🛡️ *Dahil Olan Güvenceler:*
+${inclusionsSummary}
+✓ Andaman Denizi hava muhalefetinde %100 ücretsiz tarih değişimi veya tam iade garantisi
+${tipsStr}
+💳 *Ödeme Yöntemi:* ${proposal.paymentMethodsNote || 'Türkiye IBAN Havale, Kredi Kartı veya Wise ile kapora; kalan tur günü nakit Baht.'}
+
+Turu onaylamak ve yerinizi ayırtmak için bu mesaja yanıt vermeniz yeterlidir.
+Keyifli bir tur dileriz! 🇹🇭✨`;
+  }
+
+  // ÇOK GÜNLÜ TATİL PAKETİ WHATSAPP METNİ
+  const daysSummary = proposal.days
+    .map((d) => {
+      const trans = TRANSPORT_META[d.transportType]?.label || 'Tekne / Transfer';
+      const meal = MEAL_PLAN_META[d.mealPlan]?.label || 'Öğle Yemeği';
+      const np =
+        d.nationalParkFeeStatus === 'included'
+          ? '✅ Milli Park Dahil'
+          : d.nationalParkFeeStatus === 'not_included'
+          ? '⚠️ Milli Park Hariç'
+          : 'ℹ️ Harçsız';
+      const hotelInfo = d.hotelName ? `\n   • Alınış Oteli: *${d.hotelName}* (${d.hotelZone || proposal.hotelZone})` : '';
+      return (
+        `📍 *Gün ${d.dayNumber}: ${d.dayTitle}*\n` +
+        `   • Tur: *${d.tourTitle}*\n` +
+        `   • Lobi Alınış: *${d.pickupWindow}* | Süre: ${d.tourDuration}${hotelInfo}\n` +
+        `   • Ulaşım: ${trans} | Yemek: ${meal}\n` +
+        `   • Durum: ${np}\n` +
+        `   • Öne Çıkan: _${d.highlight}_\n` +
+        `   • Tutar: *${d.priceThb.toLocaleString()} THB*`
+      );
+    })
+    .join('\n\n');
+
   let accommodationText = `🏨 *Konaklama:* ${proposal.hotelName} (${proposal.hotelZone})`;
   if (proposal.hotels && proposal.hotels.length > 1) {
-    accommodationText = `🏨 *Konaklama Otelleri (${proposal.hotels.length} Farklı Otel):*\n` +
-      proposal.hotels.map((h, i) => `   ${i + 1}. *${h.hotelName}* (${h.hotelZone || 'Phuket'})${h.checkInDate && h.checkOutDate ? ` · 📅 ${h.checkInDate} ➔ ${h.checkOutDate}` : ''}${h.notes ? ` (${h.notes})` : ''}`).join('\n');
+    accommodationText =
+      `🏨 *Konaklama Otelleri (${proposal.hotels.length} Farklı Otel):*\n` +
+      proposal.hotels
+        .map(
+          (h, i) =>
+            `   ${i + 1}. *${h.hotelName}* (${h.hotelZone || 'Phuket'})${
+              h.checkInDate && h.checkOutDate ? ` · 📅 ${h.checkInDate} ➔ ${h.checkOutDate}` : ''
+            }${h.notes ? ` (${h.notes})` : ''}`
+        )
+        .join('\n');
   }
 
   return `🌴 *PHUKET TATİLİ — KİŞİYE ÖZEL TATİL & TUR TEKLİFİ* 🌴

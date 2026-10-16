@@ -297,14 +297,14 @@ export const NAV_ITEMS: NavItem[] = [
   },
   {
     id: 'proposals',
-    label: 'PDF Teklif Broşürü',
-    shortLabel: 'Teklif',
+    label: 'Teklifler',
+    shortLabel: 'Teklifler',
     category: 'operations',
     icon: FileText,
-    description: 'Kişiye özel logolu A4 PDF tur teklifi ve tatil programı stüdyosu',
+    description: 'Kişiye özel çok günlü tatil paketi ve tekli VIP tur teklif stüdyosu',
     hotkey: '4',
     subItems: [
-      { id: 'proposals_studio', label: 'Özel Teklif Stüdyosu', icon: '📄' },
+      { id: 'proposals_studio', label: 'Teklif Stüdyosu', icon: '📄' },
       { id: 'proposals_print', label: 'A4 PDF İndir / Yazdır', icon: '🖨️', actionKey: 'open_proposal_print' },
       { id: 'proposals_wa', label: 'WhatsApp Formatında Paylaş', icon: '📱', actionKey: 'open_proposal_whatsapp' },
     ],
@@ -2989,7 +2989,7 @@ export default function AdminDashboard({
                       </button>
                     </div>
 
-                    {/* 5. Teklif Broşürü */}
+                    {/* 5. Teklifler */}
                     <div className="p-1 pt-2">
                       <button
                         type="button"
@@ -3000,7 +3000,7 @@ export default function AdminDashboard({
                         className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-900 dark:text-amber-300 hover:bg-amber-500/25 transition-colors text-left cursor-pointer"
                       >
                         <FileText className="w-4 h-4 text-amber-600" />
-                        <span>📄 Kişiye Özel Logolu PDF Tur Teklifi</span>
+                        <span>📄 Teklifler (Çok Günlü & Tekli Tur)</span>
                       </button>
                     </div>
                   </div>
@@ -3262,7 +3262,7 @@ export default function AdminDashboard({
         )}
 
         {/* ==================================================== */}
-        {/* TAB 2.45: KİŞİYE ÖZEL LOGOLU PDF TUR TEKLİF BROŞÜRÜ STÜDYOSU */}
+        {/* TAB 2.45: TEKLİFLER STÜDYOSU (ÇOK GÜNLÜ & TEKLİ TUR) */}
         {/* ==================================================== */}
         {activeTab === 'proposals' && (
           <div className="w-full">
