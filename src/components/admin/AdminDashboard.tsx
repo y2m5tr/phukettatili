@@ -174,17 +174,27 @@ export type AdminTab =
   | 'tours' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
   | 'whatsapp' | 'settings' | 'users';
 
-export type NavCategory = 'operations' | 'content' | 'system' | 'all';
+export type NavCategory = 'operations' | 'finance' | 'content' | 'system' | 'all';
+
+export interface NavSubItem {
+  id: string;
+  label: string;
+  shortLabel?: string;
+  icon?: string;
+  badge?: string;
+  actionKey?: string;
+}
 
 export interface NavItem {
   id: AdminTab;
   label: string;
   shortLabel?: string;
-  category: 'operations' | 'content' | 'system';
+  category: 'operations' | 'finance' | 'content' | 'system';
   icon: React.ComponentType<{ className?: string }>;
   description: string;
   hotkey?: string;
   showCount?: boolean;
+  subItems?: NavSubItem[];
 }
 
 export interface NavCategoryDef {
@@ -197,45 +207,58 @@ export interface NavCategoryDef {
 
 export const NAV_CATEGORIES: NavCategoryDef[] = [
   {
+    id: 'all',
+    label: 'Tüm Modüller',
+    shortLabel: 'Tümü',
+    icon: Layers,
+    description: 'Tüm operasyon, finans, içerik ve sistem araçları',
+  },
+  {
     id: 'operations',
-    label: 'Operasyon & Finans',
+    label: 'Operasyon & Saha',
     shortLabel: 'Operasyon',
     icon: Zap,
-    description: 'Günlük rezervasyon, transfer, filo ve hakediş yönetimi',
+    description: 'Günlük rezervasyon, transfer, teklif ve filo yönetimi',
+  },
+  {
+    id: 'finance',
+    label: 'Finans, Kasa & B2B',
+    shortLabel: 'Finans',
+    icon: Wallet,
+    description: 'Kasa, masraflar, hakedişler, B2B acentalar ve tedarikçiler',
   },
   {
     id: 'content',
-    label: 'Web & İçerik',
+    label: 'Web & İçerik (CMS)',
     shortLabel: 'İçerik',
-    icon: Compass,
-    description: 'Turlar, medya, blog, hizmetler ve vitrin yönetimi',
+    icon: Globe,
+    description: 'Turlar, medya, hizmetler, blog ve vitrin yönetimi',
   },
   {
     id: 'system',
-    label: 'Sistem & Ayarlar',
+    label: 'Sistem & Yönetim',
     shortLabel: 'Sistem',
     icon: Settings,
-    description: 'WhatsApp şablonları ve site ayarları',
-  },
-  {
-    id: 'all',
-    label: 'Tüm Menü',
-    shortLabel: 'Tümü',
-    icon: Layers,
-    description: 'Tüm yönetim modüllerini tek bakışta gör',
+    description: 'WhatsApp şablonları, ekip yetkileri ve site ayarları',
   },
 ];
 
 export const NAV_ITEMS: NavItem[] = [
-  // ⚡ OPERASYON & FİNANS (Günlük Kullanım)
+  // =========================================================
+  // 🚀 GRUP 1: OPERASYON & SAHA (Günlük Saha ve Misafir Yönetimi)
+  // =========================================================
   {
     id: 'overview',
     label: 'Genel Bakış',
     shortLabel: 'Özet',
     category: 'operations',
     icon: TrendingUp,
-    description: 'Günlük ciro, doluluk ve operasyonel özet',
+    description: 'Günlük ciro, doluluk ve operasyonel canlı özet',
     hotkey: '1',
+    subItems: [
+      { id: 'overview_stats', label: 'Canlı Metrikler & Doluluk', icon: '📊' },
+      { id: 'overview_today', label: 'Günün Hızlı Özeti', icon: '⚡' },
+    ],
   },
   {
     id: 'bookings',
@@ -246,24 +269,31 @@ export const NAV_ITEMS: NavItem[] = [
     description: 'Misafir kayıtları, biletler ve durum takibi',
     hotkey: '2',
     showCount: true,
-  },
-  {
-    id: 'finance',
-    label: 'Kasa & Finans',
-    shortLabel: 'Kasa',
-    category: 'operations',
-    icon: Wallet,
-    description: 'Nakit kasa, PromptPay, tahsilat makbuzları ve alacak takibi',
-    hotkey: '3',
+    subItems: [
+      { id: 'bookings_list', label: 'Tüm Rezervasyonlar', icon: '📋' },
+      { id: 'bookings_new', label: 'Yeni Rezervasyon Ekle', icon: '➕', actionKey: 'create_booking' },
+      { id: 'bookings_qr', label: 'Bilet QR Oku / Check-in', icon: '🎫', actionKey: 'open_qr_scanner' },
+      { id: 'bookings_welcome', label: 'VIP Karşılama İsimliği', icon: '🪧', actionKey: 'open_welcome_board' },
+    ],
   },
   {
     id: 'transfers',
-    label: 'Transferler',
+    label: 'Transferler & Lojistik',
     shortLabel: 'Transfer',
     category: 'operations',
     icon: Car,
-    description: 'Havalimanı & otel alma/bırakma manifestosu',
-    hotkey: '4',
+    description: 'Havalimanı & otel alma/bırakma sevk manifestosu',
+    hotkey: '3',
+    subItems: [
+      { id: 'transfers_manifest', label: 'Sevk Manifestosu & Harita', icon: '🚐' },
+      { id: 'transfers_flight', label: 'Canlı Uçuş Radarı', icon: '✈️', actionKey: 'open_flight_radar' },
+      { id: 'transfers_luggage', label: 'Bagaj Masası & Emanet', icon: '🧳', actionKey: 'open_luggage_express' },
+      { id: 'transfers_pier', label: 'İskele Kaptan Manifestosu', icon: '🚢', actionKey: 'open_pier_manifest' },
+      { id: 'transfers_police', label: 'Deniz Polisi Manifestosu', icon: '📋', actionKey: 'open_marine_police' },
+      { id: 'transfers_dietary', label: 'Diyet & Medikal Emniyet', icon: '🥗', actionKey: 'open_dietary_manifest' },
+      { id: 'transfers_lost', label: 'Kayıp Eşya Masası', icon: '📦', actionKey: 'open_lost_found' },
+      { id: 'transfers_pwa', label: 'Kaptan Kasası (PWA)', icon: '📶', actionKey: 'open_captain_vault' },
+    ],
   },
   {
     id: 'proposals',
@@ -272,33 +302,12 @@ export const NAV_ITEMS: NavItem[] = [
     category: 'operations',
     icon: FileText,
     description: 'Kişiye özel logolu A4 PDF tur teklifi ve tatil programı stüdyosu',
-  },
-  {
-    id: 'partners',
-    label: 'Acenta & B2B',
-    shortLabel: 'Acenta',
-    category: 'operations',
-    icon: Building,
-    description: 'Partner alt acentalar, otel rehberleri ve komisyon carileri',
-    hotkey: '5',
-  },
-  {
-    id: 'settlements',
-    label: 'Hakediş & Kâr',
-    shortLabel: 'Hakediş',
-    category: 'operations',
-    icon: DollarSign,
-    description: 'Tedarikçi ödemeleri, kâr marjı ve mutabakat ekstresi',
-    hotkey: '6',
-  },
-  {
-    id: 'suppliers',
-    label: 'Tedarikçi Kataloğu',
-    shortLabel: 'Tedarikçi',
-    category: 'operations',
-    icon: Ship,
-    description: 'Tekne firmaları ve net tur alış fiyat matrisi',
-    hotkey: '7',
+    hotkey: '4',
+    subItems: [
+      { id: 'proposals_studio', label: 'Özel Teklif Stüdyosu', icon: '📄' },
+      { id: 'proposals_print', label: 'A4 PDF İndir / Yazdır', icon: '🖨️', actionKey: 'open_proposal_print' },
+      { id: 'proposals_wa', label: 'WhatsApp Formatında Paylaş', icon: '📱', actionKey: 'open_proposal_whatsapp' },
+    ],
   },
   {
     id: 'fleet',
@@ -307,10 +316,77 @@ export const NAV_ITEMS: NavItem[] = [
     category: 'operations',
     icon: Bus,
     description: 'Minibüsler, şoförler ve araç rotalama',
-    hotkey: '8',
+    hotkey: '5',
+    subItems: [
+      { id: 'fleet_vehicles', label: 'Minibüs Filosu & VIP Vanlar', icon: '🚌' },
+      { id: 'fleet_drivers', label: 'Şoför Kadrosu & Nöbet', icon: '👤' },
+    ],
   },
 
-  // 🌐 WEB & İÇERİK (CMS)
+  // =========================================================
+  // 💵 GRUP 2: FİNANS, KASA & B2B (Muhasebe, Masraflar & Ortaklar)
+  // =========================================================
+  {
+    id: 'finance',
+    label: 'Kasa & Finans',
+    shortLabel: 'Kasa',
+    category: 'finance',
+    icon: Wallet,
+    description: 'Nakit kasa, PromptPay, tahsilat makbuzları ve alacak takibi',
+    hotkey: '6',
+    subItems: [
+      { id: 'finance_summary', label: 'Kasa Özeti & Tahsilat', icon: '💰' },
+      { id: 'finance_driver_exp', label: 'Şoför Masrafı (Yakıt/Harç)', icon: '⛽', actionKey: 'open_driver_expense' },
+      { id: 'finance_guide_exp', label: 'Rehber Masrafı (Taksi/Yemek)', icon: '🗣️', actionKey: 'open_guide_expense' },
+      { id: 'finance_cashier', label: 'Saha Çoklu Döviz Kasa', icon: '💱', actionKey: 'open_field_cashier' },
+      { id: 'finance_promptpay', label: 'PromptPay QR Üretici', icon: '📱', actionKey: 'open_promptpay' },
+    ],
+  },
+  {
+    id: 'settlements',
+    label: 'Hakediş & Kâr',
+    shortLabel: 'Hakediş',
+    category: 'finance',
+    icon: DollarSign,
+    description: 'Tedarikçi ödemeleri, kâr marjı ve mutabakat ekstresi',
+    hotkey: '7',
+    subItems: [
+      { id: 'settlements_suppliers', label: 'Tedarikçi Mutabakatı', icon: '📊' },
+      { id: 'settlements_profit', label: 'Kâr Marjı & Maliyet Analizi', icon: '📈' },
+    ],
+  },
+  {
+    id: 'partners',
+    label: 'Acenta & B2B',
+    shortLabel: 'Acenta',
+    category: 'finance',
+    icon: Building,
+    description: 'Partner alt acentalar, otel rehberleri ve komisyon carileri',
+    hotkey: '8',
+    subItems: [
+      { id: 'partners_agents', label: 'Partner Seyahat Acentaları', icon: '🏢' },
+      { id: 'partners_guides', label: 'Otel Tur Rehberleri', icon: '🏖️' },
+      { id: 'partners_commissions', label: 'Komisyon & Cari Hesaplar', icon: '📋' },
+    ],
+  },
+  {
+    id: 'suppliers',
+    label: 'Tedarikçi Kataloğu',
+    shortLabel: 'Tedarikçi',
+    category: 'finance',
+    icon: Ship,
+    description: 'Tekne firmaları ve net tur alış fiyat matrisi',
+    hotkey: '9',
+    subItems: [
+      { id: 'suppliers_boats', label: 'Tekne Firmaları (Andaman Wave)', icon: '🚢' },
+      { id: 'suppliers_parks', label: 'Fil Koruma & Şov Merkezleri', icon: '🐘' },
+      { id: 'suppliers_matrix', label: 'Net Tur Alış Fiyat Matrisi', icon: '🏷️' },
+    ],
+  },
+
+  // =========================================================
+  // 🌐 GRUP 3: WEB & İÇERİK (CMS Vitrin Yönetimi)
+  // =========================================================
   {
     id: 'tours',
     label: 'Turlar & Fiyatlar',
@@ -318,6 +394,22 @@ export const NAV_ITEMS: NavItem[] = [
     category: 'content',
     icon: Compass,
     description: 'Tur programları, fiyatlandırma ve içerikler',
+    subItems: [
+      { id: 'tours_catalog', label: 'Tur Kataloğu & Fiyatlar', icon: '🏝️' },
+      { id: 'tours_new', label: 'Yeni Tur Ekle', icon: '➕', actionKey: 'create_tour' },
+    ],
+  },
+  {
+    id: 'services',
+    label: 'VIP & Hizmetler',
+    shortLabel: 'Hizmetler',
+    category: 'content',
+    icon: Briefcase,
+    description: 'VIP karşılama, yat kiralama ve özel hizmetler',
+    subItems: [
+      { id: 'services_list', label: 'VIP Hizmet Kataloğu', icon: '🛥️' },
+      { id: 'services_new', label: 'Yeni Hizmet Ekle', icon: '➕', actionKey: 'create_service' },
+    ],
   },
   {
     id: 'media',
@@ -326,22 +418,22 @@ export const NAV_ITEMS: NavItem[] = [
     category: 'content',
     icon: Image,
     description: 'Görseller, fotoğraf kütüphanesi ve afişler',
-  },
-  {
-    id: 'services',
-    label: 'Hizmetler',
-    shortLabel: 'Hizmetler',
-    category: 'content',
-    icon: Briefcase,
-    description: 'VIP karşılama, yat kiralama ve özel hizmetler',
+    subItems: [
+      { id: 'media_gallery', label: 'Görsel Kütüphanesi', icon: '📸' },
+      { id: 'media_upload', label: 'Yeni Görsel Yükle', icon: '⬆️', actionKey: 'upload_media' },
+    ],
   },
   {
     id: 'blogs',
-    label: 'Blog Yazıları',
+    label: 'Blog & Rehber',
     shortLabel: 'Blog',
     category: 'content',
     icon: BookOpen,
     description: 'Rehber yazıları ve gezi makaleleri',
+    subItems: [
+      { id: 'blogs_articles', label: 'Rehber Yazıları & SEO', icon: '✍️' },
+      { id: 'blogs_new', label: 'Yeni Yazı Ekle', icon: '➕', actionKey: 'create_blog' },
+    ],
   },
   {
     id: 'faqs',
@@ -350,6 +442,9 @@ export const NAV_ITEMS: NavItem[] = [
     category: 'content',
     icon: HelpCircle,
     description: 'Phuket tatili ve tur SSS maddeleri',
+    subItems: [
+      { id: 'faqs_list', label: 'SSS Soru & Cevap Maddeleri', icon: '❓' },
+    ],
   },
   {
     id: 'testimonials',
@@ -358,24 +453,26 @@ export const NAV_ITEMS: NavItem[] = [
     category: 'content',
     icon: MessageSquareQuote,
     description: 'Misafir değerlendirmeleri ve referanslar',
+    subItems: [
+      { id: 'testi_reviews', label: 'Misafir Değerlendirmeleri', icon: '⭐' },
+    ],
   },
 
-  // ⚙️ İLETİŞİM & SİSTEM
+  // =========================================================
+  // ⚙️ GRUP 4: SİSTEM & YÖNETİM (İletişim, Ekip ve Ayarlar)
+  // =========================================================
   {
     id: 'whatsapp',
-    label: 'WhatsApp Şablonları',
+    label: 'WhatsApp Masası',
     shortLabel: 'WhatsApp',
     category: 'system',
     icon: MessageCircle,
     description: 'Misafir ve şoför otomatik hazır mesaj metinleri',
-  },
-  {
-    id: 'settings',
-    label: 'Site Ayarları',
-    shortLabel: 'Ayarlar',
-    category: 'system',
-    icon: Settings,
-    description: 'Telefon, e-posta, sosyal medya ve genel ayarlar',
+    subItems: [
+      { id: 'wa_templates', label: 'Hazır Şablon Metinleri', icon: '💬' },
+      { id: 'wa_morning', label: 'Sabah Lobi Hatırlatıcı', icon: '⏰' },
+      { id: 'wa_review', label: 'Tur Sonu Google Yorum Booster', icon: '🌟' },
+    ],
   },
   {
     id: 'users',
@@ -385,10 +482,28 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Users,
     description: 'Yönetici, müdür, rehber ve şoför hesapları',
     showCount: true,
+    subItems: [
+      { id: 'users_list', label: 'Personel Hesapları', icon: '👥' },
+      { id: 'users_rbac', label: 'Rol & Yetki Matrisi', icon: '🛡️' },
+    ],
+  },
+  {
+    id: 'settings',
+    label: 'Site Ayarları',
+    shortLabel: 'Ayarlar',
+    category: 'system',
+    icon: Settings,
+    description: 'Telefon, e-posta, sosyal medya ve genel ayarlar',
+    subItems: [
+      { id: 'settings_contact', label: 'İletişim & WhatsApp Hattı', icon: '📞' },
+      { id: 'settings_fx', label: 'Döviz Kurları & Para Birimi', icon: '💱' },
+      { id: 'settings_seo', label: 'Site Başlığı & SEO Bilgileri', icon: '🌐' },
+    ],
   },
 ];
 
 export const PRIMARY_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'operations');
+export const FINANCE_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'finance');
 export const CMS_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'content');
 export const SYSTEM_NAV_ITEMS = NAV_ITEMS.filter((i) => i.category === 'system');
 
@@ -499,16 +614,29 @@ export default function AdminDashboard({
     });
   };
 
-  // ⚡ Çift Modlu Menü Switcher: 'operations' (ERP) vs 'cms' (Web İçerik)
-  const [navMode, setNavMode] = useState<'operations' | 'cms'>(() => {
+  // ⚡ Kategori Filtresi: 'all' | 'operations' | 'finance' | 'content' | 'system'
+  const [categoryFilter, setCategoryFilter] = useState<NavCategory>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('ptt_admin_nav_mode');
-        if (saved === 'operations' || saved === 'cms') return saved;
+        const saved = localStorage.getItem('ptt_admin_nav_category');
+        if (saved && ['all', 'operations', 'finance', 'content', 'system'].includes(saved)) {
+          return saved as NavCategory;
+        }
       } catch { /* yok say */ }
     }
-    return 'operations';
+    return 'all';
   });
+
+  // Alt Menü Genişletme / Daraltma Durumu
+  const [expandedTabs, setExpandedTabs] = useState<Record<string, boolean>>({});
+
+  const toggleTabExpand = (tabId: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setExpandedTabs((prev) => ({
+      ...prev,
+      [tabId]: !prev[tabId],
+    }));
+  };
 
   // Spotlight / Hızlı Komut Paleti Modalı (Cmd+K)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
@@ -525,15 +653,83 @@ export default function AdminDashboard({
   }, []);
 
   const handleTabSelect = (tabId: AdminTab) => {
-    const item = NAV_ITEMS.find((i) => i.id === tabId);
-    if (item?.category === 'content') {
-      setNavMode('cms');
-      try { localStorage.setItem('ptt_admin_nav_mode', 'cms'); } catch {}
-    } else if (item?.category === 'operations') {
-      setNavMode('operations');
-      try { localStorage.setItem('ptt_admin_nav_mode', 'operations'); } catch {}
-    }
     setActiveTab(tabId);
+    setIsMobileSidebarOpen(false);
+  };
+
+  const handleSubItemClick = (subItem: NavSubItem, parentTab: AdminTab) => {
+    if (activeTab !== parentTab && perms.allowedTabs.includes(parentTab)) {
+      setActiveTab(parentTab);
+    }
+    if (subItem.actionKey) {
+      switch (subItem.actionKey) {
+        case 'create_booking':
+          handleOpenCreateBooking();
+          break;
+        case 'open_qr_scanner':
+          setIsQrScannerOpen(true);
+          break;
+        case 'open_welcome_board':
+          setWelcomeBoardBooking(null);
+          setIsWelcomeBoardOpen(true);
+          break;
+        case 'open_flight_radar':
+          setFlightRadarFlight('TK 172');
+          setFlightRadarGuest('');
+          setIsFlightRadarOpen(true);
+          break;
+        case 'open_luggage_express':
+          setIsLuggageExpressOpen(true);
+          break;
+        case 'open_pier_manifest':
+          setIsPierManifestOpen(true);
+          break;
+        case 'open_marine_police':
+          setIsPoliceManifestOpen(true);
+          break;
+        case 'open_dietary_manifest':
+          setIsDietaryManifestOpen(true);
+          break;
+        case 'open_lost_found':
+          setIsLostFoundOpen(true);
+          break;
+        case 'open_captain_vault':
+          setIsCaptainDrawerOpen(true);
+          break;
+        case 'open_driver_expense':
+          setIsDriverExpenseOpen(true);
+          break;
+        case 'open_guide_expense':
+          setIsGuideExpenseOpen(true);
+          break;
+        case 'open_field_cashier':
+          setCashierBooking(null);
+          setIsFieldCashierOpen(true);
+          break;
+        case 'open_promptpay':
+          setIsPromptPayQrOpen(true);
+          break;
+        case 'open_proposal_print':
+          setActiveTab('proposals');
+          setTimeout(() => window.print(), 200);
+          break;
+        case 'open_proposal_whatsapp':
+          setActiveTab('proposals');
+          break;
+        case 'create_tour':
+          handleOpenCreateTour();
+          break;
+        case 'create_blog':
+          handleOpenCreateBlog();
+          break;
+        case 'upload_media':
+          setIsAddMediaModalOpen(true);
+          break;
+        default:
+          setActiveTab(parentTab);
+          break;
+      }
+    }
     setIsMobileSidebarOpen(false);
   };
 
@@ -927,24 +1123,25 @@ export default function AdminDashboard({
     [activeTab]
   );
 
-  const operationNavItems = useMemo(() => {
-    const list = NAV_ITEMS.filter((i) => i.category === 'operations');
-    if (viewerRole === 'owner') {
-      const usersItem = NAV_ITEMS.find((i) => i.id === 'users');
-      if (usersItem && !list.some((i) => i.id === 'users')) {
-        return [...list, usersItem];
-      }
-    }
-    return list;
-  }, [viewerRole]);
+  const operationNavItems = useMemo(
+    () => NAV_ITEMS.filter((i) => i.category === 'operations' && perms.allowedTabs.includes(i.id)),
+    [perms],
+  );
 
-  const cmsNavItems = useMemo(() => {
-    return NAV_ITEMS.filter((i) => i.category === 'content');
-  }, []);
+  const financeNavItems = useMemo(
+    () => NAV_ITEMS.filter((i) => i.category === 'finance' && perms.allowedTabs.includes(i.id)),
+    [perms],
+  );
 
-  const systemNavItems = useMemo(() => {
-    return NAV_ITEMS.filter((i) => i.category === 'system' && i.id !== 'users');
-  }, []);
+  const cmsNavItems = useMemo(
+    () => NAV_ITEMS.filter((i) => i.category === 'content' && perms.allowedTabs.includes(i.id)),
+    [perms],
+  );
+
+  const systemNavItems = useMemo(
+    () => NAV_ITEMS.filter((i) => i.category === 'system' && perms.allowedTabs.includes(i.id)),
+    [perms],
+  );
 
   /** Klavye ile menüde gezinme:
    *  [ = önceki sekme, ] = sonraki sekme
@@ -2302,185 +2499,178 @@ export default function AdminDashboard({
           </button>
         </div>
 
-        {/* Çift Modlu Menü Switcher: Operasyon ERP vs Web CMS */}
-        <div className="p-3 pb-1 shrink-0">
-          <div className="p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 grid grid-cols-2 gap-1 border border-slate-200/60 dark:border-slate-800/60">
-            <button
-              type="button"
-              onClick={() => {
-                setNavMode('operations');
-                try { localStorage.setItem('ptt_admin_nav_mode', 'operations'); } catch {}
-                if (cmsNavItems.some((i) => i.id === activeTab)) {
-                  setActiveTab('overview');
-                }
-              }}
-              title={isSidebarCollapsed ? 'Operasyon Masası (ERP)' : undefined}
-              className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                navMode === 'operations'
-                  ? 'bg-white dark:bg-surface-2 text-slate-900 dark:text-white shadow-2xs font-extrabold'
-                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
-              {!isSidebarCollapsed && <span>Operasyon</span>}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setNavMode('cms');
-                try { localStorage.setItem('ptt_admin_nav_mode', 'cms'); } catch {}
-                if (operationNavItems.some((i) => i.id === activeTab)) {
-                  setActiveTab('tours');
-                }
-              }}
-              title={isSidebarCollapsed ? 'Web & İçerik Modu (CMS)' : undefined}
-              className={`py-1.5 px-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-                navMode === 'cms'
-                  ? 'bg-white dark:bg-surface-2 text-slate-900 dark:text-white shadow-2xs font-extrabold'
-                  : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <Globe className="w-3.5 h-3.5 text-sky-500" />
-              {!isSidebarCollapsed && <span>Web CMS</span>}
-            </button>
+        {/* Kategori Filtresi: Tümü / Operasyon / Finans / CMS / Sistem */}
+        <div className="p-2.5 pb-1 shrink-0">
+          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 text-[11px]">
+            {NAV_CATEGORIES.map((cat) => {
+              const isSel = categoryFilter === cat.id;
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => {
+                    setCategoryFilter(cat.id);
+                    try { localStorage.setItem('ptt_admin_nav_category', cat.id); } catch {}
+                  }}
+                  title={cat.label}
+                  className={`py-1 px-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0 whitespace-nowrap ${
+                    isSel
+                      ? 'bg-white dark:bg-surface-2 text-slate-900 dark:text-white shadow-2xs font-extrabold'
+                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-3 h-3 text-brand-accent shrink-0" />
+                  {!isSidebarCollapsed && <span>{cat.shortLabel}</span>}
+                </button>
+              );
+            })}
           </div>
         </div>
 
-        {/* Sidebar Menü Listesi (Kaydırılabilir) */}
-        <div className="flex-1 overflow-y-auto px-3 py-3 space-y-4">
-          {navMode === 'operations' ? (
-            /* Grup 1: Operasyon ERP */
-            <div>
-              {!isSidebarCollapsed ? (
-                <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500 flex items-center justify-between">
-                  <span>Operasyon Masası</span>
-                  <span className="font-mono text-[9px] opacity-75">{operationNavItems.length} Modül</span>
-                </div>
-              ) : (
-                <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
-              )}
-              <div className="space-y-0.5">
-                {operationNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = activeTab === item.id;
-                  const isBookings = item.id === 'bookings';
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => handleTabSelect(item.id)}
-                      title={isSidebarCollapsed ? item.label : undefined}
-                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer relative group ${
-                        isActive
-                          ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
-                          : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
-                      } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
-                    >
-                      <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                        isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
-                      }`} />
-                      {!isSidebarCollapsed && (
-                        <>
-                          <span className="truncate flex-1 text-left">{item.label}</span>
-                          {isBookings && pendingBookingsCount > 0 && (
-                            <span className="rounded-full px-2 py-0.5 text-[10px] font-black bg-amber-500 text-white animate-pulse">
-                              {pendingBookingsCount}
-                            </span>
-                          )}
-                          {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
-                            <span className={`text-[10px] opacity-60 font-mono ${isActive ? 'text-white' : 'text-slate-400'}`}>
-                              {bookings.length}
-                            </span>
-                          )}
-                        </>
-                      )}
-                      {isSidebarCollapsed && isBookings && pendingBookingsCount > 0 && (
-                        <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : (
-            <>
-              {/* Grup 2: Web Sitesi & İçerik */}
-              <div>
-                {!isSidebarCollapsed ? (
-                  <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500 flex items-center justify-between">
-                    <span>Web & İçerik</span>
-                    <span className="font-mono text-[9px] opacity-75">{cmsNavItems.length} Modül</span>
-                  </div>
-                ) : (
-                  <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
-                )}
-                <div className="space-y-0.5">
-                  {cmsNavItems.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = activeTab === item.id;
-                    return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => handleTabSelect(item.id)}
-                        title={isSidebarCollapsed ? item.label : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
-                          isActive
-                            ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
-                        } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
-                      >
-                        <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                          isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
-                        }`} />
-                        {!isSidebarCollapsed && (
-                          <span className="truncate flex-1 text-left">{item.label}</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+        {/* Sidebar Menü Listesi (Kategorize + Alt Menüler) */}
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-3">
+          {[
+            {
+              id: 'operations' as NavCategory,
+              title: 'Operasyon & Saha',
+              icon: <Zap className="w-3.5 h-3.5 text-amber-500" />,
+              items: operationNavItems,
+            },
+            {
+              id: 'finance' as NavCategory,
+              title: 'Finans, Kasa & B2B',
+              icon: <Wallet className="w-3.5 h-3.5 text-emerald-500" />,
+              items: financeNavItems,
+            },
+            {
+              id: 'content' as NavCategory,
+              title: 'Web & İçerik (CMS)',
+              icon: <Globe className="w-3.5 h-3.5 text-sky-500" />,
+              items: cmsNavItems,
+            },
+            {
+              id: 'system' as NavCategory,
+              title: 'Sistem & Yönetim',
+              icon: <Settings className="w-3.5 h-3.5 text-purple-500" />,
+              items: systemNavItems,
+            },
+          ].map((grp) => {
+            if (grp.items.length === 0) return null;
+            if (categoryFilter !== 'all' && categoryFilter !== grp.id) return null;
 
-              {/* Grup 3: Sistem & İletişim */}
-              <div>
+            return (
+              <div key={grp.id} className="space-y-1">
                 {!isSidebarCollapsed ? (
-                  <div className="px-3 pb-1 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500">
-                    Sistem & İletişim
+                  <div className="px-2 pt-1 pb-0.5 text-[10px] font-black tracking-wider uppercase text-slate-400 dark:text-slate-500 flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-bold">
+                      {grp.icon}
+                      <span>{grp.title}</span>
+                    </span>
+                    <span className="font-mono text-[9px] opacity-75">{grp.items.length}</span>
                   </div>
                 ) : (
                   <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
                 )}
+
                 <div className="space-y-0.5">
-                  {systemNavItems.map((item) => {
+                  {grp.items.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
+                    const isBookings = item.id === 'bookings';
+                    const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
+                    const isExpanded = expandedTabs[item.id] !== undefined ? expandedTabs[item.id] : isActive;
+
                     return (
-                      <button
-                        key={item.id}
-                        type="button"
-                        onClick={() => handleTabSelect(item.id)}
-                        title={isSidebarCollapsed ? item.label : undefined}
-                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer group ${
-                          isActive
-                            ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
-                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
-                        } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
-                      >
-                        <Icon className={`w-4 h-4 shrink-0 transition-colors ${
-                          isActive ? 'text-brand-accent dark:text-slate-950' : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
-                        }`} />
-                        {!isSidebarCollapsed && (
-                          <span className="truncate flex-1 text-left">{item.label}</span>
+                      <div key={item.id} className="space-y-0.5">
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleTabSelect(item.id)}
+                            title={isSidebarCollapsed ? item.label : undefined}
+                            className={`flex-1 flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer relative group ${
+                              isActive
+                                ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
+                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                            } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
+                          >
+                            <Icon
+                              className={`w-4 h-4 shrink-0 transition-colors ${
+                                isActive
+                                  ? 'text-brand-accent dark:text-slate-950'
+                                  : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
+                              }`}
+                            />
+                            {!isSidebarCollapsed && (
+                              <>
+                                <span className="truncate flex-1 text-left">{item.label}</span>
+                                {isBookings && pendingBookingsCount > 0 && (
+                                  <span className="rounded-full px-2 py-0.5 text-[10px] font-black bg-amber-500 text-white animate-pulse">
+                                    {pendingBookingsCount}
+                                  </span>
+                                )}
+                                {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
+                                  <span
+                                    className={`text-[10px] opacity-60 font-mono ${
+                                      isActive ? 'text-white dark:text-slate-950' : 'text-slate-400'
+                                    }`}
+                                  >
+                                    {bookings.length}
+                                  </span>
+                                )}
+                              </>
+                            )}
+                            {isSidebarCollapsed && isBookings && pendingBookingsCount > 0 && (
+                              <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900" />
+                            )}
+                          </button>
+
+                          {!isSidebarCollapsed && hasSubItems && (
+                            <button
+                              type="button"
+                              onClick={(e) => toggleTabExpand(item.id, e)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
+                              title={isExpanded ? 'Alt menüyü daralt' : 'Alt menüyü genişlet'}
+                            >
+                              <ChevronDown
+                                className={`w-3.5 h-3.5 transition-transform duration-200 ${
+                                  isExpanded ? 'rotate-180 text-brand-accent' : ''
+                                }`}
+                              />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Alt Menüler (Sub-items) */}
+                        {!isSidebarCollapsed && hasSubItems && isExpanded && (
+                          <div className="ml-5 pl-2.5 my-1 border-l-2 border-slate-200 dark:border-slate-800 space-y-0.5 animate-fadeIn">
+                            {item.subItems!.map((sub) => (
+                              <button
+                                key={sub.id}
+                                type="button"
+                                onClick={() => handleSubItemClick(sub, item.id)}
+                                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all text-left group cursor-pointer"
+                              >
+                                <span className="text-xs group-hover:scale-110 transition-transform shrink-0">
+                                  {sub.icon || '•'}
+                                </span>
+                                <span className="truncate flex-1">{sub.label}</span>
+                                {sub.badge && (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
+                                    {sub.badge}
+                                  </span>
+                                )}
+                              </button>
+                            ))}
+                          </div>
                         )}
-                      </button>
+                      </div>
                     );
                   })}
                 </div>
               </div>
-            </>
-          )}
+            );
+          })}
         </div>
 
         {/* Sidebar Alt: Profil & Daralt/Genişlet Butonu */}
@@ -2548,7 +2738,13 @@ export default function AdminDashboard({
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 leading-none">
                     <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                      {activeNavItem.category === 'operations' ? 'Operasyon' : activeNavItem.category === 'content' ? 'Web Sitesi' : 'Sistem'}
+                      {activeNavItem.category === 'operations'
+                        ? 'Operasyon & Saha'
+                        : activeNavItem.category === 'finance'
+                        ? 'Finans, Kasa & B2B'
+                        : activeNavItem.category === 'content'
+                        ? 'Web & İçerik'
+                        : 'Sistem & Yönetim'}
                     </span>
                     <span className="text-slate-300 dark:text-slate-600">/</span>
                     <h1 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
@@ -2567,141 +2763,42 @@ export default function AdminDashboard({
 
           {/* Sağ: Hızlı Operasyon Masası + Spotlight + Eylemler */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* ⚡ ÇİFT SATIR HIZLI OPERASYON MASASI (Desktop: lg ve üzeri) */}
-            <div className="hidden lg:flex flex-col items-end gap-1">
-              {/* Satır 1: Saha & Güvenlik */}
-              <div
-                className="flex items-center gap-1 p-0.5 bg-slate-100/70 dark:bg-slate-900/50 rounded-xl border border-slate-200/60 dark:border-slate-800/60"
-                title="Saha & Güvenlik Masası"
+            {/* Masaüstü Hızlı Masraf Kısayolları (Şoför & Rehber Masrafı doğrudan tek tıkla önünüzde) */}
+            <div className="hidden sm:flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => setIsDriverExpenseOpen(true)}
+                className="px-2.5 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/25 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Şoför Saha Yakıt, Otopark & Harç Masraf Masası"
               >
-                <button
-                  type="button"
-                  onClick={() => setIsQrScannerOpen(true)}
-                  className="px-2 py-1 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-300 border border-purple-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Misafir Kuponu / Bilet QR Kodu Oku & Doğrula"
-                >
-                  <Camera className="w-3 h-3 text-purple-600 dark:text-purple-400" />
-                  <span>Bilet Tara</span>
-                </button>
+                <Fuel className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span className="hidden md:inline">Şoför Masrafı</span>
+                <span className="md:hidden">Şoför</span>
+              </button>
 
-                <button
-                  type="button"
-                  onClick={() => setIsLostFoundOpen(true)}
-                  className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Kayıp Eşya Masası & Bagaj Güvenlik Protokolü"
-                >
-                  <Package className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                  <span>Kayıp Eşya</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsDietaryManifestOpen(true)}
-                  className="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-700 dark:text-rose-400 border border-rose-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Misafir Diyet & Medikal Emniyet Manifestosu"
-                >
-                  <ShieldAlert className="w-3 h-3 text-rose-600 dark:text-rose-400" />
-                  <span>Diyet & Medikal</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsPierManifestOpen(true)}
-                  className="px-2 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="İskele & Tekne Kaptan Manifestosu (Chalong, Rassada, Ao Po, Royal Marina)"
-                >
-                  <Ship className="w-3 h-3 text-sky-600 dark:text-sky-400" />
-                  <span>İskele Manifestosu</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setCashierBooking(null);
-                    setIsFieldCashierOpen(true);
-                  }}
-                  className="px-2 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Saha Çoklu Döviz & Para Üstü Kasa Hesaplayıcı"
-                >
-                  <Coins className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                  <span>Saha Kasa</span>
-                </button>
-              </div>
-
-              {/* Satır 2: Lojistik & VIP Servisler */}
-              <div
-                className="flex items-center gap-1 p-0.5 bg-slate-100/70 dark:bg-slate-900/50 rounded-xl border border-slate-200/60 dark:border-slate-800/60"
-                title="Lojistik, Uçuş & Karşılama Masası"
+              <button
+                type="button"
+                onClick={() => setIsGuideExpenseOpen(true)}
+                className="px-2.5 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-800 dark:text-teal-300 border border-teal-500/25 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Rehber Taksi/Grab, Yemek, Karşılama & Saha Masraf Masası"
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFlightRadarFlight('TK 172');
-                    setFlightRadarGuest('');
-                    setIsFlightRadarOpen(true);
-                  }}
-                  className="px-2 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Phuket Havalimanı Canlı Uçuş Radarı & Rötar Kalkanı"
-                >
-                  <Plane className="w-3 h-3 text-sky-600 dark:text-sky-400" />
-                  <span>Uçuş Radarı</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsDriverExpenseOpen(true)}
-                  className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Şoför Saha Yakıt, Otopark & Harç Masraf Masası"
-                >
-                  <Fuel className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                  <span>Şoför Masrafı</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsGuideExpenseOpen(true)}
-                  className="px-2 py-1 rounded-lg bg-teal-500/10 hover:bg-teal-500/20 text-teal-700 dark:text-teal-300 border border-teal-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Rehber Taksi/Grab, Yemek, Karşılama & Saha Masraf Masası"
-                >
-                  <UserCheck className="w-3 h-3 text-teal-600 dark:text-teal-400" />
-                  <span>Rehber Masrafı</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setWelcomeBoardBooking(null);
-                    setIsWelcomeBoardOpen(true);
-                  }}
-                  className="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Havalimanı VIP Karşılama İsimlik Stüdyosu (Tablet & Baskı)"
-                >
-                  <span className="text-xs leading-none">🪧</span>
-                  <span>VIP İsimlik</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsLuggageExpressOpen(true)}
-                  className="px-2 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
-                  title="Oteller Arası Bagaj Transfer Masası"
-                >
-                  <Luggage className="w-3 h-3 text-indigo-600 dark:text-indigo-400" />
-                  <span>Bagaj Masası</span>
-                </button>
-              </div>
+                <UserCheck className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                <span className="hidden md:inline">Rehber Masrafı</span>
+                <span className="md:hidden">Rehber</span>
+              </button>
             </div>
 
-            {/* 📱 Mobil & Tablet: Tek Butonlu Açılır Operasyon Menüsü (Dropdown) */}
-            <div className="relative lg:hidden">
+            {/* ⚡ Hızlı Operasyon Araçları Açılır Menüsü (Tüm ekran boyutlarında modüler 4 masa) */}
+            <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsQuickToolsDropdownOpen((v) => !v)}
-                className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-                title="Hızlı Saha & Operasyon Araçları"
+                className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                title="Tüm Hızlı Saha & Operasyon Araçları"
               >
-                <span>⚡</span>
-                <span className="text-xs">Araçlar</span>
+                <span className="text-amber-500">⚡</span>
+                <span className="hidden sm:inline">Hızlı Araçlar</span>
+                <span className="sm:hidden">Araçlar</span>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
               </button>
 
@@ -2711,10 +2808,12 @@ export default function AdminDashboard({
                     className="fixed inset-0 z-40"
                     onClick={() => setIsQuickToolsDropdownOpen(false)}
                   />
-                  <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-surface-2 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 p-2 z-50 divide-y divide-slate-100 dark:divide-slate-800">
-                    <div className="p-1">
-                      <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-2 py-1">
-                        Saha & Güvenlik
+                  <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-surface-2 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-2.5 z-50 divide-y divide-slate-100 dark:divide-slate-800 max-h-[85vh] overflow-y-auto">
+                    {/* 1. Saha & Check-in */}
+                    <div className="p-1 space-y-1">
+                      <div className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
+                        <span>🚀</span>
+                        <span>Sevk & Check-in</span>
                       </div>
                       <button
                         type="button"
@@ -2722,43 +2821,52 @@ export default function AdminDashboard({
                           setIsQrScannerOpen(true);
                           setIsQuickToolsDropdownOpen(false);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-purple-500/10 hover:text-purple-600 transition-colors text-left"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-purple-500/10 hover:text-purple-600 transition-colors text-left cursor-pointer"
                       >
                         <Camera className="w-3.5 h-3.5 text-purple-600" />
-                        <span>Bilet Tara</span>
+                        <span>Bilet QR Oku / Check-in</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => {
-                          setIsLostFoundOpen(true);
+                          setWelcomeBoardBooking(null);
+                          setIsWelcomeBoardOpen(true);
                           setIsQuickToolsDropdownOpen(false);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-left"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-left cursor-pointer"
                       >
-                        <Package className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Kayıp Eşya Masası</span>
+                        <span className="text-xs">🪧</span>
+                        <span>VIP Karşılama İsimlik Stüdyosu</span>
+                      </button>
+                    </div>
+
+                    {/* 2. Kasa & Masraflar */}
+                    <div className="p-1 pt-2 space-y-1">
+                      <div className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
+                        <span>💵</span>
+                        <span>Kasa & Masraflar</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsDriverExpenseOpen(true);
+                          setIsQuickToolsDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-left cursor-pointer"
+                      >
+                        <Fuel className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Şoför Yakıt & Harç Masrafı</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => {
-                          setIsDietaryManifestOpen(true);
+                          setIsGuideExpenseOpen(true);
                           setIsQuickToolsDropdownOpen(false);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-rose-500/10 hover:text-rose-600 transition-colors text-left"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-teal-500/10 hover:text-teal-600 transition-colors text-left cursor-pointer"
                       >
-                        <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
-                        <span>Diyet & Medikal Manifesto</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsPierManifestOpen(true);
-                          setIsQuickToolsDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-600 transition-colors text-left"
-                      >
-                        <Ship className="w-3.5 h-3.5 text-sky-600" />
-                        <span>İskele & Kaptan Manifestosu</span>
+                        <UserCheck className="w-3.5 h-3.5 text-teal-600" />
+                        <span>Rehber Masrafı (Taksi, Yemek, Saha)</span>
                       </button>
                       <button
                         type="button"
@@ -2767,16 +2875,29 @@ export default function AdminDashboard({
                           setIsFieldCashierOpen(true);
                           setIsQuickToolsDropdownOpen(false);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors text-left"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors text-left cursor-pointer"
                       >
                         <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Saha Çoklu Döviz Kasa</span>
+                        <span>Saha Çoklu Döviz Kasa Hesaplayıcı</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsPromptPayQrOpen(true);
+                          setIsQuickToolsDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-600 transition-colors text-left cursor-pointer"
+                      >
+                        <Smartphone className="w-3.5 h-3.5 text-sky-600" />
+                        <span>PromptPay QR Kod Üretici</span>
                       </button>
                     </div>
 
-                    <div className="p-1 pt-2">
-                      <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-2 py-1">
-                        Lojistik & Operasyon
+                    {/* 3. Lojistik & Uçuş */}
+                    <div className="p-1 pt-2 space-y-1">
+                      <div className="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
+                        <span>✈️</span>
+                        <span>Lojistik & Havalimanı</span>
                       </div>
                       <button
                         type="button"
@@ -2786,44 +2907,10 @@ export default function AdminDashboard({
                           setIsFlightRadarOpen(true);
                           setIsQuickToolsDropdownOpen(false);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-600 transition-colors text-left"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-600 transition-colors text-left cursor-pointer"
                       >
                         <Plane className="w-3.5 h-3.5 text-sky-600" />
-                        <span>Havalimanı Uçuş Radarı</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsDriverExpenseOpen(true);
-                          setIsQuickToolsDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-left"
-                      >
-                        <Fuel className="w-3.5 h-3.5 text-amber-600" />
-                        <span>Şoför Yakıt & Masraf</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsGuideExpenseOpen(true);
-                          setIsQuickToolsDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-teal-500/10 hover:text-teal-600 transition-colors text-left"
-                      >
-                        <UserCheck className="w-3.5 h-3.5 text-teal-600" />
-                        <span>Rehber Saha Masrafı</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setWelcomeBoardBooking(null);
-                          setIsWelcomeBoardOpen(true);
-                          setIsQuickToolsDropdownOpen(false);
-                        }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-left"
-                      >
-                        <span className="text-xs">🪧</span>
-                        <span>VIP Karşılama İsimliği</span>
+                        <span>Canlı Uçuş Radarı & Rötar Kalkanı</span>
                       </button>
                       <button
                         type="button"
@@ -2831,10 +2918,88 @@ export default function AdminDashboard({
                           setIsLuggageExpressOpen(true);
                           setIsQuickToolsDropdownOpen(false);
                         }}
-                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-500/10 hover:text-indigo-600 transition-colors text-left"
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-500/10 hover:text-indigo-600 transition-colors text-left cursor-pointer"
                       >
                         <Luggage className="w-3.5 h-3.5 text-indigo-600" />
-                        <span>Bagaj Transfer Masası</span>
+                        <span>Oteller Arası Bagaj Transfer Masası</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsLostFoundOpen(true);
+                          setIsQuickToolsDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-left cursor-pointer"
+                      >
+                        <Package className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Kayıp Eşya Takip Masası</span>
+                      </button>
+                    </div>
+
+                    {/* 4. Emniyet & Manifestolar */}
+                    <div className="p-1 pt-2 space-y-1">
+                      <div className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
+                        <span>🛡️</span>
+                        <span>Emniyet & Manifestolar</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsPoliceManifestOpen(true);
+                          setIsQuickToolsDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-rose-500/10 hover:text-rose-600 transition-colors text-left cursor-pointer"
+                      >
+                        <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Deniz Polisi Güvenlik Manifestosu</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsPierManifestOpen(true);
+                          setIsQuickToolsDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-600 transition-colors text-left cursor-pointer"
+                      >
+                        <Ship className="w-3.5 h-3.5 text-sky-600" />
+                        <span>İskele & Kaptan Manifestosu</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsDietaryManifestOpen(true);
+                          setIsQuickToolsDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-rose-500/10 hover:text-rose-600 transition-colors text-left cursor-pointer"
+                      >
+                        <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Diyet & Medikal Emniyet Manifestosu</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCaptainDrawerOpen(true);
+                          setIsQuickToolsDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-cyan-500/10 hover:text-cyan-600 transition-colors text-left cursor-pointer"
+                      >
+                        <span className="text-xs">📶</span>
+                        <span>Kaptan Kasası (Çevrimdışı PWA)</span>
+                      </button>
+                    </div>
+
+                    {/* 5. Teklif Broşürü */}
+                    <div className="p-1 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('proposals');
+                          setIsQuickToolsDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-900 dark:text-amber-300 hover:bg-amber-500/25 transition-colors text-left cursor-pointer"
+                      >
+                        <FileText className="w-4 h-4 text-amber-600" />
+                        <span>📄 Kişiye Özel Logolu PDF Tur Teklifi</span>
                       </button>
                     </div>
                   </div>
@@ -3559,9 +3724,10 @@ export default function AdminDashboard({
         }}
         onSelectBooking={(b) => handleOpenEditBooking(b)}
         onSetNavMode={(mode) => {
-          setNavMode(mode);
+          const cat = mode === 'operations' ? 'operations' : 'content';
+          setCategoryFilter(cat);
           try {
-            localStorage.setItem('ptt_admin_nav_mode', mode);
+            localStorage.setItem('ptt_admin_nav_category', cat);
           } catch {}
         }}
       />

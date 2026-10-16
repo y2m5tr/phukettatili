@@ -15,12 +15,146 @@ const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
       </a>
 
       <!-- Desktop Navigation -->
-      <nav class="hidden md:flex items-center gap-5 lg:gap-7 xl:gap-8">
+      <nav class="hidden md:flex items-center gap-5 lg:gap-6 xl:gap-7">
         <a href="/" class="text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all hover:after:w-full">Ana Sayfa</a>
-        <a href="/turlar" class="text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all hover:after:w-full">Turlar</a>
-        <a href="/vip" class="text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all hover:after:w-full">VIP Hizmetler</a>
-        <a href="/transferler" class="text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all hover:after:w-full">Transferler</a>
-        <a href="/blog" class="text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all hover:after:w-full">Rehber</a>
+
+        {/* Turlar Dropdown */}
+        <div class="relative group py-2">
+          <a href="/turlar" class="flex items-center gap-1 text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors">
+            <span>Turlar</span>
+            <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </a>
+          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+            <div class="w-72 p-2.5 bg-white/95 dark:bg-surface-1/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
+              <a href="/tur-kategorisi/island-tours" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors">
+                <span class="text-base shrink-0">🏝️</span>
+                <div>
+                  <span class="block">Ada Turları</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Phi Phi, James Bond, Similan</span>
+                </div>
+              </a>
+              <a href="/tur-kategorisi/adventure-tours" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
+                <span class="text-base shrink-0">⚡</span>
+                <div>
+                  <span class="block">Macera & Doğa Turları</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">ATV, Zipline, Rafting, Kano</span>
+                </div>
+              </a>
+              <a href="/tur-kategorisi/entertainment-tours" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-purple-500/10 hover:text-purple-700 dark:hover:text-purple-400 transition-colors">
+                <span class="text-base shrink-0">🎭</span>
+                <div>
+                  <span class="block">Şov & Eğlence Parkları</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Fantasea, Carnival Magic, Simon</span>
+                </div>
+              </a>
+              <a href="/tur-kategorisi/elephant" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-teal-500/10 hover:text-teal-700 dark:hover:text-teal-400 transition-colors">
+                <span class="text-base shrink-0">🐘</span>
+                <div>
+                  <span class="block">Etik Fil Koruma Parkları</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Besleme, Banyo & Safari</span>
+                </div>
+              </a>
+              <a href="/tur-kategorisi/private-charters" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-700 dark:hover:text-sky-400 transition-colors">
+                <span class="text-base shrink-0">🛥️</span>
+                <div>
+                  <span class="block">Özel Tekne Kiralama</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Katamaran, Sürat & Longtail</span>
+                </div>
+              </a>
+              <div class="pt-1.5 border-t border-slate-100 dark:border-slate-800">
+                <a href="/turlar" class="flex items-center justify-between px-3 py-1.5 rounded-xl text-[11px] font-extrabold text-brand-primary dark:text-brand-accent hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                  <span>Tüm Turları İncele →</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* VIP Hizmetler Dropdown */}
+        <div class="relative group py-2">
+          <a href="/vip" class="flex items-center gap-1 text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors">
+            <span>VIP Hizmetler</span>
+            <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </a>
+          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+            <div class="w-64 p-2.5 bg-white/95 dark:bg-surface-1/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
+              <a href="/vip" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors">
+                <span class="text-base shrink-0">👑</span>
+                <div>
+                  <span class="block">Lüks Yat Kiralama</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Özel Katamaran & Mürettebat</span>
+                </div>
+              </a>
+              <a href="/vip" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-700 dark:hover:text-sky-400 transition-colors">
+                <span class="text-base shrink-0">🚖</span>
+                <div>
+                  <span class="block">VIP Havalimanı Karşılama</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Hızlı Geçiş & Fast Track</span>
+                </div>
+              </a>
+              <a href="/paketler" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-pink-500/10 hover:text-pink-700 dark:hover:text-pink-400 transition-colors">
+                <span class="text-base shrink-0">🌴</span>
+                <div>
+                  <span class="block">Kişiye Özel Tatil Programı</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Balayı & Lüks Paketler</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Transferler Dropdown */}
+        <div class="relative group py-2">
+          <a href="/transferler" class="flex items-center gap-1 text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors">
+            <span>Transferler</span>
+            <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </a>
+          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+            <div class="w-64 p-2.5 bg-white/95 dark:bg-surface-1/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
+              <a href="/transferler" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-700 dark:hover:text-sky-400 transition-colors">
+                <span class="text-base shrink-0">✈️</span>
+                <div>
+                  <span class="block">Havalimanı - Otel Transferi</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Özel Minivan & VIP Sedan</span>
+                </div>
+              </a>
+              <a href="/transferler" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-indigo-500/10 hover:text-indigo-700 dark:hover:text-indigo-400 transition-colors">
+                <span class="text-base shrink-0">🏨</span>
+                <div>
+                  <span class="block">Oteller Arası Transfer & Bagaj</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Konforlu Bölge Geçişi</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Rehber Dropdown */}
+        <div class="relative group py-2">
+          <a href="/blog" class="flex items-center gap-1 text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors">
+            <span>Rehber</span>
+            <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </a>
+          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+            <div class="w-60 p-2.5 bg-white/95 dark:bg-surface-1/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
+              <a href="/blog" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors">
+                <span class="text-base shrink-0">📖</span>
+                <div>
+                  <span class="block">Phuket Gezi Rehberi</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Tavsiyeler, Plajlar & Yemekler</span>
+                </div>
+              </a>
+              <a href="/tayca" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-teal-500/10 hover:text-teal-700 dark:hover:text-teal-400 transition-colors">
+                <span class="text-base shrink-0">🇹🇭</span>
+                <div>
+                  <span class="block">Pratik Cep Taycası</span>
+                  <span class="block text-[10px] text-slate-400 font-normal">Turist Cümleleri & Kelimeler</span>
+                </div>
+              </a>
+            </div>
+          </div>
+        </div>
+
         <a href="/hakkimizda" class="text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all hover:after:w-full">Hakkımızda</a>
         <a href="/iletisim" class="text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all hover:after:w-full">İletişim</a>
         
@@ -47,20 +181,88 @@ const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
   </div>
 
   <!-- Mobile Navigation -->
-  <div id="mobile-menu" class="mobile-menu fixed inset-0 bg-white dark:bg-surface-1 z-40 hidden flex-col pt-24 px-6 gap-6 text-xl" aria-hidden="true">
-    <a href="/" class="text-brand-primary dark:text-white font-bold hover:text-brand-accent transition-colors">Ana Sayfa</a>
-    <a href="/turlar" class="text-brand-primary dark:text-white font-bold hover:text-brand-accent transition-colors">Turlar</a>
-    <a href="/vip" class="text-brand-primary dark:text-white font-bold hover:text-brand-accent transition-colors">VIP Hizmetler</a>
-    <a href="/transferler" class="text-brand-primary dark:text-white font-bold hover:text-brand-accent transition-colors">Transferler</a>
-    <a href="/blog" class="text-brand-primary dark:text-white font-bold hover:text-brand-accent transition-colors">Rehber</a>
-    <a href="/hakkimizda" class="text-brand-primary dark:text-white font-bold hover:text-brand-accent transition-colors">Hakkımızda</a>
-    <a href="/iletisim" class="text-brand-primary dark:text-white font-bold hover:text-brand-accent transition-colors">İletişim</a>
-    <a href={`https://wa.me/${whatsappNumber}`} target="_blank" class="bg-[#25D366] text-white px-6 py-4 rounded-xl text-center font-bold mt-4">
-      WhatsApp'tan Ulaşın
+  <div id="mobile-menu" class="mobile-menu fixed inset-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl z-50 hidden flex-col pt-20 pb-10 px-6 overflow-y-auto text-base" aria-hidden="true">
+    <div class="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">🌴</span>
+        <span class="font-extrabold text-brand-primary dark:text-white text-lg tracking-tight">Phuket Tatili</span>
+      </div>
+      <button id="mobile-menu-close" class="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg bg-slate-100 dark:bg-slate-800" aria-label="Menüyü Kapat">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <div class="space-y-4 py-4">
+      <!-- Ana Sayfa -->
+      <a href="/" class="block py-2 font-bold text-lg text-slate-900 dark:text-white hover:text-brand-accent transition-colors">Ana Sayfa</a>
+
+      <!-- Turlar Section -->
+      <div class="space-y-1.5 pt-2">
+        <div class="flex items-center justify-between py-1">
+          <a href="/turlar" class="font-bold text-lg text-slate-900 dark:text-white hover:text-brand-accent">🌴 Turlar & Aktiviteler</a>
+          <a href="/turlar" class="text-xs font-semibold text-brand-accent hover:underline">Tümünü Gör →</a>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pl-2 text-xs">
+          <a href="/turlar?kategori=ada-turlari" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">🏝️ Ada Turları</a>
+          <a href="/turlar?kategori=macera" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">⚡ Macera & Rafting</a>
+          <a href="/turlar?kategori=kulturel" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">🎭 Şov & Kültür</a>
+          <a href="/turlar?kategori=etik-fil" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">🐘 Etik Fil Parkı</a>
+        </div>
+      </div>
+
+      <!-- VIP Hizmetler Section -->
+      <div class="space-y-1.5 pt-2">
+        <div class="flex items-center justify-between py-1">
+          <a href="/vip" class="font-bold text-lg text-slate-900 dark:text-white hover:text-brand-accent">👑 VIP & Özel Hizmetler</a>
+          <a href="/vip" class="text-xs font-semibold text-brand-accent hover:underline">Tümünü Gör →</a>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pl-2 text-xs">
+          <a href="/vip" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">🛥️ Özel Lüks Yat</a>
+          <a href="/vip" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">✨ Fast-Track</a>
+          <a href="/vip" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">💍 Balayı Paketleri</a>
+          <a href="/vip" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">🍾 Özel Helikopter</a>
+        </div>
+      </div>
+
+      <!-- Transferler Section -->
+      <div class="space-y-1.5 pt-2">
+        <div class="flex items-center justify-between py-1">
+          <a href="/transferler" class="font-bold text-lg text-slate-900 dark:text-white hover:text-brand-accent">🚐 VIP Transfer</a>
+          <a href="/transferler" class="text-xs font-semibold text-brand-accent hover:underline">Tümünü Gör →</a>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pl-2 text-xs">
+          <a href="/transferler" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">🛫 Havalimanı Transferi</a>
+          <a href="/transferler" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">🏨 Oteller Arası Araç</a>
+        </div>
+      </div>
+
+      <!-- Rehber Section -->
+      <div class="space-y-1.5 pt-2">
+        <div class="flex items-center justify-between py-1">
+          <a href="/blog" class="font-bold text-lg text-slate-900 dark:text-white hover:text-brand-accent">📖 Phuket Rehberi</a>
+          <a href="/blog" class="text-xs font-semibold text-brand-accent hover:underline">Bloglar →</a>
+        </div>
+        <div class="grid grid-cols-2 gap-2 pl-2 text-xs">
+          <a href="/blog" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">🏝️ Gezi Rehberleri</a>
+          <a href="/blog" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 font-medium hover:bg-brand-accent/10 hover:text-brand-accent">🗣️ Pratik Tayca Rehberi</a>
+        </div>
+      </div>
+
+      <!-- Kurumsal Linkler -->
+      <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-4 text-sm font-semibold text-slate-600 dark:text-slate-400">
+        <a href="/hakkimizda" class="hover:text-brand-accent">Hakkımızda</a>
+        <span>•</span>
+        <a href="/iletisim" class="hover:text-brand-accent">İletişim</a>
+        <span>•</span>
+        <a href="/admin" class="hover:text-brand-accent">Yönetim Paneli</a>
+      </div>
+    </div>
+
+    <!-- WhatsApp CTA -->
+    <a href={`https://wa.me/${whatsappNumber}`} target="_blank" class="mt-4 bg-[#25D366] text-white py-3.5 px-4 rounded-xl text-center font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 hover:bg-[#128C7E] transition-colors shrink-0">
+      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      WhatsApp'tan Hızlı Destek
     </a>
-    <button id="mobile-menu-close" class="absolute top-6 right-4 p-2 text-brand-primary dark:text-white" aria-label="Menüyü Kapat">
-      <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-    </button>
   </div>
 </header>
 
