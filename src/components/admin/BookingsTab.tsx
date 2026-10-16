@@ -163,7 +163,7 @@ export default function BookingsTab({
                 <th className="py-4 px-5">Kişi</th>
                 <th className="py-4 px-5">Fiyat / Tahsilat</th>
                 <th className="py-4 px-5">Durum</th>
-                <th className="py-4 px-5 text-right">İşlemler</th>
+                <th className="py-4 px-5 text-right whitespace-nowrap">İşlemler (Portallar / Yönetim)</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -328,141 +328,157 @@ export default function BookingsTab({
                       </span>
                     </td>
 
-                    <td className="py-4 px-5 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <a
-                          href={`/bilet/${b.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors"
-                          title="Misafir Canlı Takip Portalını Aç (/bilet/[kod])"
+                    <td className="py-3 px-5 text-right align-middle">
+                      <div className="flex flex-col items-end gap-1.5">
+                        {/* Satır 1: Misafir Portalları & Saha Servisleri */}
+                        <div
+                          className="inline-flex items-center justify-end gap-1 p-1 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl border border-amber-500/15"
+                          title="Misafir Portalları & Saha Linkleri"
                         >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                        <a
-                          href={`/gezi/${b.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 hover:bg-teal-600 hover:text-white transition-colors"
-                          title="Misafir Gün Gün Dijital Tatil Ajandası (/gezi/[id])"
-                        >
-                          <Compass className="w-4 h-4" />
-                        </a>
-                        <a
-                          href={`/sigorta/${b.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-colors"
-                          title="TAT Tur Sigortası & Sağlık Beyanı Formu (/sigorta/[id])"
-                        >
-                          <ShieldCheck className="w-4 h-4" />
-                        </a>
-                        {onOpenFlightRadar && (
+                          <a
+                            href={`/bilet/${b.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors"
+                            title="🎟️ Misafir Canlı Takip Portalını Aç (/bilet/[kod])"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                          </a>
+                          <a
+                            href={`/gezi/${b.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 hover:bg-teal-600 hover:text-white transition-colors"
+                            title="🧭 Misafir Gün Gün Dijital Tatil Ajandası (/gezi/[id])"
+                          >
+                            <Compass className="w-3.5 h-3.5" />
+                          </a>
+                          <a
+                            href={`/sigorta/${b.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-colors"
+                            title="🛡️ TAT Tur Sigortası & Sağlık Beyanı Formu (/sigorta/[id])"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                          </a>
+                          <a
+                            href={`/foto/${b.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors flex items-center justify-center"
+                            title="📸 Misafir Fotoğraf Kasası (/foto/[kod])"
+                          >
+                            <span className="text-xs leading-none">📸</span>
+                          </a>
+                          {onOpenWelcomeBoard && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenWelcomeBoard(b)}
+                              className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors cursor-pointer flex items-center justify-center"
+                              title="🪧 VIP Karşılama İsimlik & Tablet Tabelası"
+                            >
+                              <span className="text-xs leading-none">🪧</span>
+                            </button>
+                          )}
+                          {onOpenFlightRadar && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenFlightRadar(undefined, b.customerName)}
+                              className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-colors cursor-pointer"
+                              title="✈️ Havalimanı Uçuş Radarı & Canlı Karşılama"
+                            >
+                              <Plane className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           <button
                             type="button"
-                            onClick={() => onOpenFlightRadar(undefined, b.customerName)}
-                            className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-colors cursor-pointer"
-                            title="Havalimanı Uçuş Radarı & Karşılama"
+                            onClick={() => setVoucherBooking(b)}
+                            className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors cursor-pointer"
+                            title="🎫 Bilet / Voucher Kuponu Aç"
                           >
-                            <Plane className="w-4 h-4" />
+                            <Ticket className="w-3.5 h-3.5" />
                           </button>
-                        )}
-                        <button
-                          onClick={() => setVoucherBooking(b)}
-                          className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
-                          title="Bilet / Voucher Kuponu Aç"
+                        </div>
+
+                        {/* Satır 2: İletişim, Satış & Yönetim İşlemleri */}
+                        <div
+                          className="inline-flex items-center justify-end gap-1 p-1 bg-slate-100/80 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-slate-800/80"
+                          title="İletişim, Satış & Rezervasyon Yönetimi"
                         >
-                          <Ticket className="w-4 h-4" />
-                        </button>
-                        {onOpenQuotePdf && (
                           <button
                             type="button"
-                            onClick={() => onOpenQuotePdf(b)}
-                            className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-colors"
-                            title="Kurumsal Teklif / Voucher (PDF) Oluştur"
+                            onClick={() => setWhatsAppModalBooking(b)}
+                            className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors cursor-pointer"
+                            title="💬 WhatsApp Şablonları & Otomatik Mesaj"
                           >
-                            <FileText className="w-4 h-4" />
+                            <MessageCircle className="w-3.5 h-3.5" />
                           </button>
-                        )}
-                        {onOpenWelcomeBoard && (
                           <button
                             type="button"
-                            onClick={() => onOpenWelcomeBoard(b)}
-                            className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors"
-                            title="🪧 VIP Karşılama İsimlik & Tablet Tabelası"
+                            onClick={() => {
+                              const url = getGoogleReviewWhatsAppUrl(b);
+                              window.open(url, '_blank', 'noopener,noreferrer');
+                            }}
+                            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                              isTourEligibleForReview(b)
+                                ? 'bg-amber-400/25 text-amber-600 dark:text-amber-400 hover:bg-amber-400 hover:text-slate-950'
+                                : 'bg-slate-200/70 dark:bg-slate-800 text-slate-400 hover:text-amber-500'
+                            }`}
+                            title="⭐ 5-Yıldızlı Google Yorum İste (WhatsApp Review Booster)"
                           >
-                            <span className="text-sm">🪧</span>
+                            <Star className="w-3.5 h-3.5 fill-current" />
                           </button>
-                        )}
-                        <a
-                          href={`/foto/${b.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
-                          title="📸 Misafir Fotoğraf Kasası (/foto/[kod])"
-                        >
-                          <span className="text-sm">📸</span>
-                        </a>
-                        {onOpenTourMedia && (
                           <button
                             type="button"
-                            onClick={() => onOpenTourMedia(b)}
-                            className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-colors"
-                            title="📂 Fotoğraf Albüm Linki Ekle & WhatsApp Gönder"
+                            onClick={() => {
+                              const url = getCrossSellWhatsAppUrl(b);
+                              window.open(url, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="p-1.5 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors cursor-pointer"
+                            title="🎁 %10 İkinci Tur İndirimi & Çapraz Satış Teklifi Gönder (WhatsApp)"
                           >
-                            <span className="text-sm">📂</span>
+                            <Gift className="w-3.5 h-3.5" />
                           </button>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const url = getGoogleReviewWhatsAppUrl(b);
-                            window.open(url, '_blank', 'noopener,noreferrer');
-                          }}
-                          className={`p-2 rounded-xl transition-colors ${
-                            isTourEligibleForReview(b)
-                              ? 'bg-amber-400/20 text-amber-500 hover:bg-amber-400 hover:text-slate-950 dark:bg-amber-400/10 dark:text-amber-400 dark:hover:bg-amber-400 dark:hover:text-slate-950'
-                              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 hover:text-amber-500'
-                          }`}
-                          title="⭐ 5-Yıldızlı Google Yorum İste (WhatsApp Review Booster)"
-                        >
-                          <Star className="w-4 h-4 fill-current" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const url = getCrossSellWhatsAppUrl(b);
-                            window.open(url, '_blank', 'noopener,noreferrer');
-                          }}
-                          className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
-                          title="🎁 %10 İkinci Tur İndirimi & Çapraz Satış Teklifi Gönder (WhatsApp)"
-                        >
-                          <Gift className="w-4 h-4" />
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setWhatsAppModalBooking(b)}
-                          className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors"
-                          title="WhatsApp Şablonları & Otomatik Mesaj"
-                        >
-                          <MessageCircle className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => onOpenEdit(b)}
-                          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors"
-                          title="Düzenle"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        {canDelete && (
+                          {onOpenTourMedia && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenTourMedia(b)}
+                              className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
+                              title="📂 Fotoğraf Albüm Linki Ekle & WhatsApp Gönder"
+                            >
+                              <span className="text-xs leading-none">📂</span>
+                            </button>
+                          )}
+                          {onOpenQuotePdf && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenQuotePdf(b)}
+                              className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
+                              title="📄 Kurumsal Teklif / Voucher (PDF) Oluştur"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                           <button
-                            onClick={() => onDelete(b.id, b.customerName)}
-                            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors"
-                            title="Kalıcı Olarak Sil"
+                            type="button"
+                            onClick={() => onOpenEdit(b)}
+                            className="p-1.5 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors cursor-pointer"
+                            title="✏️ Rezervasyonu Düzenle"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
                           </button>
-                        )}
+                          {canDelete && (
+                            <button
+                              type="button"
+                              onClick={() => onDelete(b.id, b.customerName)}
+                              className="p-1.5 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
+                              title="🗑️ Kalıcı Olarak Sil"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </td>
                   </tr>
