@@ -1,0 +1,213 @@
+---
+export const prerender = false;
+
+import { initialBookings, type Booking } from '../../data/adminInitialData';
+import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../lib/server/supabaseAdmin';
+import { rowToBooking } from '../../lib/supabase';
+import { buildGuestItinerary } from '../../lib/guestItinerary';
+import siteSettings from '../../content/settings/site.json';
+
+const codeParam = (Astro.params.code || '').trim();
+const cleanCode = codeParam.toUpperCase();
+
+let booking: Booking | null = null;
+
+if (isSupabaseAdminConfigured()) {
+  const db = getSupabaseAdmin();
+  if (db && cleanCode) {
+    try {
+      const { data, error } = await db
+        .from('bookings')
+        .select('*')
+        .eq('ticket_code', cleanCode)
+        .maybeSingle();
+
+      if (!error && data) {
+        booking = rowToBooking(data);
+      }
+
+      if (!booking) {
+        const { data: byId } = await db
+          .from('bookings')
+          .select('*')
+          .eq('id', cleanCode)
+          .maybeSingle();
+        if (byId) {
+          booking = rowToBooking(byId);
+        }
+      }
+    } catch (err) {
+      console.warn('Gezi takvimi bulut sorgulama hatası:', err);
+    }
+  }
+}
+
+if (!booking && cleanCode) {
+  const found = initialBookings.find(
+    (b) => b.id.toUpperCase() === cleanCode || b.ticketCode?.toUpperCase() === cleanCode
+  );
+  if (found) {
+    booking = found;
+  }
+}
+
+const itinerary = booking ? buildGuestItinerary(booking) : null;
+const whatsappNumber = siteSettings.whatsappNumber || '905321112233';
+---
+
+<!DOCTYPE html>
+<html lang="tr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{booking ? `${booking.customerName} - Phuket Gezi Ajandası | Phuket Tatili` : 'Gezi Ajandası Bulunamadı'}</title>
+  <meta name="description" content="Phuket Tatili gün gün gezi takvimi, lobi alınış saatleri ve tur hazırlık listesi" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-brand-accent selection:text-slate-950">
+  <div class="max-w-2xl mx-auto px-4 py-8 space-y-6">
+    <!-- Brand Header -->
+    <header class="flex items-center justify-between border-b border-slate-800 pb-5">
+      <a href="/" class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-xl">
+          🌴
+        </div>
+        <div>
+          <span class="text-sm font-black tracking-wider uppercase text-white block">Phuket Tatili</span>
+          <span class="text-[10px] text-slate-400 block">Kişisel Tatil & Gezi Ajandası</span>
+        </div>
+      </a>
+
+      {booking && (
+        <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-900 border border-slate-800 text-slate-300">
+          {booking.ticketCode || booking.id}
+        </span>
+      )}
+    </header>
+
+    {!itinerary ? (
+      <div class="p-8 rounded-3xl bg-slate-900 border border-slate-800 text-center space-y-3">
+        <div class="text-4xl">🔍</div>
+        <h1 class="text-lg font-bold text-white">Gezi Ajandası Bulunamadı</h1>
+        <p class="text-xs text-slate-400 max-w-sm mx-auto">
+          Belirtilen rezervasyon koduna ait aktif tur programı bulunamadı. Lütfen rezervasyon kodunuzu kontrol ediniz veya destek hattımızla iletişime geçiniz.
+        </p>
+        <div class="pt-2">
+          <a
+            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Merhaba, gezi programıma ulaşamadım, yardımcı olabilir misiniz?')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg"
+          >
+            <span>💬 7/24 WhatsApp Destek</span>
+          </a>
+        </div>
+      </div>
+    ) : (
+      <main class="space-y-6">
+        <!-- Guest Welcome Card -->
+        <div class="p-6 rounded-3xl bg-gradient-to-br from-slate-900 to-slate-900/90 border border-slate-800 shadow-xl space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-400">
+              Phuket Tatil Programınız
+            </span>
+            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+              {itinerary.totalDays} Günlük Plan
+            </span>
+          </div>
+
+          <h1 class="text-xl sm:text-2xl font-black text-white">
+            Hoş Geldiniz, {itinerary.guestName}! 👋
+          </h1>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1 text-slate-300">
+            <div class="flex items-center gap-2">
+              <span class="text-slate-500">🏨 Otel:</span>
+              <strong class="text-white truncate">{itinerary.hotel} {itinerary.roomNumber ? `(Oda: ${itinerary.roomNumber})` : ''}</strong>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-slate-500">📞 WhatsApp:</span>
+              <strong class="text-white">{itinerary.phone}</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Days Timeline -->
+        <div class="space-y-4">
+          <h2 class="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center gap-2">
+            <span>🗓️</span>
+            <span>Gün Gün Tur ve Transfer Takviminiz</span>
+          </h2>
+
+          {itinerary.days.map((day) => (
+            <div class="p-5 rounded-3xl bg-slate-900/90 border border-slate-800/80 shadow-md space-y-4 relative overflow-hidden">
+              <div class="flex items-start justify-between gap-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-2xl bg-amber-500 text-slate-950 font-black text-sm flex items-center justify-center shrink-0 shadow-md">
+                    {day.dayIndex}
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="font-mono text-xs font-bold text-amber-400">{day.date}</span>
+                      <span class="text-xs text-slate-400">({day.dayNameTr})</span>
+                    </div>
+                    <h3 class="text-base font-bold text-white mt-0.5">{day.tourTitle}</h3>
+                  </div>
+                </div>
+
+                <div class="text-right shrink-0">
+                  <span class="text-[10px] uppercase font-bold text-slate-500 block">Lobi Alınış:</span>
+                  <span class="px-2.5 py-1 rounded-xl bg-slate-800 text-emerald-400 font-mono font-black text-xs inline-block mt-0.5 border border-slate-700">
+                    ⏰ {day.pickupTime}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Packing Checklist -->
+              <div class="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/60 space-y-2">
+                <span class="text-[10px] font-black uppercase tracking-wider text-amber-400 block">
+                  🎒 Bu Tur İçin Yanınıza Almanız Gerekenler:
+                </span>
+                <ul class="space-y-1.5 text-xs text-slate-300">
+                  {day.whatToBring.map((item) => (
+                    <li class="flex items-start gap-2">
+                      <span class="text-emerald-400 font-bold shrink-0">✓</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <!-- Important Notes -->
+              {day.importantNotes && day.importantNotes.length > 0 && (
+                <div class="text-[11px] text-slate-400 bg-slate-800/40 p-2.5 rounded-xl border border-slate-800 space-y-1">
+                  <span class="font-bold text-slate-300 block">💡 Bilgilendirme:</span>
+                  {day.importantNotes.map((note) => (
+                    <p class="leading-relaxed">• {note}</p>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <!-- 24/7 Operations Concierge Card -->
+        <div class="p-5 rounded-3xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="space-y-0.5 text-center sm:text-left">
+            <h4 class="text-sm font-bold text-white">Tatil Boyunca 7/24 Yanınızdayız</h4>
+            <p class="text-xs text-slate-400">Otel lobisi alınış saatleri veya acil durumlar için bize dilediğiniz zaman ulaşabilirsiniz.</p>
+          </div>
+          <a
+            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Merhaba, ${itinerary.guestName} (${itinerary.bookingId}) tatil programım hakkında bir sorum olacaktı.`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition-all shadow-lg shrink-0 flex items-center gap-2"
+          >
+            <span>💬 WhatsApp Canlı Asistan</span>
+          </a>
+        </div>
+      </main>
+    )}
+  </div>
+</body>
+</html>

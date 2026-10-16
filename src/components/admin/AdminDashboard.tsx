@@ -38,6 +38,8 @@ import {
   Package,
   ShieldAlert,
   Coins,
+  Plane,
+  Fuel,
 } from 'lucide-react';
 import {
   initialBookings,
@@ -101,6 +103,8 @@ import QrScannerModal from '../shared/QrScannerModal';
 import LostFoundModal from './LostFoundModal';
 import DietaryManifestModal from './DietaryManifestModal';
 import FieldCashierModal from './FieldCashierModal';
+import FlightRadarModal from './FlightRadarModal';
+import DriverExpenseModal from './DriverExpenseModal';
 import {
   loadCmsCollections,
   saveCmsCollection,
@@ -546,6 +550,14 @@ export default function AdminDashboard({
   const [isFieldCashierOpen, setIsFieldCashierOpen] = useState<boolean>(false);
   const [cashierBooking, setCashierBooking] = useState<Booking | null>(null);
 
+  // Havalimanı Canlı Uçuş Radarı Modalı
+  const [isFlightRadarOpen, setIsFlightRadarOpen] = useState<boolean>(false);
+  const [flightRadarFlight, setFlightRadarFlight] = useState<string>('TK 172');
+  const [flightRadarGuest, setFlightRadarGuest] = useState<string>('');
+
+  // Şoför Saha Yakıt, Otopark & Harç Masraf Masası Modalı
+  const [isDriverExpenseOpen, setIsDriverExpenseOpen] = useState<boolean>(false);
+
   const handleBulkReschedule = async (
     bookingIds: string[],
     newDate: string,
@@ -855,6 +867,8 @@ export default function AdminDashboard({
     isLostFoundOpen ||
     isDietaryManifestOpen ||
     isFieldCashierOpen ||
+    isFlightRadarOpen ||
+    isDriverExpenseOpen ||
     isTourModalOpen ||
     isAddMediaModalOpen ||
     Boolean(assignMediaModal) ||
@@ -2275,6 +2289,30 @@ export default function AdminDashboard({
             </button>
 
             <button
+              type="button"
+              onClick={() => {
+                setFlightRadarFlight('TK 172');
+                setFlightRadarGuest('');
+                setIsFlightRadarOpen(true);
+              }}
+              className="hidden xl:flex px-3 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-500/30 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer"
+              title="Phuket Havalimanı Canlı Uçuş Radarı & Rötar Kalkanı"
+            >
+              <Plane className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+              <span>Uçuş Radarı</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setIsDriverExpenseOpen(true)}
+              className="hidden xl:flex px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-xs font-bold transition-all items-center gap-1.5 cursor-pointer"
+              title="Şoför Saha Yakıt, Otopark & Harç Masraf Masası"
+            >
+              <Fuel className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Şoför Masrafı</span>
+            </button>
+
+            <button
               onClick={handleOpenCreateBooking}
               className="px-3.5 py-1.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs sm:text-sm font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
             >
@@ -2345,6 +2383,11 @@ export default function AdminDashboard({
               setCashierBooking(b || null);
               setIsFieldCashierOpen(true);
             }}
+            onOpenFlightRadar={(flight, guest) => {
+              setFlightRadarFlight(flight || 'TK 172');
+              setFlightRadarGuest(guest || '');
+              setIsFlightRadarOpen(true);
+            }}
           />
         )}
 
@@ -2393,6 +2436,12 @@ export default function AdminDashboard({
               setCashierBooking(null);
               setIsFieldCashierOpen(true);
             }}
+            onOpenFlightRadar={() => {
+              setFlightRadarFlight('TK 172');
+              setFlightRadarGuest('');
+              setIsFlightRadarOpen(true);
+            }}
+            onOpenDriverExpense={() => setIsDriverExpenseOpen(true)}
           />
         )}
 
@@ -4385,6 +4434,33 @@ export default function AdminDashboard({
               note: payment.note,
             });
           }}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 19: HAVALİMANI CANLI UÇUŞ RADARI (FLIGHT SENTINEL) */}
+      {/* ==================================================== */}
+      {isFlightRadarOpen && (
+        <FlightRadarModal
+          isOpen={isFlightRadarOpen}
+          onClose={() => setIsFlightRadarOpen(false)}
+          bookings={bookings}
+          initialFlight={flightRadarFlight}
+          initialGuestName={flightRadarGuest}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 20: ŞOFÖR SAHA YAKIT & HARÇ MASRAF MASASI */}
+      {/* ==================================================== */}
+      {isDriverExpenseOpen && (
+        <DriverExpenseModal
+          isOpen={isDriverExpenseOpen}
+          onClose={() => setIsDriverExpenseOpen(false)}
+          drivers={drivers}
+          vehicles={vehicles}
+          showToast={showToast}
         />
       )}
 

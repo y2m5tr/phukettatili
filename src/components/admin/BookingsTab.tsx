@@ -4,7 +4,7 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 import { getCrossSellWhatsAppUrl } from '../../lib/crossSell';
@@ -30,6 +30,7 @@ interface BookingsTabProps {
   onOpenQuotePdf?: (b: Booking) => void;
   onOpenDietaryManifest?: () => void;
   onOpenFieldCashier?: (b?: Booking) => void;
+  onOpenFlightRadar?: (flight?: string, guestName?: string) => void;
 }
 
 export default function BookingsTab({
@@ -51,6 +52,7 @@ export default function BookingsTab({
   onOpenQuotePdf,
   onOpenDietaryManifest,
   onOpenFieldCashier,
+  onOpenFlightRadar,
 }: BookingsTabProps) {
   return (
     <div className="space-y-6">
@@ -333,6 +335,34 @@ export default function BookingsTab({
                         >
                           <ExternalLink className="w-4 h-4" />
                         </a>
+                        <a
+                          href={`/gezi/${b.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 hover:bg-teal-600 hover:text-white transition-colors"
+                          title="Misafir Gün Gün Dijital Tatil Ajandası (/gezi/[id])"
+                        >
+                          <Compass className="w-4 h-4" />
+                        </a>
+                        <a
+                          href={`/sigorta/${b.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-colors"
+                          title="TAT Tur Sigortası & Sağlık Beyanı Formu (/sigorta/[id])"
+                        >
+                          <ShieldCheck className="w-4 h-4" />
+                        </a>
+                        {onOpenFlightRadar && (
+                          <button
+                            type="button"
+                            onClick={() => onOpenFlightRadar(undefined, b.customerName)}
+                            className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-colors cursor-pointer"
+                            title="Havalimanı Uçuş Radarı & Karşılama"
+                          >
+                            <Plane className="w-4 h-4" />
+                          </button>
+                        )}
                         <button
                           onClick={() => setVoucherBooking(b)}
                           className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/40 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"

@@ -22,6 +22,8 @@ import {
   Package,
   ShieldAlert,
   Coins,
+  Plane,
+  Fuel,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
@@ -55,6 +57,8 @@ interface TransfersTabProps {
   onOpenLostFound?: () => void;
   onOpenDietaryManifest?: () => void;
   onOpenFieldCashier?: () => void;
+  onOpenFlightRadar?: () => void;
+  onOpenDriverExpense?: () => void;
 }
 
 export default function TransfersTab({
@@ -73,6 +77,9 @@ export default function TransfersTab({
   onOpenQrScanner,
   onOpenLostFound,
   onOpenDietaryManifest,
+  onOpenFieldCashier,
+  onOpenFlightRadar,
+  onOpenDriverExpense,
 }: TransfersTabProps) {
   // Günlük alınışlar — mantık src/lib/adminFilters.ts'te (testli tek kaynak).
   const dailyPickups: PickupItem[] = buildDailyPickups(bookings, manifestDate);
@@ -398,6 +405,30 @@ export default function TransfersTab({
             >
               <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               <span>💱 Saha Döviz Kasa</span>
+            </button>
+          )}
+
+          {onOpenFlightRadar && (
+            <button
+              type="button"
+              onClick={onOpenFlightRadar}
+              className="px-4 py-2 rounded-xl bg-sky-500/10 hover:bg-sky-500/20 text-sky-800 dark:text-sky-300 border border-sky-500/30 text-xs sm:text-sm font-bold shadow-md shadow-sky-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Phuket Havalimanı Canlı Uçuş Radarı & Rötar Kalkanı"
+            >
+              <Plane className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+              <span>✈️ Uçuş Radarı</span>
+            </button>
+          )}
+
+          {onOpenDriverExpense && (
+            <button
+              type="button"
+              onClick={onOpenDriverExpense}
+              className="px-4 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs sm:text-sm font-bold shadow-md shadow-amber-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Şoför Yakıt, Otopark & Harç Masraf Masası"
+            >
+              <Fuel className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              <span>⛽ Şoför Masrafı</span>
             </button>
           )}
         </div>
