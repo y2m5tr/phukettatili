@@ -5,7 +5,12 @@
  * API çağrısı ve toast akışı orada). Buraya yalnızca JSX + props geçer.
  */
 import { PlusCircle, Check } from 'lucide-react';
-import { type TourItem, HOTEL_ZONES, detectHotelZone } from '../../data/adminInitialData';
+import {
+  type TourItem,
+  HOTEL_ZONES,
+  detectHotelZone,
+  getRecommendedPickupTime,
+} from '../../data/adminInitialData';
 
 interface NewBookingTabProps {
   newCustName: string;
@@ -201,15 +206,49 @@ export default function NewBookingTab({
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1">
-              Alınış Saati
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-xs font-semibold text-slate-300 flex items-center gap-1">
+                <span>⏰</span> Alınış Saati
+              </label>
+              {(() => {
+                const activeZone =
+                  newCustZone || (newCustHotel ? detectHotelZone(newCustHotel) : 'Patong & Kalim');
+                const rec = getRecommendedPickupTime(activeZone);
+                return (
+                  <button
+                    type="button"
+                    onClick={() => setNewPickupTime(rec)}
+                    className="text-[10px] text-amber-400 font-bold hover:underline cursor-pointer"
+                    title="Önerilen saati doldur"
+                  >
+                    ⚡ Önerilen: {rec}
+                  </button>
+                );
+              })()}
+            </div>
             <input
-              type="time"
+              type="text"
+              placeholder="Örn: 07:30"
               value={newPickupTime}
               onChange={(e) => setNewPickupTime(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white focus:outline-none focus:border-amber-400"
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-white focus:outline-none focus:border-amber-400"
             />
+            <div className="flex items-center gap-1 mt-1.5 flex-wrap">
+              {['06:45', '07:00', '07:15', '07:30', '07:45', '08:00', '08:30'].map((time) => (
+                <button
+                  key={time}
+                  type="button"
+                  onClick={() => setNewPickupTime(time)}
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer ${
+                    newPickupTime === time
+                      ? 'bg-amber-400 text-slate-950 font-bold'
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  {time}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

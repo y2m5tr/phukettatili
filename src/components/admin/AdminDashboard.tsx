@@ -1536,7 +1536,10 @@ export default function AdminDashboard({
         ? `${schedule[0].tourTitle} + ${schedule.length - 1} Tur`
         : schedule[0].tourTitle;
     const primaryTourDate = schedule[0].tourDate;
-    const primaryPickupTime = schedule[0].pickupTime || '07:30';
+    const primaryPickupTime = formData.pickupTime || schedule[0].pickupTime || '07:30';
+    if (schedule[0]) {
+      schedule[0].pickupTime = primaryPickupTime;
+    }
 
     const resolvedZone =
       formData.hotelZone ||

@@ -73,6 +73,7 @@ export default function AgentPortalApp({
     'office_cash_on_pickup'
   );
   const [specialNotes, setSpecialNotes] = useState<string>('');
+  const [customPickupTime, setCustomPickupTime] = useState<string>('');
 
   // UI / Status State
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
@@ -170,7 +171,7 @@ export default function AgentPortalApp({
           tourId: selectedTour.id,
           tourTitle: selectedTour.title,
           tourDate,
-          pickupTime: recommendedPickup,
+          pickupTime: customPickupTime.trim() || recommendedPickup,
           adultCount,
           childCount,
           pricePerAdultThb: pricePerAdult,
@@ -194,6 +195,7 @@ export default function AgentPortalApp({
       setHotel('');
       setRoomNumber('');
       setSpecialNotes('');
+      setCustomPickupTime('');
     } catch (err: any) {
       setErrorMsg(err.message || 'Bağlantı hatası oluştu. Lütfen tekrar deneyiniz.');
     } finally {
@@ -625,13 +627,46 @@ export default function AgentPortalApp({
                     </div>
                   </div>
 
-                  {/* Önerilen Alınış Saati Bilgisi */}
-                  <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs text-slate-400 flex items-center justify-between">
-                    <span className="flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 text-amber-400" />
-                      <span>{hotelZone} için planlanan tahmini lobi alınış saati:</span>
-                    </span>
-                    <strong className="text-white font-mono text-sm">{recommendedPickup}</strong>
+                  {/* Otelden Alınış Saati (Manuel Giriş & Hızlı Butonlar) */}
+                  <div className="p-3.5 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <label className="text-[11px] font-bold uppercase text-slate-300 flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-amber-400" />
+                        <span>⏰ Otelden Alış Saati</span>
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setCustomPickupTime(recommendedPickup)}
+                        className="text-[10px] text-amber-400 font-bold hover:underline cursor-pointer"
+                        title="Bölge için standart önerilen saati uygula"
+                      >
+                        ⚡ Önerilen: {recommendedPickup}
+                      </button>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder={`Örn: ${recommendedPickup}`}
+                      value={customPickupTime !== '' ? customPickupTime : recommendedPickup}
+                      onChange={(e) => setCustomPickupTime(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white focus:outline-none focus:border-brand-accent"
+                    />
+                    <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                      <span className="text-[10px] text-slate-500">Hızlı:</span>
+                      {['06:45', '07:00', '07:15', '07:30', '07:45', '08:00', '08:30'].map((time) => (
+                        <button
+                          key={time}
+                          type="button"
+                          onClick={() => setCustomPickupTime(time)}
+                          className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer ${
+                            (customPickupTime !== '' ? customPickupTime : recommendedPickup) === time
+                              ? 'bg-amber-400 text-slate-950 font-bold'
+                              : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div>

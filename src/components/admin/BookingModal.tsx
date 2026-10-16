@@ -90,91 +90,185 @@ export default function BookingModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-4">
-            <div className="sm:col-span-5">
-              <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                🏨 Otel Adı *
-              </label>
-              <input
-                type="text"
-                required
-                placeholder="Örn: Millennium Resort Patong"
-                value={formData.hotel || ''}
-                onChange={(e) => {
-                  const val = e.target.value;
-                  const detected = detectHotelZone(val);
-                  const recTime = getRecommendedPickupTime(detected);
-                  setFormData((prev) => {
-                    const updatedTours = (prev.tours || []).map((t, idx) =>
-                      idx === 0 && (!t.pickupTime || t.pickupTime === '07:30')
-                        ? { ...t, pickupTime: recTime }
-                        : t
-                    );
-                    return {
-                      ...prev,
-                      hotel: val,
-                      hotelZone:
+          {/* Otel, Bölge, Alış Saati ve Oda No */}
+          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3.5">
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5">
+              {/* 🏨 Otel Adı */}
+              <div className="sm:col-span-8">
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                  🏨 Otel Adı *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Örn: Millennium Resort Patong"
+                  value={formData.hotel || ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    const detected = detectHotelZone(val);
+                    setFormData((prev) => {
+                      const currentZone = prev.hotelZone || 'Patong & Kalim';
+                      const shouldAutoZone =
                         !prev.hotelZone ||
                         prev.hotelZone === 'Patong & Kalim' ||
-                        prev.hotelZone === 'Genel Phuket'
-                          ? detected
-                          : prev.hotelZone,
-                      pickupTime:
-                        !prev.pickupTime || prev.pickupTime === '07:30' ? recTime : prev.pickupTime,
-                      tours: updatedTours.length > 0 ? updatedTours : prev.tours,
-                    };
-                  });
-                }}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40"
-              />
+                        prev.hotelZone === 'Genel Phuket';
+                      const nextZone = shouldAutoZone && detected ? detected : currentZone;
+                      const recTime = getRecommendedPickupTime(nextZone);
+                      // Sadece henüz saat girilmediyse önerileni başlangıç değeri yap
+                      const shouldFillRecTime = !prev.pickupTime;
+                      const nextTime = shouldFillRecTime ? recTime : prev.pickupTime;
+                      const updatedTours = (prev.tours || []).map((t, idx) =>
+                        idx === 0 && shouldFillRecTime ? { ...t, pickupTime: nextTime } : t
+                      );
+                      return {
+                        ...prev,
+                        hotel: val,
+                        hotelZone: nextZone,
+                        pickupTime: nextTime,
+                        tours: updatedTours.length > 0 ? updatedTours : prev.tours,
+                      };
+                    });
+                  }}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white"
+                />
+              </div>
+
+              {/* 🚪 Oda Numarası */}
+              <div className="sm:col-span-4">
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                  🚪 Oda Numarası
+                </label>
+                <input
+                  type="text"
+                  placeholder="Örn: 402"
+                  value={formData.roomNumber || ''}
+                  onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white"
+                />
+              </div>
             </div>
-            <div className="sm:col-span-4">
-              <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                📍 Bölge / Hat *
-              </label>
-              <select
-                value={
-                  formData.hotelZone ||
-                  (formData.hotel ? detectHotelZone(formData.hotel) : 'Patong & Kalim')
-                }
-                onChange={(e) => {
-                  const zone = e.target.value;
-                  const recTime = getRecommendedPickupTime(zone);
-                  setFormData((prev) => {
-                    const updatedTours = (prev.tours || []).map((t, idx) =>
-                      idx === 0 && (!t.pickupTime || t.pickupTime === '07:30')
-                        ? { ...t, pickupTime: recTime }
-                        : t
+
+            {/* 📍 Bölge / Hat & ⏰ Alış Saati (Manuel Değiştirilebilir) */}
+            <div className="grid grid-cols-1 sm:grid-cols-12 gap-3.5 pt-0.5">
+              {/* Bölge Seçimi */}
+              <div className="sm:col-span-6">
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                  📍 Bölge / Hat *
+                </label>
+                <select
+                  value={
+                    formData.hotelZone ||
+                    (formData.hotel ? detectHotelZone(formData.hotel) : 'Patong & Kalim')
+                  }
+                  onChange={(e) => {
+                    const zone = e.target.value;
+                    const recTime = getRecommendedPickupTime(zone);
+                    setFormData((prev) => {
+                      const shouldUpdatePickup = !prev.pickupTime;
+                      const updatedPickup = shouldUpdatePickup ? recTime : prev.pickupTime;
+                      const updatedTours = (prev.tours || []).map((t, idx) =>
+                        idx === 0 && shouldUpdatePickup ? { ...t, pickupTime: updatedPickup } : t
+                      );
+                      return {
+                        ...prev,
+                        hotelZone: zone,
+                        pickupTime: updatedPickup,
+                        tours: updatedTours.length > 0 ? updatedTours : prev.tours,
+                      };
+                    });
+                  }}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white font-medium"
+                >
+                  {HOTEL_ZONES.map((zone) => (
+                    <option key={zone} value={zone}>
+                      {zone} (Standart: {getRecommendedPickupTime(zone)})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* ⏰ Otelden Lobi Alış Saati (Manuel Giriş) */}
+              <div className="sm:col-span-6">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                    <span>⏰</span> Otelden Alış Saati *
+                  </label>
+                  {(() => {
+                    const activeZone =
+                      formData.hotelZone ||
+                      (formData.hotel ? detectHotelZone(formData.hotel) : 'Patong & Kalim');
+                    const rec = getRecommendedPickupTime(activeZone);
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updatedTours = (formData.tours || []).map((t, idx) =>
+                            idx === 0 ? { ...t, pickupTime: rec } : t
+                          );
+                          setFormData({
+                            ...formData,
+                            pickupTime: rec,
+                            tours: updatedTours.length > 0 ? updatedTours : formData.tours,
+                          });
+                        }}
+                        className="text-[10px] text-amber-600 dark:text-amber-400 font-bold hover:underline cursor-pointer"
+                        title="Bu bölgenin standart önerilen saatini doldur"
+                      >
+                        ⚡ Önerilen: {rec}
+                      </button>
                     );
-                    return {
-                      ...prev,
-                      hotelZone: zone,
-                      pickupTime:
-                        !prev.pickupTime || prev.pickupTime === '07:30' ? recTime : prev.pickupTime,
-                      tours: updatedTours.length > 0 ? updatedTours : prev.tours,
-                    };
-                  });
-                }}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40 text-slate-900 dark:text-white"
-              >
-                {HOTEL_ZONES.map((zone) => (
-                  <option key={zone} value={zone}>
-                    {zone} (Alış: {getRecommendedPickupTime(zone)})
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="sm:col-span-3">
-              <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                🚪 Oda Numarası
-              </label>
-              <input
-                type="text"
-                placeholder="Örn: 402"
-                value={formData.roomNumber || ''}
-                onChange={(e) => setFormData({ ...formData, roomNumber: e.target.value })}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/40"
-              />
+                  })()}
+                </div>
+
+                <div>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Örn: 07:15 veya 08:30"
+                    value={formData.pickupTime || ''}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      const updatedTours = (formData.tours || []).map((t, idx) =>
+                        idx === 0 ? { ...t, pickupTime: val } : t
+                      );
+                      setFormData({
+                        ...formData,
+                        pickupTime: val,
+                        tours: updatedTours.length > 0 ? updatedTours : formData.tours,
+                      });
+                    }}
+                    className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border-2 border-amber-500/40 focus:border-amber-500 dark:border-amber-500/50 text-sm font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500/30"
+                  />
+                </div>
+
+                {/* Hızlı Seçim Saat Rozetleri */}
+                <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                  <span className="text-[10px] text-slate-400 font-semibold">Hızlı:</span>
+                  {['06:45', '07:00', '07:15', '07:30', '07:45', '08:00', '08:30'].map((time) => (
+                    <button
+                      key={time}
+                      type="button"
+                      onClick={() => {
+                        const updatedTours = (formData.tours || []).map((t, idx) =>
+                          idx === 0 ? { ...t, pickupTime: time } : t
+                        );
+                        setFormData({
+                          ...formData,
+                          pickupTime: time,
+                          tours: updatedTours.length > 0 ? updatedTours : formData.tours,
+                        });
+                      }}
+                      className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-semibold transition-all cursor-pointer ${
+                        formData.pickupTime === time
+                          ? 'bg-amber-500 text-slate-950 font-bold shadow-xs'
+                          : 'bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-amber-100 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -337,12 +431,17 @@ export default function BookingModal({
                       <input
                         type="text"
                         placeholder="07:30"
-                        value={tourSchedule.pickupTime || ''}
+                        value={tourSchedule.pickupTime || (idx === 0 ? formData.pickupTime || '' : '')}
                         onChange={(e) => {
+                          const val = e.target.value;
                           const updated = (formData.tours || []).map((item, i) =>
-                            i === idx ? { ...item, pickupTime: e.target.value } : item
+                            i === idx ? { ...item, pickupTime: val } : item
                           );
-                          setFormData({ ...formData, tours: updated });
+                          setFormData({
+                            ...formData,
+                            pickupTime: idx === 0 ? val : formData.pickupTime,
+                            tours: updated,
+                          });
                         }}
                         className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
                       />
