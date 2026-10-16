@@ -44,6 +44,7 @@ export interface AdminStoreState {
   isPoliceManifestOpen: boolean;
   isBulkRescheduleOpen: boolean;
   isDriverExpenseOpen: boolean;
+  isGuideExpenseOpen: boolean;
   isLuggageExpressOpen: boolean;
 
   // Modals with Data Payloads
@@ -88,6 +89,7 @@ export interface AdminStoreState {
   setIsPoliceManifestOpen: (v: boolean) => void;
   setIsBulkRescheduleOpen: (v: boolean) => void;
   setIsDriverExpenseOpen: (v: boolean) => void;
+  setIsGuideExpenseOpen: (v: boolean) => void;
   setIsLuggageExpressOpen: (v: boolean) => void;
 
   setVoucherBooking: (b: Booking | null) => void;
@@ -128,6 +130,7 @@ export const useAdminStore = create<AdminStoreState>((set) => ({
   isPoliceManifestOpen: false,
   isBulkRescheduleOpen: false,
   isDriverExpenseOpen: false,
+  isGuideExpenseOpen: false,
   isLuggageExpressOpen: false,
 
   voucherBooking: null,
@@ -226,6 +229,7 @@ export const useAdminStore = create<AdminStoreState>((set) => ({
   setIsPoliceManifestOpen: (isPoliceManifestOpen) => set({ isPoliceManifestOpen }),
   setIsBulkRescheduleOpen: (isBulkRescheduleOpen) => set({ isBulkRescheduleOpen }),
   setIsDriverExpenseOpen: (isDriverExpenseOpen) => set({ isDriverExpenseOpen }),
+  setIsGuideExpenseOpen: (isGuideExpenseOpen) => set({ isGuideExpenseOpen }),
   setIsLuggageExpressOpen: (isLuggageExpressOpen) => set({ isLuggageExpressOpen }),
 
   setVoucherBooking: (voucherBooking) => set({ voucherBooking }),
