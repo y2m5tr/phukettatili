@@ -79,31 +79,36 @@ export interface PickupItem {
  * tek turlu kayıtlar tek satırdır. İptal edilmiş kayıtlar hiç girmez.
  * Sonuç pickupTime'a göre kronolojik sıralanır.
  */
-export function buildDailyPickups(bookings: Booking[], manifestDate: string): PickupItem[] {
+export function buildDailyPickups(
+  bookings: Booking[] = [],
+  manifestDate: string = ''
+): PickupItem[] {
   const dailyPickups: PickupItem[] = [];
-  bookings.forEach((b) => {
-    if (b.status === 'cancelled') return;
+  if (!Array.isArray(bookings)) return dailyPickups;
 
-    if (b.tours && b.tours.length > 0) {
+  bookings.forEach((b) => {
+    if (!b || b.status === 'cancelled') return;
+
+    if (b.tours && Array.isArray(b.tours) && b.tours.length > 0) {
       b.tours.forEach((t, tIdx) => {
-        if (t.tourDate === manifestDate) {
+        if (t && t.tourDate === manifestDate) {
           dailyPickups.push({
-            bookingId: b.id,
-            customerName: b.customerName,
-            phone: b.phone,
-            hotel: b.hotel,
+            bookingId: b.id || '',
+            customerName: b.customerName || '',
+            phone: b.phone || '',
+            hotel: b.hotel || '',
             roomNumber: b.roomNumber,
-            tourTitle: t.tourTitle,
-            pickupTime: t.pickupTime || '07:30',
-            adultCount: b.adultCount,
-            childCount: b.childCount,
-            remainingAmountThb: b.remainingAmountThb,
+            tourTitle: t.tourTitle || b.tourTitle || '',
+            pickupTime: t.pickupTime || b.pickupTime || '07:30',
+            adultCount: Number(b.adultCount) || 1,
+            childCount: Number(b.childCount) || 0,
+            remainingAmountThb: Number(b.remainingAmountThb) || 0,
             specialNotes: b.specialNotes,
             supplier: t.supplier || b.supplier,
-            status: b.status,
+            status: b.status || 'confirmed',
             assignedVehicle: t.assignedVehicle || b.assignedVehicle || 'Atanmadı',
             assignedDriver: t.assignedDriver || b.assignedDriver,
-            hotelZone: b.hotelZone || t.hotelZone || detectHotelZone(b.hotel),
+            hotelZone: b.hotelZone || t.hotelZone || detectHotelZone(b.hotel || ''),
             tourIndex: tIdx,
             pickupStatus: t.pickupStatus || b.pickupStatus || 'pending',
             pickedUpAt: t.pickedUpAt || b.pickedUpAt,
@@ -113,22 +118,22 @@ export function buildDailyPickups(bookings: Booking[], manifestDate: string): Pi
       });
     } else if (b.tourDate === manifestDate) {
       dailyPickups.push({
-        bookingId: b.id,
-        customerName: b.customerName,
-        phone: b.phone,
-        hotel: b.hotel,
+        bookingId: b.id || '',
+        customerName: b.customerName || '',
+        phone: b.phone || '',
+        hotel: b.hotel || '',
         roomNumber: b.roomNumber,
-        tourTitle: b.tourTitle,
+        tourTitle: b.tourTitle || '',
         pickupTime: b.pickupTime || '07:30',
-        adultCount: b.adultCount,
-        childCount: b.childCount,
-        remainingAmountThb: b.remainingAmountThb,
+        adultCount: Number(b.adultCount) || 1,
+        childCount: Number(b.childCount) || 0,
+        remainingAmountThb: Number(b.remainingAmountThb) || 0,
         specialNotes: b.specialNotes,
         supplier: b.supplier,
-        status: b.status,
+        status: b.status || 'confirmed',
         assignedVehicle: b.assignedVehicle || 'Atanmadı',
         assignedDriver: b.assignedDriver,
-        hotelZone: b.hotelZone || detectHotelZone(b.hotel),
+        hotelZone: b.hotelZone || detectHotelZone(b.hotel || ''),
         tourIndex: -1,
         pickupStatus: b.pickupStatus || 'pending',
         pickedUpAt: b.pickedUpAt,
@@ -137,6 +142,6 @@ export function buildDailyPickups(bookings: Booking[], manifestDate: string): Pi
     }
   });
 
-  dailyPickups.sort((a, b) => a.pickupTime.localeCompare(b.pickupTime));
+  dailyPickups.sort((a, b) => (a.pickupTime || '07:30').localeCompare(b.pickupTime || '07:30'));
   return dailyPickups;
 }

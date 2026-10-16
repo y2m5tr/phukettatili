@@ -105,6 +105,7 @@ import DietaryManifestModal from './DietaryManifestModal';
 import FieldCashierModal from './FieldCashierModal';
 import FlightRadarModal from './FlightRadarModal';
 import DriverExpenseModal from './DriverExpenseModal';
+import AdminErrorBoundary from './AdminErrorBoundary';
 import {
   loadCmsCollections,
   saveCmsCollection,
@@ -2334,6 +2335,10 @@ export default function AdminDashboard({
 
         {/* Main Content */}
         <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+          <AdminErrorBoundary
+            tabName={activeNavItem?.label}
+            onResetToOverview={() => setActiveTab('overview')}
+          >
         
         {/* ==================================================== */}
         {/* TAB 1: OVERVIEW */}
@@ -2417,11 +2422,11 @@ export default function AdminDashboard({
         {/* ==================================================== */}
         {activeTab === 'transfers' && (
           <TransfersTab
-            bookings={bookings}
-            manifestDate={manifestDate}
+            bookings={bookings || []}
+            manifestDate={manifestDate || new Date().toISOString().split('T')[0]}
             setManifestDate={setManifestDate}
-            vehicles={vehicles}
-            drivers={drivers}
+            vehicles={vehicles || []}
+            drivers={drivers || []}
             showToast={showToast}
             handleAssignVehicleToBooking={handleAssignVehicleToBooking}
             handleAssignDriverToBooking={handleAssignDriverToBooking}
@@ -2621,8 +2626,8 @@ export default function AdminDashboard({
         {activeTab === 'users' && viewerRole === 'owner' && (
           <UsersTab showToast={showToast} />
         )}
-
-      </main>
+          </AdminErrorBoundary>
+        </main>
       </div>
 
       {/* ==================================================== */}

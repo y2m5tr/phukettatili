@@ -36,11 +36,11 @@ import {
 } from '../../lib/marineWeather';
 
 interface TransfersTabProps {
-  bookings: Booking[];
-  manifestDate: string;
+  bookings?: Booking[];
+  manifestDate?: string;
   setManifestDate: (d: string) => void;
-  vehicles: VehicleItem[];
-  drivers: DriverItem[];
+  vehicles?: VehicleItem[];
+  drivers?: DriverItem[];
   /** Toast gösterici — AdminDashboard ile aynı davranış. */
   showToast: (msg: string) => void;
   handleAssignVehicleToBooking: (bookingId: string, tourIndex: number, vehicle: string) => void;
@@ -62,11 +62,11 @@ interface TransfersTabProps {
 }
 
 export default function TransfersTab({
-  bookings,
-  manifestDate,
+  bookings = [],
+  manifestDate = new Date().toISOString().split('T')[0],
   setManifestDate,
-  vehicles,
-  drivers,
+  vehicles = [],
+  drivers = [],
   showToast,
   handleAssignVehicleToBooking,
   handleAssignDriverToBooking,
@@ -81,11 +81,15 @@ export default function TransfersTab({
   onOpenFlightRadar,
   onOpenDriverExpense,
 }: TransfersTabProps) {
+  const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
+  const safeDrivers = Array.isArray(drivers) ? drivers : [];
+  const safeDate = manifestDate || new Date().toISOString().split('T')[0];
+
   // Günlük alınışlar — mantık src/lib/adminFilters.ts'te (testli tek kaynak).
-  const dailyPickups: PickupItem[] = buildDailyPickups(bookings, manifestDate);
+  const dailyPickups: PickupItem[] = buildDailyPickups(bookings, safeDate);
 
   const totalDailyPassengers = dailyPickups.reduce(
-    (acc, p) => acc + p.adultCount + p.childCount,
+    (acc, p) => acc + (p.adultCount || 0) + (p.childCount || 0),
     0
   );
 
@@ -163,9 +167,9 @@ export default function TransfersTab({
       const uniqueHotels = Array.from(new Set(sortedStops.map((s) => s.hotel)));
       const pier = detectDeparturePier(sortedStops[0]?.tourTitle || '');
       const mapsUrl = generateMultiStopMapUrl(uniqueHotels, pier);
-      const totalGuests = sortedStops.reduce((sum, s) => sum + s.adultCount + s.childCount, 0);
+      const totalGuests = sortedStops.reduce((sum, s) => sum + (s.adultCount || 0) + (s.childCount || 0), 0);
       const driverId = sortedStops.find((s) => s.assignedDriver)?.assignedDriver;
-      const driver = drivers.find((d) => d.id === driverId);
+      const driver = safeDrivers.find((d) => d && d.id === driverId);
 
       return {
         vehicle,
@@ -177,14 +181,17 @@ export default function TransfersTab({
         totalGuests,
       };
     });
-  }, [dailyPickups, drivers]);
+  }, [dailyPickups, safeDrivers]);
 
   const handleCopyRouteForDriver = (route: (typeof vehicleRoutes)[0]) => {
-    const dateStr = new Date(manifestDate).toLocaleDateString('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
+    const dateStr = (() => {
+      try {
+        const d = new Date(safeDate);
+        return isNaN(d.getTime()) ? safeDate : d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+      } catch {
+        return safeDate;
+      }
+    })();
 
     const lines = [
       `🚐 *TRANSFER GÖREV EMRİ & ROTA PLANI*`,
@@ -199,10 +206,11 @@ export default function TransfersTab({
       `───────────────────────────────`,
       `📍 *DURAK SIRALAMASI:*`,
       ...route.stops.map((s, idx) => {
-        const pax = `${s.adultCount} Yetişkin${s.childCount > 0 ? ` + ${s.childCount} Çocuk` : ''}`;
-        const cash = s.remainingAmountThb > 0 ? ` ⚠️ ALINACAK NAKİT: *${s.remainingAmountThb.toLocaleString()} THB*` : ' ✓ Ödendi';
+        const pax = `${s.adultCount || 1} Yetişkin${(s.childCount || 0) > 0 ? ` + ${s.childCount} Çocuk` : ''}`;
+        const remaining = Number(s.remainingAmountThb) || 0;
+        const cash = remaining > 0 ? ` ⚠️ ALINACAK NAKİT: *${remaining.toLocaleString()} THB*` : ' ✓ Ödendi';
         const room = s.roomNumber ? ` (Oda: ${s.roomNumber})` : '';
-        return `${idx + 1}. [${s.pickupTime}] ${s.hotel}${room}\n   👤 ${s.customerName} (${pax}) · 📞 ${s.phone}\n  ${cash}`;
+        return `${idx + 1}. [${s.pickupTime || '07:30'}] ${s.hotel}${room}\n   👤 ${s.customerName} (${pax}) · 📞 ${s.phone}\n  ${cash}`;
       }),
       `───────────────────────────────`,
       `İyi ve güvenli sürüşler dileriz! 🌴🇹🇭`,
@@ -218,21 +226,25 @@ export default function TransfersTab({
       showToast('Seçilen tarihte transfer kaydı bulunmuyor.');
       return;
     }
-    const dateStr = new Date(manifestDate).toLocaleDateString('tr-TR', {
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    });
+    const dateStr = (() => {
+      try {
+        const d = new Date(safeDate);
+        return isNaN(d.getTime()) ? safeDate : d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+      } catch {
+        return safeDate;
+      }
+    })();
     const textLines = [
       `🚐 *PHUKET TATİLİ - GÜNLÜK TRANSFER & OPERASYON LİSTESİ*`,
       `📅 *Tarih:* ${dateStr}`,
       `👥 *Toplam Yolcu:* ${totalDailyPassengers} Kişi (${dailyPickups.length} Transfer)`,
       `───────────────────────────────`,
       ...dailyPickups.map((p, idx) => {
-        const guests = `${p.adultCount} Yetişkin${p.childCount > 0 ? ` + ${p.childCount} Çocuk` : ''}`;
+        const guests = `${p.adultCount || 1} Yetişkin${(p.childCount || 0) > 0 ? ` + ${p.childCount} Çocuk` : ''}`;
+        const remaining = Number(p.remainingAmountThb) || 0;
         const remainingText =
-          p.remainingAmountThb > 0
-            ? ` ⚠️ Tahsil Edilecek: *${p.remainingAmountThb.toLocaleString()} THB*`
+          remaining > 0
+            ? ` ⚠️ Tahsil Edilecek: *${remaining.toLocaleString()} THB*`
             : ` ✅ Ödendi`;
         const pickupStateText =
           p.pickupStatus === 'picked_up'
@@ -536,11 +548,18 @@ export default function TransfersTab({
         <div className="bg-white dark:bg-surface-2 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
           <span className="text-[11px] font-bold uppercase text-slate-400 block">Seçilen Tarih</span>
           <span className="text-base font-bold text-slate-900 dark:text-white mt-0.5 block">
-            {new Date(manifestDate).toLocaleDateString('tr-TR', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
+            {(() => {
+              try {
+                const d = new Date(safeDate);
+                return isNaN(d.getTime()) ? safeDate : d.toLocaleDateString('tr-TR', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric',
+                });
+              } catch {
+                return safeDate;
+              }
+            })()}
           </span>
         </div>
 
@@ -562,7 +581,7 @@ export default function TransfersTab({
           <span className="text-[11px] font-bold uppercase text-slate-400 block">Sahada Kalan Tahsilat</span>
           <span className="text-base font-bold text-amber-600 mt-0.5 block">
             {dailyPickups
-              .reduce((acc, p) => acc + p.remainingAmountThb, 0)
+              .reduce((acc, p) => acc + (Number(p.remainingAmountThb) || 0), 0)
               .toLocaleString()}{' '}
             THB
           </span>
@@ -714,14 +733,14 @@ export default function TransfersTab({
                         className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-accent max-w-[190px]"
                       >
                         <option value="Atanmadı">Hat Atanmadı</option>
-                        {vehicles.filter((v) => v.active).map((v) => (
+                        {safeVehicles.filter((v) => v && v.active).map((v) => (
                           <option key={v.id} value={v.label}>
                             {v.kind === 'vip' ? '⭐' : v.kind === 'speedboat' ? '🚤' : '🚐'} {v.label}
                           </option>
                         ))}
                         {p.assignedVehicle &&
                           p.assignedVehicle !== 'Atanmadı' &&
-                          !vehicles.some((v) => v.label === p.assignedVehicle) && (
+                          !safeVehicles.some((v) => v && v.label === p.assignedVehicle) && (
                             <option value={p.assignedVehicle}>{p.assignedVehicle}</option>
                           )}
                       </select>
@@ -735,6 +754,7 @@ export default function TransfersTab({
                       <select
                         value={p.assignedDriver || ''}
                         onChange={(e) =>
+                          handleAssignDriverToBooking &&
                           handleAssignDriverToBooking(
                             p.bookingId,
                             p.tourIndex,
@@ -744,18 +764,18 @@ export default function TransfersTab({
                         className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-brand-accent max-w-[170px]"
                       >
                         <option value="">Görevli Atanmadı</option>
-                        {drivers.filter((d) => d.active).map((d) => (
+                        {safeDrivers.filter((d) => d && d.active).map((d) => (
                           <option key={d.id} value={d.id}>
                             {d.role === 'guide' ? '🗣️' : d.role === 'both' ? '⭐' : '🚐'} {d.fullName}
                           </option>
                         ))}
                         {p.assignedDriver &&
-                          !drivers.some((d) => d.id === p.assignedDriver) && (
+                          !safeDrivers.some((d) => d && d.id === p.assignedDriver) && (
                             <option value={p.assignedDriver}>{p.assignedDriver}</option>
                           )}
                       </select>
                       {(() => {
-                        const d = drivers.find((drv) => drv.id === p.assignedDriver);
+                        const d = safeDrivers.find((drv) => drv && drv.id === p.assignedDriver);
                         return d?.phone ? (
                           <a
                             href={`https://wa.me/${d.phone.replace(/[^0-9]/g, '')}`}
@@ -784,8 +804,8 @@ export default function TransfersTab({
                     </td>
 
                     <td className="py-4 px-5">
-                      <span className="font-bold">{p.adultCount} Yetişkin</span>
-                      {p.childCount > 0 && (
+                      <span className="font-bold">{p.adultCount || 1} Yetişkin</span>
+                      {(p.childCount || 0) > 0 && (
                         <span className="text-xs text-slate-500 block">
                           +{p.childCount} Çocuk
                         </span>
@@ -804,9 +824,9 @@ export default function TransfersTab({
                     </td>
 
                     <td className="py-4 px-5">
-                      {p.remainingAmountThb > 0 ? (
+                      {(Number(p.remainingAmountThb) || 0) > 0 ? (
                         <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 inline-block">
-                          Alınacak: {p.remainingAmountThb.toLocaleString()} THB
+                          Alınacak: {(Number(p.remainingAmountThb) || 0).toLocaleString()} THB
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 inline-block">
@@ -914,7 +934,7 @@ export default function TransfersTab({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {vehicleRoutes.map((route) => {
                 const pickedInRoute = route.stops.filter((s) => s.pickupStatus === 'picked_up').length;
-                const totalCashToCollect = route.stops.reduce((acc, s) => acc + s.remainingAmountThb, 0);
+                const totalCashToCollect = route.stops.reduce((acc, s) => acc + (Number(s.remainingAmountThb) || 0), 0);
 
                 return (
                   <div
@@ -1024,7 +1044,7 @@ export default function TransfersTab({
                               <div className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
                                 <span>{stop.customerName}</span>
                                 <span>·</span>
-                                <span>{stop.adultCount} Yetişkin{stop.childCount > 0 ? ` + ${stop.childCount} Çocuk` : ''}</span>
+                                <span>{stop.adultCount || 1} Yetişkin{(stop.childCount || 0) > 0 ? ` + ${stop.childCount} Çocuk` : ''}</span>
                                 {stop.roomNumber && (
                                   <>
                                     <span>·</span>
@@ -1034,9 +1054,9 @@ export default function TransfersTab({
                               </div>
 
                               <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-                                {stop.remainingAmountThb > 0 ? (
+                                {(Number(stop.remainingAmountThb) || 0) > 0 ? (
                                   <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded">
-                                    Nakit: {stop.remainingAmountThb.toLocaleString()} THB
+                                    Nakit: {(Number(stop.remainingAmountThb) || 0).toLocaleString()} THB
                                   </span>
                                 ) : (
                                   <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
@@ -1152,7 +1172,7 @@ export default function TransfersTab({
                     hotel: p.hotel,
                     tourId: 'sea-tour',
                     tourTitle: p.tourTitle,
-                    tourDate: p.tourDate,
+                    tourDate: safeDate,
                     adultCount: p.adultCount,
                     childCount: p.childCount,
                     totalPriceThb: 0,
