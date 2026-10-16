@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Car,
   Copy,
@@ -15,11 +15,20 @@ import {
   Filter,
   List,
   Send,
+  Waves,
+  Wind,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
 import type { Booking, VehicleItem, DriverItem } from '../../data/adminInitialData';
 import BulkDispatchModal from './BulkDispatchModal';
+import {
+  getMarineSafetyStatus,
+  type MarineSafetyReport,
+  getWeatherPostponeWhatsAppUrl,
+} from '../../lib/marineWeather';
 
 interface TransfersTabProps {
   bookings: Booking[];
@@ -85,6 +94,39 @@ export default function TransfersTab({
 
   const [viewMode, setViewMode] = useState<'table' | 'routes'>('table');
   const [isBulkDispatchOpen, setIsBulkDispatchOpen] = useState(false);
+
+  // Andaman Denizi Canlı Dalga & Güvenlik Radarı
+  const [marineReport, setMarineReport] = useState<MarineSafetyReport | null>(null);
+  const [isWeatherModalOpen, setIsWeatherModalOpen] = useState(false);
+  const [isRefreshingMarine, setIsRefreshingMarine] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    getMarineSafetyStatus().then((rep) => {
+      if (isMounted) setMarineReport(rep);
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleRefreshMarine = async () => {
+    setIsRefreshingMarine(true);
+    try {
+      const res = await fetch('/api/marine-safety?refresh=true');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.ok) {
+          setMarineReport(data);
+          showToast('🌊 Andaman Denizi dalga ve rüzgar verileri güncellendi!');
+        }
+      }
+    } catch {
+      showToast('Hava durumu servisine ulaşılamadı.');
+    } finally {
+      setIsRefreshingMarine(false);
+    }
+  };
 
   // Hat bazlı rota sıralaması: her araç için oteller saat ve bölgeye göre sıralanır
   const vehicleRoutes = useMemo(() => {
@@ -316,6 +358,103 @@ export default function TransfersTab({
           </button>
         </div>
       </div>
+
+      {/* 🌊 ANDAMAN DENİZİ CANLI GÜVENLİK & DALGA RADARI */}
+      {marineReport && (
+        <div
+          className={`p-4 sm:p-5 rounded-3xl border shadow-xs transition-all ${
+            marineReport.level === 'severe'
+              ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+              : marineReport.level === 'moderate'
+              ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+              : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+          }`}
+        >
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div
+                className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border ${
+                  marineReport.level === 'severe'
+                    ? 'bg-rose-500/20 border-rose-500/40 text-rose-400'
+                    : marineReport.level === 'moderate'
+                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+                    : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-400'
+                }`}
+              >
+                {marineReport.level === 'severe' ? (
+                  <AlertTriangle className="w-6 h-6 animate-pulse" />
+                ) : (
+                  <Waves className="w-6 h-6" />
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-wider text-white">
+                    🌊 Andaman Denizi Canlı Güvenlik Radarı
+                  </span>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase border ${
+                      marineReport.level === 'severe'
+                        ? 'bg-rose-500 text-slate-950 border-rose-400 font-black'
+                        : marineReport.level === 'moderate'
+                        ? 'bg-amber-500 text-slate-950 border-amber-400 font-bold'
+                        : 'bg-emerald-500 text-slate-950 border-emerald-400 font-bold'
+                    }`}
+                  >
+                    {marineReport.level === 'severe'
+                      ? '🔴 Fırtına / Dalga Alarmı'
+                      : marineReport.level === 'moderate'
+                      ? '🟡 Orta Dalgalı'
+                      : '🟢 Sakin Deniz'}
+                  </span>
+                </div>
+                <p className="text-xs font-medium text-slate-300 dark:text-slate-300 mt-0.5">
+                  {marineReport.summary}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              <div className="bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800 font-mono flex items-center gap-1.5 text-slate-200">
+                <Waves className="w-3.5 h-3.5 text-sky-400" />
+                <span>
+                  Dalga: <strong className="text-white">{marineReport.waveHeightMeters}m</strong>
+                </span>
+              </div>
+              <div className="bg-slate-950/60 px-3 py-1.5 rounded-xl border border-slate-800 font-mono flex items-center gap-1.5 text-slate-200">
+                <Wind className="w-3.5 h-3.5 text-sky-400" />
+                <span>
+                  Rüzgar: <strong className="text-white">{marineReport.windSpeedKnots} Kts</strong> (
+                  {marineReport.windDirectionText})
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={handleRefreshMarine}
+                disabled={isRefreshingMarine}
+                className="p-2 rounded-xl bg-slate-950/60 border border-slate-800 text-slate-400 hover:text-white transition disabled:opacity-50 cursor-pointer"
+                title="Radarı Yenile"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingMarine ? 'animate-spin' : ''}`} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setIsWeatherModalOpen(true)}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-md ${
+                  marineReport.level === 'severe'
+                    ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-950/40'
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200'
+                }`}
+                title="Hava Durumu Nedeniyle Misafirlere WhatsApp Bilgilendirmesi Gönder"
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>⚠️ Hava Durumu Erteleme Çağrısı</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Summary Badges */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -892,6 +1031,113 @@ export default function TransfersTab({
           onClose={() => setIsBulkDispatchOpen(false)}
           showToast={showToast}
         />
+      )}
+
+      {/* 🌊 HAVA DURUMU & FIRTINA ERTELEME MODALI */}
+      {isWeatherModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-bold text-white flex items-center gap-2">
+                    <span>Hava Durumu & Fırtına Erteleme Bildirimi</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 font-mono">
+                      {manifestDate}
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    Dalga ve fırtına nedeniyle misafirlere tek tıkla alternatif rota veya tarih erteleme WhatsApp mesajı gönderin.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsWeatherModalOpen(false)}
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+              >
+                <span className="text-lg">✕</span>
+              </button>
+            </div>
+
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-3">
+              {dailyPickups.length === 0 ? (
+                <div className="py-12 text-center text-slate-500 text-xs">
+                  Seçilen tarihte kayıtlı yolcu bulunamadı.
+                </div>
+              ) : (
+                dailyPickups.map((p) => {
+                  const bObj: Booking = {
+                    id: p.bookingId,
+                    customerName: p.customerName,
+                    phone: p.phone,
+                    hotel: p.hotel,
+                    tourId: 'sea-tour',
+                    tourTitle: p.tourTitle,
+                    tourDate: p.tourDate,
+                    adultCount: p.adultCount,
+                    childCount: p.childCount,
+                    totalPriceThb: 0,
+                    paidAmountThb: 0,
+                    remainingAmountThb: p.remainingAmountThb,
+                    status: 'confirmed',
+                    pickupStatus: p.pickupStatus,
+                    paymentStatus: 'paid',
+                    createdAt: new Date().toISOString(),
+                  };
+
+                  return (
+                    <div
+                      key={`${p.bookingId}-${p.tourIndex}`}
+                      className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800 flex items-center justify-between gap-3 hover:border-slate-700 transition"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-sm text-white truncate">{p.customerName}</span>
+                          <span className="text-xs text-slate-400 font-mono">({p.phone})</span>
+                        </div>
+                        <div className="text-xs text-rose-300 font-medium truncate mt-0.5">
+                          🏝️ {p.tourTitle}
+                        </div>
+                        <div className="text-[11px] text-slate-400 mt-0.5">
+                          📍 {p.hotel} · ⏰ {p.pickupTime || '07:30'}
+                        </div>
+                      </div>
+
+                      <a
+                        href={getWeatherPostponeWhatsAppUrl(
+                          bObj,
+                          'James Bond Adası & Phang Nga Kano (Sakin Körfez)'
+                        )}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3.5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition flex items-center gap-1.5 shrink-0 shadow-md cursor-pointer"
+                        title="Misafire WhatsApp Fırtına/Erteleme Şablonu Gönder"
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span>WhatsApp Gönder</span>
+                      </a>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            <div className="px-6 py-3 border-t border-slate-800 bg-slate-950/80 flex items-center justify-between text-xs text-slate-400">
+              <span>💡 Mesajda misafire tarih erteleme, James Bond körfez rotasına geçiş ve iade seçeneği sunulur.</span>
+              <button
+                type="button"
+                onClick={() => setIsWeatherModalOpen(false)}
+                className="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition"
+              >
+                Kapat
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

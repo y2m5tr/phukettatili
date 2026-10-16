@@ -4,9 +4,10 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
+import { getCrossSellWhatsAppUrl } from '../../lib/crossSell';
 
 interface BookingsTabProps {
   /** Arama + durum + tarih filtresinden geçmiş liste. */
@@ -300,6 +301,17 @@ export default function BookingsTab({
                           title="⭐ 5-Yıldızlı Google Yorum İste (WhatsApp Review Booster)"
                         >
                           <Star className="w-4 h-4 fill-current" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const url = getCrossSellWhatsAppUrl(b);
+                            window.open(url, '_blank', 'noopener,noreferrer');
+                          }}
+                          className="p-2 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors"
+                          title="🎁 %10 İkinci Tur İndirimi & Çapraz Satış Teklifi Gönder (WhatsApp)"
+                        >
+                          <Gift className="w-4 h-4" />
                         </button>
                         <button
                           type="button"
