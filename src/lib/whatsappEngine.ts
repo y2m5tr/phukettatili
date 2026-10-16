@@ -305,3 +305,115 @@ export function markNotificationSent(
 
   return updated;
 }
+
+/**
+ * Şoför / Saha Operasyonu için Tayca & İngilizce çift dilli hazır görev kartı üretir.
+ */
+export function generateDriverPickupJobThai(
+  booking: Booking,
+  tourIndex?: number,
+  driverName?: string
+): { message: string; waUrl: string } {
+  const activeTour =
+    typeof tourIndex === 'number' && booking.tours && booking.tours[tourIndex]
+      ? booking.tours[tourIndex]
+      : {
+          tourTitle: booking.tourTitle,
+          tourDate: booking.tourDate,
+          pickupTime: booking.pickupTime || '07:30',
+          hotel: booking.hotel,
+          roomNumber: booking.roomNumber,
+        };
+
+  const hotelName = activeTour.hotel || booking.hotel;
+  const room = activeTour.roomNumber || booking.roomNumber || '-';
+  const pickup = activeTour.pickupTime || booking.pickupTime || '07:30';
+  const date = activeTour.tourDate || booking.tourDate;
+  const tourName = activeTour.tourTitle || booking.tourTitle;
+  const pax = `${booking.adultCount} Adult(s)${booking.childCount > 0 ? ` + ${booking.childCount} Child(ren)` : ''}`;
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotelName + ', Phuket, Thailand')}`;
+
+  const hasLuggage = booking.hasLuggage || booking.isHotelHop;
+  const luggageStr = hasLuggage
+    ? `⚠️ มีกระเป๋าเดินทาง (${booking.luggageCount || 2} ใบ / Valiz Var - Luggage in Van)`
+    : `ไม่มีสัมภาระใหญ่ (No big luggage)`;
+
+  const msg = `🇹🇭 *ใบงานรับส่งลูกค้า (PHUKET TATILI PICKUP JOB)* 🇹🇭
+━━━━━━━━━━━━━━━━━━━━
+📅 *วันที่ (Date):* ${date}
+⏰ *เวลารับ (Pickup Time):* *${pickup}*
+🏨 *โรงแรม (Hotel):* ${hotelName}
+🚪 *ห้อง (Room):* ${room}
+📍 *พิกัด Google Maps:* ${mapsUrl}
+👥 *จำนวน (Pax):* ${pax}
+👤 *ชื่อลูกค้า (Guest Name):* ${booking.customerName}
+📞 *เบอร์ลูกค้า (Guest Phone):* ${booking.phone || '-'}
+🏝️ *ทัวร์ (Tour Program):* ${tourName}
+🧳 *สัมภาระ (Luggage):* ${luggageStr}
+${driverName ? `🚗 *คนขับ (Driver):* ${driverName}\n` : ''}${booking.specialNotes ? `📝 *หมายเหตุ (Notes):* ${booking.specialNotes}\n` : ''}━━━━━━━━━━━━━━━━━━━━
+🚨 *เบอร์ประสานงานฉุกเฉิน (Hotline Ops):* +66 82 895 0665 (WhatsApp / Line)
+กรุณาแจ้งศูนย์ทันทีเมื่อถึงล็อบบี้โรงแรม ขอบคุณครับ 🙏`;
+
+  const cleanDriverPhone = booking.assignedDriver ? formatWhatsAppPhone(booking.assignedDriver) : '';
+  const waUrl = cleanDriverPhone ? buildWhatsAppDeepLink(cleanDriverPhone, msg) : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+  return { message: msg, waUrl };
+}
+
+/**
+ * Misafir için Türkçe profesyonel lobi bekleme ve tur hatırlatması üretir.
+ */
+export function generateGuestPickupReminderTurkish(
+  booking: Booking,
+  tourIndex?: number
+): { message: string; waUrl: string } {
+  const activeTour =
+    typeof tourIndex === 'number' && booking.tours && booking.tours[tourIndex]
+      ? booking.tours[tourIndex]
+      : {
+          tourTitle: booking.tourTitle,
+          tourDate: booking.tourDate,
+          pickupTime: booking.pickupTime || '07:30',
+          hotel: booking.hotel,
+          roomNumber: booking.roomNumber,
+        };
+
+  const hotelName = activeTour.hotel || booking.hotel;
+  const room = activeTour.roomNumber || booking.roomNumber;
+  const pickup = activeTour.pickupTime || booking.pickupTime || '07:30';
+  const date = activeTour.tourDate || booking.tourDate;
+  const tourName = activeTour.tourTitle || booking.tourTitle;
+  const pax = `${booking.adultCount} Yetişkin${booking.childCount > 0 ? ` + ${booking.childCount} Çocuk` : ''}`;
+  const ticketUrl = `https://phukettatili.com/gezi/${booking.ticketCode || booking.id}`;
+
+  const hasLuggage = booking.hasLuggage || booking.isHotelHop;
+
+  const msg = `🌴 *PHUKET TATİLİ — TUR ALINIŞ BİLGİLENDİRMESİ* 🌴
+━━━━━━━━━━━━━━━━━━━━━━━━━━
+Sayın *${booking.customerName}*, merhaba!
+
+*${date}* tarihindeki *${tourName}* turunuz için otel alınış detaylarınız kesinleşmiştir:
+
+⏰ *Lobi Bekleme Saati:* *${pickup}*
+🏨 *Alınış Oteli:* ${hotelName}${room ? ` (Oda: ${room})` : ''}
+👥 *Misafir Sayısı:* ${pax}
+${hasLuggage ? `🧳 *Bagaj Durumu:* Otel Değişimi / Araçta Valiz Alanınız Ayrılmıştır (${booking.luggageCount || 2} Valiz)\n` : ''}${
+  booking.remainingAmountThb > 0
+    ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${booking.remainingAmountThb.toLocaleString()} THB (Nakit Baht)\n`
+    : ''
+}
+💡 *Önemli Hatırlatmalarımız:*
+• Lütfen belirtilen saat aralığında otelinizin *ana lobisinde* hazır bulununuz.
+• Transfer şoförümüz veya rehberimiz elinde *"Phuket Tatili"* tabelası veya isminiz ile lobiye gelecektir.
+• Havlu, mayo, güneş kremi, şapka ve su geçirmez telefon kılıfınızı yanınıza almayı unutmayınız.
+${booking.nationalParkFeeIncluded === false ? '• Millî park koruma harcı için yanınızda nakit Baht bulundurunuz.\n' : ''}
+📱 *Canlı Gezi Ajandanız & Biniş Kartınız:*
+${ticketUrl}
+
+Harika ve unutulmaz bir gün geçirmenizi dileriz! 🌺🌊
+📞 *7/24 Türkçe Operasyon Destek:* +66 82 895 0665`;
+
+  const waUrl = buildWhatsAppDeepLink(booking.phone, msg);
+  return { message: msg, waUrl };
+}
+

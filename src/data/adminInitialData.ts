@@ -132,6 +132,11 @@ export interface Booking {
   lastWhatsAppNotifiedAt?: string;
   whatsAppReminderSent?: boolean;
   whatsAppReviewSent?: boolean;
+  // Otel Değişimi & Valiz / Bagaj Takibi
+  isHotelHop?: boolean;
+  hasLuggage?: boolean;
+  luggageCount?: number;
+  luggageNotes?: string;
   createdAt?: string;
 }
 

@@ -4,11 +4,12 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, Send } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 import { getCrossSellWhatsAppUrl } from '../../lib/crossSell';
 import { analyzeBookingDietaryAndMedical, DIETARY_CATEGORIES } from '../../lib/dietaryManifest';
+import { generateDriverPickupJobThai, generateGuestPickupReminderTurkish } from '../../lib/whatsappEngine';
 
 interface BookingsTabProps {
   /** Arama + durum + tarih filtresinden geçmiş liste. */
@@ -224,6 +225,12 @@ export default function BookingsTab({
                         </span>
                         {b.roomNumber && (
                           <span className="text-xs text-slate-500 dark:text-slate-400">Oda: {b.roomNumber}</span>
+                        )}
+                        {(b.isHotelHop || b.hasLuggage || (b.hotels && b.hotels.length > 0)) && (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-black bg-purple-100 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-300 dark:border-purple-700">
+                            <Luggage className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                            <span>🧳 Valizli ({b.luggageCount || 2})</span>
+                          </span>
                         )}
                       </div>
                     </td>
@@ -455,6 +462,28 @@ export default function BookingsTab({
                             title="💬 WhatsApp Şablonları & Otomatik Mesaj"
                           >
                             <MessageCircle className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const job = generateDriverPickupJobThai(b);
+                              window.open(job.waUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center text-xs"
+                            title="🇹🇭 Şoför için Tayca & İngilizce Alınış Kartını WhatsApp'ta Aç"
+                          >
+                            <span className="leading-none">🇹🇭</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const reminder = generateGuestPickupReminderTurkish(b);
+                              window.open(reminder.waUrl, '_blank', 'noopener,noreferrer');
+                            }}
+                            className="p-1.5 rounded-lg bg-teal-500/15 text-teal-700 dark:text-teal-300 hover:bg-teal-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center text-xs"
+                            title="🇹🇷 Misafire Türkçe Lobi Alınış Hatırlatmasını WhatsApp'ta Aç"
+                          >
+                            <span className="leading-none">🇹🇷</span>
                           </button>
                           <button
                             type="button"

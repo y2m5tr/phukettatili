@@ -44,6 +44,7 @@ import {
   buildSingleTourProposal,
   calculateProposalFinancials,
   generateCuratedProposalWhatsAppMessage,
+  convertProposalToBookingFormData,
   getCategoryIcon,
   PROPOSAL_CATALOG_TOURS,
   TRANSPORT_META,
@@ -89,6 +90,7 @@ interface Props {
   initialHotel?: string;
   initialZone?: string;
   isEmbedded?: boolean;
+  onConvertToBooking?: (bookingData: any) => void;
 }
 
 type EditorTab = 'overview' | 'days' | 'timeline' | 'inclusions' | 'financials';
@@ -101,6 +103,7 @@ export default function CuratedProposalModal({
   initialHotel = 'The Shore at Katathani',
   initialZone = 'Kata & Karon',
   isEmbedded = false,
+  onConvertToBooking,
 }: Props) {
   if (!isOpen) return null;
 
@@ -780,6 +783,22 @@ export default function CuratedProposalModal({
               <Send className="w-4 h-4" />
               <span>📤 PDF Yolla</span>
             </button>
+
+            {/* ⚡ REZERVASYONA DÖNÜŞTÜR */}
+            {onConvertToBooking && (
+              <button
+                type="button"
+                onClick={() => {
+                  const converted = convertProposalToBookingFormData(proposal);
+                  onConvertToBooking(converted);
+                }}
+                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-blue-600/25 transition-all cursor-pointer"
+                title="Teklifi doğrudan yeni rezervasyon formuna aktar ve rezervasyon modalını aç"
+              >
+                <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                <span>⚡ Rezervasyona Dönüştür</span>
+              </button>
+            )}
 
             {/* 📱 WHATSAPP KOPYALA */}
             <button

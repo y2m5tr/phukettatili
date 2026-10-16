@@ -1675,6 +1675,14 @@ export default function AdminDashboard({
     setIsModalOpen(true);
   };
 
+  const handleConvertProposalToBooking = (convertedBookingData: any) => {
+    setCuratedProposalData(null);
+    setEditingBooking(null);
+    setFormData(convertedBookingData);
+    setIsModalOpen(true);
+    showToast('🎉 Teklif başarıyla yeni rezervasyon formuna aktarıldı!');
+  };
+
   const handleDeleteBooking = (id: string, name: string) => {
     if (!canDeleteBookings) {
       showToast('⚠️ Kalıcı rezervasyon silme yetkisi yalnızca yöneticidedir.');
@@ -3274,6 +3282,7 @@ export default function AdminDashboard({
               initialCustomerName="Begüm & Canberk Özkan"
               initialHotel="The Shore at Katathani"
               initialZone="Kata & Karon"
+              onConvertToBooking={handleConvertProposalToBooking}
             />
           </div>
         )}
@@ -4022,6 +4031,7 @@ export default function AdminDashboard({
           initialCustomerName={curatedProposalData.customerName}
           initialHotel={curatedProposalData.hotel}
           initialZone={curatedProposalData.zone}
+          onConvertToBooking={handleConvertProposalToBooking}
         />
       )}
 

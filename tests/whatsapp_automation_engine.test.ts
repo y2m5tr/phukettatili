@@ -5,6 +5,8 @@ import {
   generateTriggerMessage,
   getPendingAutomationTriggers,
   markNotificationSent,
+  generateDriverPickupJobThai,
+  generateGuestPickupReminderTurkish,
 } from '../src/lib/whatsappEngine';
 import type { Booking } from '../src/data/adminInitialData';
 
@@ -114,4 +116,31 @@ describe('Aşama 5: WhatsApp Smart Automation & Trigger Engine', () => {
     const reviewUpdated = markNotificationSent(baseBooking, 'review_booster');
     expect(reviewUpdated.whatsAppReviewSent).toBe(true);
   });
+
+  it('generateDriverPickupJobThai şoför için Tayca/İngilizce çift dilli iş kartı üretmeli ve valiz uyarısı içermeli', () => {
+    const bookingWithLuggage: Booking = {
+      ...baseBooking,
+      isHotelHop: true,
+      hasLuggage: true,
+      luggageCount: 3,
+    };
+    const job = generateDriverPickupJobThai(bookingWithLuggage, undefined, 'Khun Somchai');
+    expect(job.message).toContain('ใบงานรับส่งลูกค้า');
+    expect(job.message).toContain('The Shore at Katathani');
+    expect(job.message).toContain('Villa 12');
+    expect(job.message).toContain('Khun Somchai');
+    expect(job.message).toContain('มีกระเป๋าเดินทาง (3 ใบ');
+    expect(job.message).toContain('Google Maps:');
+  });
+
+  it('generateGuestPickupReminderTurkish misafir için Türkçe profesyonel hatırlatma üretmeli', () => {
+    const reminder = generateGuestPickupReminderTurkish(baseBooking);
+    expect(reminder.message).toContain('Sayın *Can Demir*');
+    expect(reminder.message).toContain('Phi Phi & Maya Bay Erken Çıkış');
+    expect(reminder.message).toContain('06:45');
+    expect(reminder.message).toContain('The Shore at Katathani (Oda: Villa 12)');
+    expect(reminder.message).toContain('https://phukettatili.com/gezi/PT-DEMIR77');
+    expect(reminder.waUrl).toContain('905339998877');
+  });
 });
+

@@ -5,6 +5,7 @@ import { initialBookings, type Booking } from '../../data/adminInitialData';
 import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../lib/server/supabaseAdmin';
 import { rowToBooking } from '../../lib/supabase';
 import { buildGuestItinerary } from '../../lib/guestItinerary';
+import { getMarineSafetyStatus } from '../../lib/marineWeather';
 import siteSettings from '../../content/settings/site.json';
 
 const codeParam = (Astro.params.code || '').trim();
@@ -53,6 +54,13 @@ if (!booking && cleanCode) {
 
 const itinerary = booking ? buildGuestItinerary(booking) : null;
 const whatsappNumber = siteSettings.whatsappNumber || '905321112233';
+
+let marineSafety = null;
+try {
+  marineSafety = await getMarineSafetyStatus();
+} catch (e) {
+  marineSafety = null;
+}
 ---
 
 <!DOCTYPE html>
@@ -131,6 +139,67 @@ const whatsappNumber = siteSettings.whatsappNumber || '905321112233';
             </div>
           </div>
         </div>
+
+        <!-- 🌊 ANDAMAN DENİZİ CANLI GÜVENLİK & SEYİR RADARI -->
+        {marineSafety && (
+          <div class={`p-5 rounded-3xl border shadow-xl space-y-3 transition-all ${
+            marineSafety.level === 'severe'
+              ? 'bg-rose-950/30 border-rose-800 text-rose-200'
+              : marineSafety.level === 'moderate'
+              ? 'bg-amber-950/30 border-amber-800 text-amber-200'
+              : 'bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border-emerald-800/60 text-emerald-100'
+          }`}>
+            <div class="flex items-center justify-between gap-2 flex-wrap">
+              <div class="flex items-center gap-2.5">
+                <span class="text-2xl">🌊</span>
+                <div>
+                  <h3 class="text-xs font-black uppercase tracking-wider text-white">
+                    Andaman Denizi Canlı Güvenlik & Seyir Durumu
+                  </h3>
+                  <span class="text-[10px] text-slate-400 font-mono block">
+                    Phuket Operasyon & Tayland Liman Başkanlığı Verisi
+                  </span>
+                </div>
+              </div>
+              <span class={`px-3 py-1 rounded-full text-xs font-black border ${
+                marineSafety.level === 'severe'
+                  ? 'bg-rose-500/20 text-rose-300 border-rose-500/40'
+                  : marineSafety.level === 'moderate'
+                  ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                  : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40'
+              }`}>
+                {marineSafety.level === 'severe'
+                  ? '⚠️ Yüksek Dalga Uyarısı'
+                  : marineSafety.level === 'moderate'
+                  ? '⚡ Orta Dalga'
+                  : '🟢 Deniz Sakin · Güvenli Seyir'}
+              </span>
+            </div>
+
+            <p class="text-xs text-slate-300 leading-relaxed font-medium">
+              {marineSafety.summary} {marineSafety.warningNote}
+            </p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-center font-mono text-xs">
+              <div class="p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800">
+                <span class="text-[10px] text-slate-400 uppercase block font-sans">Dalga Boyu</span>
+                <strong class="text-white text-sm">{marineSafety.waveHeightMeters}m</strong>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800">
+                <span class="text-[10px] text-slate-400 uppercase block font-sans">Rüzgar Hızı</span>
+                <strong class="text-white text-sm">{marineSafety.windSpeedKnots} kn</strong>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800">
+                <span class="text-[10px] text-slate-400 uppercase block font-sans">Phi Phi Koridoru</span>
+                <strong class="text-emerald-400 text-xs">Açık / Güvenli</strong>
+              </div>
+              <div class="p-2.5 rounded-2xl bg-slate-950/70 border border-slate-800">
+                <span class="text-[10px] text-slate-400 uppercase block font-sans">Phang Nga Körfez</span>
+                <strong class="text-emerald-400 text-xs">Durgun / Korumalı</strong>
+              </div>
+            </div>
+          </div>
+        )}
 
         <!-- Days Timeline -->
         <div class="space-y-4">

@@ -896,3 +896,121 @@ ${inclusionsSummary}
 Teklifi onaylamak veya gün/tur değişikliği yapmak için bu mesaja yanıt vermeniz yeterlidir.
 İyi tatiller dileriz! 🇹🇭✨`;
 }
+
+/**
+ * Kişiye Özel Teklifi (Curated Proposal) doğrudan Yönetim Paneli Yeni Rezervasyon Formu formatına dönüştürür.
+ */
+export function convertProposalToBookingFormData(proposal: CuratedProposalData): any {
+  const financials = calculateProposalFinancials(proposal);
+  const isSingle = proposal.proposalType === 'single_tour';
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  let mappedTours: any[] = [];
+  if (isSingle) {
+    const singleTitle = proposal.days[0]?.tourTitle || proposal.packageTitle || 'Özel Tur';
+    mappedTours = [
+      {
+        tourTitle: singleTitle,
+        tourDate: proposal.singleTourDate || todayStr,
+        pickupTime: proposal.days[0]?.pickupWindow || '07:30 - 07:45',
+        priceThb: financials.totalThb,
+        costThb: Math.round(financials.totalThb * 0.6),
+        supplier: 'Andaman Wave Master',
+        nationalParkFeeIncluded: proposal.days[0]?.nationalParkFeeStatus === 'included',
+        hotel: proposal.hotelName,
+        hotelZone: proposal.hotelZone,
+      },
+    ];
+  } else {
+    mappedTours = (proposal.days || [])
+      .filter((d) => d.category !== 'leisure')
+      .map((d, index) => {
+        let tourDate = d.date;
+        if (!tourDate) {
+          const dt = new Date();
+          dt.setDate(dt.getDate() + index + 1);
+          tourDate = dt.toISOString().split('T')[0];
+        }
+        return {
+          tourTitle: d.tourTitle,
+          tourDate,
+          pickupTime: d.pickupWindow || '07:30 - 07:45',
+          priceThb: d.priceThb,
+          costThb: Math.round(d.priceThb * 0.6),
+          supplier: 'Andaman Wave Master',
+          nationalParkFeeIncluded: d.nationalParkFeeStatus === 'included',
+          hotel: d.hotelName || proposal.hotelName,
+          hotelZone: d.hotelZone || proposal.hotelZone,
+        };
+      });
+
+    if (mappedTours.length === 0 && proposal.days && proposal.days.length > 0) {
+      mappedTours = [
+        {
+          tourTitle: proposal.days[0].tourTitle,
+          tourDate: proposal.days[0].date || todayStr,
+          pickupTime: proposal.days[0].pickupWindow || '07:30 - 07:45',
+          priceThb: financials.totalThb,
+          costThb: Math.round(financials.totalThb * 0.6),
+          supplier: 'Andaman Wave Master',
+          nationalParkFeeIncluded: false,
+          hotel: proposal.hotelName,
+          hotelZone: proposal.hotelZone,
+        },
+      ];
+    }
+  }
+
+  const primaryTour = mappedTours[0] || {
+    tourTitle: proposal.packageTitle || 'Phuket Turu',
+    tourDate: todayStr,
+    pickupTime: '07:30 - 07:45',
+    priceThb: financials.totalThb,
+    costThb: Math.round(financials.totalThb * 0.6),
+    supplier: 'Andaman Wave Master',
+    nationalParkFeeIncluded: false,
+  };
+
+  const depositThb = financials.depositThb || 0;
+  const isHotelHop =
+    Boolean(proposal.hotels && proposal.hotels.length > 1) ||
+    mappedTours.some((t) => t.hotel && t.hotel !== proposal.hotelName);
+
+  return {
+    customerName: proposal.customerName,
+    phone: proposal.customerPhone || '',
+    email: proposal.customerEmail || '',
+    hotel: proposal.hotelName,
+    hotelZone: proposal.hotelZone || 'Patong & Kalim',
+    roomNumber: '',
+    hotelStays: (proposal.hotels || []).map((h) => ({
+      id: h.id || String(Date.now()),
+      hotelName: h.hotelName,
+      hotelZone: h.hotelZone,
+      checkInDate: h.checkInDate,
+      checkOutDate: h.checkOutDate,
+      notes: h.notes,
+    })),
+    tourTitle: primaryTour.tourTitle,
+    tourDate: primaryTour.tourDate,
+    pickupTime: primaryTour.pickupTime || '07:30 - 07:45',
+    tours: mappedTours,
+    adultCount: proposal.adultCount || 2,
+    childCount: proposal.childCount || 0,
+    totalPriceThb: financials.totalThb,
+    costThb: Math.round(financials.totalThb * 0.6),
+    supplier: primaryTour.supplier || 'Andaman Wave Master',
+    nationalParkFeeIncluded: Boolean(primaryTour.nationalParkFeeIncluded),
+    paidAmountThb: depositThb,
+    status: 'confirmed',
+    paymentStatus: depositThb > 0 ? (depositThb >= financials.totalThb ? 'paid' : 'partial') : 'unpaid',
+    isHotelHop,
+    hasLuggage: isHotelHop,
+    luggageCount: isHotelHop ? (proposal.adultCount || 2) : 0,
+    specialNotes: `[TEKLİFTEN AKTARILDI - ${proposal.proposalNumber || 'ÖZEL'}]
+Paket: ${proposal.packageTitle}
+${proposal.specialGifts && proposal.specialGifts.length > 0 ? '🎁 Dahil Hediyeler: ' + proposal.specialGifts.join(', ') : ''}
+${isHotelHop ? '🧳 Çoklu Otel Konaklaması / Valiz Transfer İhtiyacı Mevcut' : ''}`,
+  };
+}
+
