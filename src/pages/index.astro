@@ -13,6 +13,7 @@ import HomeGuestMoments from '../components/home/HomeGuestMoments.astro';
 import HomeFaq from '../components/home/HomeFaq.astro';
 import HomeMarineSentinel from '../components/home/HomeMarineSentinel.astro';
 import HomeTourWizard from '../components/home/HomeTourWizard';
+import TourStoriesReel from '../components/tour/TourStoriesReel';
 import siteSettings from '../content/settings/site.json';
 import testimonialsData from '../content/settings/testimonials.json';
 import faqData from '../content/settings/faq.json';
@@ -143,6 +144,7 @@ const guestMoments = [
   </section>
 
   <!-- Extracted Home Modules -->
+  <TourStoriesReel client:load />
   <HomeBento />
   <HomeMarineSentinel />
   <HomeFeaturedTours featuredTours={featuredTours} />

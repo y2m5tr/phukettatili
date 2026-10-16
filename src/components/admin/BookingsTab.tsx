@@ -4,7 +4,7 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 import { getCrossSellWhatsAppUrl } from '../../lib/crossSell';
@@ -34,6 +34,8 @@ interface BookingsTabProps {
   onOpenWelcomeBoard?: (b: Booking) => void;
   onOpenTourMedia?: (b: Booking) => void;
   onUpdateStatus?: (b: Booking, status: Booking['status']) => void;
+  onOpenSupplierDispatch?: (b: Booking) => void;
+  onOpenPromptPayQr?: (b: Booking) => void;
 }
 
 export default function BookingsTab({
@@ -59,6 +61,8 @@ export default function BookingsTab({
   onOpenWelcomeBoard,
   onOpenTourMedia,
   onUpdateStatus,
+  onOpenSupplierDispatch,
+  onOpenPromptPayQr,
 }: BookingsTabProps) {
   return (
     <div className="space-y-6">
@@ -258,12 +262,29 @@ export default function BookingsTab({
                             📅 {b.tourDate} {b.pickupTime ? `· ⏰ ${b.pickupTime}` : ''}
                           </span>
                           {b.supplier && (
-                            <span className="inline-flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">
+                            <span className="inline-flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 flex-wrap">
                               <Ship className="w-3 h-3 text-rose-500" />
                               <span>{b.supplier}</span>
                               {b.supplierRefCode && (
                                 <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
                                   ({b.supplierRefCode})
+                                </span>
+                              )}
+                              {b.supplierStatus && (
+                                <span
+                                  className={`px-1.5 py-0.2 rounded text-[9px] font-bold ${
+                                    b.supplierStatus === 'confirmed'
+                                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                                      : b.supplierStatus === 'pending'
+                                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300'
+                                      : 'bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300'
+                                  }`}
+                                >
+                                  {b.supplierStatus === 'confirmed'
+                                    ? '✓ Onaylı'
+                                    : b.supplierStatus === 'pending'
+                                    ? '⏳ Bekliyor'
+                                    : '✕ İptal'}
                                 </span>
                               )}
                             </span>
@@ -308,6 +329,17 @@ export default function BookingsTab({
                                 >
                                   <Coins className="w-3 h-3" />
                                   <span>💱 Döviz Kasa</span>
+                                </button>
+                              )}
+                              {onOpenPromptPayQr && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenPromptPayQr(b)}
+                                  className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-700 dark:text-sky-300 hover:bg-sky-600 hover:text-white transition-all cursor-pointer flex items-center gap-1"
+                                  title="PromptPay Dinamik QR Kodu Göster (K-Bank / SCB)"
+                                >
+                                  <QrCode className="w-3 h-3 text-sky-500" />
+                                  <span>PromptPay QR</span>
                                 </button>
                               )}
                             </div>
@@ -458,6 +490,16 @@ export default function BookingsTab({
                               title="📂 Fotoğraf Albüm Linki Ekle & WhatsApp Gönder"
                             >
                               <span className="text-xs leading-none">📂</span>
+                            </button>
+                          )}
+                          {onOpenSupplierDispatch && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenSupplierDispatch(b)}
+                              className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer"
+                              title="🏢 Tedarikçiye (Andaman Wave, Seastar vb.) WhatsApp Tur Siparişi İlet"
+                            >
+                              <Building className="w-3.5 h-3.5" />
                             </button>
                           )}
                           {onOpenQuotePdf && (

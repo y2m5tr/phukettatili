@@ -16,8 +16,10 @@ import {
   ChevronUp,
   Utensils,
   User,
+  QrCode,
 } from 'lucide-react';
 import { getSingleHotelMapUrl, detectDeparturePier } from '../../lib/maps';
+import PromptPayQrModal from '../shared/PromptPayQrModal';
 
 /**
  * Misafir portalının ÇİZECEĞİ asgari rezervasyon görünümü.
@@ -112,6 +114,7 @@ export default function GuestTicketPortal({
   const [checkinSaved, setCheckinSaved] = useState<boolean>(false);
   const [isSubmittingCheckin, setIsSubmittingCheckin] = useState<boolean>(false);
   const [checkinMessage, setCheckinMessage] = useState<string>('');
+  const [isPromptPayOpen, setIsPromptPayOpen] = useState<boolean>(false);
 
   const handleUpdatePassenger = (
     index: number,
@@ -513,7 +516,7 @@ export default function GuestTicketPortal({
           </div>
 
           {booking.remainingAmountThb > 0 ? (
-            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-2">
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 space-y-3">
               <div className="flex items-baseline justify-between">
                 <span className="text-xs text-amber-200">Tur Sabahı Ödenecek Kalan:</span>
                 <span className="text-xl font-black font-mono text-amber-400">
@@ -521,8 +524,16 @@ export default function GuestTicketPortal({
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
-                💵 Lütfen bu tutarı tur sabahı aracımıza binerken şoförümüze veya limandaki Türkçe rehberimize *nakit Baht* olarak teslim ediniz.
+                💵 Bu tutarı tur sabahı şoförümüze nakit teslim edebilir veya aşağıdaki butondan PromptPay QR ile online ödeyebilirsiniz.
               </p>
+              <button
+                type="button"
+                onClick={() => setIsPromptPayOpen(true)}
+                className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition-all cursor-pointer"
+              >
+                <QrCode className="w-4 h-4" />
+                <span>PromptPay QR Kodu ile Hemen Öde ({booking.remainingAmountThb.toLocaleString()} THB)</span>
+              </button>
             </div>
           ) : (
             <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
@@ -836,6 +847,18 @@ export default function GuestTicketPortal({
           </p>
         </div>
       </main>
+
+      {isPromptPayOpen && (
+        <PromptPayQrModal
+          isOpen={isPromptPayOpen}
+          onClose={() => setIsPromptPayOpen(false)}
+          bookingRef={booking.id}
+          customerName={booking.customerName}
+          initialAmountThb={booking.remainingAmountThb}
+          promptPayTarget={managerPhone}
+          showToast={(msg) => alert(msg)}
+        />
+      )}
     </div>
   );
 }

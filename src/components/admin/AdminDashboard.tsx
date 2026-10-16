@@ -115,6 +115,9 @@ import DriverExpenseModal from './DriverExpenseModal';
 import WelcomeBoardModal from './WelcomeBoardModal';
 import TourMediaModal from './TourMediaModal';
 import LuggageExpressModal from './LuggageExpressModal';
+import PierManifestModal from './PierManifestModal';
+import SupplierDispatchModal from './SupplierDispatchModal';
+import PromptPayQrModal from '../shared/PromptPayQrModal';
 import AdminErrorBoundary from './AdminErrorBoundary';
 import {
   loadCmsCollections,
@@ -602,6 +605,34 @@ export default function AdminDashboard({
 
   // Oteller Arası Bagaj Transfer Masası Modalı
   const [isLuggageExpressOpen, setIsLuggageExpressOpen] = useState<boolean>(false);
+
+  // İskele & Kaptan Manifestosu Modalı
+  const [isPierManifestOpen, setIsPierManifestOpen] = useState<boolean>(false);
+
+  // Tedarikçi WhatsApp Sipariş Modalı (Auto-Dispatch)
+  const [isSupplierDispatchOpen, setIsSupplierDispatchOpen] = useState<boolean>(false);
+  const [supplierDispatchBooking, setSupplierDispatchBooking] = useState<Booking | null>(null);
+
+  // PromptPay Canlı QR Modalı
+  const [isPromptPayQrOpen, setIsPromptPayQrOpen] = useState<boolean>(false);
+  const [promptPayQrBooking, setPromptPayQrBooking] = useState<Booking | null>(null);
+
+  const handleUpdateSupplierStatus = (
+    bookingId: string,
+    supplierStatus: 'pending' | 'confirmed' | 'cancelled',
+    supplierRefCode?: string
+  ) => {
+    const updated = bookings.map((b) =>
+      b.id === bookingId
+        ? {
+            ...b,
+            supplierStatus,
+            ...(supplierRefCode ? { supplierRefCode } : {}),
+          }
+        : b
+    );
+    saveBookings(updated);
+  };
 
   // Hızlı Saha & Operasyon Araçları Açılır Menüsü (Mobil / Tablet)
   const [isQuickToolsDropdownOpen, setIsQuickToolsDropdownOpen] = useState<boolean>(false);
@@ -2543,6 +2574,16 @@ export default function AdminDashboard({
 
                 <button
                   type="button"
+                  onClick={() => setIsPierManifestOpen(true)}
+                  className="px-2 py-1 rounded-lg bg-sky-500/10 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 border border-sky-500/20 text-[11px] font-bold transition-all flex items-center gap-1 cursor-pointer"
+                  title="İskele & Tekne Kaptan Manifestosu (Chalong, Rassada, Ao Po, Royal Marina)"
+                >
+                  <Ship className="w-3 h-3 text-sky-600 dark:text-sky-400" />
+                  <span>İskele Manifestosu</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => {
                     setCashierBooking(null);
                     setIsFieldCashierOpen(true);
@@ -2665,6 +2706,17 @@ export default function AdminDashboard({
                       >
                         <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
                         <span>Diyet & Medikal Manifesto</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsPierManifestOpen(true);
+                          setIsQuickToolsDropdownOpen(false);
+                        }}
+                        className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-600 transition-colors text-left"
+                      >
+                        <Ship className="w-3.5 h-3.5 text-sky-600" />
+                        <span>İskele & Kaptan Manifestosu</span>
                       </button>
                       <button
                         type="button"
@@ -2915,6 +2967,14 @@ export default function AdminDashboard({
                 { ...b, status: nextStatus },
                 `Durum güncellendi: ${statusLabels[nextStatus] || nextStatus}`
               );
+            }}
+            onOpenSupplierDispatch={(b) => {
+              setSupplierDispatchBooking(b);
+              setIsSupplierDispatchOpen(true);
+            }}
+            onOpenPromptPayQr={(b) => {
+              setPromptPayQrBooking(b);
+              setIsPromptPayQrOpen(true);
             }}
           />
         )}
@@ -3552,6 +3612,67 @@ export default function AdminDashboard({
           onClose={() => setIsLuggageExpressOpen(false)}
           bookings={bookings}
           drivers={drivers}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 24: İSKELE & KAPTAN OPERASYON MANİFESTOSU */}
+      {/* ==================================================== */}
+      {isPierManifestOpen && (
+        <PierManifestModal
+          isOpen={isPierManifestOpen}
+          onClose={() => setIsPierManifestOpen(false)}
+          bookings={bookings}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 25: TEDARİKÇİ WHATSAPP SİPARİŞİ (AUTO-DISPATCH) */}
+      {/* ==================================================== */}
+      {isSupplierDispatchOpen && supplierDispatchBooking && (
+        <SupplierDispatchModal
+          isOpen={isSupplierDispatchOpen}
+          onClose={() => {
+            setIsSupplierDispatchOpen(false);
+            setSupplierDispatchBooking(null);
+          }}
+          booking={supplierDispatchBooking}
+          suppliers={suppliers}
+          onUpdateBookingSupplierStatus={handleUpdateSupplierStatus}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 26: PROMPTPAY CANLI QR ÖDEME MODALI */}
+      {/* ==================================================== */}
+      {isPromptPayQrOpen && promptPayQrBooking && (
+        <PromptPayQrModal
+          isOpen={isPromptPayQrOpen}
+          onClose={() => {
+            setIsPromptPayQrOpen(false);
+            setPromptPayQrBooking(null);
+          }}
+          bookingRef={promptPayQrBooking.ticketCode || promptPayQrBooking.id}
+          customerName={promptPayQrBooking.customerName}
+          initialAmountThb={
+            (promptPayQrBooking.remainingAmountThb || 0) > 0
+              ? promptPayQrBooking.remainingAmountThb
+              : promptPayQrBooking.totalPriceThb
+          }
+          promptPayTarget={siteSettings.whatsappNumber}
+          onMarkPaid={(amt) => {
+            handleAddPayment({
+              bookingId: promptPayQrBooking.id,
+              amountThb: amt,
+              method: 'promptpay',
+              collectedBy: 'PromptPay QR (Online/Saha)',
+              note: `PromptPay ile tahsil edildi (${promptPayQrBooking.customerName})`,
+            });
+            showToast(`✅ ${amt.toLocaleString()} THB PromptPay tahsilatı işlendi!`);
+          }}
           showToast={showToast}
         />
       )}

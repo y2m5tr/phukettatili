@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { formatDisplayPrice, type DisplayCurrency } from '../../lib/siteCurrency';
+import PromptPayQrModal from '../shared/PromptPayQrModal';
 
 interface TourQuickBookingDrawerProps {
   tourTitle: string;
@@ -15,6 +16,7 @@ export default function TourQuickBookingDrawer({
   whatsappNumber = '66828950665',
 }: TourQuickBookingDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isPromptPayOpen, setIsPromptPayOpen] = useState(false);
   const [date, setDate] = useState(() => {
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
@@ -231,6 +233,15 @@ export default function TourQuickBookingDrawer({
 
                   <button
                     type="button"
+                    onClick={() => setIsPromptPayOpen(true)}
+                    className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition cursor-pointer"
+                  >
+                    <span>📱</span>
+                    <span>PromptPay Canlı QR ile Öde</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={() => setIsOpen(false)}
                     className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
                   >
@@ -389,6 +400,18 @@ export default function TourQuickBookingDrawer({
 
           </div>
         </div>
+      )}
+
+      {isPromptPayOpen && (
+        <PromptPayQrModal
+          isOpen={isPromptPayOpen}
+          onClose={() => setIsPromptPayOpen(false)}
+          bookingRef={submitSuccess?.ticketCode || 'WEB-BOOKING'}
+          customerName={customerName}
+          initialAmountThb={totalThb}
+          promptPayTarget={whatsappNumber}
+          showToast={(msg) => alert(msg)}
+        />
       )}
     </>
   );

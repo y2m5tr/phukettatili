@@ -158,6 +158,31 @@ export default function DriverExpenseModal({
     return getDriverExpenseWhatsAppUrl(activeDriver.phone || driverPhone, whatsappMessage);
   }, [activeDriver, driverPhone, whatsappMessage]);
 
+  const [isHandoverVerified, setIsHandoverVerified] = useState(false);
+
+  const handleVerifyHandover = () => {
+    setIsHandoverVerified(true);
+    if (onAddFinanceExpense) {
+      settlement.driverExpenses.forEach((exp) => {
+        onAddFinanceExpense({
+          category: 'fuel',
+          amountThb: exp.amountThb,
+          description: `Şoför Saha Fişi (${activeDriver.fullName || activeDriver.name || 'Şoför'} - ${exp.vehiclePlate}): ${exp.description}`,
+          date: exp.date,
+        });
+      });
+      if (settlement.netHandoverToOfficeThb > 0) {
+        onAddFinanceExpense({
+          category: 'driver_handover_cash',
+          amountThb: settlement.netHandoverToOfficeThb,
+          description: `🤝 Şoför Gün Sonu Kasa Teslimi: ${activeDriver.fullName || activeDriver.name} (Tarih: ${selectedDate})`,
+          date: selectedDate,
+        });
+      }
+    }
+    showToast(`✅ ${settlement.netHandoverToOfficeThb.toLocaleString()} THB şoför nakit teslimi onaylandı ve kasaya işlendi!`);
+  };
+
   const handleSyncToFinance = () => {
     if (onAddFinanceExpense && settlement.driverExpenses.length > 0) {
       settlement.driverExpenses.forEach((exp) => {
@@ -445,14 +470,31 @@ export default function DriverExpenseModal({
               <span>🇹🇭 Şoföre Hesap Özeti Gönder (WhatsApp)</span>
             </a>
 
-            {onAddFinanceExpense && settlement.driverExpenses.length > 0 && (
+            {isHandoverVerified ? (
+              <span className="px-3.5 py-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold text-xs flex items-center gap-1.5 border border-emerald-300 dark:border-emerald-800">
+                <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>✓ Kasaya Teslim Alındı ({settlement.netHandoverToOfficeThb.toLocaleString()} THB)</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={handleVerifyHandover}
+                className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm cursor-pointer"
+                title="Şoförün getirdiği nakit Baht'ı ofis kasasına teslim al ve mühürle"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>🤝 Nakit Teslim Alındı ({settlement.netHandoverToOfficeThb.toLocaleString()} THB)</span>
+              </button>
+            )}
+
+            {onAddFinanceExpense && settlement.driverExpenses.length > 0 && !isHandoverVerified && (
               <button
                 type="button"
                 onClick={handleSyncToFinance}
                 className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
               >
                 <Wallet className="w-3.5 h-3.5" />
-                <span>Kasaya Senkronize Et</span>
+                <span>Masrafları Kasaya İşle</span>
               </button>
             )}
           </div>

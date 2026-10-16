@@ -14,6 +14,7 @@ import {
   MapPin,
   CheckCircle2,
   AlertCircle,
+  QrCode,
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
 import {
@@ -24,6 +25,7 @@ import {
   getCashPaymentSlipWhatsAppUrl,
 } from '../../lib/exchangeRates';
 import { DEFAULT_EXCHANGE_RATES } from '../../data/adminInitialData';
+import PromptPayQrModal from '../shared/PromptPayQrModal';
 
 interface FieldCashierModalProps {
   isOpen: boolean;
@@ -70,6 +72,7 @@ export default function FieldCashierModal({
   const [paidAmount, setPaidAmount] = useState<number>(100);
   const [customRate, setCustomRate] = useState<number>(0);
   const [copied, setCopied] = useState<boolean>(false);
+  const [isPromptPayOpen, setIsPromptPayOpen] = useState<boolean>(false);
 
   // Load live rates
   useEffect(() => {
@@ -544,6 +547,16 @@ export default function FieldCashierModal({
               <span>{copied ? 'Kopyalandı!' : 'Makbuzu Kopyala'}</span>
             </button>
 
+            <button
+              type="button"
+              onClick={() => setIsPromptPayOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-sky-500/10 hover:bg-sky-600 hover:text-white text-xs font-bold text-sky-700 dark:text-sky-300 transition-all flex items-center gap-1.5 cursor-pointer border border-sky-500/20"
+              title="Misafire PromptPay Canlı QR Kodunu Göster"
+            >
+              <QrCode className="w-3.5 h-3.5 text-sky-500" />
+              <span>PromptPay QR</span>
+            </button>
+
             {onRecordPayment && (
               <button
                 type="button"
@@ -577,6 +590,28 @@ export default function FieldCashierModal({
           </div>
         </div>
       </div>
+
+      {isPromptPayOpen && (
+        <PromptPayQrModal
+          isOpen={isPromptPayOpen}
+          onClose={() => setIsPromptPayOpen(false)}
+          bookingRef={selectedBookingId || 'SAHA-KASA'}
+          customerName={guestName}
+          initialAmountThb={dueAmountThb}
+          onMarkPaid={(amt) => {
+            if (onRecordPayment) {
+              onRecordPayment({
+                bookingId: selectedBookingId || undefined,
+                amountThb: amt,
+                method: 'promptpay',
+                note: `PromptPay QR Tahsilatı (${guestName || 'Misafir'} - ${collectorName})`,
+              });
+              showToast(`✅ ${amt.toLocaleString()} THB PromptPay tahsilatı kasaya kaydedildi!`);
+            }
+          }}
+          showToast={showToast}
+        />
+      )}
     </div>
   );
 }
