@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Building2,
   Calendar,
@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   ChevronRight,
   Sparkles,
+  Coins,
 } from 'lucide-react';
 import type { PartnerAgent, TourItem, Booking } from '../../data/adminInitialData';
 import {
@@ -23,7 +24,13 @@ import {
   getRecommendedPickupTime,
   calculateAgentCommission,
   getPhuketSeason,
+  DEFAULT_EXCHANGE_RATES,
 } from '../../data/adminInitialData';
+import {
+  getLiveExchangeRates,
+  convertThbToForeign,
+  type SupportedCurrency,
+} from '../../lib/exchangeRates';
 
 interface AgentPortalAppProps {
   agent: PartnerAgent;
@@ -86,6 +93,36 @@ export default function AgentPortalApp({
 
   const recommendedPickup = getRecommendedPickupTime(hotelZone);
   const season = getPhuketSeason(tourDate);
+
+  // Çoklu Para Birimi (Canlı Döviz Desteği)
+  const [displayCurrency, setDisplayCurrency] = useState<SupportedCurrency | 'THB'>('THB');
+  const [exchangeRates, setExchangeRates] = useState<Record<SupportedCurrency, number>>(DEFAULT_EXCHANGE_RATES);
+
+  useEffect(() => {
+    let isMounted = true;
+    getLiveExchangeRates().then((data) => {
+      if (isMounted && data.rates) {
+        setExchangeRates(data.rates);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const formatWithCurrency = (thb: number): string => {
+    if (displayCurrency === 'THB') return `${thb.toLocaleString()} THB`;
+    const converted = convertThbToForeign(thb, displayCurrency, exchangeRates);
+    const sym =
+      displayCurrency === 'TRY'
+        ? 'TL'
+        : displayCurrency === 'USD'
+        ? '$'
+        : displayCurrency === 'EUR'
+        ? '€'
+        : '£';
+    return `${thb.toLocaleString()} THB (~${converted.toLocaleString()} ${sym})`;
+  };
 
   // Acentanın Kendi Rezervasyonları Listesi
   const [agentBookings, setAgentBookings] = useState<Booking[]>(() => {
@@ -616,9 +653,28 @@ export default function AgentPortalApp({
               <div className="lg:col-span-4 space-y-6">
                 <div className="p-6 rounded-3xl bg-slate-900 border border-slate-800 sticky top-20 space-y-5">
                   <div>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block mb-1">
-                      Finansal Özet & Cari Hakediş
-                    </span>
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">
+                        Finansal Özet & Cari Hakediş
+                      </span>
+                      {/* Currency Selector */}
+                      <div className="flex items-center gap-1 bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+                        {(['THB', 'TRY', 'USD', 'EUR'] as const).map((curr) => (
+                          <button
+                            key={curr}
+                            type="button"
+                            onClick={() => setDisplayCurrency(curr)}
+                            className={`px-1.5 py-0.5 rounded text-[10px] font-bold font-mono transition ${
+                              displayCurrency === curr
+                                ? 'bg-amber-500 text-slate-950 shadow-xs'
+                                : 'text-slate-400 hover:text-white'
+                            }`}
+                          >
+                            {curr}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <h3 className="text-lg font-bold text-white font-serif">
                       Fiyat & Komisyon Dağılımı
                     </h3>
@@ -639,7 +695,14 @@ export default function AgentPortalApp({
 
                     <div className="flex justify-between items-center text-slate-300 font-bold pt-2 border-t border-slate-800/60">
                       <span>Toplam Satış Bedeli</span>
-                      <span className="text-white font-mono text-sm">{totalPriceThb.toLocaleString()} THB</span>
+                      <div className="text-right">
+                        <span className="text-white font-mono text-sm block">{totalPriceThb.toLocaleString()} THB</span>
+                        {displayCurrency !== 'THB' && (
+                          <span className="text-[11px] text-amber-400 font-mono font-semibold">
+                            ≈ {convertThbToForeign(totalPriceThb, displayCurrency, exchangeRates).toLocaleString()} {displayCurrency}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {/* Acenta Komisyonu Vurgusu */}
@@ -650,14 +713,28 @@ export default function AgentPortalApp({
                           {agent.commissionType === 'percentage' ? `%${agent.commissionRate} oranında` : 'Kişi başı sabit'}
                         </span>
                       </div>
-                      <span className="text-base font-black font-mono">
-                        +{myCommissionThb.toLocaleString()} THB
-                      </span>
+                      <div className="text-right">
+                        <span className="text-base font-black font-mono block">
+                          +{myCommissionThb.toLocaleString()} THB
+                        </span>
+                        {displayCurrency !== 'THB' && (
+                          <span className="text-[10px] text-amber-400/90 font-mono font-semibold">
+                            ≈ {convertThbToForeign(myCommissionThb, displayCurrency, exchangeRates).toLocaleString()} {displayCurrency}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex justify-between items-center text-slate-400 pt-1">
                       <span>Phuket Tatili Net Hakediş:</span>
-                      <span className="text-slate-200 font-mono font-semibold">{netPayableThb.toLocaleString()} THB</span>
+                      <div className="text-right">
+                        <span className="text-slate-200 font-mono font-semibold block">{netPayableThb.toLocaleString()} THB</span>
+                        {displayCurrency !== 'THB' && (
+                          <span className="text-[10px] text-slate-400 font-mono">
+                            ≈ {convertThbToForeign(netPayableThb, displayCurrency, exchangeRates).toLocaleString()} {displayCurrency}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
 

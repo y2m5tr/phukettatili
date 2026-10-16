@@ -14,10 +14,12 @@ import {
   Clock,
   Filter,
   List,
+  Send,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
 import type { Booking, VehicleItem, DriverItem } from '../../data/adminInitialData';
+import BulkDispatchModal from './BulkDispatchModal';
 
 interface TransfersTabProps {
   bookings: Booking[];
@@ -82,6 +84,7 @@ export default function TransfersTab({
   const pendingCount = dailyPickups.filter((p) => !p.pickupStatus || p.pickupStatus === 'pending').length;
 
   const [viewMode, setViewMode] = useState<'table' | 'routes'>('table');
+  const [isBulkDispatchOpen, setIsBulkDispatchOpen] = useState(false);
 
   // Hat bazlı rota sıralaması: her araç için oteller saat ve bölgeye göre sıralanır
   const vehicleRoutes = useMemo(() => {
@@ -269,8 +272,18 @@ export default function TransfersTab({
 
           <button
             type="button"
+            onClick={() => setIsBulkDispatchOpen(true)}
+            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-black shadow-md shadow-emerald-600/30 flex items-center gap-1.5 transition-all cursor-pointer"
+            title="Gündeki tüm misafirlere WhatsApp lobi ve biniş hatırlatmalarını sırayla gönder"
+          >
+            <Send className="w-4 h-4" />
+            <span>🚀 Toplu WhatsApp Gönderici</span>
+          </button>
+
+          <button
+            type="button"
             onClick={handleCopyManifest}
-            className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all"
+            className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs sm:text-sm font-bold shadow-md flex items-center gap-1.5 transition-all"
           >
             <Copy className="w-4 h-4" />
             <span>Şoför İçin Kopyala</span>
@@ -870,6 +883,15 @@ export default function TransfersTab({
             </div>
           )}
         </div>
+      )}
+
+      {isBulkDispatchOpen && (
+        <BulkDispatchModal
+          pickups={dailyPickups}
+          manifestDate={manifestDate}
+          onClose={() => setIsBulkDispatchOpen(false)}
+          showToast={showToast}
+        />
       )}
     </div>
   );

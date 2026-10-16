@@ -940,4 +940,80 @@ export function lookupTourCost(
   return tourCosts.find((c) => tourMatches(c));
 }
 
+/* ---------------------------------------------------------------------------
+   FAZ 6: AKILLI GİDER & YAKIT / OPERASYON MALİYETLERİ
+   ------------------------------------------------------------------------- */
+export type ExpenseCategory =
+  | 'fuel'
+  | 'guide_wage'
+  | 'pier_fee'
+  | 'national_park'
+  | 'vehicle_maintenance'
+  | 'office_overhead'
+  | 'other';
+
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategory, { label: string; icon: string }> = {
+  fuel: { label: 'Minibüs & Tekne Yakıtı (Dizel)', icon: '⛽' },
+  guide_wage: { label: 'Rehber & Şoför Yevmiyesi', icon: '🗣️' },
+  pier_fee: { label: 'İskele / Liman / Palamar Harcı', icon: '⚓' },
+  national_park: { label: 'Millî Park Toplu Gişe Ödemesi', icon: '🏞️' },
+  vehicle_maintenance: { label: 'Araç / Tekne Bakım & Yıkama', icon: '🔧' },
+  office_overhead: { label: 'Ofis & İletişim / Saha Gideri', icon: '🏢' },
+  other: { label: 'Diğer Operasyonel Harcama', icon: '📦' },
+};
+
+export interface ExpenseRecord {
+  id: string;
+  date: string;
+  category: ExpenseCategory;
+  title: string;
+  amountThb: number;
+  paidFromAccount: 'office_cash' | 'kbank' | 'tr_bank' | 'wise';
+  assignedVehicle?: string;
+  assignedTour?: string;
+  recordedBy: string;
+  note?: string;
+  createdAt: string;
+}
+
+export const initialExpenses: ExpenseRecord[] = [
+  {
+    id: 'EXP-101',
+    date: '2026-10-14',
+    category: 'fuel',
+    title: '1 Nolu Minibüs Dizel Yakıt Dolumu (PTT Station Patong)',
+    amountThb: 1800,
+    paidFromAccount: 'office_cash',
+    assignedVehicle: '1 Nolu Hat (Kuzey-Similan)',
+    recordedBy: 'Somchai (Şoför)',
+    note: '52 litre B7 dizel yakıt alındı',
+    createdAt: '2026-10-14T06:15:00Z',
+  },
+  {
+    id: 'EXP-102',
+    date: '2026-10-14',
+    category: 'guide_wage',
+    title: 'Phi Phi Türkçe Rehberlik Günlük Yevmiyesi',
+    amountThb: 2500,
+    paidFromAccount: 'office_cash',
+    assignedTour: 'Phi Phi & Maya Bay Sürat Teknesi',
+    recordedBy: 'Murat Gençer',
+    note: '14 kişilik grup tam gün Türkçe rehberlik hizmeti',
+    createdAt: '2026-10-14T18:00:00Z',
+  },
+  {
+    id: 'EXP-103',
+    date: '2026-10-15',
+    category: 'pier_fee',
+    title: 'Rassada Pier Tekne Yanaşma & Bagaj Harcı',
+    amountThb: 600,
+    paidFromAccount: 'kbank',
+    assignedTour: 'Phi Phi & Maya Bay Sürat Teknesi',
+    recordedBy: 'Ofis Saha Ekibi',
+    note: 'Rassada Marina resmi liman çıkış fişi',
+    createdAt: '2026-10-15T08:30:00Z',
+  },
+];
+
+
 

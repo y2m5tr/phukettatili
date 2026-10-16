@@ -20,18 +20,24 @@ import {
   Clock,
   Coins,
   RefreshCw,
+  Fuel,
 } from 'lucide-react';
 import {
   type Booking,
   type PaymentRecord,
   type PaymentMethod,
   type CollectionLocation,
+  type ExpenseRecord,
+  type ExpenseCategory,
+  EXPENSE_CATEGORY_LABELS,
+  initialExpenses,
   PAYMENT_METHOD_LABELS,
   COLLECTION_LOCATION_LABELS,
   convertToThb,
   DEFAULT_EXCHANGE_RATES,
 } from '../../data/adminInitialData';
 import { getLiveExchangeRates, type SupportedCurrency } from '../../lib/exchangeRates';
+import { calculateFinancialBreakdown } from '../../lib/profitability';
 
 export type VaultAccountId = 'kbank' | 'office_cash' | 'tr_bank' | 'wise';
 
@@ -93,7 +99,7 @@ export default function FinanceTab({
   setVoucherBooking,
 }: FinanceTabProps) {
   // Alt Görünüm Modu
-  const [subTab, setSubTab] = useState<'ledger' | 'outstanding' | 'accounts' | 'driver_handover'>('ledger');
+  const [subTab, setSubTab] = useState<'ledger' | 'outstanding' | 'accounts' | 'driver_handover' | 'expenses'>('ledger');
   const [settledDrivers, setSettledDrivers] = useState<string[]>([]);
 
   // Döviz Çevirici State'i & Canlı Kurlar
@@ -180,6 +186,77 @@ export default function FinanceTab({
   const [virmanDate, setVirmanDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [virmanBy, setVirmanBy] = useState<string>('Murat Gençer (Ofis)');
   const [virmanNote, setVirmanNote] = useState<string>('');
+
+  // Operasyonel Giderler State'i
+  const STORAGE_KEY_EXPENSES = 'phuket_tatili_crm_expenses_v1';
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>(() => {
+    try {
+      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_EXPENSES) : null;
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return initialExpenses;
+  });
+
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
+  const [expenseTitle, setExpenseTitle] = useState('');
+  const [expenseCategory, setExpenseCategory] = useState<ExpenseCategory>('fuel');
+  const [expenseAmount, setExpenseAmount] = useState<number>(1800);
+  const [expenseAccount, setExpenseAccount] = useState<VaultAccountId>('office_cash');
+  const [expenseVehicle, setExpenseVehicle] = useState<string>('');
+  const [expenseTour, setExpenseTour] = useState<string>('');
+  const [expenseNote, setExpenseNote] = useState<string>('');
+  const [expenseDate, setExpenseDate] = useState<string>(new Date().toISOString().split('T')[0]);
+
+  const handleSaveExpense = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (expenseAmount <= 0) {
+      showToast('⚠️ Geçerli bir gider tutarı giriniz.');
+      return;
+    }
+    if (!expenseTitle.trim()) {
+      showToast('⚠️ Gider açıklaması zorunludur.');
+      return;
+    }
+
+    const newExp: ExpenseRecord = {
+      id: `EXP-${Date.now().toString().slice(-4)}`,
+      date: expenseDate,
+      category: expenseCategory,
+      title: expenseTitle.trim(),
+      amountThb: expenseAmount,
+      paidFromAccount: expenseAccount,
+      assignedVehicle: expenseVehicle ? expenseVehicle.trim() : undefined,
+      assignedTour: expenseTour ? expenseTour.trim() : undefined,
+      recordedBy: 'Murat Gençer (Ofis)',
+      note: expenseNote.trim() || undefined,
+      createdAt: new Date().toISOString(),
+    };
+
+    const updated = [newExp, ...expenses];
+    setExpenses(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY_EXPENSES, JSON.stringify(updated));
+    } catch {}
+
+    setIsExpenseModalOpen(false);
+    setExpenseTitle('');
+    setExpenseAmount(1800);
+    setExpenseNote('');
+    showToast(`✓ ${expenseAmount.toLocaleString()} THB tutarındaki gider kaydedildi! ⛽`);
+  };
+
+  const handleDeleteExpense = (id: string) => {
+    const updated = expenses.filter((e) => e.id !== id);
+    setExpenses(updated);
+    try {
+      localStorage.setItem(STORAGE_KEY_EXPENSES, JSON.stringify(updated));
+    } catch {}
+    showToast('Gider kaydı silindi.');
+  };
+
+  const financialBreakdown = useMemo(() => {
+    return calculateFinancialBreakdown(bookings, expenses);
+  }, [bookings, expenses]);
 
   // 1. Finansal KPI Özet Hesaplamaları
   const validBookings = useMemo(
@@ -271,13 +348,20 @@ export default function FinanceTab({
       }
     });
 
+    // Kasalardan yapılan operasyonel harcamaları (yakıt, yevmiye vb.) düş
+    expenses.forEach((e) => {
+      if (rawBalances[e.paidFromAccount] !== undefined) {
+        rawBalances[e.paidFromAccount] -= e.amountThb;
+      }
+    });
+
     const totalLiquid = Object.values(rawBalances).reduce((sum, b) => sum + b, 0);
 
     return {
       balances: rawBalances,
       totalLiquid,
     };
-  }, [methodTotals, virmans]);
+  }, [methodTotals, virmans, expenses]);
 
   const handleSaveVirman = (e: React.FormEvent) => {
     e.preventDefault();
@@ -660,6 +744,19 @@ export default function FinanceTab({
           >
             <Car className="w-3.5 h-3.5" />
             <span>Şoför Z-Raporu & Teslimat</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setSubTab('expenses')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+              subTab === 'expenses'
+                ? 'bg-rose-600 text-white shadow-2xs font-extrabold'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Fuel className="w-3.5 h-3.5" />
+            <span>Gider & Yakıt ({expenses.length})</span>
           </button>
         </div>
 
@@ -1343,6 +1440,187 @@ export default function FinanceTab({
       )}
 
       {/* ==================================================== */}
+      {/* 5.6 AKILLI GİDER & YAKIT TAKİBİ (OPERATING EXPENSES) */}
+      {/* ==================================================== */}
+      {subTab === 'expenses' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Header & Aksiyon */}
+          <div className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Fuel className="w-5 h-5 text-rose-600 dark:text-rose-400" />
+                <span>Akıllı Gider, Yakıt & Kârlılık Takibi</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Minibüs yakıtı, şoför/rehber yevmiyeleri, liman harçları ve operasyonel harcamaları kaydedin; net faaliyet kârını anında görün.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsExpenseModalOpen(true)}
+                className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-black shadow-md shadow-rose-950/30 flex items-center gap-1.5 transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Yeni Harcama / Fiş Gir</span>
+              </button>
+            </div>
+          </div>
+
+          {/* 4'lü Kârlılık ve Harcama Barometresi */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 1. Ciro */}
+            <div className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                Toplam Tur Satış Hacmi
+              </span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono block">
+                {financialBreakdown.totalRevenueThb.toLocaleString()} THB
+              </span>
+              <span className="text-xs text-slate-500 mt-1 block">Tüm onaylı tur cirosu</span>
+            </div>
+
+            {/* 2. Tedarikçi & Komisyon Maliyeti */}
+            <div className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                Tedarikçi & Komisyonlar
+              </span>
+              <span className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono block">
+                -{(financialBreakdown.totalSupplierCostThb + financialBreakdown.totalCommissionThb).toLocaleString()} THB
+              </span>
+              <span className="text-xs text-slate-500 mt-1 block">
+                Tekne alış: {financialBreakdown.totalSupplierCostThb.toLocaleString()} + Acente kom: {financialBreakdown.totalCommissionThb.toLocaleString()}
+              </span>
+            </div>
+
+            {/* 3. Operasyonel Saha Giderleri */}
+            <div className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
+                Saha & Araç Harcamaları
+              </span>
+              <span className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono block">
+                -{financialBreakdown.totalOperatingExpensesThb.toLocaleString()} THB
+              </span>
+              <span className="text-xs text-slate-500 mt-1 block">
+                Yakıt, yevmiye ve liman harçları
+              </span>
+            </div>
+
+            {/* 4. Net Faaliyet Kârı */}
+            <div className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-emerald-500/30 dark:border-emerald-500/30 shadow-sm bg-emerald-500/5">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                  Net İşletme Kârı
+                </span>
+                <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 font-mono">
+                  %{financialBreakdown.profitMarginPercent} Marj
+                </span>
+              </div>
+              <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono block">
+                +{financialBreakdown.netOperatingProfitThb.toLocaleString()} THB
+              </span>
+              <span className="text-xs text-slate-500 mt-1 block">
+                Tüm maliyetler sonrası net nakit kâr
+              </span>
+            </div>
+          </div>
+
+          {/* Gider Tablosu */}
+          <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                Kaydedilen Harcama Fişleri ({expenses.length})
+              </h4>
+              <span className="text-xs text-slate-400 font-mono">
+                Toplam Gider: {financialBreakdown.totalOperatingExpensesThb.toLocaleString()} THB
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-500 uppercase text-[10px] font-bold border-b border-slate-100 dark:border-slate-800">
+                  <tr>
+                    <th className="py-3 px-4">Fiş No & Tarih</th>
+                    <th className="py-3 px-4">Kategori</th>
+                    <th className="py-3 px-4">Harcama Açıklaması</th>
+                    <th className="py-3 px-4">İlgili Araç / Tur</th>
+                    <th className="py-3 px-4">Ödenen Kasa</th>
+                    <th className="py-3 px-4">Tutar (THB)</th>
+                    <th className="py-3 px-4 text-right">İşlem</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {expenses.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="py-12 text-center text-slate-400">
+                        Henüz gider kaydı bulunmuyor. Yeni harcama eklemek için yukarıdaki butonu kullanabilirsiniz.
+                      </td>
+                    </tr>
+                  ) : (
+                    expenses.map((exp) => {
+                      const cat = EXPENSE_CATEGORY_LABELS[exp.category] || { label: exp.category, icon: '📦' };
+                      const vault = VAULT_ACCOUNTS[exp.paidFromAccount];
+                      return (
+                        <tr key={exp.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="py-3.5 px-4">
+                            <span className="font-mono font-bold text-slate-900 dark:text-white block">{exp.id}</span>
+                            <span className="text-[10px] text-slate-400">{exp.date}</span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200">
+                              <span>{cat.icon}</span>
+                              <span>{cat.label}</span>
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="font-medium text-slate-800 dark:text-slate-200 block">{exp.title}</span>
+                            {exp.note && <span className="text-[10px] text-slate-400 block mt-0.5">{exp.note}</span>}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            {exp.assignedVehicle ? (
+                              <span className="text-[10px] font-semibold text-sky-600 dark:text-sky-400 block">
+                                🚐 {exp.assignedVehicle}
+                              </span>
+                            ) : exp.assignedTour ? (
+                              <span className="text-[10px] font-semibold text-purple-600 dark:text-purple-400 block">
+                                🏝️ {exp.assignedTour}
+                              </span>
+                            ) : (
+                              <span className="text-[10px] text-slate-400">Genel Merkez</span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                              <span>{vault?.icon || '🏦'}</span>
+                              <span>{vault?.name || exp.paidFromAccount}</span>
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 font-mono font-black text-rose-600 dark:text-rose-400">
+                            -{exp.amountThb.toLocaleString()} THB
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteExpense(exp.id)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 transition"
+                              title="Gider Kaydını Sil"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
       {/* 6. HIZLI TAHSİLAT AL MODALI */}
       {/* ==================================================== */}
       {isCollectModalOpen && (
@@ -1773,6 +2051,193 @@ export default function FinanceTab({
                 >
                   <ArrowRightLeft className="w-3.5 h-3.5" />
                   <span>Virmanı Kaydet</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================================================== */}
+      {/* 8. YENİ HARCAMA / GİDER FİŞİ GİRİŞ MODALI */}
+      {/* ==================================================== */}
+      {isExpenseModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-xs animate-fade-in">
+          <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 w-full max-w-lg shadow-2xl overflow-hidden animate-scale-up">
+            <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-rose-500/10 text-rose-600 dark:text-rose-400">
+                  <Fuel className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-sm">
+                    Yeni Harcama / Gider Fişi Gir
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Ödeme yapılan kasadan otomatik düşülecektir.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsExpenseModalOpen(false)}
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveExpense} className="p-6 space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Harcama Açıklaması *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={expenseTitle}
+                  onChange={(e) => setExpenseTitle(e.target.value)}
+                  placeholder="Örn: 1 Nolu Minibüs Dizel Yakıt (PTT Patong)"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Gider Kategorisi *
+                  </label>
+                  <select
+                    value={expenseCategory}
+                    onChange={(e) => setExpenseCategory(e.target.value as ExpenseCategory)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none"
+                  >
+                    {(Object.keys(EXPENSE_CATEGORY_LABELS) as ExpenseCategory[]).map((catKey) => {
+                      const item = EXPENSE_CATEGORY_LABELS[catKey];
+                      return (
+                        <option key={catKey} value={catKey}>
+                          {item.icon} {item.label}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Ödemenin Çıktığı Kasa *
+                  </label>
+                  <select
+                    value={expenseAccount}
+                    onChange={(e) => setExpenseAccount(e.target.value as VaultAccountId)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none"
+                  >
+                    {(Object.keys(VAULT_ACCOUNTS) as VaultAccountId[]).map((k) => (
+                      <option key={k} value={k}>
+                        {VAULT_ACCOUNTS[k].icon} {VAULT_ACCOUNTS[k].name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Tutar (THB) *
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={expenseAmount || ''}
+                    onChange={(e) => setExpenseAmount(Math.max(1, parseInt(e.target.value) || 0))}
+                    className="w-full pl-3 pr-14 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-black font-mono text-slate-900 dark:text-white focus:outline-none"
+                  />
+                  <span className="absolute right-3.5 top-2 text-xs font-bold text-slate-400 font-mono">THB</span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-1.5">
+                  {[500, 1000, 1800, 2500, 5000].map((amt) => (
+                    <button
+                      key={amt}
+                      type="button"
+                      onClick={() => setExpenseAmount(amt)}
+                      className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                    >
+                      {amt.toLocaleString()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    Tarih *
+                  </label>
+                  <input
+                    type="date"
+                    required
+                    value={expenseDate}
+                    onChange={(e) => setExpenseDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                    İlgili Araç / Hat (Opsiyonel)
+                  </label>
+                  <input
+                    type="text"
+                    value={expenseVehicle}
+                    onChange={(e) => setExpenseVehicle(e.target.value)}
+                    placeholder="Örn: 1 Nolu Hat"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  İlgili Tur Adı (Opsiyonel)
+                </label>
+                <input
+                  type="text"
+                  value={expenseTour}
+                  onChange={(e) => setExpenseTour(e.target.value)}
+                  placeholder="Örn: Phi Phi & Maya Bay Sürat Teknesi"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">
+                  Ek Not / Fiş Detayı
+                </label>
+                <input
+                  type="text"
+                  value={expenseNote}
+                  onChange={(e) => setExpenseNote(e.target.value)}
+                  placeholder="Örn: 52 Litre B7 dizel yakıt alındı, fiş ofiste"
+                  className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsExpenseModalOpen(false)}
+                  className="px-4 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                >
+                  Vazgeç
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-md shadow-rose-950/20 flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Fuel className="w-3.5 h-3.5" />
+                  <span>Gideri Kasaya İşle</span>
                 </button>
               </div>
             </form>
