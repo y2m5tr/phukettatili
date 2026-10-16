@@ -1,0 +1,829 @@
+import React, { useState } from 'react';
+import {
+  Save,
+  ListChecks,
+  Compass,
+  Trash2,
+  Image,
+  HelpCircle,
+  Upload,
+  Clock,
+  FileText,
+  Plus,
+} from 'lucide-react';
+import type { TourItem } from '../../data/adminInitialData';
+
+interface TourModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  editingTour: TourItem | null;
+  tourFormData: Partial<TourItem>;
+  setTourFormData: React.Dispatch<React.SetStateAction<Partial<TourItem>>>;
+  onSubmit: (e: React.FormEvent) => void;
+  getImageUrl?: (url?: string) => string;
+}
+
+export default function TourModal({
+  isOpen,
+  onClose,
+  editingTour,
+  tourFormData,
+  setTourFormData,
+  onSubmit,
+  getImageUrl = (url?: string) => {
+    if (!url) return '/images/hero-bg.webp';
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) return url;
+    return `/images/${url}`;
+  },
+}: TourModalProps) {
+  if (!isOpen) return null;
+
+  const [tourActiveTab, setTourActiveTab] = useState<
+    'general' | 'photos' | 'itinerary' | 'inclusions' | 'faqs' | 'notes'
+  >('general');
+
+  const [tempProgramItem, setTempProgramItem] = useState<string>('');
+  const [tempIncludedItem, setTempIncludedItem] = useState<string>('');
+  const [tempExcludedItem, setTempExcludedItem] = useState<string>('');
+  const [tempFaqQ, setTempFaqQ] = useState<string>('');
+  const [tempFaqA, setTempFaqA] = useState<string>('');
+  const [tempRestrictionItem, setTempRestrictionItem] = useState<string>('');
+
+  return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-surface-2 w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="text-xl font-bold font-serif text-slate-900 dark:text-white">
+                  {editingTour ? `Turu Düzenle: ${editingTour.title}` : 'Yeni Tur Ekle'}
+                </h2>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  Fiyatlar, fotoğraflar, tur akışı, dahil olanlar ve tüm operasyonel ayrıntılar
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onClose()}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-white rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Sub-Tabs Bar */}
+            <div className="px-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto py-2.5 bg-slate-50/50 dark:bg-slate-900/40 shrink-0">
+              <button
+                type="button"
+                onClick={() => setTourActiveTab('general')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  tourActiveTab === 'general'
+                    ? 'bg-brand-primary text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Compass className="w-3.5 h-3.5" />
+                <span>Genel Bilgiler</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTourActiveTab('photos')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  tourActiveTab === 'photos'
+                    ? 'bg-brand-primary text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Image className="w-3.5 h-3.5" />
+                <span>Fotoğraflar & Galeri ({(tourFormData.gallery || []).length + 1})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTourActiveTab('itinerary')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  tourActiveTab === 'itinerary'
+                    ? 'bg-brand-primary text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5" />
+                <span>Tur Akışı & Program ({(tourFormData.program || []).length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTourActiveTab('inclusions')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  tourActiveTab === 'inclusions'
+                    ? 'bg-brand-primary text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
+              >
+                <ListChecks className="w-3.5 h-3.5" />
+                <span>Dahil & Hariç</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTourActiveTab('faqs')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  tourActiveTab === 'faqs'
+                    ? 'bg-brand-primary text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+                <span>SSS ({(tourFormData.faq || []).length})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTourActiveTab('notes')}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                  tourActiveTab === 'notes'
+                    ? 'bg-brand-primary text-white shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800'
+                }`}
+              >
+                <FileText className="w-3.5 h-3.5" />
+                <span>Kısıtlamalar & Metin</span>
+              </button>
+            </div>
+
+            {/* Modal Body / Form */}
+            <form onSubmit={onSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+              {/* TAB 1: GENEL BİLGİLER */}
+              {tourActiveTab === 'general' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                      Tur Başlığı *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={tourFormData.title || ''}
+                      onChange={(e) => setTourFormData({ ...tourFormData, title: e.target.value })}
+                      placeholder="Örn: Phi Phi, Maya Bay ve Bamboo Adası"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                        Kategori *
+                      </label>
+                      <select
+                        value={tourFormData.category || 'island-tours'}
+                        onChange={(e) => setTourFormData({ ...tourFormData, category: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                      >
+                        <option value="island-tours">Ada Turları</option>
+                        <option value="adventure-tours">Macera & Doğa</option>
+                        <option value="entertainment-tours">Kültür & Şovlar</option>
+                        <option value="private-charters">VIP Yat & Özel</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                        Tur Süresi
+                      </label>
+                      <input
+                        type="text"
+                        value={tourFormData.duration || ''}
+                        onChange={(e) => setTourFormData({ ...tourFormData, duration: e.target.value })}
+                        placeholder="Örn: Tam Gün (07:30 - 17:30)"
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                        Kişi Başı Satış Fiyatı (THB)
+                      </label>
+                      <input
+                        type="number"
+                        value={tourFormData.priceThb || 0}
+                        onChange={(e) => setTourFormData({ ...tourFormData, priceThb: Number(e.target.value) })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none font-bold"
+                      />
+                      <span className="text-[11px] text-slate-400 mt-1 block">0 girilirse "Teklif Alın" görünür.</span>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                        Kısa Açıklama (Özet)
+                      </label>
+                      <textarea
+                        rows={2}
+                        value={tourFormData.excerpt || ''}
+                        onChange={(e) => setTourFormData({ ...tourFormData, excerpt: e.target.value })}
+                        placeholder="Tur kartında görünecek 1-2 cümlelik tanıtım..."
+                        className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Supplier & Cost in Tour Editor */}
+                  <div className="p-4 rounded-2xl bg-rose-50/40 dark:bg-rose-950/20 border border-rose-200/80 dark:border-rose-900/40 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                        Tedarikçi Firma / Tekne Operatörü
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="Örn: Andaman Wave Master, Sea Angel vb."
+                        value={tourFormData.supplier || ''}
+                        onChange={(e) => setTourFormData({ ...tourFormData, supplier: e.target.value })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs focus:outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[11px] font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                        Kişi Başı Alış / Maliyet Tutarı (THB)
+                      </label>
+                      <input
+                        type="number"
+                        placeholder="Acente maliyet tutarı"
+                        value={tourFormData.costThb || 0}
+                        onChange={(e) => setTourFormData({ ...tourFormData, costThb: Number(e.target.value) })}
+                        className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-rose-200 dark:border-rose-800 text-xs font-bold text-rose-600 focus:outline-none"
+                      />
+                      <span className="text-[10px] text-slate-400 mt-1 block">Rezervasyonlarda otomatik kâr hesaplamasında kullanılır.</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={tourFormData.featured || false}
+                        onChange={(e) => setTourFormData({ ...tourFormData, featured: e.target.checked })}
+                        className="w-4 h-4 rounded text-brand-accent focus:ring-brand-accent"
+                      />
+                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                        Bu turu Ana Sayfada "Öne Çıkan Turlar" arasına ekle ⭐
+                      </span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 2: FOTOĞRAFLAR & GALERİ */}
+              {tourActiveTab === 'photos' && (
+                <div className="space-y-6">
+                  {/* Kapak Fotoğrafı */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
+                        Ana Kapak Fotoğrafı *
+                      </label>
+                      <label className="cursor-pointer px-3 py-1.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
+                        <Upload className="w-3.5 h-3.5" />
+                        <span>Bilgisayardan Yükle</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFileUpload(file, (url) => {
+                                setTourFormData({ ...tourFormData, image: url });
+                              });
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                      <select
+                        value={tourFormData.image || 'phuket_hero.webp'}
+                        onChange={(e) => setTourFormData({ ...tourFormData, image: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm focus:outline-none"
+                      >
+                        {allImageOptions.map((img) => (
+                          <option key={img} value={img}>
+                            {img.startsWith('data:') ? 'Özel Yüklenen Dosya' : img}
+                          </option>
+                        ))}
+                      </select>
+
+                      <input
+                        type="text"
+                        placeholder="veya direkt görsel URL'si girin..."
+                        value={tourFormData.image || ''}
+                        onChange={(e) => setTourFormData({ ...tourFormData, image: e.target.value })}
+                        className="w-full px-4 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                      />
+                    </div>
+
+                    {tourFormData.image && (
+                      <div className="flex items-center gap-3 pt-2">
+                        <img
+                          src={getImageUrl(tourFormData.image)}
+                          alt="Kapak Önizleme"
+                          className="w-24 h-16 object-cover rounded-xl border border-slate-300 dark:border-slate-700 shadow-sm"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/assets/phuket_hero.webp';
+                          }}
+                        />
+                        <div>
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">Kapak Önizleme</span>
+                          <span className="text-xs font-mono font-semibold text-slate-700 dark:text-slate-300 truncate block max-w-sm">
+                            {tourFormData.image}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Galeri Fotoğrafları */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                          Turdan Fotoğraflar (Galeri)
+                        </span>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Tur sayfasında sergilenecek ek fotoğraflar ({ (tourFormData.gallery || []).length } adet)
+                        </p>
+                      </div>
+
+                      <label className="cursor-pointer px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Galeriye Fotoğraf Yükle</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFileUpload(file, (url) => {
+                                setTourFormData({
+                                  ...tourFormData,
+                                  gallery: [...(tourFormData.gallery || []), url],
+                                });
+                              });
+                            }
+                            e.target.value = '';
+                          }}
+                        />
+                      </label>
+                    </div>
+
+                    {/* Galeri Önizleme Grid */}
+                    {(tourFormData.gallery || []).length > 0 ? (
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2.5 pt-2">
+                        {(tourFormData.gallery || []).map((img, idx) => (
+                          <div key={`${img}-${idx}`} className="relative group">
+                            <img
+                              src={getImageUrl(img)}
+                              alt={`Galeri ${idx + 1}`}
+                              className="w-full h-16 object-cover rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs"
+                            />
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setTourFormData({
+                                  ...tourFormData,
+                                  gallery: (tourFormData.gallery || []).filter((_, i) => i !== idx),
+                                })
+                              }
+                              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center text-[10px] font-bold shadow-md hover:bg-red-600 transition-colors"
+                              title="Fotoğrafı Galeriden Kaldır"
+                            >
+                              ✕
+                            </button>
+                            {idx === 0 && (
+                              <span className="absolute bottom-1 left-1 px-1 py-0.5 rounded bg-black/70 text-white text-[8px] font-bold">
+                                #1
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400 py-3 italic text-center">
+                        Henüz galeri fotoğrafı eklenmemiş. Aşağıdan veya bilgisayarınızdan ekleyebilirsiniz.
+                      </p>
+                    )}
+
+                    {/* Kütüphaneden Seçerek Galeriye Ekle */}
+                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          const selected = e.target.value;
+                          if (selected && !(tourFormData.gallery || []).includes(selected)) {
+                            setTourFormData({
+                              ...tourFormData,
+                              gallery: [...(tourFormData.gallery || []), selected],
+                            });
+                          }
+                          e.target.value = '';
+                        }}
+                        className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                      >
+                        <option value="">+ Kütüphaneden Fotoğraf Seç ve Ekle...</option>
+                        {allImageOptions.map((img) => (
+                          <option key={img} value={img}>
+                            {img.startsWith('data:') ? 'Özel Yüklenen Görsel' : img}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: TUR AKIŞI & PROGRAM */}
+              {tourActiveTab === 'itinerary' && (
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 block mb-1">
+                      Tur Programı & Akış Adımları ({(tourFormData.program || []).length})
+                    </span>
+                    <p className="text-xs text-slate-400 mb-3">
+                      Misafirlerin tur sayfasında gördüğü saat saat zaman çizelgesi.
+                    </p>
+                  </div>
+
+                  {/* List of items */}
+                  <div className="space-y-2">
+                    {(tourFormData.program || []).map((step, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center justify-between p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 gap-2 text-xs"
+                      >
+                        <div className="flex items-center gap-2 flex-1">
+                          <span className="w-6 h-6 rounded-lg bg-brand-primary/10 text-brand-primary dark:text-brand-accent font-bold flex items-center justify-center shrink-0">
+                            {idx + 1}
+                          </span>
+                          <span className="font-medium text-slate-800 dark:text-slate-200">{step}</span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setTourFormData({
+                              ...tourFormData,
+                              program: (tourFormData.program || []).filter((_, i) => i !== idx),
+                            })
+                          }
+                          className="p-1.5 text-slate-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40"
+                          title="Adımı Sil"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add step */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <input
+                      type="text"
+                      value={tempProgramItem}
+                      onChange={(e) => setTempProgramItem(e.target.value)}
+                      placeholder="Örn: 09:30 - Maya Bay kumsalında serbest fotoğraf molası"
+                      className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (tempProgramItem.trim()) {
+                            setTourFormData({
+                              ...tourFormData,
+                              program: [...(tourFormData.program || []), tempProgramItem.trim()],
+                            });
+                            setTempProgramItem('');
+                          }
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (tempProgramItem.trim()) {
+                          setTourFormData({
+                            ...tourFormData,
+                            program: [...(tourFormData.program || []), tempProgramItem.trim()],
+                          });
+                          setTempProgramItem('');
+                        }
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold shrink-0 flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Ekle</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: DAHİL & HARİÇ OLANLAR */}
+              {tourActiveTab === 'inclusions' && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Dahil Olanlar */}
+                  <div className="space-y-3 p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-900">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase text-emerald-800 dark:text-emerald-300">
+                        ✅ Dahil Olanlar ({(tourFormData.included || []).length})
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                      {(tourFormData.included || []).map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-900 text-xs"
+                        >
+                          <span className="text-slate-800 dark:text-slate-200">{item}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTourFormData({
+                                ...tourFormData,
+                                included: (tourFormData.included || []).filter((_, i) => i !== idx),
+                              })
+                            }
+                            className="text-slate-400 hover:text-red-500 p-1"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 pt-2">
+                      <input
+                        type="text"
+                        value={tempIncludedItem}
+                        onChange={(e) => setTempIncludedItem(e.target.value)}
+                        placeholder="Örn: Açık büfe öğle yemeği"
+                        className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-emerald-200 dark:border-emerald-800 text-xs focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (tempIncludedItem.trim()) {
+                            setTourFormData({
+                              ...tourFormData,
+                              included: [...(tourFormData.included || []), tempIncludedItem.trim()],
+                            });
+                            setTempIncludedItem('');
+                          }
+                        }}
+                        className="px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0"
+                      >
+                        + Ekle
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Hariç Olanlar */}
+                  <div className="space-y-3 p-4 rounded-2xl bg-red-50/50 dark:bg-red-950/20 border border-red-200 dark:border-red-900">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase text-red-800 dark:text-red-300">
+                        ❌ Hariç Olanlar ({(tourFormData.excluded || []).length})
+                      </span>
+                    </div>
+
+                    <div className="space-y-1.5 max-h-56 overflow-y-auto">
+                      {(tourFormData.excluded || []).map((item, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-red-100 dark:border-red-900 text-xs"
+                        >
+                          <span className="text-slate-800 dark:text-slate-200">{item}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTourFormData({
+                                ...tourFormData,
+                                excluded: (tourFormData.excluded || []).filter((_, i) => i !== idx),
+                              })
+                            }
+                            className="text-slate-400 hover:text-red-500 p-1"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 pt-2">
+                      <input
+                        type="text"
+                        value={tempExcludedItem}
+                        onChange={(e) => setTempExcludedItem(e.target.value)}
+                        placeholder="Örn: Milli Park Giriş Harcı"
+                        className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-red-200 dark:border-red-800 text-xs focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (tempExcludedItem.trim()) {
+                            setTourFormData({
+                              ...tourFormData,
+                              excluded: [...(tourFormData.excluded || []), tempExcludedItem.trim()],
+                            });
+                            setTempExcludedItem('');
+                          }
+                        }}
+                        className="px-3 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shrink-0"
+                      >
+                        + Ekle
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: TURA ÖZEL SSS */}
+              {tourActiveTab === 'faqs' && (
+                <div className="space-y-4">
+                  <div>
+                    <span className="text-xs font-bold uppercase text-slate-700 dark:text-slate-300 block mb-1">
+                      Tura Özel Sıkça Sorulan Sorular ({(tourFormData.faq || []).length})
+                    </span>
+                    <p className="text-xs text-slate-400 mb-3">
+                      Misafirlerin bu tur sayfasına özel göreceği sorular ve cevapları.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {(tourFormData.faq || []).map((faqItem, idx) => (
+                      <div
+                        key={idx}
+                        className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1 relative group"
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <span className="font-bold text-xs text-slate-900 dark:text-white">
+                            S: {faqItem.q}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTourFormData({
+                                ...tourFormData,
+                                faq: (tourFormData.faq || []).filter((_, i) => i !== idx),
+                              })
+                            }
+                            className="text-slate-400 hover:text-red-500 p-1"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                          C: {faqItem.a}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Add FAQ */}
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-2.5">
+                    <span className="text-xs font-bold uppercase text-brand-primary dark:text-brand-accent block">
+                      + Yeni Soru & Cevap Ekle
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Soru: Örn: Turda vejetaryen yemek var mı?"
+                      value={tempFaqQ}
+                      onChange={(e) => setTempFaqQ(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                    />
+                    <textarea
+                      rows={2}
+                      placeholder="Cevap: Örn: Evet, rezervasyon sırasında belirtirseniz vejetaryen menü hazırlanmaktadır."
+                      value={tempFaqA}
+                      onChange={(e) => setTempFaqA(e.target.value)}
+                      className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (tempFaqQ.trim() && tempFaqA.trim()) {
+                          setTourFormData({
+                            ...tourFormData,
+                            faq: [...(tourFormData.faq || []), { q: tempFaqQ.trim(), a: tempFaqA.trim() }],
+                          });
+                          setTempFaqQ('');
+                          setTempFaqA('');
+                        }
+                      }}
+                      className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold"
+                    >
+                      Soruyu Ekle
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 6: KISITLAMALAR & AÇIKLAMA METNİ */}
+              {tourActiveTab === 'notes' && (
+                <div className="space-y-5">
+                  {/* Restrictions */}
+                  <div className="p-4 rounded-2xl bg-amber-50/40 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 space-y-3">
+                    <span className="text-xs font-bold uppercase text-amber-800 dark:text-amber-300 block">
+                      ⚠️ Katılım Kısıtlamaları & Sağlık Uyarıları ({(tourFormData.restrictions || []).length})
+                    </span>
+
+                    <div className="space-y-1.5">
+                      {(tourFormData.restrictions || []).map((res, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-amber-100 dark:border-amber-900 text-xs"
+                        >
+                          <span className="text-slate-800 dark:text-slate-200">{res}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTourFormData({
+                                ...tourFormData,
+                                restrictions: (tourFormData.restrictions || []).filter((_, i) => i !== idx),
+                              })
+                            }
+                            className="text-slate-400 hover:text-red-500 p-1"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <input
+                        type="text"
+                        value={tempRestrictionItem}
+                        onChange={(e) => setTempRestrictionItem(e.target.value)}
+                        placeholder="Örn: Hamile misafirler ve 1 yaş altı bebekler için uygun değildir"
+                        className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-amber-200 dark:border-amber-800 text-xs focus:outline-none"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (tempRestrictionItem.trim()) {
+                            setTourFormData({
+                              ...tourFormData,
+                              restrictions: [...(tourFormData.restrictions || []), tempRestrictionItem.trim()],
+                            });
+                            setTempRestrictionItem('');
+                          }
+                        }}
+                        className="px-3.5 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shrink-0"
+                      >
+                        + Ekle
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Body Text */}
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                      Tur Detay Yazısı (Açıklama / Markdown)
+                    </label>
+                    <textarea
+                      rows={6}
+                      value={tourFormData.body || ''}
+                      onChange={(e) => setTourFormData({ ...tourFormData, body: e.target.value })}
+                      placeholder="Tur hakkında ayrıntılı açıklama yazısı..."
+                      className="w-full px-4 py-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-mono focus:outline-none"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Modal Footer */}
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <span className="text-[11px] text-slate-400">
+                  {editingTour ? 'Değişiklikler anında yerel veritabanına kaydedilir.' : 'Yeni tur hemen listeye eklenecektir.'}
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => onClose()}
+                    className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
+                  >
+                    Vazgeç
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{editingTour ? 'Değişiklikleri Kaydet' : 'Turu Oluştur'}</span>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+  );
+}
