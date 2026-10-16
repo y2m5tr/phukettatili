@@ -645,20 +645,20 @@ export default function AgentPortalApp({
                     </div>
                     <input
                       type="text"
-                      placeholder={`Örn: ${recommendedPickup}`}
-                      value={customPickupTime !== '' ? customPickupTime : recommendedPickup}
+                      placeholder={`Örn: ${recommendedPickup} - 08:00`}
+                      value={customPickupTime !== '' ? customPickupTime : `${recommendedPickup} - 08:00`}
                       onChange={(e) => setCustomPickupTime(e.target.value)}
                       className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white focus:outline-none focus:border-brand-accent"
                     />
                     <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                      <span className="text-[10px] text-slate-500">Hızlı:</span>
-                      {['06:45', '07:00', '07:15', '07:30', '07:45', '08:00', '08:30'].map((time) => (
+                      <span className="text-[10px] text-slate-500">Hızlı Aralık:</span>
+                      {['07:15 - 07:30', '07:30 - 07:45', '07:45 - 08:00', '08:00 - 08:30', '08:30 - 09:00', '09:00 - 09:15'].map((time) => (
                         <button
                           key={time}
                           type="button"
                           onClick={() => setCustomPickupTime(time)}
                           className={`px-1.5 py-0.5 rounded text-[10px] font-mono transition-colors cursor-pointer ${
-                            (customPickupTime !== '' ? customPickupTime : recommendedPickup) === time
+                            (customPickupTime !== '' ? customPickupTime : `${recommendedPickup} - 08:00`) === time
                               ? 'bg-amber-400 text-slate-950 font-bold'
                               : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
                           }`}

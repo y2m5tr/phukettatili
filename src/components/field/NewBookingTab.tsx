@@ -228,13 +228,13 @@ export default function NewBookingTab({
             </div>
             <input
               type="text"
-              placeholder="Örn: 07:30"
+              placeholder="Örn: 08:30 - 09:00"
               value={newPickupTime}
               onChange={(e) => setNewPickupTime(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-bold text-white focus:outline-none focus:border-amber-400"
             />
             <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-              {['06:45', '07:00', '07:15', '07:30', '07:45', '08:00', '08:30'].map((time) => (
+              {['07:15 - 07:30', '07:30 - 07:45', '07:45 - 08:00', '08:00 - 08:30', '08:30 - 09:00', '09:00 - 09:15'].map((time) => (
                 <button
                   key={time}
                   type="button"
