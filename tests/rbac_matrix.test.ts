@@ -40,7 +40,7 @@ describe('Aşama 3: Role-Based Access Control (RBAC) & Security Matrix', () => {
       const perms = getRolePermissions(null);
       expect(perms.canDeleteBookings).toBe(true);
       expect(perms.canManageUsers).toBe(true);
-      expect(perms.allowedTabs.length).toBe(17);
+      expect(perms.allowedTabs.length).toBe(18);
     });
   });
 

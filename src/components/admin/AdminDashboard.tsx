@@ -170,7 +170,7 @@ const STORAGE_KEY_TOUR_COSTS = 'phuket_tatili_crm_tour_costs_v1';
    ------------------------------------------------------------------------- */
 
 export type AdminTab =
-  | 'overview' | 'bookings' | 'finance' | 'transfers' | 'partners' | 'settlements' | 'suppliers' | 'fleet'
+  | 'overview' | 'bookings' | 'finance' | 'transfers' | 'proposals' | 'partners' | 'settlements' | 'suppliers' | 'fleet'
   | 'tours' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
   | 'whatsapp' | 'settings' | 'users';
 
@@ -264,6 +264,14 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Car,
     description: 'Havalimanı & otel alma/bırakma manifestosu',
     hotkey: '4',
+  },
+  {
+    id: 'proposals',
+    label: 'PDF Teklif Broşürü',
+    shortLabel: 'Teklif',
+    category: 'operations',
+    icon: FileText,
+    description: 'Kişiye özel logolu A4 PDF tur teklifi ve tatil programı stüdyosu',
   },
   {
     id: 'partners',
@@ -3085,6 +3093,23 @@ export default function AdminDashboard({
               );
             }}
           />
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB 2.45: KİŞİYE ÖZEL LOGOLU PDF TUR TEKLİF BROŞÜRÜ STÜDYOSU */}
+        {/* ==================================================== */}
+        {activeTab === 'proposals' && (
+          <div className="w-full">
+            <CuratedProposalModal
+              isOpen={true}
+              isEmbedded={true}
+              onClose={() => setActiveTab('transfers')}
+              showToast={showToast}
+              initialCustomerName="Begüm & Canberk Özkan"
+              initialHotel="The Shore at Katathani"
+              initialZone="Kata & Karon"
+            />
+          </div>
         )}
 
         {/* ==================================================== */}

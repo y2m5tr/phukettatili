@@ -32,6 +32,7 @@ export const ROLE_PERMISSIONS: Record<OpsRole, RolePermissions> = {
       'bookings',
       'finance',
       'transfers',
+      'proposals',
       'partners',
       'settlements',
       'suppliers',
@@ -64,6 +65,7 @@ export const ROLE_PERMISSIONS: Record<OpsRole, RolePermissions> = {
       'bookings',
       'finance',
       'transfers',
+      'proposals',
       'partners',
       'settlements',
       'suppliers',
@@ -97,6 +99,7 @@ export const ROLE_PERMISSIONS: Record<OpsRole, RolePermissions> = {
       'overview',
       'bookings',
       'transfers',
+      'proposals',
       'partners',
       'suppliers',
       'fleet',
@@ -122,7 +125,7 @@ export const ROLE_PERMISSIONS: Record<OpsRole, RolePermissions> = {
   // 🗣️ SAHA OPERASYON / REHBER
   // İskele ve tur operasyonları: transferler, manifestolar, bilet tara, QR check-in
   guide: {
-    allowedTabs: ['transfers', 'bookings', 'whatsapp'],
+    allowedTabs: ['transfers', 'proposals', 'bookings', 'whatsapp'],
     defaultTab: 'transfers',
     canDeleteBookings: false,
     canManageUsers: false,
@@ -136,7 +139,7 @@ export const ROLE_PERMISSIONS: Record<OpsRole, RolePermissions> = {
 
   // 🗣️ ESKİ SAHA ŞİFRESİ (Field)
   field: {
-    allowedTabs: ['transfers', 'bookings', 'whatsapp'],
+    allowedTabs: ['transfers', 'proposals', 'bookings', 'whatsapp'],
     defaultTab: 'transfers',
     canDeleteBookings: false,
     canManageUsers: false,

@@ -54,11 +54,12 @@ import type { TravelStyle, PackageDuration } from '../../lib/holidayPlanner';
 
 interface Props {
   isOpen: boolean;
-  onClose: () => void;
+  onClose?: () => void;
   showToast: (msg: string) => void;
   initialCustomerName?: string;
   initialHotel?: string;
   initialZone?: string;
+  isEmbedded?: boolean;
 }
 
 type EditorTab = 'overview' | 'days' | 'inclusions' | 'financials';
@@ -70,6 +71,7 @@ export default function CuratedProposalModal({
   initialCustomerName = 'Begüm & Canberk Özkan',
   initialHotel = 'The Shore at Katathani',
   initialZone = 'Kata & Karon',
+  isEmbedded = false,
 }: Props) {
   if (!isOpen) return null;
 
@@ -255,19 +257,13 @@ export default function CuratedProposalModal({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="curated-proposal-modal-title"
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 print:p-0 print:bg-white print:fixed print:inset-0"
-    >
-      <div className="relative w-full max-w-7xl bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col max-h-[94vh] overflow-hidden print:max-h-none print:h-auto print:border-none print:shadow-none print:rounded-none">
-        
-        {/* ========================================================= */}
-        {/* ÜST BAR (YAZDIRMA ESNASINDA GİZLENİR) */}
-        {/* ========================================================= */}
-        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 print:hidden bg-slate-50 dark:bg-slate-900/60">
+  const innerContent = (
+    <div className={`relative w-full ${isEmbedded ? 'min-h-[85vh] shadow-sm' : 'max-w-7xl max-h-[94vh] shadow-2xl'} bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden print:max-h-none print:h-auto print:border-none print:shadow-none print:rounded-none`}>
+      
+      {/* ========================================================= */}
+      {/* ÜST BAR (YAZDIRMA ESNASINDA GİZLENİR) */}
+      {/* ========================================================= */}
+      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shrink-0 print:hidden bg-slate-50 dark:bg-slate-900/60">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 text-amber-500 flex items-center justify-center shadow-inner">
               <FileText className="w-5 h-5" />
@@ -1373,6 +1369,20 @@ export default function CuratedProposalModal({
         </div>
 
       </div>
+  );
+
+  if (isEmbedded) {
+    return <div className="w-full animate-fadeIn">{innerContent}</div>;
+  }
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="curated-proposal-modal-title"
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 print:p-0 print:bg-white print:fixed print:inset-0"
+    >
+      {innerContent}
     </div>
   );
 }

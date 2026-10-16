@@ -6,6 +6,7 @@ export type AdminTab =
   | 'bookings'
   | 'finance'
   | 'transfers'
+  | 'proposals'
   | 'partners'
   | 'settlements'
   | 'suppliers'
