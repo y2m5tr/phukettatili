@@ -111,6 +111,10 @@ export interface Booking {
    * rastgele, tahmin edilemez kod atanır (PT-XXXXXXX).
    */
   ticketCode?: string;
+  // WhatsApp Otomasyon & Tetikleme Takibi (Aşama 5)
+  lastWhatsAppNotifiedAt?: string;
+  whatsAppReminderSent?: boolean;
+  whatsAppReviewSent?: boolean;
   createdAt: string;
 }
 

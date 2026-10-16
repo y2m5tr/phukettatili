@@ -3107,8 +3107,13 @@ export default function AdminDashboard({
 
         {/* ==================================================== */}
         {/* TAB 8: WHATSAPP TEMPLATES */}
-        {/* ==================================================== */}
-        {activeTab === 'whatsapp' && <WhatsAppTab />}
+        {activeTab === 'whatsapp' && (
+          <WhatsAppTab
+            bookings={bookings}
+            onUpdateBooking={handleUpdateSingleBooking}
+            showToast={showToast}
+          />
+        )}
 
         {/* ==================================================== */}
         {/* TAB 9: SITE & HERO SETTINGS */}
