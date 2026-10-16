@@ -40,6 +40,7 @@ import {
   Coins,
   Plane,
   Fuel,
+  Luggage,
 } from 'lucide-react';
 import {
   initialBookings,

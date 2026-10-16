@@ -106,4 +106,21 @@ describe('AdminDashboard & TransfersTab deep test', () => {
       );
     }).not.toThrow();
   });
+
+  it('renders AdminDashboard without throwing', () => {
+    expect(() => {
+      renderToString(
+        React.createElement(AdminDashboard, {
+          initialTours,
+          initialBlogs,
+          initialServices,
+          initialFaqs,
+          initialTestimonials,
+          initialSiteSettings,
+          availableImages: ['phuket_hero.webp'],
+          viewerRole: 'owner',
+        })
+      );
+    }).not.toThrow();
+  });
 });
