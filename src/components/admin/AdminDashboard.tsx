@@ -1653,6 +1653,7 @@ export default function AdminDashboard({
         supplierRefCode: formData.supplierRefCode,
         supplierStatus: formData.supplierStatus,
         specialNotes: formData.specialNotes,
+        passengers: formData.passengers || [],
         // Misafir bilet portalı kodu — id tahmin edilebilir olduğu için
         // ayrı rastgele kod atanır (misafire WhatsApp'tan bu gönderilir).
         ticketCode: generateTicketCode(),

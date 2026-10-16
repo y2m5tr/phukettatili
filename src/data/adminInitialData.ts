@@ -32,6 +32,7 @@ export interface PassengerItem {
   birthDate?: string;
   gender?: 'M' | 'F' | 'male' | 'female' | '-';
   dietaryPreference?: DietaryPreference;
+  isChild?: boolean;
 }
 
 export type PaymentMethod =
