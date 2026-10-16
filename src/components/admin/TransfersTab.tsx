@@ -30,6 +30,7 @@ import {
   Star,
   Moon,
   FileText,
+  UserCheck,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
@@ -68,6 +69,7 @@ interface TransfersTabProps {
   onOpenFieldCashier?: () => void;
   onOpenFlightRadar?: () => void;
   onOpenDriverExpense?: () => void;
+  onOpenGuideExpense?: () => void;
   onOpenWelcomeBoard?: (b?: Booking) => void;
   onOpenLuggageExpress?: () => void;
   onOpenCaptainVault?: () => void;
@@ -93,6 +95,7 @@ export default function TransfersTab({
   onOpenFieldCashier,
   onOpenFlightRadar,
   onOpenDriverExpense,
+  onOpenGuideExpense,
   onOpenWelcomeBoard,
   onOpenLuggageExpress,
   onOpenCaptainVault,
@@ -560,6 +563,18 @@ export default function TransfersTab({
             >
               <Fuel className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               <span>⛽ Şoför Masrafı</span>
+            </button>
+          )}
+
+          {onOpenGuideExpense && (
+            <button
+              type="button"
+              onClick={onOpenGuideExpense}
+              className="px-4 py-2 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 text-teal-800 dark:text-teal-300 border border-teal-500/30 text-xs sm:text-sm font-bold shadow-md shadow-teal-500/10 flex items-center gap-1.5 transition-all cursor-pointer"
+              title="Rehber Taksi/Grab, Yemek, Karşılama & Saha Masraf Masası"
+            >
+              <UserCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+              <span>🗣️ Rehber Masrafı</span>
             </button>
           )}
 

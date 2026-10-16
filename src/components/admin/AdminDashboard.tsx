@@ -112,6 +112,7 @@ import DietaryManifestModal from './DietaryManifestModal';
 import FieldCashierModal from './FieldCashierModal';
 import FlightRadarModal from './FlightRadarModal';
 import DriverExpenseModal from './DriverExpenseModal';
+import GuideExpenseModal from './GuideExpenseModal';
 import WelcomeBoardModal from './WelcomeBoardModal';
 import TourMediaModal from './TourMediaModal';
 import LuggageExpressModal from './LuggageExpressModal';
@@ -607,6 +608,9 @@ export default function AdminDashboard({
   // Şoför Saha Yakıt, Otopark & Harç Masraf Masası Modalı
   const [isDriverExpenseOpen, setIsDriverExpenseOpen] = useState<boolean>(false);
 
+  // Rehber Saha Masraf (Taksi, Yemek, Karşılama vb.) Masası Modalı
+  const [isGuideExpenseOpen, setIsGuideExpenseOpen] = useState<boolean>(false);
+
   // VIP Karşılama Tabela Stüdyosu Modalı
   const [isWelcomeBoardOpen, setIsWelcomeBoardOpen] = useState<boolean>(false);
   const [welcomeBoardBooking, setWelcomeBoardBooking] = useState<Booking | null>(null);
@@ -952,6 +956,7 @@ export default function AdminDashboard({
     isFieldCashierOpen ||
     isFlightRadarOpen ||
     isDriverExpenseOpen ||
+    isGuideExpenseOpen ||
     isTourModalOpen ||
     isAddMediaModalOpen ||
     Boolean(assignMediaModal) ||
@@ -3043,6 +3048,7 @@ export default function AdminDashboard({
               setIsFlightRadarOpen(true);
             }}
             onOpenDriverExpense={() => setIsDriverExpenseOpen(true)}
+            onOpenGuideExpense={() => setIsGuideExpenseOpen(true)}
             onOpenWelcomeBoard={(b) => {
               setWelcomeBoardBooking(b || null);
               setIsWelcomeBoardOpen(true);
@@ -3598,6 +3604,18 @@ export default function AdminDashboard({
           onClose={() => setIsDriverExpenseOpen(false)}
           drivers={drivers}
           vehicles={vehicles}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 20.5: REHBER SAHA MASRAF & KARŞILAMA MASASI */}
+      {/* ==================================================== */}
+      {isGuideExpenseOpen && (
+        <GuideExpenseModal
+          isOpen={isGuideExpenseOpen}
+          onClose={() => setIsGuideExpenseOpen(false)}
+          drivers={drivers}
           showToast={showToast}
         />
       )}
