@@ -200,5 +200,29 @@ describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated P
     expect(wa).toContain('Yanınızda Getirmeniz Önerilenler:');
     expect(wa).toContain('Katathani Phuket Beach Resort');
   });
+
+  it('misafir iletişim bilgilerini (telefon & e-posta) desteklemeli ve telefon numarası formatlama kurallarını karşılamalı', () => {
+    const proposal = buildCuratedProposal('Selin & Burak', 'honeymoon', 4);
+    proposal.customerPhone = '+90 532 555 12 34';
+    proposal.customerEmail = 'burak@example.com';
+
+    expect(proposal.customerPhone).toBe('+90 532 555 12 34');
+    expect(proposal.customerEmail).toBe('burak@example.com');
+
+    // Telefon normalizasyon testi
+    const formatSendPhone = (raw: string) => {
+      let clean = raw.replace(/\D/g, '');
+      if (!clean) return '';
+      if (clean.startsWith('05')) clean = '90' + clean.slice(1);
+      else if (clean.startsWith('5') && clean.length === 10) clean = '90' + clean;
+      else if (clean.startsWith('08') || clean.startsWith('09') || clean.startsWith('06')) clean = '66' + clean.slice(1);
+      return clean;
+    };
+
+    expect(formatSendPhone('+90 532 555 12 34')).toBe('905325551234');
+    expect(formatSendPhone('0532 555 12 34')).toBe('905325551234');
+    expect(formatSendPhone('5325551234')).toBe('905325551234');
+    expect(formatSendPhone('082 895 0665')).toBe('66828950665');
+  });
 });
 

@@ -32,6 +32,12 @@ import {
   MapPin,
   ListOrdered,
   Bookmark,
+  Eye,
+  Send,
+  Mail,
+  ExternalLink,
+  Minimize2,
+  Maximize2,
 } from 'lucide-react';
 import {
   buildCuratedProposal,
@@ -135,6 +141,12 @@ export default function CuratedProposalModal({
       return [];
     }
   });
+
+  // PDF Görüntüleme & Paylaşım Modu
+  const [isPreviewMode, setIsPreviewMode] = useState<boolean>(false);
+  const [showSendModal, setShowSendModal] = useState<boolean>(false);
+  const [sendPhone, setSendPhone] = useState<string>(proposal.customerPhone || '');
+  const [sendEmail, setSendEmail] = useState<string>(proposal.customerEmail || '');
 
   const isSingleTour = proposal.proposalType === 'single_tour';
   const singleDay = proposal.days[0] || ({} as CuratedProposalDay);
@@ -317,6 +329,8 @@ export default function CuratedProposalModal({
 
   const handleLoadSavedProposal = (item: SavedProposalItem) => {
     setProposal(item.data);
+    setSendPhone(item.data.customerPhone || '');
+    setSendEmail(item.data.customerEmail || '');
     setShowSavedModal(false);
     setActiveTab('overview');
     showToast(`📂 "${item.title}" teklifi yüklendi.`);
@@ -554,6 +568,118 @@ export default function CuratedProposalModal({
     }));
   };
 
+  const formatSendPhone = (raw: string) => {
+    let clean = raw.replace(/\D/g, '');
+    if (!clean) return '';
+    if (clean.startsWith('05')) clean = '90' + clean.slice(1);
+    else if (clean.startsWith('5') && clean.length === 10) clean = '90' + clean;
+    else if (clean.startsWith('08') || clean.startsWith('09') || clean.startsWith('06')) clean = '66' + clean.slice(1);
+    return clean;
+  };
+
+  const handleDirectWhatsAppSend = (targetPhone?: string) => {
+    const rawNumber = targetPhone !== undefined ? targetPhone : sendPhone;
+    const clean = formatSendPhone(rawNumber);
+    if (!clean) {
+      showToast('⚠️ Lütfen geçerli bir telefon numarası giriniz (Örn: +90 532... veya 08...)');
+      return;
+    }
+    if (rawNumber && rawNumber !== proposal.customerPhone) {
+      setProposal((prev) => ({ ...prev, customerPhone: rawNumber }));
+    }
+    const text = generateCuratedProposalWhatsAppMessage(proposal, financials);
+    const waUrl = `https://wa.me/${clean}?text=${encodeURIComponent(text)}`;
+    window.open(waUrl, '_blank');
+    showToast('💬 WhatsApp sohbeti başlatılıyor...');
+  };
+
+  const handleEmailSend = (targetEmail?: string) => {
+    const emailToUse = (targetEmail !== undefined ? targetEmail : sendEmail).trim();
+    if (!emailToUse || !emailToUse.includes('@')) {
+      showToast('⚠️ Lütfen geçerli bir e-posta adresi giriniz');
+      return;
+    }
+    if (emailToUse !== proposal.customerEmail) {
+      setProposal((prev) => ({ ...prev, customerEmail: emailToUse }));
+    }
+    const subject = `Phuket Tatili · Özel Seyahat & Tur Teklifiniz (${proposal.proposalNumber}) - ${proposal.customerName}`;
+    const body = generateCuratedProposalWhatsAppMessage(proposal, financials);
+    const mailtoUrl = `mailto:${encodeURIComponent(emailToUse)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+    showToast('✉️ E-posta istemciniz açılıyor...');
+  };
+
+  const handleNativeShare = async () => {
+    const text = generateCuratedProposalWhatsAppMessage(proposal, financials);
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Phuket Tatili - ${proposal.packageTitle} (${proposal.customerName})`,
+          text: text,
+          url: window.location.href,
+        });
+        showToast('📤 Paylaşım menüsü açıldı');
+      } catch {
+        // Kullanıcı iptal ettiyse sessizce geç
+      }
+    } else {
+      handleCopyWhatsApp();
+    }
+  };
+
+  const handleOpenInNewTab = () => {
+    const printArea = document.getElementById('curated-proposal-print-area');
+    if (!printArea) {
+      showToast('⚠️ Belge içeriği bulunamadı');
+      return;
+    }
+    const newWin = window.open('', '_blank');
+    if (!newWin) {
+      showToast('⚠️ Tarayıcı yeni sekme açılmasını engelledi. Lütfen açılır pencerelere izin verin.');
+      return;
+    }
+    newWin.document.write(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>${proposal.proposalNumber} · ${proposal.customerName} · Phuket Tatili Teklif</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; }
+      .no-print { display: none !important; }
+      .a4-container { box-shadow: none !important; border: none !important; margin: 0 auto !important; }
+    }
+    body { background-color: #0f172a; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  </style>
+</head>
+<body class="p-3 sm:p-8 flex flex-col items-center min-h-screen">
+  <div class="no-print w-full max-w-[780px] mb-5 p-3.5 bg-slate-900/90 text-white rounded-2xl border border-slate-700 shadow-xl flex items-center justify-between gap-3">
+    <div class="flex items-center gap-2 text-xs">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+      <span class="font-bold">${proposal.proposalNumber}</span>
+      <span class="text-slate-400">·</span>
+      <span class="font-medium text-slate-300">${proposal.customerName}</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="window.print()" style="cursor:pointer;" class="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition">
+        🖨️ A4 PDF İndir / Yazdır
+      </button>
+      <button onclick="window.close()" style="cursor:pointer;" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">
+        Kapat
+      </button>
+    </div>
+  </div>
+  <div class="a4-container w-full max-w-[780px] bg-white p-8 sm:p-10 rounded-3xl shadow-2xl border border-slate-200">
+    ${printArea.innerHTML}
+  </div>
+</body>
+</html>`);
+    newWin.document.close();
+    showToast('🌐 Teklif belgesi yeni sekmede açıldı!');
+  };
+
   const handlePrint = () => {
     window.print();
   };
@@ -614,24 +740,56 @@ export default function CuratedProposalModal({
               <span>Kayıtlılar ({savedProposals.length})</span>
             </button>
 
+            {/* 👁️ PDF GÖRÜNTÜLE / DÜZENLEYİCİYE DÖN */}
             <button
               type="button"
-              onClick={handleCopyWhatsApp}
-              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition-all cursor-pointer"
-              title="WhatsApp teklif özetini kopyala"
+              onClick={() => setIsPreviewMode(!isPreviewMode)}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                isPreviewMode
+                  ? 'bg-amber-500 hover:bg-amber-400 text-slate-950 font-black shadow-md shadow-amber-500/20'
+                  : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200'
+              }`}
+              title={isPreviewMode ? 'Düzenleme paneline geri dön' : 'Sol paneli gizle ve A4 teklif belgesini tam sayfa görüntüle'}
             >
-              {copied ? <Check className="w-4 h-4 text-emerald-200" /> : <Copy className="w-4 h-4" />}
-              <span>{copied ? 'Kopyalandı!' : '📱 WhatsApp Teklifi'}</span>
+              {isPreviewMode ? <Minimize2 className="w-4 h-4" /> : <Eye className="w-4 h-4 text-sky-500" />}
+              <span>{isPreviewMode ? '✏️ Düzenleyiciye Dön' : '👁️ PDF Görüntüle'}</span>
             </button>
 
+            {/* 🖨️ A4 PDF İNDİR */}
             <button
               type="button"
               onClick={handlePrint}
-              className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md shadow-amber-500/25 transition-all cursor-pointer"
+              className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md shadow-amber-500/25 transition-all cursor-pointer"
               title="A4 PDF indir veya yazıcıya gönder"
             >
               <Printer className="w-4 h-4" />
-              <span>🖨️ A4 PDF İndir / Yazdır</span>
+              <span>🖨️ A4 PDF İndir</span>
+            </button>
+
+            {/* 📤 PDF YOLLA */}
+            <button
+              type="button"
+              onClick={() => {
+                setSendPhone(proposal.customerPhone || '');
+                setSendEmail(proposal.customerEmail || '');
+                setShowSendModal(true);
+              }}
+              className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-emerald-600/25 transition-all cursor-pointer"
+              title="Misafire WhatsApp, E-posta veya sistem paylaşımı ile teklifi yolla"
+            >
+              <Send className="w-4 h-4" />
+              <span>📤 PDF Yolla</span>
+            </button>
+
+            {/* 📱 WHATSAPP KOPYALA */}
+            <button
+              type="button"
+              onClick={handleCopyWhatsApp}
+              className="hidden sm:flex px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold items-center gap-1.5 transition-all cursor-pointer"
+              title="WhatsApp teklif özetini panoya kopyala"
+            >
+              {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-slate-400" />}
+              <span>{copied ? 'Kopyalandı!' : 'Metni Kopyala'}</span>
             </button>
 
             {onClose && (
@@ -652,8 +810,9 @@ export default function CuratedProposalModal({
         {/* ========================================================= */}
         <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row divide-y lg:divide-y-0 lg:divide-x divide-slate-200 dark:divide-slate-800 print:overflow-visible print:block">
           
-          {/* SOL PANEL: AYRINTILI TEKLİF MİMARI (PRINTTE GİZLENİR) */}
-          <div className="w-full lg:w-[420px] p-5 space-y-4 shrink-0 bg-slate-50/70 dark:bg-slate-950/60 print:hidden overflow-y-auto">
+          {/* SOL PANEL: AYRINTILI TEKLİF MİMARI (PRINTTE VE ÖNİZLEMEDE GİZLENİR) */}
+          {!isPreviewMode && (
+            <div className="w-full lg:w-[420px] p-5 space-y-4 shrink-0 bg-slate-50/70 dark:bg-slate-950/60 print:hidden overflow-y-auto">
             
             {/* ========================================================= */}
             {/* 0. TEKLİF FORMATI SEÇİCİ (ÇOK GÜNLÜ vs TEKLİ TUR) */}
@@ -836,6 +995,43 @@ export default function CuratedProposalModal({
                       placeholder="Örn: Mert & Selin Çetin"
                       className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1 flex items-center gap-1 text-[11px]">
+                        <Phone className="w-3 h-3 text-emerald-500" />
+                        <span>Telefon (WhatsApp):</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={proposal.customerPhone || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProposal((prev) => ({ ...prev, customerPhone: val }));
+                          setSendPhone(val);
+                        }}
+                        placeholder="Örn: +90 532 123 4567"
+                        className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1 flex items-center gap-1 text-[11px]">
+                        <Mail className="w-3 h-3 text-sky-500" />
+                        <span>E-posta:</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={proposal.customerEmail || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProposal((prev) => ({ ...prev, customerEmail: val }));
+                          setSendEmail(val);
+                        }}
+                        placeholder="Örn: misafir@gmail.com"
+                        className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium"
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -1302,6 +1498,43 @@ export default function CuratedProposalModal({
                       placeholder="Örn: Begüm & Canberk Özkan"
                       className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-medium"
                     />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1 flex items-center gap-1 text-[11px]">
+                        <Phone className="w-3 h-3 text-emerald-500" />
+                        <span>Telefon (WhatsApp):</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={proposal.customerPhone || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProposal((prev) => ({ ...prev, customerPhone: val }));
+                          setSendPhone(val);
+                        }}
+                        placeholder="Örn: +90 532 123 4567"
+                        className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1 flex items-center gap-1 text-[11px]">
+                        <Mail className="w-3 h-3 text-sky-500" />
+                        <span>E-posta:</span>
+                      </label>
+                      <input
+                        type="email"
+                        value={proposal.customerEmail || ''}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProposal((prev) => ({ ...prev, customerEmail: val }));
+                          setSendEmail(val);
+                        }}
+                        placeholder="Örn: misafir@gmail.com"
+                        className="w-full px-2.5 py-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-xs font-medium"
+                      />
+                    </div>
                   </div>
 
                   {/* Konaklama Otelleri (Çoklu Otel Destekli) */}
@@ -2061,12 +2294,75 @@ export default function CuratedProposalModal({
               </div>
             )}
           </div>
+        )}
 
           {/* ========================================================= */}
           {/* SAĞ PANEL: A4 CANLI VE BASKIYA HAZIR LÜKS TEKLİF DOKÜMANI */}
           {/* ========================================================= */}
-          <div className="flex-1 p-6 sm:p-10 bg-slate-100/60 dark:bg-slate-950/40 text-slate-900 overflow-y-auto print:p-0 print:bg-white print:overflow-visible">
-            <div className="max-w-[780px] mx-auto bg-white p-8 sm:p-10 rounded-3xl shadow-xl print:shadow-none print:p-0 print:rounded-none space-y-6 border border-slate-200/80 print:border-none">
+          <div className={`flex-1 p-4 sm:p-10 bg-slate-100/60 dark:bg-slate-950/40 text-slate-900 overflow-y-auto print:p-0 print:bg-white print:overflow-visible ${isPreviewMode ? 'lg:p-12' : ''}`}>
+
+            {/* ÖNİZLEME MODU ÜST KONTROL ÇUBUĞU */}
+            {isPreviewMode && (
+              <div className="max-w-[780px] mx-auto mb-6 px-4 py-3 rounded-2xl bg-slate-900/95 text-white backdrop-blur-md border border-slate-700 shadow-xl flex flex-wrap items-center justify-between gap-3 print:hidden">
+                <div className="flex items-center gap-2.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-bold text-slate-200">
+                    📄 Tam Sayfa A4 Belge Önizleme ({proposal.proposalNumber})
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-300 font-bold border border-amber-500/30">
+                    {isSingleTour ? '🎯 Tekli Tur' : '🌟 Çok Günlü'}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleOpenInNewTab}
+                    className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                    title="Teklifi yeni temiz tarayıcı sekmesinde aç"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5 text-sky-400" />
+                    <span>Yeni Sekmede Aç</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black flex items-center gap-1.5 shadow-md shadow-amber-500/20 transition cursor-pointer"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    <span>🖨️ A4 PDF İndir</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSendPhone(proposal.customerPhone || '');
+                      setSendEmail(proposal.customerEmail || '');
+                      setShowSendModal(true);
+                    }}
+                    className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20 transition cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>📤 PDF Yolla</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPreviewMode(false)}
+                    className="px-3 py-1.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer"
+                  >
+                    <Minimize2 className="w-3.5 h-3.5" />
+                    <span>Düzenleyiciye Dön</span>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            <div
+              id="curated-proposal-print-area"
+              className="max-w-[780px] mx-auto bg-white p-8 sm:p-10 rounded-3xl shadow-xl print:shadow-none print:p-0 print:rounded-none space-y-6 border border-slate-200/80 print:border-none"
+            >
               
               {isSingleTour ? (
                 <>
@@ -2113,6 +2409,12 @@ export default function CuratedProposalModal({
                       </h2>
                       <div className="text-xs text-slate-600 flex flex-wrap items-center gap-2 pt-0.5">
                         <span>🏨 Alınış Oteli: <strong className="text-slate-900">{proposal.hotelName}</strong> ({proposal.hotelZone})</span>
+                        {proposal.customerPhone && (
+                          <>
+                            <span>·</span>
+                            <span className="font-semibold text-slate-800">📱 {proposal.customerPhone}</span>
+                          </>
+                        )}
                         {proposal.singleTourDate && (
                           <>
                             <span>·</span>
@@ -2382,9 +2684,16 @@ export default function CuratedProposalModal({
                   <span className="text-[10px] text-amber-600 font-black uppercase tracking-wider block">
                     Kişiye Özel Hazırlanan Seyahat Programı
                   </span>
-                  <h2 className="text-xl font-extrabold text-slate-950">
-                    {proposal.customerName}
-                  </h2>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h2 className="text-xl font-extrabold text-slate-950">
+                      {proposal.customerName}
+                    </h2>
+                    {proposal.customerPhone && (
+                      <span className="text-xs font-semibold text-slate-700 bg-slate-200/70 px-2 py-0.5 rounded-md">
+                        📱 {proposal.customerPhone}
+                      </span>
+                    )}
+                  </div>
                   {proposalHotels.length > 1 ? (
                     <div className="pt-1 space-y-1">
                       <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700 block">
@@ -2687,6 +2996,193 @@ export default function CuratedProposalModal({
           </div>
 
         </div>
+
+        {/* ========================================================= */}
+        {/* 📤 PDF & TEKLİF YOLLA / PAYLAŞIM MODALI */}
+        {/* ========================================================= */}
+        {showSendModal && (
+          <div className="fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-6 max-w-lg w-full shadow-2xl space-y-5 animate-scaleUp">
+              
+              {/* Modal Başlığı */}
+              <div className="flex items-start justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                    <Send className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                      <span>Teklif & PDF Paylaşım Merkezi</span>
+                    </h4>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                      {proposal.proposalNumber} · {proposal.customerName}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowSendModal(false)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Teklif Özeti Rozeti */}
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs">
+                <div>
+                  <span className="font-bold text-slate-900 dark:text-white block">
+                    {proposal.packageTitle}
+                  </span>
+                  <span className="text-slate-500 dark:text-slate-400 text-[11px]">
+                    {proposal.adultCount} Yetişkin {proposal.childCount > 0 ? `+ ${proposal.childCount} Çocuk` : ''} · {isSingleTour ? 'Tek Tur' : `${proposal.days.length} Günlük Paket`}
+                  </span>
+                </div>
+                <span className="text-sm font-black font-mono text-emerald-600 dark:text-emerald-400">
+                  {financials.totalThb.toLocaleString()} THB
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {/* 1. WHATSAPP İLE GÖNDER */}
+                <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/50 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-emerald-950 dark:text-emerald-300 flex items-center gap-1.5">
+                      <Phone className="w-4 h-4 text-emerald-600" />
+                      <span>1. WhatsApp ile Direkt Gönder:</span>
+                    </label>
+                    <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold">En Hızlı</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={sendPhone}
+                      onChange={(e) => setSendPhone(e.target.value)}
+                      placeholder="Örn: +90 532 123 4567 veya 082..."
+                      className="flex-1 px-3 py-2 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleDirectWhatsAppSend()}
+                      className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-emerald-600/20 cursor-pointer shrink-0"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                      <span>Gönder</span>
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-emerald-800/70 dark:text-emerald-400/80">
+                    💡 WhatsApp web veya uygulamasında doğrudan misafirin sohbeti açılır ve teklif metni hazır olarak doldurulur.
+                  </p>
+                </div>
+
+                {/* 2. E-POSTA İLE GÖNDER */}
+                <div className="p-4 rounded-2xl bg-sky-50/50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-800/50 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-sky-950 dark:text-sky-300 flex items-center gap-1.5">
+                      <Mail className="w-4 h-4 text-sky-600" />
+                      <span>2. E-posta ile Gönder:</span>
+                    </label>
+                    <span className="text-[10px] text-sky-700 dark:text-sky-400 font-semibold">Kurumsal</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      value={sendEmail}
+                      onChange={(e) => setSendEmail(e.target.value)}
+                      placeholder="Örn: misafir@gmail.com"
+                      className="flex-1 px-3 py-2 rounded-xl border border-sky-300 dark:border-sky-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleEmailSend()}
+                      className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-sky-600/20 cursor-pointer shrink-0"
+                    >
+                      <Mail className="w-4 h-4" />
+                      <span>E-posta Aç</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 3. DİĞER KANALLAR & CİHAZ PAYLAŞIMI */}
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={handleNativeShare}
+                    className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-left transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      <Share2 className="w-4 h-4 text-amber-500" />
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">Cihaz Paylaşımı</span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 block leading-tight">
+                      AirDrop, Telegram veya Diğer Uygulamalar
+                    </span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleCopyWhatsApp}
+                    className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-left transition cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4 text-emerald-500" />}
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">
+                        {copied ? 'Kopyalandı!' : 'Metni Kopyala'}
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-slate-500 block leading-tight">
+                      Teklif metnini panoya kopyalayıp dilediğiniz yere yapıştırın
+                    </span>
+                  </button>
+                </div>
+
+                {/* 4. A4 PDF DOSYASI EKLEME REHBERİ */}
+                <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/25 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-amber-950 dark:text-amber-300 flex items-center gap-1.5">
+                      <span>📎 PDF Belgesini Dosya Olarak Göndermek İçin:</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowSendModal(false);
+                        handlePrint();
+                      }}
+                      className="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black cursor-pointer shadow-xs"
+                    >
+                      🖨️ PDF'i Hemen İndir
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                    1. <strong>"PDF'i Hemen İndir"</strong> butonuna basıp PDF olarak kaydedin.<br />
+                    2. Yukarıdaki <strong>WhatsApp</strong> veya <strong>E-posta</strong> butonuna tıklayın.<br />
+                    3. Açılan sohbete indirdiğiniz PDF dosyasını ataş (📎) ile iliştirip gönderin.
+                  </p>
+                </div>
+              </div>
+
+              {/* Alt Butonlar */}
+              <div className="pt-2 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={handleOpenInNewTab}
+                  className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Yeni Sekmede Önizle</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSendModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                >
+                  Kapat
+                </button>
+              </div>
+
+            </div>
+          </div>
+        )}
 
         {/* KAYITLI TEKLİFLER MODALI */}
         {showSavedModal && (
