@@ -33,6 +33,7 @@ interface BookingsTabProps {
   onOpenFlightRadar?: (flight?: string, guestName?: string) => void;
   onOpenWelcomeBoard?: (b: Booking) => void;
   onOpenTourMedia?: (b: Booking) => void;
+  onUpdateStatus?: (b: Booking, status: Booking['status']) => void;
 }
 
 export default function BookingsTab({
@@ -57,6 +58,7 @@ export default function BookingsTab({
   onOpenFlightRadar,
   onOpenWelcomeBoard,
   onOpenTourMedia,
+  onUpdateStatus,
 }: BookingsTabProps) {
   return (
     <div className="space-y-6">
@@ -315,17 +317,25 @@ export default function BookingsTab({
                     </td>
 
                     <td className="py-4 px-5">
-                      <span
-                        className={`text-xs font-bold py-1 px-2.5 rounded-lg border inline-block ${
+                      <select
+                        value={b.status}
+                        onChange={(e) => onUpdateStatus?.(b, e.target.value as Booking['status'])}
+                        className={`text-xs font-bold py-1 px-2.5 rounded-lg border cursor-pointer focus:outline-none transition-all ${
                           b.status === 'confirmed'
-                            ? 'bg-emerald-50 text-emerald-800 border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
+                            ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800'
                             : b.status === 'inquiry'
-                            ? 'bg-amber-50 text-amber-800 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800'
-                            : 'bg-blue-50 text-blue-800 border-blue-200 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
+                            ? 'bg-amber-50 text-amber-900 border-amber-300 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-700 font-extrabold shadow-sm'
+                            : b.status === 'completed'
+                            ? 'bg-blue-50 text-blue-800 border-blue-300 dark:bg-blue-950/60 dark:text-blue-300 dark:border-blue-800'
+                            : 'bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-300 dark:border-rose-800'
                         }`}
+                        title="Rezervasyon durumunu anında değiştirmek için tıklayın"
                       >
-                        {b.status === 'confirmed' ? '🟢 Onaylandı' : b.status === 'inquiry' ? '🟡 Teklif' : b.status}
-                      </span>
+                        <option value="confirmed">🟢 Onaylandı</option>
+                        <option value="inquiry">🟡 Teklif / Talep</option>
+                        <option value="completed">🔵 Tamamlandı</option>
+                        <option value="cancelled">🔴 İptal</option>
+                      </select>
                     </td>
 
                     <td className="py-3 px-5 text-right align-middle">

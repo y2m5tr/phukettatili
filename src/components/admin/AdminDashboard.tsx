@@ -2906,6 +2906,18 @@ export default function AdminDashboard({
               setTourMediaBooking(b);
               setIsTourMediaOpen(true);
             }}
+            onUpdateStatus={(b, nextStatus) => {
+              const statusLabels: Record<string, string> = {
+                confirmed: '🟢 Onaylandı',
+                inquiry: '🟡 Teklif / Talep',
+                completed: '🔵 Tamamlandı',
+                cancelled: '🔴 İptal Edildi',
+              };
+              handleUpdateSingleBooking(
+                { ...b, status: nextStatus },
+                `Durum güncellendi: ${statusLabels[nextStatus] || nextStatus}`
+              );
+            }}
           />
         )}
 
