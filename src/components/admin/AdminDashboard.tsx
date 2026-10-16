@@ -624,19 +624,8 @@ export default function AdminDashboard({
         }
       } catch { /* yok say */ }
     }
-    return 'all';
+    return 'operations';
   });
-
-  // Alt Menü Genişletme / Daraltma Durumu
-  const [expandedTabs, setExpandedTabs] = useState<Record<string, boolean>>({});
-
-  const toggleTabExpand = (tabId: string, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    setExpandedTabs((prev) => ({
-      ...prev,
-      [tabId]: !prev[tabId],
-    }));
-  };
 
   // Spotlight / Hızlı Komut Paleti Modalı (Cmd+K)
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState<boolean>(false);
@@ -654,6 +643,13 @@ export default function AdminDashboard({
 
   const handleTabSelect = (tabId: AdminTab) => {
     setActiveTab(tabId);
+    const item = NAV_ITEMS.find((i) => i.id === tabId);
+    if (item && categoryFilter !== 'all' && categoryFilter !== item.category) {
+      setCategoryFilter(item.category);
+      try {
+        localStorage.setItem('ptt_admin_nav_category', item.category);
+      } catch { /* yok say */ }
+    }
     setIsMobileSidebarOpen(false);
   };
 
@@ -2499,33 +2495,82 @@ export default function AdminDashboard({
           </button>
         </div>
 
-        {/* Kategori Filtresi: Tümü / Operasyon / Finans / CMS / Sistem */}
-        <div className="p-2.5 pb-1 shrink-0">
-          <div className="flex items-center gap-1 overflow-x-auto no-scrollbar p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 text-[11px]">
-            {NAV_CATEGORIES.map((cat) => {
-              const isSel = categoryFilter === cat.id;
-              const Icon = cat.icon;
-              return (
+        {/* Segmented Masa Switcher: 4 Temel Masa (Operasyon / Finans / İçerik / Sistem) */}
+        <div className="p-2.5 pb-2 shrink-0 border-b border-slate-100 dark:border-slate-800/80">
+          {!isSidebarCollapsed ? (
+            <div className="space-y-1.5">
+              <div className="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60">
+                {NAV_CATEGORIES.filter((c) => c.id !== 'all').map((cat) => {
+                  const isSel = categoryFilter === cat.id;
+                  const Icon = cat.icon;
+                  return (
+                    <button
+                      key={cat.id}
+                      type="button"
+                      onClick={() => {
+                        setCategoryFilter(cat.id);
+                        try {
+                          localStorage.setItem('ptt_admin_nav_category', cat.id);
+                        } catch {}
+                      }}
+                      title={cat.description}
+                      className={`py-1.5 px-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer justify-center ${
+                        isSel
+                          ? 'bg-white dark:bg-surface-2 text-slate-900 dark:text-white shadow-xs font-extrabold ring-1 ring-slate-200/60 dark:ring-slate-700/60'
+                          : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40'
+                      }`}
+                    >
+                      <Icon className={`w-3.5 h-3.5 shrink-0 ${isSel ? 'text-brand-accent' : 'text-slate-400'}`} />
+                      <span className="truncate">{cat.shortLabel}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[10px] font-medium text-slate-400">Görünüm:</span>
                 <button
-                  key={cat.id}
                   type="button"
                   onClick={() => {
-                    setCategoryFilter(cat.id);
-                    try { localStorage.setItem('ptt_admin_nav_category', cat.id); } catch {}
+                    const next = categoryFilter === 'all' ? 'operations' : 'all';
+                    setCategoryFilter(next);
+                    try {
+                      localStorage.setItem('ptt_admin_nav_category', next);
+                    } catch {}
                   }}
-                  title={cat.label}
-                  className={`py-1 px-2 rounded-xl font-bold transition-all flex items-center justify-center gap-1 cursor-pointer shrink-0 whitespace-nowrap ${
-                    isSel
-                      ? 'bg-white dark:bg-surface-2 text-slate-900 dark:text-white shadow-2xs font-extrabold'
-                      : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                  }`}
+                  className="text-[10px] font-bold text-brand-primary dark:text-brand-accent hover:underline cursor-pointer"
                 >
-                  <Icon className="w-3 h-3 text-brand-accent shrink-0" />
-                  {!isSidebarCollapsed && <span>{cat.shortLabel}</span>}
+                  {categoryFilter === 'all' ? 'Masa Moduna Dön ↩' : 'Tüm Modüller (18) ↗'}
                 </button>
-              );
-            })}
-          </div>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-1">
+              {NAV_CATEGORIES.map((cat) => {
+                const isSel = categoryFilter === cat.id;
+                const Icon = cat.icon;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => {
+                      setCategoryFilter(cat.id);
+                      try {
+                        localStorage.setItem('ptt_admin_nav_category', cat.id);
+                      } catch {}
+                    }}
+                    title={cat.label}
+                    className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
+                      isSel
+                        ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm'
+                        : 'text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* Sidebar Menü Listesi (Kategorize + Alt Menüler) */}
@@ -2573,98 +2618,54 @@ export default function AdminDashboard({
                   <div className="my-1 border-t border-slate-200/60 dark:border-slate-800/60" />
                 )}
 
-                <div className="space-y-0.5">
+                <div className="space-y-1">
                   {grp.items.map((item) => {
                     const Icon = item.icon;
                     const isActive = activeTab === item.id;
                     const isBookings = item.id === 'bookings';
-                    const hasSubItems = Boolean(item.subItems && item.subItems.length > 0);
-                    const isExpanded = expandedTabs[item.id] !== undefined ? expandedTabs[item.id] : isActive;
 
                     return (
-                      <div key={item.id} className="space-y-0.5">
-                        <div className="flex items-center gap-1">
-                          <button
-                            type="button"
-                            onClick={() => handleTabSelect(item.id)}
-                            title={isSidebarCollapsed ? item.label : undefined}
-                            className={`flex-1 flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer relative group ${
-                              isActive
-                                ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
-                                : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
-                            } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
-                          >
-                            <Icon
-                              className={`w-4 h-4 shrink-0 transition-colors ${
-                                isActive
-                                  ? 'text-brand-accent dark:text-slate-950'
-                                  : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
-                              }`}
-                            />
-                            {!isSidebarCollapsed && (
-                              <>
-                                <span className="truncate flex-1 text-left">{item.label}</span>
-                                {isBookings && pendingBookingsCount > 0 && (
-                                  <span className="rounded-full px-2 py-0.5 text-[10px] font-black bg-amber-500 text-white animate-pulse">
-                                    {pendingBookingsCount}
-                                  </span>
-                                )}
-                                {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
-                                  <span
-                                    className={`text-[10px] opacity-60 font-mono ${
-                                      isActive ? 'text-white dark:text-slate-950' : 'text-slate-400'
-                                    }`}
-                                  >
-                                    {bookings.length}
-                                  </span>
-                                )}
-                              </>
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => handleTabSelect(item.id)}
+                        title={isSidebarCollapsed ? item.label : item.description}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer relative group ${
+                          isActive
+                            ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
+                            : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'
+                        } ${isSidebarCollapsed ? 'justify-center px-0' : ''}`}
+                      >
+                        <Icon
+                          className={`w-4 h-4 shrink-0 transition-colors ${
+                            isActive
+                              ? 'text-brand-accent dark:text-slate-950'
+                              : 'text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-200'
+                          }`}
+                        />
+                        {!isSidebarCollapsed && (
+                          <>
+                            <span className="truncate flex-1 text-left">{item.label}</span>
+                            {isBookings && pendingBookingsCount > 0 && (
+                              <span className="rounded-full px-2 py-0.5 text-[10px] font-black bg-amber-500 text-white animate-pulse">
+                                {pendingBookingsCount}
+                              </span>
                             )}
-                            {isSidebarCollapsed && isBookings && pendingBookingsCount > 0 && (
-                              <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900" />
-                            )}
-                          </button>
-
-                          {!isSidebarCollapsed && hasSubItems && (
-                            <button
-                              type="button"
-                              onClick={(e) => toggleTabExpand(item.id, e)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer"
-                              title={isExpanded ? 'Alt menüyü daralt' : 'Alt menüyü genişlet'}
-                            >
-                              <ChevronDown
-                                className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                                  isExpanded ? 'rotate-180 text-brand-accent' : ''
+                            {isBookings && pendingBookingsCount === 0 && bookings.length > 0 && (
+                              <span
+                                className={`text-[10px] opacity-60 font-mono ${
+                                  isActive ? 'text-white dark:text-slate-950' : 'text-slate-400'
                                 }`}
-                              />
-                            </button>
-                          )}
-                        </div>
-
-                        {/* Alt Menüler (Sub-items) */}
-                        {!isSidebarCollapsed && hasSubItems && isExpanded && (
-                          <div className="ml-5 pl-2.5 my-1 border-l-2 border-slate-200 dark:border-slate-800 space-y-0.5 animate-fadeIn">
-                            {item.subItems!.map((sub) => (
-                              <button
-                                key={sub.id}
-                                type="button"
-                                onClick={() => handleSubItemClick(sub, item.id)}
-                                className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-[11px] font-semibold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800/60 transition-all text-left group cursor-pointer"
                               >
-                                <span className="text-xs group-hover:scale-110 transition-transform shrink-0">
-                                  {sub.icon || '•'}
-                                </span>
-                                <span className="truncate flex-1">{sub.label}</span>
-                                {sub.badge && (
-                                  <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
-                                    {sub.badge}
-                                  </span>
-                                )}
-                              </button>
-                            ))}
-                          </div>
+                                {bookings.length}
+                              </span>
+                            )}
+                          </>
                         )}
-                      </div>
+                        {isSidebarCollapsed && isBookings && pendingBookingsCount > 0 && (
+                          <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-amber-500 ring-2 ring-white dark:ring-slate-900" />
+                        )}
+                      </button>
                     );
                   })}
                 </div>
@@ -3106,7 +3107,7 @@ export default function AdminDashboard({
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 md:pb-8">
           <AdminErrorBoundary
             tabName={activeNavItem?.label}
             onResetToOverview={() => setActiveTab('overview')}
@@ -3454,6 +3455,82 @@ export default function AdminDashboard({
         )}
           </AdminErrorBoundary>
         </main>
+
+        {/* ==================================================== */}
+        {/* MOBİL ERGONOMİK ALT BAR (TEK BAŞPARMAKLA HIZLI ERİŞİM) */}
+        {/* ==================================================== */}
+        <nav
+          aria-label="Mobil Hızlı Alt Bar"
+          className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-surface-1/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-3 py-1.5 flex items-center justify-around shadow-2xl"
+        >
+          <button
+            type="button"
+            onClick={() => handleTabSelect('overview')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[56px] cursor-pointer ${
+              activeTab === 'overview'
+                ? 'text-brand-primary dark:text-brand-accent font-black'
+                : 'text-slate-500 dark:text-slate-400 font-medium'
+            }`}
+          >
+            <TrendingUp className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">Özet</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabSelect('bookings')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[56px] relative cursor-pointer ${
+              activeTab === 'bookings'
+                ? 'text-brand-primary dark:text-brand-accent font-black'
+                : 'text-slate-500 dark:text-slate-400 font-medium'
+            }`}
+          >
+            <div className="relative">
+              <Users className="w-5 h-5" />
+              {pendingBookingsCount > 0 && (
+                <span className="absolute -top-1 -right-2 px-1.5 py-0.2 rounded-full bg-amber-500 text-white text-[9px] font-black animate-pulse">
+                  {pendingBookingsCount}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] mt-0.5">Rezervasyon</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabSelect('transfers')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[56px] cursor-pointer ${
+              activeTab === 'transfers'
+                ? 'text-brand-primary dark:text-brand-accent font-black'
+                : 'text-slate-500 dark:text-slate-400 font-medium'
+            }`}
+          >
+            <Car className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">Transfer</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleTabSelect('finance')}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[56px] cursor-pointer ${
+              activeTab === 'finance'
+                ? 'text-brand-primary dark:text-brand-accent font-black'
+                : 'text-slate-500 dark:text-slate-400 font-medium'
+            }`}
+          >
+            <Wallet className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">Kasa</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setIsMobileSidebarOpen(true)}
+            className="flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all min-w-[56px] text-slate-500 dark:text-slate-400 font-medium hover:text-slate-900 dark:hover:text-white cursor-pointer"
+          >
+            <Menu className="w-5 h-5" />
+            <span className="text-[10px] mt-0.5">Tüm Menü</span>
+          </button>
+        </nav>
       </div>
 
       {/* ==================================================== */}
