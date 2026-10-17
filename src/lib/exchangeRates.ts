@@ -1,4 +1,6 @@
-import { DEFAULT_EXCHANGE_RATES } from '../data/adminInitialData';
+// publicRefs: bkz. lib/publicRefs.ts başlığı — tohum verisini client
+// bundle'a taşımamak için paylaşılan sabitler buradan alınır.
+import { DEFAULT_EXCHANGE_RATES } from './publicRefs';
 
 export type SupportedCurrency = 'TRY' | 'USD' | 'EUR' | 'GBP';
 

@@ -8,9 +8,6 @@ import {
   Sparkles,
   Calendar,
   Hotel,
-  Users,
-  Percent,
-  Compass,
   ShieldCheck,
   Clock,
   Phone,
@@ -19,7 +16,6 @@ import {
   ChevronUp,
   ChevronDown,
   Gift,
-  DollarSign,
   CheckCircle2,
   XCircle,
   MessageCircle,
@@ -28,16 +24,11 @@ import {
   Share2,
   Save,
   FolderOpen,
-  Ship,
-  MapPin,
-  ListOrdered,
-  Bookmark,
   Eye,
   Send,
   Mail,
   ExternalLink,
   Minimize2,
-  Maximize2,
 } from 'lucide-react';
 import {
   buildCuratedProposal,
@@ -50,11 +41,7 @@ import {
   TRANSPORT_META,
   MEAL_PLAN_META,
   NATIONAL_PARK_META,
-  GUIDE_LANGUAGE_META,
   CURRENCY_SYMBOLS,
-  DEFAULT_INCLUSIONS,
-  DEFAULT_EXCLUSIONS,
-  DEFAULT_GIFTS,
   DEFAULT_SINGLE_TOUR_TIPS,
   type CuratedProposalData,
   type CuratedProposalDay,
@@ -64,7 +51,6 @@ import {
   type TransportType,
   type MealPlanType,
   type NationalParkStatus,
-  type GuideLanguage,
   type CurrencyCode,
   type CatalogTourPreset,
 } from '../../lib/curatedProposal';
@@ -81,6 +67,13 @@ export interface SavedProposalItem {
 }
 
 const STORAGE_KEY_PROPOSALS = 'ptt_saved_curated_proposals_v1';
+
+/**
+ * Antette basılan marka logosu. Header/Footer ile aynı dosya — şeffaf zeminli
+ * ve koyu metinli olduğu için beyaz A4 belgede ek filtre gerekmez.
+ * Yazdırma klonunda da aynı <img> taşınır, bu yüzden çıktı PDF'ine logo girer.
+ */
+const BRAND_LOGO_SRC = '/assets/logo-main-transparent.png';
 
 interface Props {
   isOpen: boolean;
@@ -683,8 +676,51 @@ export default function CuratedProposalModal({
     showToast('🌐 Teklif belgesi yeni sekmede açıldı!');
   };
 
+  /**
+   * Yalnızca A4 teklif belgesini yazdırır — tüm sayfayı değil.
+   *
+   * NEDEN KLON: Belge, admin panelin içinde derin bir modal/scroll
+   * ağacının parçası. `window.print()` bu durumda editör panelini, üst
+   * barı, butonları ve modal kabuğunu da kağıda döker. Çözüm: belgeyi
+   * `body`'nin doğrudan çocuğu olarak klonla, `body`'ye
+   * `.printing-document` ekle (global.css tüm kardeşleri gizler,
+   * `.document-print-root`'u gösterir), yazdır, sonra DOM'u eski haline
+   * getir. Klon aynı document'te kaldığı için Tailwind sınıfları ve
+   * global stiller aynen uygulanır.
+   */
   const handlePrint = () => {
-    window.print();
+    const printArea = document.getElementById('curated-proposal-print-area');
+    if (!printArea) {
+      showToast('⚠️ Belge içeriği bulunamadı');
+      return;
+    }
+
+    const clone = printArea.cloneNode(true) as HTMLElement;
+    clone.removeAttribute('id'); // Tekil id çakışmasını önle
+    clone.classList.add('document-print-root');
+
+    document.body.appendChild(clone);
+    document.body.classList.add('printing-document');
+
+    // `afterprint` bazı tarayıcılarda (ve iptal edilen yazdırmalarda) hiç
+    // tetiklenmez; DOM'un kilitli kalmaması için yedek zamanlayıcı kuruyoruz.
+    // cleanup idempotent: iki kez çağrılsa da yan etkisi yok.
+    let fallback = 0;
+    const cleanup = () => {
+      window.clearTimeout(fallback);
+      window.removeEventListener('afterprint', cleanup);
+      document.body.classList.remove('printing-document');
+      clone.remove();
+    };
+
+    window.addEventListener('afterprint', cleanup);
+    fallback = window.setTimeout(cleanup, 60_000);
+
+    // Klon layout'a girdikten sonra yazdır — aksi halde tarayıcı
+    // eski DOM ağacını kağıda dökebilir.
+    requestAnimationFrame(() => {
+      window.print();
+    });
   };
 
   const handleCopyWhatsApp = () => {
@@ -2389,6 +2425,13 @@ export default function CuratedProposalModal({
                   <div className="flex items-start justify-between border-b-2 border-amber-500 pb-5">
                     <div>
                       <div className="flex items-center gap-2.5">
+                        <img
+                          src={BRAND_LOGO_SRC}
+                          alt="Phuket Tatili Logo"
+                          width="460"
+                          height="340"
+                          className="h-11 w-auto object-contain shrink-0"
+                        />
                         <span className="text-2xl font-black tracking-tight text-slate-950 font-serif">
                           PHUKET TATİLİ
                         </span>
@@ -2669,6 +2712,13 @@ export default function CuratedProposalModal({
               <div className="flex items-start justify-between border-b-2 border-amber-500 pb-5">
                 <div>
                   <div className="flex items-center gap-2.5">
+                    <img
+                      src={BRAND_LOGO_SRC}
+                      alt="Phuket Tatili Logo"
+                      width="460"
+                      height="340"
+                      className="h-11 w-auto object-contain shrink-0"
+                    />
                     <span className="text-2xl font-black tracking-tight text-slate-950 font-serif">
                       PHUKET TATİLİ
                     </span>

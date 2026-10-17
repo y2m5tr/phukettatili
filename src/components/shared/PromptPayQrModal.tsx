@@ -1,15 +1,11 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   QrCode,
   Download,
   Copy,
   Check,
   X,
-  CreditCard,
-  ShieldCheck,
-  Building,
   Smartphone,
-  Info,
 } from 'lucide-react';
 import {
   generatePromptPayPayload,

@@ -4,7 +4,7 @@
  * tekne kaptanı ve yemek tedarikçisine brifing olarak iletilmesi protokolü.
  */
 
-import type { Booking, DietaryPreference } from '../data/adminInitialData';
+import type { Booking, } from '../data/adminInitialData';
 
 export type DietaryCategory =
   | 'halal'

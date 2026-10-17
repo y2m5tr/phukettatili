@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
-  evaluateWaiverHealthRisk,
   createWaiverRecord,
   generateWaiverRequestWhatsApp,
-  generateWaiverConfirmationWhatsApp,
   getWaiverWhatsAppUrl,
   type WaiverFormInput,
 } from '../src/lib/digitalWaiver';

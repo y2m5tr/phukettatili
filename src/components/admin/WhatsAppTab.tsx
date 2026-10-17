@@ -20,7 +20,6 @@ import {
   ExternalLink,
   Send,
   Zap,
-  Users,
   AlertCircle,
   Filter,
 } from 'lucide-react';

@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   convertThbPrice,
-  formatDisplayPrice,
   formatDualPrice,
   SITE_CURRENCIES,
 } from '../src/lib/siteCurrency';

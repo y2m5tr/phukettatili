@@ -284,7 +284,7 @@ export function getPendingAutomationTriggers(
   }
 
   // Yüksek önceliklileri önce sırala
-  return notifications.sort((a, b) => (a.priority === 'high' ? -1 : 1));
+  return notifications.sort((a, _b) => (a.priority === 'high' ? -1 : 1));
 }
 
 /**

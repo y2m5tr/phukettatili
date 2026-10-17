@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   TRAVELER_PROFILES,
   VACATION_VIBES,

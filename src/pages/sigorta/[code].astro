@@ -88,8 +88,18 @@ const whatsappNumber = siteSettings.whatsappNumber || '905321112233';
         <div class="text-4xl">🔍</div>
         <h1 class="text-lg font-bold text-white">Rezervasyon Bulunamadı</h1>
         <p class="text-xs text-slate-400 max-w-sm mx-auto">
-          Belirtilen koda ait aktif tur kaydı bulunamadı. Lütfen size iletilen linki kontrol ediniz.
+          Belirtilen koda ait aktif tur kaydı bulunamadı. Lütfen size iletilen linki kontrol ediniz veya destek hattımızla iletişime geçiniz.
         </p>
+        <div class="pt-2">
+          <a
+            href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Merhaba, tur sigortası formuna ulaşamadım, yardımcı olabilir misiniz?')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all shadow-lg"
+          >
+            <span>💬 7/24 WhatsApp Destek</span>
+          </a>
+        </div>
       </div>
     ) : (
       <main class="space-y-6">

@@ -1,7 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   isTourEligibleForReview,
-  generatePostTourReviewMessage,
   generate1830ReviewInviteMessage,
   getGoogleReviewWhatsAppUrl,
   evaluateReviewSentiment,

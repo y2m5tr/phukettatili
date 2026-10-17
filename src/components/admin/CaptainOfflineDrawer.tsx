@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   X,
   Wifi,
@@ -7,13 +7,9 @@ import {
   Radio,
   Download,
   Search,
-  CheckCircle2,
   AlertTriangle,
   Hotel,
-  Clock,
-  ShieldCheck,
   Smartphone,
-  ExternalLink,
 } from 'lucide-react';
 import {
   CAPTAIN_EMERGENCY_CONTACTS,

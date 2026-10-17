@@ -3,7 +3,6 @@ import {
   detectTourPier,
   buildPierManifest,
   generatePierManifestWhatsApp,
-  PHUKET_PIERS,
 } from '../src/lib/pierManifest';
 import type { Booking } from '../src/data/adminInitialData';
 

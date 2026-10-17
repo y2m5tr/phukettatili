@@ -3,7 +3,6 @@ import {
   initialPayments,
   PAYMENT_METHOD_LABELS,
   COLLECTION_LOCATION_LABELS,
-  type PaymentRecord,
   type Booking,
 } from '../src/data/adminInitialData';
 

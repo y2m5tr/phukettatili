@@ -4,7 +4,6 @@ import {
   extractManifestAlerts,
   generateBoatKitchenManifest,
   getBoatManifestWhatsAppUrl,
-  type GuestDietaryAlert,
 } from '../src/lib/dietaryManifest';
 import type { Booking } from '../src/data/adminInitialData';
 

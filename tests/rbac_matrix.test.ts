@@ -3,9 +3,7 @@ import {
   getRolePermissions,
   isTabAllowed,
   getRoleBadge,
-  ROLE_PERMISSIONS,
 } from '../src/lib/rbac';
-import type { OpsRole } from '../src/lib/auth';
 
 describe('Aşama 3: Role-Based Access Control (RBAC) & Security Matrix', () => {
   describe('Owner / Admin Permissions', () => {

@@ -3,7 +3,7 @@ import {
   calculateFinancialBreakdown,
   filterExpensesByTourOrVehicle,
 } from '../src/lib/profitability';
-import { initialExpenses, type Booking, type ExpenseRecord } from '../src/data/adminInitialData';
+import { initialExpenses, type Booking, } from '../src/data/adminInitialData';
 
 describe('Expense & Profitability Engine', () => {
   const sampleBookings: Booking[] = [

@@ -1,16 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   X,
   Send,
   CheckCircle2,
-  Clock,
-  MapPin,
-  Phone,
   MessageCircle,
   ExternalLink,
   Sparkles,
-  ChevronRight,
-  UserCheck,
 } from 'lucide-react';
 import type { PickupItem } from '../../lib/adminFilters';
 import {

@@ -1,20 +1,12 @@
 import React, { useState } from 'react';
 import {
-  Wallet,
   Building,
   Briefcase,
   Calendar,
   Clock,
-  User,
-  Phone,
-  CheckCircle2,
-  ChevronRight,
-  Sparkles,
-  Info,
   Plus,
   Trash2,
   Users,
-  Baby,
   Hotel,
   Luggage,
   Send,
@@ -22,7 +14,6 @@ import {
   AlertTriangle,
   Copy,
   Check,
-  MapPin,
   Compass,
 } from 'lucide-react';
 import {

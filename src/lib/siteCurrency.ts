@@ -5,7 +5,9 @@
  * para birimlerinde dönüştürmek ve formatlamak için kullanılır.
  */
 
-import { DEFAULT_EXCHANGE_RATES } from '../data/adminInitialData';
+// publicRefs: bkz. lib/publicRefs.ts başlığı — tohum verisini client
+// bundle'a taşımamak için paylaşılan sabitler buradan alınır.
+import { DEFAULT_EXCHANGE_RATES } from './publicRefs';
 
 export type DisplayCurrency = 'THB' | 'TRY' | 'USD' | 'EUR';
 

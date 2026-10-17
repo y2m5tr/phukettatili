@@ -5,16 +5,13 @@ import {
   DollarSign,
   TrendingUp,
   Plus,
-  Trash2,
   MessageCircle,
-  Clock,
   FileText,
   LogOut,
   Sparkles,
   Settings,
   HelpCircle,
   RefreshCw,
-  Save,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
@@ -24,9 +21,7 @@ import {
   Car,
   MessageSquareQuote,
   Image,
-  Upload,
   Layers,
-  ListChecks,
   Briefcase,
   Smartphone,
   Bus,
@@ -70,12 +65,7 @@ import {
   type PartnerAgent,
   type SupplierItem,
   type TourCostItem,
-  calculateAgentCommission,
-  lookupTourCost,
-  HOTEL_ZONES,
   detectHotelZone,
-  getRecommendedPickupTime,
-  getPhuketSeason,
 } from '../../data/adminInitialData';
 import CommandPaletteModal from './CommandPaletteModal';
 import BulkRescheduleModal from './BulkRescheduleModal';
@@ -130,7 +120,6 @@ import {
   type CmsCollectionKey,
 } from '../../lib/cmsSync';
 import { filterBookings, filterTours, buildDailyPickups } from '../../lib/adminFilters';
-import { calculateTourOccupancy, getTourCapacity } from '../../lib/allotment';
 import {
   isSupabaseConfigured,
   subscribeBookingsSignal,

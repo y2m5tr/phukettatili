@@ -10,6 +10,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "lint": "biome lint",
+    "lint:fix": "biome lint --write",
+    "check": "astro check && biome lint",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -40,6 +43,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@biomejs/biome": "^2.5.15",
     "typescript": "^6.0.3",
     "vitest": "^5.0.4"
   }

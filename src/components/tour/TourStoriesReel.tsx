@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Play, X, ChevronRight, ChevronLeft, Sparkles, Compass, MapPin } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, ChevronRight, Sparkles, MapPin } from 'lucide-react';
 
 export interface TourStory {
   id: string;

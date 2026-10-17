@@ -1,5 +1,5 @@
 import type { Booking } from '../data/adminInitialData';
-import { formatWhatsAppPhone, buildWhatsAppDeepLink } from './whatsappEngine';
+import { buildWhatsAppDeepLink } from './whatsappEngine';
 
 export interface ConciergeOptions {
   managerPhone?: string;

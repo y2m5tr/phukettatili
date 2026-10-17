@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Ship,
   Calendar,
@@ -7,12 +7,9 @@ import {
   Copy,
   Check,
   X,
-  ExternalLink,
   MessageCircle,
-  AlertCircle,
   MapPin,
   Users,
-  Compass,
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
 import {

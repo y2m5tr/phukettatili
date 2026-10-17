@@ -1,16 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   X,
   ShieldAlert,
-  AlertTriangle,
-  Utensils,
   Ship,
   Copy,
   Check,
   Send,
   MessageCircle,
   Calendar,
-  Filter,
   CheckCircle2,
   Users,
 } from 'lucide-react';
@@ -20,7 +17,6 @@ import {
   generateBoatKitchenManifest,
   getBoatManifestWhatsAppUrl,
   DIETARY_CATEGORIES,
-  type GuestDietaryAlert,
 } from '../../lib/dietaryManifest';
 
 interface DietaryManifestModalProps {

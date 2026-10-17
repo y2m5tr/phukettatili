@@ -357,3 +357,56 @@
     display: none;
   }
 }
+
+/* ============================================================
+   TEKLİF / BELGE YAZDIRMA İZOLASYONU
+   ------------------------------------------------------------
+   `handlePrint` belgeyi (ör. #curated-proposal-print-area) body
+   altına klonlar ve body'ye `.printing-document` sınıfını ekler.
+   Böylece admin panelin editörü, üst barı, butonları ve modal
+   kabuğu yazdırmaya girmez — çıktı yalnızca A4 belge olur.
+
+   Klon mevcut document'te kaldığı için Tailwind sınıfları ve
+   global stiller aynen uygulanır; ayrı bir CSS kopyası gerekmez.
+   ============================================================ */
+@media print {
+  body.printing-document > *:not(.document-print-root) {
+    display: none !important;
+  }
+
+  .document-print-root {
+    display: block !important;
+    /* İsimlendirilmiş sayfa: yalnızca belge yazdırmaları A4/12mm alır,
+       sitenin diğer print akışları (boarding pass, welcome board,
+       pier manifest) kendi düzenlerinde kalır. */
+    page: documentPrint;
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: visible !important;
+  }
+
+  /* Renkler yazıcıda solmasın — rozetler ve vurgu zeminleri gerekli */
+  .document-print-root,
+  .document-print-root * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+  }
+
+  /* Belge içi kartların sayfa ortasında kesilmesini engelle */
+  .document-print-root .break-inside-avoid {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+@page documentPrint {
+  size: A4;
+  margin: 12mm;
+}

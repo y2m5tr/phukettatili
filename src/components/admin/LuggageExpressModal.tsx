@@ -1,20 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, } from 'react';
 import {
   X,
   Plus,
-  Send,
   MessageCircle,
-  Copy,
-  Check,
-  Calendar,
-  Hotel,
   Luggage,
-  CheckCircle2,
   Trash2,
-  ArrowRight,
-  Phone,
-  User,
-  Car,
 } from 'lucide-react';
 import {
   type LuggageTransferRecord,
@@ -22,8 +12,6 @@ import {
   LUGGAGE_STATUS_LABELS,
   INITIAL_LUGGAGE_RECORDS,
   generateLuggageTagNumber,
-  generateLuggageCollectedWhatsApp,
-  generateLuggageDeliveredWhatsApp,
   getLuggageWhatsAppUrl,
 } from '../../lib/luggageExpress';
 import type { Booking, DriverItem } from '../../data/adminInitialData';

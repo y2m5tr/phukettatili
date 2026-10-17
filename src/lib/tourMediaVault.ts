@@ -39,7 +39,7 @@ export function generateDefaultTourPhotos(tourTitle: string): TourPhotoItem[] {
   return [
     {
       id: 'p1',
-      title: 'Maya Bay & Turkuaz Lagün Manzarası',
+      title: `${tourTitle || 'Maya Bay'} & Turkuaz Lagün Manzarası`,
       url: '/images/tours/phi-phi-maya.jpg',
       category: 'scenic',
       highResDownloadUrl: '/images/tours/phi-phi-maya.jpg',

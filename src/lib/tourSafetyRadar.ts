@@ -1,4 +1,4 @@
-import { getMarineSafetyStatus, type MarineSafetyReport, type MarineSafetyLevel } from './marineWeather';
+import { getMarineSafetyStatus, type MarineSafetyReport, } from './marineWeather';
 
 export type TourCategoryGroup = 'island_speedboat' | 'protected_bay' | 'inland_adventure' | 'evening_entertainment';
 

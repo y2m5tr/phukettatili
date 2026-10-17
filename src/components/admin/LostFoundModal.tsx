@@ -4,17 +4,12 @@ import {
   Search,
   Plus,
   Package,
-  Phone,
   Car,
   Hotel,
   ShieldCheck,
   Send,
   MessageCircle,
-  Clock,
-  Filter,
   CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
 } from 'lucide-react';
 import {
   type LostFoundItem,
@@ -58,7 +53,6 @@ export default function LostFoundModal({
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isAddFormOpen, setIsAddFormOpen] = useState<boolean>(false);
-  const [driverInquiryModalItem, setDriverInquiryModalItem] = useState<LostFoundItem | null>(null);
 
   // New item form state
   const [newTitle, setNewTitle] = useState('');
@@ -72,7 +66,10 @@ export default function LostFoundModal({
   const [newHotelName, setNewHotelName] = useState('');
   const [newRoomNumber, setNewRoomNumber] = useState('');
   const [newLocation, setNewLocation] = useState('Araç Torpido Gözü / Şoförde');
-  const [newStatus, setNewStatus] = useState<LostFoundStatus>('found_with_driver');
+  // Yeni kayıt her zaman "şoförde bulundu" durumuyla açılır; ek formda durum
+  // seçici bilinçli olarak yoktur — kayıt sonrası liste satırındaki durum
+  // menüsünden güncellenir. Bu yüzden state değil sabit.
+  const newStatus: LostFoundStatus = 'found_with_driver';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {

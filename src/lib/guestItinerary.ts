@@ -3,7 +3,7 @@
  * Misafirin tüm transfer ve turlarını gün gün planlayan, hazırlık kontrol listesi sunan motor.
  */
 
-import type { Booking, BookingTourSchedule } from '../data/adminInitialData';
+import type { Booking, } from '../data/adminInitialData';
 
 export interface ItineraryDayItem {
   dayIndex: number;

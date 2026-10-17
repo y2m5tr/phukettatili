@@ -328,6 +328,11 @@ export async function flushPendingMutations(
     } catch (networkErr) {
       // Ağ hatası (cihaz halen çevrimdışı veya bağlantı koptu)
       // Kalan mutasyonlar kuyrukta tutulur, döngü sonlanır
+      console.warn(
+        '[OfflineSync] Ağ hatası, senkronizasyon durduruldu — kalan işlemler kuyrukta:',
+        item.description,
+        networkErr instanceof Error ? networkErr.message : networkErr
+      );
       break;
     }
   }

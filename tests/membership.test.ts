@@ -5,7 +5,7 @@
  * process.env.ADMIN_PASSCODE sabitlenir; imzalı çerezler bu anahtarla
  * üretilip doğrulanır.
  */
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, } from 'vitest';
 
 process.env.ADMIN_PASSCODE = 'test-passcode-123';
 

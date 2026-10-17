@@ -1,23 +1,17 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Send,
-  MessageCircle,
   Copy,
   Check,
   X,
-  ExternalLink,
   Building,
-  Calendar,
-  Users,
   FileText,
-  Clock,
   Languages,
 } from 'lucide-react';
 import type { Booking, SupplierItem } from '../../data/adminInitialData';
 import {
   generateSupplierOrderMessage,
   getSupplierOrderWhatsAppUrl,
-  cleanSupplierPhone,
 } from '../../lib/supplierDispatch';
 
 interface SupplierDispatchModalProps {

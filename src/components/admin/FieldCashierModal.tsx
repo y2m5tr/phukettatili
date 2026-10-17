@@ -1,17 +1,12 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   X,
   Coins,
   RefreshCw,
-  ArrowRight,
-  Send,
   MessageCircle,
   Copy,
   Check,
   Wallet,
-  Receipt,
-  User,
-  MapPin,
   CheckCircle2,
   AlertCircle,
   QrCode,

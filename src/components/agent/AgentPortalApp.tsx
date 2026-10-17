@@ -1,21 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   Building2,
-  Calendar,
-  Users,
   CheckCircle2,
   Phone,
   Ticket,
   Clock,
-  MapPin,
   Share2,
-  DollarSign,
   AlertCircle,
   ExternalLink,
   ShieldCheck,
-  ChevronRight,
   Sparkles,
-  Coins,
 } from 'lucide-react';
 import type { PartnerAgent, TourItem, Booking } from '../../data/adminInitialData';
 import {

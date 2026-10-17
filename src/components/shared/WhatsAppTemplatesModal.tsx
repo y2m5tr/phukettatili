@@ -10,7 +10,6 @@ import { type Booking, generateSupplierBookingOrder } from '../../data/adminInit
 import {
   generateEveningBreakfastReminder,
   generateVehicleInZoneAlert,
-  generateLobbyArrivalAlert,
 } from '../../lib/guestConcierge';
 import { generate1830ReviewInviteMessage } from '../../lib/reviewBooster';
 

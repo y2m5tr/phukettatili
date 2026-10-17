@@ -3,7 +3,6 @@ import {
   CAPTAIN_EMERGENCY_CONTACTS,
   CAPTAIN_VHF_CHANNELS,
   cacheDailyManifestForOffline,
-  getCachedOfflineManifest,
 } from '../src/lib/offlineCaptainVault';
 import type { PickupItem } from '../src/lib/adminFilters';
 

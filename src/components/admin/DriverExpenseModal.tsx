@@ -4,16 +4,10 @@ import {
   Fuel,
   Plus,
   Send,
-  MessageCircle,
-  Copy,
   Check,
   Calendar,
   User,
-  Car,
-  Receipt,
-  CheckCircle2,
   Trash2,
-  DollarSign,
   Wallet,
 } from 'lucide-react';
 import {

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, } from 'vitest';
 import React from 'react';
 import { renderToString } from 'react-dom/server';
 import AdminDashboard from '../src/components/admin/AdminDashboard';

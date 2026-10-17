@@ -1,19 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import {
   X,
   Plane,
-  Clock,
-  MapPin,
   Send,
   MessageCircle,
-  Copy,
-  Check,
-  Search,
   AlertTriangle,
   CheckCircle2,
   Car,
   User,
-  Luggage,
 } from 'lucide-react';
 import {
   type FlightInfo,

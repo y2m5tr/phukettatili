@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { ShieldCheck, AlertTriangle, Wind, Waves, Compass, Sparkles, ArrowRight, MessageCircle } from 'lucide-react';
-import { getLiveTourSafetyRadar, type LiveRadarReport, type TourSafetyEvaluation } from '../../lib/tourSafetyRadar';
+import { useState, useEffect } from 'react';
+import { ShieldCheck, AlertTriangle, Wind, Waves, Compass, Sparkles, MessageCircle } from 'lucide-react';
+import { getLiveTourSafetyRadar, type LiveRadarReport, } from '../../lib/tourSafetyRadar';
 
 export default function LiveTourSafetyRadar() {
   const [report, setReport] = useState<LiveRadarReport | null>(null);

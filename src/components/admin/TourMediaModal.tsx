@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   X,
   ExternalLink,
@@ -6,15 +6,12 @@ import {
   Check,
   Send,
   MessageCircle,
-  FolderPlus,
-  Sparkles,
   Camera,
 } from 'lucide-react';
 import {
   generateMediaVaultUrl,
   generateMediaVaultWhatsApp,
   getMediaVaultWhatsAppUrl,
-  DEFAULT_INSTAGRAM_HANDLE,
 } from '../../lib/tourMediaVault';
 import type { Booking } from '../../data/adminInitialData';
 

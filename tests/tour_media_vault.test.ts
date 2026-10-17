@@ -5,7 +5,6 @@ import {
   getMediaVaultWhatsAppUrl,
   generateDefaultTourPhotos,
   DEFAULT_INSTAGRAM_HANDLE,
-  DEFAULT_GOOGLE_REVIEW_URL,
 } from '../src/lib/tourMediaVault';
 
 describe('Misafir Tur Fotoğraf & Video Teslim Kasası (Media Vault)', () => {

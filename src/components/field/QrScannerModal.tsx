@@ -5,10 +5,7 @@ import {
   Camera,
   AlertTriangle,
   Flashlight,
-  CheckCircle2,
   Search,
-  RefreshCw,
-  Sparkles,
 } from 'lucide-react';
 
 interface Props {

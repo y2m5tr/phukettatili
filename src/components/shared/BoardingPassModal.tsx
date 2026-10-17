@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
 import {
   X,
   Printer,
   Share2,
-  CheckCircle2,
   Clock,
   MapPin,
-  Calendar,
   AlertTriangle,
   Compass,
   Phone,

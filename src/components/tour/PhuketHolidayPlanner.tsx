@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
-import { Sparkles, Calendar, Heart, Users, Zap, Crown, CheckCircle2, MessageCircle, ArrowRight, Tag } from 'lucide-react';
+import { useState } from 'react';
+import { Sparkles, Calendar, Heart, Users, CheckCircle2, MessageCircle, } from 'lucide-react';
 import {
   generateHolidayPackage,
   generatePackageWhatsAppMessage,
   type PackageDuration,
   type TravelStyle,
 } from '../../lib/holidayPlanner';
-import { HOTEL_ZONES } from '../../data/adminInitialData';
+// `publicRefs` bilerek seçildi: adminInitialData tohum verisi (müşteri adı,
+// pasaport, tedarikçi maliyeti, acente komisyonu) taşır ve buradan import
+// edilirse Vite onu ana sayfanın client bundle'ına koyar — auth'suz statik
+// asset olarak herkese açık servis edilir.
+import { HOTEL_ZONES } from '../../lib/publicRefs';
 
 export default function PhuketHolidayPlanner() {
   const [duration, setDuration] = useState<PackageDuration>(5);

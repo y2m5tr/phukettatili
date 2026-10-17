@@ -4,7 +4,7 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, Send } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 import { getCrossSellWhatsAppUrl } from '../../lib/crossSell';
