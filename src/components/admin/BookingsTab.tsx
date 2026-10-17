@@ -29,6 +29,7 @@ interface BookingsTabProps {
   setWhatsAppModalBooking: (b: Booking) => void;
   onQuickCollect?: (b: Booking) => void;
   onOpenQuotePdf?: (b: Booking) => void;
+  googleReviewUrl?: string;
   onOpenDietaryManifest?: () => void;
   onOpenFieldCashier?: (b?: Booking) => void;
   onOpenFlightRadar?: (flight?: string, guestName?: string) => void;
@@ -56,6 +57,7 @@ export default function BookingsTab({
   setWhatsAppModalBooking,
   onQuickCollect,
   onOpenQuotePdf,
+  googleReviewUrl,
   onOpenDietaryManifest,
   onOpenFieldCashier,
   onOpenFlightRadar,
@@ -488,7 +490,7 @@ export default function BookingsTab({
                           <button
                             type="button"
                             onClick={() => {
-                              const url = getGoogleReviewWhatsAppUrl(b);
+                              const url = getGoogleReviewWhatsAppUrl(b, { googleReviewUrl });
                               window.open(url, '_blank', 'noopener,noreferrer');
                             }}
                             className={`p-1.5 rounded-lg transition-colors cursor-pointer ${

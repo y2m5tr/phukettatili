@@ -54,6 +54,50 @@ export interface ProposalAgentInfo {
   badge?: string;
 }
 
+export interface ProposalAddon {
+  id: string;
+  title: string;
+  priceThb: number;
+  selected: boolean;
+  icon?: string;
+  description?: string;
+}
+
+export const DEFAULT_PROPOSAL_ADDONS: ProposalAddon[] = [
+  {
+    id: 'addon_drone',
+    title: 'Profesyonel Drone & Sualtı Fotoğraf Çekimi',
+    priceThb: 1500,
+    selected: false,
+    icon: '📸',
+    description: 'Tüm gün 4K drone ve sualtı aksiyon kamerası video/fotoğraf çekimi + hafıza kartı teslimi',
+  },
+  {
+    id: 'addon_gear',
+    title: 'Numaralı Şnorkel Maskesi & Profesyonel Palet',
+    priceThb: 250,
+    selected: false,
+    icon: '🤿',
+    description: 'Kişiye özel dezenfekte edilmiş premium şnorkel takımı ve yüzme paleti',
+  },
+  {
+    id: 'addon_vip_transfer',
+    title: 'VIP Minivan Otel Transfer Yükseltmesi',
+    priceThb: 1200,
+    selected: false,
+    icon: '🚐',
+    description: 'Paylaşımlı araç yerine gidiş-dönüş size özel klimalı VIP Toyota Commuter',
+  },
+  {
+    id: 'addon_turkish_guide',
+    title: 'Özel Türkçe Rehber Eşliği',
+    priceThb: 2500,
+    selected: false,
+    icon: '🇹🇷',
+    description: 'Tur boyunca sadece sizinle ilgilenen lisanslı Türk tur lideri',
+  },
+];
+
 export interface CuratedProposalData {
   proposalType?: ProposalType;
   singleTourDate?: string;
@@ -79,6 +123,7 @@ export interface CuratedProposalData {
   inclusions: string[];
   exclusions: string[];
   specialGifts: string[];
+  addons?: ProposalAddon[]; // Opsiyonel tur içi ekstralar (drone, palet, özel rehber vb.)
   agentInfo: ProposalAgentInfo;
   welcomeMessage?: string;
   discountPercent: number;
@@ -580,6 +625,7 @@ export function buildCuratedProposal(
     inclusions: [...DEFAULT_INCLUSIONS],
     exclusions: [...DEFAULT_EXCLUSIONS],
     specialGifts: style === 'honeymoon' ? [...DEFAULT_GIFTS] : [DEFAULT_GIFTS[1]],
+    addons: DEFAULT_PROPOSAL_ADDONS.map((a) => ({ ...a })),
     agentInfo: { ...DEFAULT_AGENT_INFO },
     welcomeMessage,
     discountPercent: packagePlan.discountPercentage || 12,
@@ -679,6 +725,7 @@ export function buildSingleTourProposal(
     inclusions: [...DEFAULT_INCLUSIONS],
     exclusions: [...DEFAULT_EXCLUSIONS],
     specialGifts: ['Soğuk Su, Taze Meyve & İçecek İkramları 🥥', 'WhatsApp Türkçe Saha Desteği 🇹🇷'],
+    addons: DEFAULT_PROPOSAL_ADDONS.map((a) => ({ ...a })),
     agentInfo: { ...DEFAULT_AGENT_INFO },
     welcomeMessage,
     discountPercent: 0,
@@ -701,7 +748,11 @@ export function calculateProposalFinancials(
   const eurRate = rates.eurRate || 39; // 1 EUR = ~39 THB
   const gbpRate = rates.gbpRate || 46; // 1 GBP = ~46 THB
 
-  const subtotalThb = proposal.days.reduce((acc, d) => acc + (d.priceThb || 0), 0);
+  const addonsTotalThb = (proposal.addons || [])
+    .filter((a) => a.selected)
+    .reduce((acc, a) => acc + (a.priceThb || 0), 0);
+
+  const subtotalThb = proposal.days.reduce((acc, d) => acc + (d.priceThb || 0), 0) + addonsTotalThb;
   const discountThb = Math.round((subtotalThb * (proposal.discountPercent || 0)) / 100);
   const totalThb = Math.max(0, subtotalThb - discountThb);
 

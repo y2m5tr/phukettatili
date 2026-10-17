@@ -69,7 +69,6 @@ import {
 } from '../../data/adminInitialData';
 import CommandPaletteModal from './CommandPaletteModal';
 import BulkRescheduleModal from './BulkRescheduleModal';
-import TourQuotePdfModal from './TourQuotePdfModal';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import FleetManager from './FleetManager';
 import SupplierSettlementManager from './SupplierSettlementManager';
@@ -755,14 +754,17 @@ export default function AdminDashboard({
   // Voucher / Ticket Modal State
   const [voucherBooking, setVoucherBooking] = useState<Booking | null>(null);
 
-  // Kurumsal PDF Teklif & Fiyatlandırma / Proforma Modalı
-  const [quoteModalData, setQuoteModalData] = useState<{ booking?: Booking; tour?: TourItem } | null>(null);
-
   // Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı Modalı
   const [curatedProposalData, setCuratedProposalData] = useState<{
     customerName?: string;
     hotel?: string;
     zone?: string;
+    phone?: string;
+    proposalType?: 'package_multiday' | 'single_tour';
+    tourTitle?: string;
+    tourDate?: string;
+    adultCount?: number;
+    childCount?: number;
   } | null>(null);
 
   // Andaman Denizi Çevrimdışı Kaptan Kasası & Acil Durum Rehberi (PWA)
@@ -1135,7 +1137,6 @@ export default function AdminDashboard({
   const isAnyModalOpen =
     isModalOpen ||
     Boolean(voucherBooking) ||
-    Boolean(quoteModalData) ||
     Boolean(curatedProposalData) ||
     isCaptainDrawerOpen ||
     Boolean(whatsAppModalBooking) ||
@@ -3153,7 +3154,19 @@ export default function AdminDashboard({
             setVoucherBooking={setVoucherBooking}
             setWhatsAppModalBooking={setWhatsAppModalBooking}
             onQuickCollect={(_b) => setActiveTab('finance')}
-            onOpenQuotePdf={(b) => setQuoteModalData({ booking: b })}
+            googleReviewUrl={siteSettings.googleReviewUrl}
+            onOpenQuotePdf={(b) =>
+              setCuratedProposalData({
+                customerName: b.customerName,
+                hotel: b.hotel,
+                phone: b.phone,
+                proposalType: 'single_tour',
+                tourTitle: b.tourTitle,
+                tourDate: b.tourDate,
+                adultCount: b.adultCount,
+                childCount: b.childCount,
+              })
+            }
             onOpenDietaryManifest={() => setIsDietaryManifestOpen(true)}
             onOpenFieldCashier={(b) => {
               setCashierBooking(b || null);
@@ -3346,7 +3359,15 @@ export default function AdminDashboard({
             onOpenEdit={handleOpenEditTour}
             onToggleFeatured={handleToggleTourFeatured}
             onDelete={handleDeleteTour}
-            onOpenQuotePdf={(t) => setQuoteModalData({ tour: t })}
+            onOpenQuotePdf={(t) =>
+              setCuratedProposalData({
+                customerName: 'Sayın Misafirimiz',
+                proposalType: 'single_tour',
+                tourTitle: t.title,
+                adultCount: 2,
+                childCount: 0,
+              })
+            }
           />
         )}
 
@@ -3728,19 +3749,6 @@ export default function AdminDashboard({
       )}
 
       {/* ==================================================== */}
-      {/* MODAL 10.5: CORPORATE TOUR QUOTE & PROFORMA PDF ENGINE */}
-      {/* ==================================================== */}
-      {quoteModalData && (
-        <TourQuotePdfModal
-          booking={quoteModalData.booking}
-          tour={quoteModalData.tour}
-          onClose={() => setQuoteModalData(null)}
-          showToast={showToast}
-          whatsappNumber={siteSettings.whatsappNumber}
-        />
-      )}
-
-      {/* ==================================================== */}
       {/* MODAL 11: WHATSAPP AUTOMATION TEMPLATES */}
       {/* ==================================================== */}
       {whatsAppModalBooking && (
@@ -4020,6 +4028,12 @@ export default function AdminDashboard({
           initialCustomerName={curatedProposalData.customerName}
           initialHotel={curatedProposalData.hotel}
           initialZone={curatedProposalData.zone}
+          initialPhone={curatedProposalData.phone}
+          initialProposalType={curatedProposalData.proposalType}
+          initialTourTitle={curatedProposalData.tourTitle}
+          initialTourDate={curatedProposalData.tourDate}
+          initialAdultCount={curatedProposalData.adultCount}
+          initialChildCount={curatedProposalData.childCount}
           onConvertToBooking={handleConvertProposalToBooking}
         />
       )}

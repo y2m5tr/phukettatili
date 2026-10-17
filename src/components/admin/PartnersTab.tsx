@@ -14,6 +14,7 @@ import {
   FileText,
   Percent,
   AlertCircle,
+  Printer,
 } from 'lucide-react';
 import {
   type Booking,
@@ -236,6 +237,52 @@ export default function PartnersTab({
     ];
 
     return lines.join('\n');
+  };
+
+  // Yazdır / A4 PDF Mutabakat Bordrosu
+  const handlePrintStatement = (agent: PartnerAgent) => {
+    const text = generateStatementText(agent);
+    const win = window.open('', '_blank', 'width=800,height=900');
+    if (!win) return;
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>${agent.name} - Komisyon ve Mutabakat Bordrosu</title>
+        <style>
+          @page { size: A4 portrait; margin: 15mm; }
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; color: #0f172a; line-height: 1.6; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; padding-bottom: 14px; margin-bottom: 20px; }
+          .title { font-size: 20px; font-weight: 800; color: #0f172a; margin: 0; }
+          .sub { font-size: 13px; color: #64748b; font-weight: 600; margin-top: 2px; }
+          .meta { font-size: 12px; color: #475569; text-align: right; }
+          .box { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 12px; padding: 18px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; white-space: pre-wrap; line-height: 1.65; }
+          .footer { margin-top: 32px; font-size: 11px; color: #94a3b8; text-align: center; border-top: 1px solid #e2e8f0; padding-top: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div>
+            <div class="title">PHUKET TATİLİ TRAVEL CO., LTD.</div>
+            <div class="sub">B2B Partner Acenta Komisyon & Mutabakat Bordrosu</div>
+          </div>
+          <div class="meta">
+            <div><strong>Tarih:</strong> ${new Date().toLocaleDateString('tr-TR')}</div>
+            <div><strong>Acenta Kodu:</strong> ${agent.code}</div>
+          </div>
+        </div>
+        <div class="box">${text}</div>
+        <div class="footer">
+          Phuket Tatili Travel Co., Ltd. · 24/7 B2B Destek & Muhasebe: +${managerPhone} · www.phukettatili.com
+        </div>
+        <script>
+          window.onload = function() { window.print(); }
+        </script>
+      </body>
+      </html>
+    `);
+    win.document.close();
   };
 
   return (
@@ -879,12 +926,21 @@ export default function PartnersTab({
               <div className="flex items-center gap-2">
                 <button
                   type="button"
+                  onClick={() => handlePrintStatement(statementAgent)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer"
+                  title="Resmi A4 Acente Mutabakat Bordrosu Yazdır / PDF İndir"
+                >
+                  <Printer className="w-4 h-4 text-brand-primary" />
+                  <span>Yazdır / PDF</span>
+                </button>
+                <button
+                  type="button"
                   onClick={() => {
                     navigator.clipboard.writeText(generateStatementText(statementAgent));
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5"
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 cursor-pointer"
                 >
                   {copied ? <Check className="w-4 h-4 text-emerald-500" /> : <Copy className="w-4 h-4" />}
                   <span>{copied ? 'Kopyalandı' : 'Metni Kopyala'}</span>
@@ -892,7 +948,7 @@ export default function PartnersTab({
                 <button
                   type="button"
                   onClick={() => setStatementAgent(null)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold"
+                  className="px-4 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 text-xs font-bold cursor-pointer"
                 >
                   Kapat
                 </button>

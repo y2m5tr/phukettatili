@@ -82,6 +82,12 @@ interface Props {
   initialCustomerName?: string;
   initialHotel?: string;
   initialZone?: string;
+  initialPhone?: string;
+  initialProposalType?: ProposalType;
+  initialTourTitle?: string;
+  initialTourDate?: string;
+  initialAdultCount?: number;
+  initialChildCount?: number;
   isEmbedded?: boolean;
   onConvertToBooking?: (bookingData: any) => void;
 }
@@ -95,22 +101,59 @@ export default function CuratedProposalModal({
   initialCustomerName = 'Begüm & Canberk Özkan',
   initialHotel = 'The Shore at Katathani',
   initialZone = 'Kata & Karon',
+  initialPhone,
+  initialProposalType,
+  initialTourTitle,
+  initialTourDate,
+  initialAdultCount = 2,
+  initialChildCount = 0,
   isEmbedded = false,
   onConvertToBooking,
 }: Props) {
   if (!isOpen) return null;
 
-  const [proposal, setProposal] = useState<CuratedProposalData>(() =>
-    buildCuratedProposal(
+  const [proposal, setProposal] = useState<CuratedProposalData>(() => {
+    if (initialProposalType === 'single_tour') {
+      const matchedPreset = initialTourTitle
+        ? PROPOSAL_CATALOG_TOURS.find(
+            (p) =>
+              p.tourTitle.toLowerCase().includes(initialTourTitle.toLowerCase()) ||
+              initialTourTitle.toLowerCase().includes(p.tourTitle.toLowerCase())
+          )?.id || 'phi_phi_speed'
+        : 'phi_phi_speed';
+
+      const base = buildSingleTourProposal(
+        initialCustomerName,
+        matchedPreset,
+        initialTourDate || '',
+        initialHotel,
+        initialZone,
+        initialAdultCount,
+        initialChildCount
+      );
+      if (initialTourTitle && base.days[0]) {
+        base.days[0].tourTitle = initialTourTitle;
+      }
+      if (initialPhone) {
+        base.customerPhone = initialPhone;
+      }
+      return base;
+    }
+
+    const base = buildCuratedProposal(
       initialCustomerName,
       'honeymoon',
       5,
       initialHotel,
       initialZone,
-      2,
-      0
-    )
-  );
+      initialAdultCount,
+      initialChildCount
+    );
+    if (initialPhone) {
+      base.customerPhone = initialPhone;
+    }
+    return base;
+  });
 
   const [activeTab, setActiveTab] = useState<EditorTab>('overview');
   const [copied, setCopied] = useState<boolean>(false);
@@ -2223,6 +2266,58 @@ export default function CuratedProposalModal({
                     </button>
                   </div>
                 </div>
+
+                {/* 💎 Opsiyonel Tur İçi Ekstralar & Upsell Add-ons */}
+                <div className="pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                      <span>💎</span>
+                      <span>Opsiyonel Ek Hizmetler & Upsell ({(proposal.addons || []).filter((a) => a.selected).length} Seçili):</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400">Teklife ekleyip çıkarabilirsiniz</span>
+                  </div>
+
+                  <div className="space-y-2">
+                    {(proposal.addons || []).map((addon) => (
+                      <label
+                        key={addon.id}
+                        className={`flex items-start gap-2.5 p-2.5 rounded-xl border transition-all cursor-pointer ${
+                          addon.selected
+                            ? 'bg-amber-500/10 border-amber-500/50 text-slate-900 dark:text-white'
+                            : 'bg-white dark:bg-slate-900/60 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={Boolean(addon.selected)}
+                          onChange={() => {
+                            const next = (proposal.addons || []).map((a) =>
+                              a.id === addon.id ? { ...a, selected: !a.selected } : a
+                            );
+                            setProposal({ ...proposal, addons: next });
+                          }}
+                          className="mt-0.5 rounded text-amber-500 focus:ring-amber-400"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="font-bold text-xs flex items-center gap-1.5">
+                              <span>{addon.icon || '✨'}</span>
+                              <span>{addon.title}</span>
+                            </span>
+                            <span className="font-mono font-bold text-xs text-amber-600 dark:text-amber-400 shrink-0">
+                              +{addon.priceThb.toLocaleString()} THB
+                            </span>
+                          </div>
+                          {addon.description && (
+                            <p className="text-[11px] opacity-75 mt-0.5 leading-tight">
+                              {addon.description}
+                            </p>
+                          )}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 
@@ -2969,6 +3064,46 @@ export default function CuratedProposalModal({
                       </li>
                     ))}
                   </ul>
+                </div>
+              )}
+
+              {/* SEÇİLEN VIP EKSTRALAR & UPSELL ADDONS (VARSA) */}
+              {(proposal.addons || []).some((a) => a.selected) && (
+                <div
+                  className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-950 break-inside-avoid"
+                  style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}
+                >
+                  <div className="flex items-center justify-between text-xs font-black text-amber-900 mb-1.5">
+                    <span className="flex items-center gap-1.5">
+                      <span>💎</span>
+                      <span>Teklife Dahil Edilen Ekstra VIP Hizmetler:</span>
+                    </span>
+                    <span className="font-mono text-[11px] font-bold">
+                      +{(proposal.addons || [])
+                        .filter((a) => a.selected)
+                        .reduce((acc, a) => acc + (a.priceThb || 0), 0)
+                        .toLocaleString()}{' '}
+                      THB
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-amber-950/90">
+                    {(proposal.addons || [])
+                      .filter((a) => a.selected)
+                      .map((addon) => (
+                        <div
+                          key={addon.id}
+                          className="flex items-center justify-between gap-1 p-2 rounded-xl bg-white/70 border border-amber-200/60"
+                        >
+                          <span className="font-semibold flex items-center gap-1.5">
+                            <span>{addon.icon || '✨'}</span>
+                            <span>{addon.title}</span>
+                          </span>
+                          <span className="font-mono font-bold text-amber-800 text-[10px]">
+                            +{addon.priceThb.toLocaleString()} ฿
+                          </span>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               )}
 
