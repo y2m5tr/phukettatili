@@ -8,26 +8,22 @@ import TourQuickBookingDrawer from '../../components/tour/TourQuickBookingDrawer
 // Dinamik SSR: panelde degisen kapak/galeri aninda yansir (bulut overlay).
 // Build'deki .md verisi taban; uzerine content_store bulut kaydi gelir.
 // Bulut yoksa site statik veriyle calismaya devam eder.
+// Dinamik SSR: her istekte render — panel kapak/galeri/fiyat degisikligi aninda yansir.
 export const prerender = false;
 
-export async function getStaticPaths() {
-  const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
-  return tours.map((tour) => ({
-    params: { id: tour.id },
-    props: { tour },
-  }));
+// Tur kaydini id'den bul (dinamik route — props yok)
+const { id } = Astro.params;
+const allToursForRelated: CollectionEntry<'tours'>[] = await getCollection('tours');
+const tour = allToursForRelated.find((t) => t.id === id);
+
+if (!tour) {
+  return Astro.redirect('/turlar', 302);
 }
 
-interface Props {
-  tour: CollectionEntry<'tours'>;
-}
-
-const { tour } = Astro.props;
 const { Content } = await render(tour);
 const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
 
 // Benzer turlar: aynı kategoriden, mevcut tur hariç, sıralamaya göre ilk 3
-const allToursForRelated: CollectionEntry<'tours'>[] = await getCollection('tours');
 const relatedTours = allToursForRelated
   .filter((t) => t.id !== tour.id && t.data.category === tour.data.category)
   .sort((a, b) => a.data.order - b.data.order)
