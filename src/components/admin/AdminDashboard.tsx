@@ -2217,27 +2217,111 @@ export default function AdminDashboard({
     });
   }, [mediaList, mediaSearchQuery, mediaTypeFilter]);
 
+  // ===== GELISMIS GORSSEL YUKLEME MOTORU =====
+  // - Otomatik boyutlandirma (maks 1600px genislik, orani korunur)
+  // - WebP donusumu (kucuk dosya, site hizi)
+  // - Guvenli dosya adi (slugify)
+  // - Dosya dogrulama + turkce hata mesajlari
+  // - Boyut limiti: 12MB ham / islenmis cikti cok daha kucuk
+  const UPLOAD_MAX_MB = 12;
+  const UPLOAD_MAX_WIDTH = 1600;
+
+  const slugifyFileName = (name: string): string => {
+    const base = name.replace(/\.[^/.]+$/, '');
+    const map: Record<string, string> = { 'ç':'c','Ç':'c','ğ':'g','Ğ':'g','ı':'i','I':'i','İ':'i','ö':'o','Ö':'o','ş':'s','Ş':'s','ü':'u','Ü':'u' };
+    return base
+      .split('')
+      .map((ch) => map[ch] ?? ch)
+      .join('')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 60) || 'fotograf';
+  };
+
+  const processImageFile = (file: File): Promise<{ blob: Blob; url: string; width: number; height: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        // Boyutlandirma hesabi
+        const scale = Math.min(1, UPLOAD_MAX_WIDTH / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error('Tarayıcı görsel işlemeyi desteklemiyor.'));
+          return;
+        }
+        // Beyaz arka plan (transparan PNG webp'te sorun olmamasi icin)
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        // Once PNG dene — bazi tarayicilar webp encode'u desteklemez
+        let blob: Blob | null = null;
+        const tryBlob = (type: string, quality: number, cb: (b: Blob) => void) => {
+          canvas.toBlob((b) => {
+            if (b && b.size > 0) cb(b);
+            else if (type === 'image/webp') tryBlob('image/jpeg', 0.85, cb);
+            else reject(new Error('Görsel dönüştürülemedi.'));
+          }, type, quality);
+        };
+        tryBlob('image/webp', 0.85, (b) => {
+          blob = b;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            URL.revokeObjectURL(objectUrl);
+            resolve({ blob: b, url: ev.target?.result as string, width: w, height: h });
+          };
+          reader.readAsDataURL(b);
+        });
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('Dosya bozuk veya desteklenmeyen görsel formatı.'));
+      };
+      img.src = objectUrl;
+    });
+  };
+
   const handleFileUpload = (file: File, callback?: (url: string) => void) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const base64 = e.target?.result as string;
-      if (!base64) return;
-      const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-      const newMedia: MediaItem = {
-        id: `med-${Date.now()}`,
-        title: cleanTitle,
-        url: base64,
-        type: 'uploaded',
-        size: `${Math.round(file.size / 1024)} KB`,
-        createdAt: new Date().toLocaleDateString('tr-TR'),
-      };
-      const updated = [newMedia, ...mediaList];
-      saveMediaList(updated);
-      showToast(`"${file.name}" başarıyla kütüphaneye yüklendi!`);
-      if (callback) callback(base64);
-    };
-    reader.readAsDataURL(file);
+    // 1) Dogrulama
+    if (!file.type.startsWith('image/')) {
+      showToast('Hata: Sadece görsel dosyası yüklenebilir (JPG, PNG, WebP, GIF).');
+      return;
+    }
+    if (file.size > UPLOAD_MAX_MB * 1024 * 1024) {
+      showToast(`Hata: Dosya çok büyük (${(file.size / 1024 / 1024).toFixed(1)}MB). En fazla ${UPLOAD_MAX_MB}MB — otomatik küçültülecek.`);
+      return;
+    }
+    // 2) Isle ve yukle
+    processImageFile(file)
+      .then(({ url, width, height, blob }) => {
+        const slug = slugifyFileName(file.name);
+        const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
+        const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
+        const newMedia: MediaItem = {
+          id: `med-${Date.now()}`,
+          title: cleanTitle,
+          url,
+          type: 'uploaded',
+          size: `${Math.round(blob.size / 1024)} KB · ${width}×${height}`,
+          createdAt: new Date().toLocaleDateString('tr-TR'),
+          slug: `${slug}.${ext}`,
+        };
+        const updated = [newMedia, ...mediaList];
+        saveMediaList(updated);
+        showToast(`"${file.name}" yüklendi: ${width}×${height} → ${(blob.size / 1024).toFixed(0)}KB WebP`);
+        if (callback) callback(url);
+      })
+      .catch((err) => {
+        showToast(err?.message || 'Yükleme sırasında hata oluştu.');
+      });
   };
 
   const handleAddMediaSubmit = (e: React.FormEvent) => {
@@ -3393,6 +3477,11 @@ export default function AdminDashboard({
             setAssignMediaModal={setAssignMediaModal}
             handleCopyMediaUrl={handleCopyMediaUrl}
             handleDeleteMedia={handleDeleteMedia}
+            onUpdateMedia={(id, patch) => {
+              const next = mediaList.map((m) => (m.id === id ? { ...m, ...patch } : m));
+              saveMediaList(next);
+              showToast('Görsel güncellendi.');
+            }}
           />
         )}
 

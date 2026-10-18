@@ -5,7 +5,8 @@
  * allImageOptions hesabı da aynı state'ten besleniyor.
  * Not: Diğer CMS sekmeleri gibi YEREL kaydeder (localStorage).
  */
-import { Search, Upload, ExternalLink, Maximize2, Copy, Star, Trash2 } from 'lucide-react';
+import { Search, Upload, ExternalLink, Maximize2, Copy, Star, Trash2, Edit2, Save, X, Wand2 } from 'lucide-react';
+import { useState } from 'react';
 import type { MediaItem } from '../../data/adminInitialData';
 
 export type MediaTypeFilter = 'all' | 'system' | 'uploaded' | 'external';
@@ -27,6 +28,8 @@ interface MediaTabProps {
   setAssignMediaModal: (m: MediaItem | null) => void;
   handleCopyMediaUrl: (url: string) => void;
   handleDeleteMedia: (id: string, title: string) => void;
+  /** Gorseli yeniden adlandirma + cozunurluk degistirme (parent state'i gunceller). */
+  onUpdateMedia?: (id: string, patch: Partial<MediaItem>) => void;
 }
 
 export default function MediaTab({
@@ -42,7 +45,76 @@ export default function MediaTab({
   setAssignMediaModal,
   handleCopyMediaUrl,
   handleDeleteMedia,
+  onUpdateMedia,
 }: MediaTabProps) {
+  const [editingMedia, setEditingMedia] = useState<MediaItem | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+  const [editSlug, setEditSlug] = useState('');
+  const [editMaxWidth, setEditMaxWidth] = useState<number>(1600);
+  const [editBusy, setEditBusy] = useState(false);
+
+  const slugify = (s: string): string => {
+    const map: Record<string, string> = { 'ç':'c','Ç':'c','ğ':'g','Ğ':'g','ı':'i','İ':'i','ö':'o','Ö':'o','ş':'s','Ş':'s','ü':'u','Ü':'u' };
+    return s.split('').map((ch) => map[ch] ?? ch).join('').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+  };
+
+  // Cozunurluk degistirme: gorseli canvas ile yeniden olc, yeni base64 uret
+  const applyResolutionChange = (media: MediaItem, maxWidth: number): Promise<{ url: string; size: string; w: number; h: number }> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const scale = Math.min(1, maxWidth / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('İşlem desteklenmiyor'));
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        canvas.toBlob((b) => {
+          if (!b) return reject(new Error('Dönüştürme başarısız'));
+          const reader = new FileReader();
+          reader.onload = () => resolve({ url: reader.result as string, size: `${Math.round(b.size / 1024)} KB · ${w}×${h}`, w, h });
+          reader.readAsDataURL(b);
+        }, 'image/webp', 0.85);
+      };
+      img.onerror = () => reject(new Error('Görsel yüklenemedi'));
+      img.crossOrigin = 'anonymous';
+      img.src = getImageUrl(media.url);
+    });
+  };
+
+  const openEditor = (m: MediaItem) => {
+    setEditingMedia(m);
+    setEditTitle(m.title);
+    setEditSlug(m.slug || slugify(m.title) + (m.url.startsWith('data:') ? '.webp' : ''));
+    setEditMaxWidth(1600);
+  };
+
+  const saveEditor = async () => {
+    if (!editingMedia || !onUpdateMedia) return;
+    setEditBusy(true);
+    try {
+      const patch: Partial<MediaItem> = { title: editTitle.trim() || editingMedia.title };
+      const ext = editSlug.split('.').pop() || 'webp';
+      patch.slug = slugify(editSlug.replace(/\.[^/.]+$/, '')) + '.' + ext;
+      if (editMaxWidth > 0) {
+        try {
+          const r = await applyResolutionChange(editingMedia, editMaxWidth);
+          patch.url = r.url;
+          patch.size = r.size;
+        } catch { /* cozunurluk degisimi basarisizsa sadece isim degisir */ }
+      }
+      onUpdateMedia(editingMedia.id, patch);
+      setEditingMedia(null);
+    } finally {
+      setEditBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-surface-2 p-4 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -174,6 +246,16 @@ export default function MediaTab({
                   >
                     <Star className="w-3.5 h-3.5 fill-current" />
                   </button>
+                  {onUpdateMedia && m.type !== 'system' && (
+                    <button
+                      type="button"
+                      onClick={() => openEditor(m)}
+                      className="p-2 rounded-xl bg-white/95 text-slate-900 hover:bg-white shadow-md transform hover:scale-110 transition-transform"
+                      title="Yeniden Adlandır / Çözünürlük Değiştir"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
                 <span
@@ -225,6 +307,94 @@ export default function MediaTab({
           );
         })}
       </div>
+
+      {/* ===== GORSEL DUZENLEME MODAL ===== */}
+      {editingMedia && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-serif font-bold text-lg text-slate-900 dark:text-white flex items-center gap-2">
+                <Wand2 className="w-5 h-5 text-brand-accent" />
+                Görseli Düzenle
+              </h3>
+              <button type="button" onClick={() => setEditingMedia(null)} className="p-2 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-5 space-y-4">
+              <div className="flex items-center gap-4">
+                <img src={getImageUrl(editingMedia.url)} alt={editingMedia.title} className="w-20 h-20 rounded-2xl object-cover border border-slate-200 dark:border-slate-700" />
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="font-semibold text-slate-700 dark:text-slate-300">{editingMedia.size || 'Boyut bilinmiyor'}</p>
+                  <p className="mt-0.5">{editingMedia.createdAt} tarihinde eklendi</p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">Görsel Başlığı</label>
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">Dosya Adı (siteye uygulanırken)</label>
+                <input
+                  type="text"
+                  value={editSlug}
+                  onChange={(e) => setEditSlug(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-mono focus:outline-none"
+                />
+                <p className="text-[11px] text-slate-400 mt-1">Türkçe karakterler otomatik çevrilir: ç→c, ş→s, ı→i</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-600 dark:text-slate-400 mb-1">Çözünürlük (Maks Genişlik)</label>
+                <div className="flex flex-wrap gap-2">
+                  {[800, 1200, 1600, 1920, 2400].map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      onClick={() => setEditMaxWidth(w)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-colors ${
+                        editMaxWidth === w
+                          ? 'bg-brand-primary text-white shadow-sm'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {w}px
+                    </button>
+                  ))}
+                </div>
+                <p className="text-[11px] text-slate-400 mt-1">Kaydedince görsel seçilen genişlikte WebP olarak yeniden işlenir.</p>
+              </div>
+
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingMedia(null)}
+                  className="px-5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-sm font-semibold"
+                >
+                  İptal
+                </button>
+                <button
+                  type="button"
+                  onClick={saveEditor}
+                  disabled={editBusy}
+                  className="px-6 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-sm font-bold flex items-center gap-2 disabled:opacity-60"
+                >
+                  <Save className="w-4 h-4" />
+                  {editBusy ? 'İşleniyor...' : 'Kaydet'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -262,6 +262,8 @@ export interface MediaItem {
   type: 'system' | 'uploaded' | 'external';
   size?: string;
   createdAt: string;
+  /** Slugify edilmis dosya adi — siteye uygulanirken kullanilir (ornek: phi-phi-koyu.webp). */
+  slug?: string;
 }
 
 export interface FaqItem {
