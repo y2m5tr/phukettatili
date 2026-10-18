@@ -37,16 +37,18 @@ const schemas: Record<string, unknown>[] = [
 
 <Layout title="Phuket Rehberi & Blog" description="Phuket hava durumu, gezilecek yerler ve ada rehberi." schemas={schemas}>
   <div class="bg-brand-primary text-white py-20 px-4 relative overflow-hidden">
-    <div class="max-w-4xl mx-auto text-center relative z-10">
-      <FadeIn client:load direction="up">
-        <span class="inline-block bg-brand-accent text-white px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-4 shadow-lg">
-          Seyahat İpuçları & Rehber
-        </span>
-        <h1 class="text-4xl md:text-6xl font-serif font-bold mb-4">Phuket Rehberi</h1>
-        <p class="text-slate-300 text-base md:text-lg max-w-xl mx-auto font-light">
-          Tayland seyahatinizi kusursuz kılacak güncel bilgiler, hava durumu tavsiyeleri ve rota önerileri.
-        </p>
-      </FadeIn>
+    <div class="absolute inset-0 z-0">
+      <img src="/assets/blog-hero-phuket.jpg" alt="Phuket sahil manzarasi - rehber kapagi" class="w-full h-full object-cover animate-ken-burns" />
+      <div class="absolute inset-0 bg-gradient-to-b from-surface-1/85 via-brand-primary/60 to-brand-primary z-10"></div>
+    </div>
+    <div class="max-w-4xl mx-auto text-center relative z-20">
+      <span class="inline-block bg-brand-accent text-white px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase mb-4 shadow-lg">
+        Seyahat İpuçları & Rehber
+      </span>
+      <h1 class="text-4xl md:text-6xl font-serif font-bold mb-4 text-white drop-shadow-lg">Phuket Rehberi</h1>
+      <p class="text-slate-200 text-base md:text-lg max-w-xl mx-auto font-light">
+        Tayland seyahatinizi kusursuz kılcak yerine: kusursuz güncel bilgiler, hava durumu tavsiyeleri ve rota onerileri.
+      </p>
     </div>
   </div>
 
