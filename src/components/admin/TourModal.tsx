@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import {
+import { Edit2,
   Save,
   ListChecks,
   Compass,
@@ -55,6 +55,7 @@ export default function TourModal({
   >('general');
 
   const [tempProgramItem, setTempProgramItem] = useState<string>('');
+  const [editingProgramIdx, setEditingProgramIdx] = useState<number | null>(null);
   const [programImageFor, setProgramImageFor] = useState<number | null>(null);
   const [tempIncludedItem, setTempIncludedItem] = useState<string>('');
   const [tempExcludedItem, setTempExcludedItem] = useState<string>('');
@@ -487,6 +488,22 @@ export default function TourModal({
                           <div className="flex items-center gap-1.5">
                             <button
                               type="button"
+                              onClick={() => {
+                                if (editingProgramIdx === idx) {
+                                  setEditingProgramIdx(null);
+                                  setTempProgramItem('');
+                                } else {
+                                  setEditingProgramIdx(idx);
+                                  setTempProgramItem(step);
+                                }
+                              }}
+                              className={`p-1.5 rounded-lg transition-colors ${editingProgramIdx === idx ? 'text-brand-accent bg-brand-accent/10' : 'text-slate-400 hover:text-brand-primary hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                              title="Adımı Düzenle"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
                               onClick={() => setProgramImageFor(programImageFor === idx ? null : idx)}
                               className={`p-1.5 rounded-lg transition-colors ${stepImg ? 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40' : 'text-slate-400 hover:text-brand-accent hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                               title={stepImg ? 'Adım fotoğrafını değiştir' : 'Bu adıma fotoğraf ekle'}
@@ -509,6 +526,58 @@ export default function TourModal({
                             </button>
                           </div>
                         </div>
+                        {editingProgramIdx === idx && (
+                          <div className="mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-700/60 flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={tempProgramItem}
+                              onChange={(e) => setTempProgramItem(e.target.value)}
+                              className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  if (tempProgramItem.trim()) {
+                                    const next = [...(tourFormData.program || [])];
+                                    next[idx] = tempProgramItem.trim();
+                                    setTourFormData({ ...tourFormData, program: next });
+                                    setEditingProgramIdx(null);
+                                    setTempProgramItem('');
+                                  }
+                                }
+                                if (e.key === 'Escape') {
+                                  setEditingProgramIdx(null);
+                                  setTempProgramItem('');
+                                }
+                              }}
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (tempProgramItem.trim()) {
+                                  const next = [...(tourFormData.program || [])];
+                                  next[idx] = tempProgramItem.trim();
+                                  setTourFormData({ ...tourFormData, program: next });
+                                }
+                                setEditingProgramIdx(null);
+                                setTempProgramItem('');
+                              }}
+                              className="px-3 py-2 rounded-lg bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold whitespace-nowrap"
+                            >
+                              Kaydet
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingProgramIdx(null);
+                                setTempProgramItem('');
+                              }}
+                              className="px-3 py-2 rounded-lg border border-slate-200 dark:border-slate-700 text-xs font-semibold whitespace-nowrap"
+                            >
+                              İptal
+                            </button>
+                          </div>
+                        )}
                         {programImageFor === idx && (
                           <div className="mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-700/60">
                             <div className="flex items-center gap-2">
