@@ -5,7 +5,10 @@ import Accordion from '../../components/ui/Accordion';
 import siteSettings from '../../content/settings/site.json';
 import TourQuickBookingDrawer from '../../components/tour/TourQuickBookingDrawer';
 
-export const prerender = true;
+// Dinamik SSR: panelde degisen kapak/galeri aninda yansir (bulut overlay).
+// Build'deki .md verisi taban; uzerine content_store bulut kaydi gelir.
+// Bulut yoksa site statik veriyle calismaya devam eder.
+export const prerender = false;
 
 export async function getStaticPaths() {
   const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
