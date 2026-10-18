@@ -24,6 +24,7 @@ interface CmsTour {
   image: string;
   excerpt?: string;
   gallery?: string[];
+  programImages?: string[];
 }
 
 interface CmsData {
@@ -60,6 +61,20 @@ for (const tour of data.tours || []) {
         content = content.replace(/^gallery:\n((?:  - "[^"]*"\n?)*)/m, galleryBlock + '\n');
       } else {
         content = content.replace(/^(image:\s*"[^"]*")$/m, '$1\n' + galleryBlock);
+      }
+    }
+
+    const programImagesBlock =
+      tour.programImages && tour.programImages.length > 0
+        ? 'program_images:\n' + tour.programImages.filter(Boolean).map((g) => '  - "' + g + '"').join('\n')
+        : null;
+    if (programImagesBlock) {
+      if (/^program_images:.*$/m.test(content)) {
+        content = content.replace(/^program_images:\n((?:  - "[^"]*"\n?)*)/m, programImagesBlock + '\n');
+      } else if (/^gallery:.*$/m.test(content)) {
+        content = content.replace(/^gallery:\n((?:  - "[^"]*"\n?)*)/m, (m0) => m0 + programImagesBlock + '\n');
+      } else {
+        content = content.replace(/^(image:\s*"[^"]*")$/m, '$1\n' + programImagesBlock);
       }
     }
 

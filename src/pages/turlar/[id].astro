@@ -141,17 +141,33 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
           <div class="mt-16">
             <h3 class="text-3xl border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">Tur Programı (Itinerary)</h3>
             <div class="relative border-l-2 border-brand-accent ml-4 space-y-8 pb-4">
-              {tour.data.program.map((item) => {
+              {tour.data.program.map((item, idx) => {
                 const match = item.match(/^(\d{1,2}:\d{2})\s*[-–]\s*(.+)$/);
                 const time = match ? match[1] : '';
                 const desc = match ? match[2] : item;
+                const stepImg = tour.data.program_images?.[idx];
                 
                 return (
                   <div class="relative pl-8">
                     <span class="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-brand-accent border-4 border-slate-50 dark:border-surface-1"></span>
-                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
-                      {time && <span class="inline-block bg-brand-accent/10 text-brand-accent font-bold px-3 py-1 rounded-full text-sm mb-3">{time.trim()}</span>}
-                      <p class="text-slate-600 dark:text-slate-300 m-0 leading-relaxed">{desc.trim()}</p>
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                      <div class={stepImg ? "flex flex-col sm:flex-row gap-5" : ""}>
+                        <div class={stepImg ? "flex-1" : ""}>
+                          {time && <span class="inline-block bg-brand-accent/10 text-brand-accent font-bold px-3 py-1 rounded-full text-sm mb-3">{time.trim()}</span>}
+                          <p class="text-slate-600 dark:text-slate-300 m-0 leading-relaxed">{desc.trim()}</p>
+                        </div>
+                        {stepImg && (
+                          <div class="relative w-full sm:w-40 h-32 sm:h-28 shrink-0 rounded-xl overflow-hidden group cursor-pointer gallery-trigger" data-index={`program-${idx}`} data-src={`/assets/${stepImg}`} aria-label={`${tour.data.title} program fotoğrafı ${idx + 1}`}>
+                            <img
+                              src={`/assets/${stepImg}`}
+                              alt={`${tour.data.title} — ${desc.trim().slice(0, 60)}`}
+                              loading="lazy"
+                              decoding="async"
+                              class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -455,7 +471,21 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
 
       let activeIndex = 0;
 
+      // Esnek liste destegi: galeri + program foto birlesik acilabilir
+      let currentList: string[] = images;
+      const showLightboxWithList = (list: string[], index: number) => {
+        currentList = list;
+        activeIndex = (index + list.length) % list.length;
+        lightboxImg.src = list[activeIndex];
+        if (lightboxCounter) {
+          lightboxCounter.textContent = `${activeIndex + 1} / ${list.length}`;
+        }
+        lightbox.classList.remove('hidden');
+        lightbox.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+      };
       const showLightbox = (index: number) => {
+        currentList = images;
         activeIndex = (index + images.length) % images.length;
         lightboxImg.src = images[activeIndex];
         if (lightboxCounter) {
@@ -474,14 +504,40 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
 
       triggers.forEach((trigger) => {
         trigger.addEventListener('click', () => {
-          const idx = Number(trigger.dataset.index || 0);
-          showLightbox(idx);
+          // "program-N" (program adim foto) veya sayisal (galeri) index desteklenir
+          const raw = String(trigger.dataset.index || '0');
+          const numeric = parseInt(raw.replace(/[^0-9]/g, ''), 10);
+          // Program fotoyraflari galeri listesinin sonuna eklenmis gibi davranir:
+          // images listesi sirasiyla doldurulur; program img'leri ayri tutulur.
+          const programImgs = Array.from(document.querySelectorAll<HTMLButtonElement>('.gallery-trigger[data-index^="program-"]')).map((t) => t.dataset.src || '');
+          const galleryImgs = images;
+          const isProgram = raw.startsWith('program-');
+          const progIdx = isProgram ? numeric : -1;
+          const galleryBase = galleryImgs.length;
+
+          if (isProgram && programImgs[progIdx]) {
+            // Program fotografi icin mini lightbox: tum liste = galeri + program
+            const all = [...galleryImgs, ...programImgs];
+            const globalIdx = galleryBase + progIdx;
+            // Gecici liste ile ac
+            showLightboxWithList(all, globalIdx);
+          } else {
+            showLightbox(numeric);
+          }
         });
       });
 
       closeBtn?.addEventListener('click', hideLightbox);
-      prevBtn?.addEventListener('click', () => showLightbox(activeIndex - 1));
-      nextBtn?.addEventListener('click', () => showLightbox(activeIndex + 1));
+      prevBtn?.addEventListener('click', () => {
+        activeIndex = (activeIndex - 1 + currentList.length) % currentList.length;
+        lightboxImg.src = currentList[activeIndex];
+        if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${currentList.length}`;
+      });
+      nextBtn?.addEventListener('click', () => {
+        activeIndex = (activeIndex + 1 + currentList.length) % currentList.length;
+        lightboxImg.src = currentList[activeIndex];
+        if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${currentList.length}`;
+      });
 
       // Click backdrop to close
       lightbox.addEventListener('click', (e) => {
@@ -494,8 +550,16 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
       document.addEventListener('keydown', (e) => {
         if (lightbox.classList.contains('hidden')) return;
         if (e.key === 'Escape') hideLightbox();
-        if (e.key === 'ArrowLeft') showLightbox(activeIndex - 1);
-        if (e.key === 'ArrowRight') showLightbox(activeIndex + 1);
+        if (e.key === 'ArrowLeft') {
+          activeIndex = (activeIndex - 1 + currentList.length) % currentList.length;
+          lightboxImg.src = currentList[activeIndex];
+          if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${currentList.length}`;
+        }
+        if (e.key === 'ArrowRight') {
+          activeIndex = (activeIndex + 1 + currentList.length) % currentList.length;
+          lightboxImg.src = currentList[activeIndex];
+          if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${currentList.length}`;
+        }
       });
     }
   });

@@ -37,6 +37,13 @@ program:
   - "13:00 - Phi Phi Don adasında öğle yemeği"
   - "14:30 - Pileh Lagoon zümrüt sularında yüzme ve şnorkel"
   - "16:30 - Phuket iskelesine dönüş ve otele transfer"
+program_images:
+  - "longtail.webp"
+  - "beach.webp"
+  - "bay.webp"
+  - "couple.webp"
+  - "underwater.webp"
+  - "pileh.webp"
 faq:
   - q: "Maya Bay'de yüzmek serbest mi?"
     a: "Doğal yaşamı ve mercanları korumak amacıyla Maya Bay'de suya girmek kısıtlıdır; koyda yürüyüş ve fotoğraf molası verilir. Yüzme molaları Pileh Lagoon ve Bamboo Adası'nda gerçekleşir."
