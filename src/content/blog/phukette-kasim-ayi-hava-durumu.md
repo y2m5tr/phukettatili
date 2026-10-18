@@ -22,3 +22,5 @@ Kasım ayında okyanus, çalkantılı muson döneminden çıkarak durulmaya baş
 * **Şapka ve Güneş Gözlüğü:** Özellikle tekne turlarında güneşten korunmak şarttır.
 
 Kasım ayında deniz koşullarının sakinleşmesiyle birlikte yalnızca yüksek sezonda açık olan [Similan Adaları Sürat Teknesi Turu](/turlar/similan-adalari-surat-teknesi-turu) veya efsanevi kireçtaşı kayalıklarıyla ünlü [James Bond Adası ve Kano Turu](/turlar/james-bond-adasi-ve-kano-turu) en çok tercih edilen rotalardır. Kasım ayında Phuket'in tadını en iyi şekilde çıkarmak için tekne turu planlarınızı önceden yapmanızı tavsiye ederiz.
+
+Deniz henüz tam sakinleşmeden önce şnorkel için ideal ilk durak [Coral Adası Tam Gün Sürat Teknesi Turu](/turlar/coral-adasi-tam-gun-surat-teknesi)'dur; Phuket'e en yakın berrak suya sahip olduğu için muson geçiş aylarında bile yüksek başarı oranlı bir seçimdir.

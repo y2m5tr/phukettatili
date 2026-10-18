@@ -3463,6 +3463,7 @@ export default function AdminDashboard({
             allImageOptions={allImageOptions}
             viewerRole={viewerRole}
             showToast={showToast}
+            onExportSiteData={handleExportSiteData}
           />
         )}
 

@@ -45,6 +45,10 @@ const fullTitle = noTitleSuffix ? title : `${title} | Phuket Tatili`;
         <title>{fullTitle}</title>
 		<meta name="description" content={description} />
         <link rel="canonical" href={canonicalURL} />
+        <!-- Google Search Console dogrulama: PUBLIC_GSC_VERIFICATION env degiskeni ile set edilir -->
+        {import.meta.env.PUBLIC_GSC_VERIFICATION && (
+          <meta name="google-site-verification" content={import.meta.env.PUBLIC_GSC_VERIFICATION} />
+        )}
 
         <meta property="og:type" content={ogType} />
         <meta property="og:locale" content="tr_TR" />

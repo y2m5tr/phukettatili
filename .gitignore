@@ -1,38 +1,30 @@
-# build output
-dist/
-
-# generated types
-.astro/
-
-# dependencies
-node_modules/
-
-# logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# environment variables
-.env
-.env.production
-
-# macOS-specific files
-.DS_Store
-
-# jetbrains setting folder
-.idea/
 
 # Local Netlify & Vercel folders
+# Local agent tools & skills
+# Scratch scripts
+# build output
+# dependencies
+# environment variables
+# generated types
+# jetbrains setting folder
+# logs
+# macOS-specific files
+.DS_Store
+.agents/
+.astro/
+.claude/
+.env
+.env.production
+.hermes/
+.idea/
 .netlify
 .vercel
-.claude/
-
-# Scratch scripts
+dist/
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
 scratch/
-
-# Local agent tools & skills
-.agents/
-.hermes/
-skills/
 skills-lock.json
+skills/
+yarn-debug.log*
+yarn-error.log*

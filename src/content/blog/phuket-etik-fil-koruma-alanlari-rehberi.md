@@ -41,3 +41,5 @@ Etik koruma alanlarını ziyaret ettiğinizde gününüz şu anlamlı deneyimler
 * **Rezervasyon:** Etik alanlar gün içinde sınırlı sayıda ziyaretçi kabul ettiği için turlarınızı birkaç gün önceden ayırtmanız önerilir.
 
 Phuket Tatili olarak yalnızca hayvan refahı standartlarını karşılayan lisanslı ve saygın koruma alanlarıyla çalışıyoruz. Fillere zarar vermeden, doğal ortamlarında temas kurup çamur banyolarını deneyimlemek için [Fil Besleme ve Bakım Deneyimi Turu](/turlar/fil-besleme-ve-bakim-deneyimi) programımızı inceleyebilir, transferli tur seçenekleri için WhatsApp üzerinden bize danışabilirsiniz.
+
+Günün geri kalanında farklı bir doğa deneyimi arıyorsanız [ATV Quad Safari ve Orman Macerası](/turlar/atv-quad-safari-ve-orman-macerasi) turu, fil bakım deneyimiyle aynı gün birleştirilebilen popüler bir kombinasyondur.

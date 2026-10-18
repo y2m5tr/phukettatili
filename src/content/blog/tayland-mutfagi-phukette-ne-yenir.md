@@ -43,3 +43,5 @@ Tayland mutfağında standart acı seviyesi Türk damak tadına göre oldukça y
 Phuket Town'ın tarihi sokaklarını, tapınaklarını ve meşhur pazar lezzetlerini Türkçe rehberlik ve özel klimalı transfer eşliğinde keşfetmek isterseniz [Phuket Şehir ve Kültür Turu](/turlar/phuket-sehir-ve-kultur-turu) programımızı inceleyebilirsiniz.
 
 Afiyet olsun!
+
+Akşam yemeğinden sonra Tayland kültürünü sahnede deneyimlemek isterseniz [Siam Niramit Gösteri Deneyimi](/turlar/siam-niramit-gosteri-deneyimi) veya ışık festivaliyle ünlü [Carnival Magic Tema Parkı](/turlar/carnival-magic-isik-ve-tema-parki) programlarımızı inceleyebilirsiniz.

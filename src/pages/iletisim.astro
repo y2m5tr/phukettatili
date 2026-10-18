@@ -8,16 +8,56 @@ export const prerender = true;
 ---
 
 <Layout title="İletişim" description="Bize ulaşın, hayalinizdeki tatili birlikte planlayalım.">
-  <div class="bg-brand-primary text-white py-24 px-4 relative">
+  <div class="bg-brand-primary text-white py-24 px-4 relative overflow-hidden">
+    <div class="absolute inset-0 opacity-30 z-0">
+      <img src="/assets/phuket_culture.webp" alt="Phuket Tatili ekibi ve Tayland kültürü" class="w-full h-full object-cover animate-ken-burns" />
+    </div>
     <div class="relative max-w-4xl mx-auto text-center z-10">
-      <FadeIn client:load direction="up">
-        <h1 class="text-4xl md:text-6xl font-serif font-bold mb-6">İletişim</h1>
-      </FadeIn>
-      <FadeIn client:load delay={0.2} direction="up">
-        <p class="text-slate-300 text-lg font-light">Bize dilediğiniz an 7/24 ulaşabilirsiniz.</p>
-      </FadeIn>
+      <h1 class="text-4xl md:text-6xl font-serif font-bold mb-6 text-white drop-shadow-lg">Hakkımızda & İletişim</h1>
+      <p class="text-slate-200 text-lg font-light">Yılların tecrübesiyle Phuket'te Türkçe rehberlik — bize 7/24 ulaşabilirsiniz.</p>
     </div>
   </div>
+
+  <!-- Hakkimizda bolumu (birlestirildi) -->
+  <section class="py-24 bg-slate-50 dark:bg-surface-1 px-4 border-b border-slate-100 dark:border-slate-800">
+    <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
+      <div>
+        <h2 class="text-3xl md:text-4xl font-serif text-brand-primary dark:text-white font-bold mb-6">Hayallerinizdeki Tatil İçin Buradayız</h2>
+        <div class="space-y-4 text-slate-600 dark:text-slate-300 leading-relaxed text-lg">
+          <p>
+            Phuket, sadece muhteşem plajlarıyla değil, gizli kalmış adaları, tapınakları ve yerel kültürüyle benzersiz bir cennettir. Biz, bu cenneti sizin için ulaşılabilir kılıyoruz.
+          </p>
+          <p>
+            Yerel acentelerin karmaşasından uzak, Türkçe rehberlik hizmetiyle kendi dilinizde ve kültürünüzde rahat edeceğiniz VIP hizmetler sunuyoruz. En popüler Phi Phi Adaları'ndan, gizli kalmış cennet koylara kadar her rotayı özenle tasarladık.
+          </p>
+        </div>
+        
+        <div class="mt-10 grid grid-cols-2 gap-8">
+          <div>
+            <h4 class="text-4xl font-bold text-brand-accent mb-2">
+              <span class="stat-count" data-target="10" data-suffix="+">10+</span>
+            </h4>
+            <p class="text-slate-500 dark:text-slate-400">Yıllık Tecrübe</p>
+          </div>
+          <div>
+            <h4 class="text-4xl font-bold text-brand-accent mb-2">
+              <span class="stat-count" data-target="5000" data-suffix="+">5000+</span>
+            </h4>
+            <p class="text-slate-500 dark:text-slate-400">Mutlu Misafir</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="relative">
+        <div class="aspect-[4/5] rounded-3xl overflow-hidden shadow-2xl">
+          <img src="/assets/phuket_hero.webp" alt="Phuket Vacation" class="w-full h-full object-cover hover:scale-110 transition-transform duration-1000" />
+        </div>
+        <div class="absolute -bottom-8 -left-8 bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl max-w-xs hidden md:block border border-slate-100 dark:border-slate-700">
+          <p class="font-serif text-xl text-brand-primary dark:text-white italic">"Mükemmel bir tatil, kusursuz bir planlamayla başlar."</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section class="py-24 bg-white dark:bg-surface-1 px-4">
     <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-16">
@@ -25,7 +65,7 @@ export const prerender = true;
       <!-- Contact Info -->
       <FadeIn client:visible direction="right">
         <div>
-          <h2 class="text-3xl font-serif text-brand-primary dark:text-white font-bold mb-8">Bize Ulaşın</h2>
+          <h2 class="text-3xl font-serif text-brand-primary dark:text-white font-bold mb-8">İletişim Bilgilerimiz</h2>
           
           <div class="space-y-8">
             <div class="flex items-start gap-4">
@@ -195,5 +235,40 @@ export const prerender = true;
         }
       };
     }
+  });
+</script>
+
+<script>
+  document.addEventListener('astro:page-load', () => {
+    const stats = Array.from(document.querySelectorAll<HTMLElement>('.stat-count'));
+    if (stats.length === 0) return;
+
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    const animate = (el: HTMLElement) => {
+      const target = parseInt(el.dataset.target || '0', 10);
+      const suffix = el.dataset.suffix || '';
+      if (reduce) { el.textContent = target.toLocaleString('tr-TR') + suffix; return; }
+      const dur = 1600;
+      const start = performance.now();
+      const step = (now: number) => {
+        const p = Math.min((now - start) / dur, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * eased).toLocaleString('tr-TR') + suffix;
+        if (p < 1) requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    };
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          animate(entry.target as HTMLElement);
+          io.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+
+    stats.forEach((el) => io.observe(el));
   });
 </script>

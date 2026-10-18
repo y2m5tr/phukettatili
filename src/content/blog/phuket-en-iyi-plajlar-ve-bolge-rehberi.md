@@ -47,3 +47,5 @@ Phuket’in en güney ucunda yer alan **Nai Harn**, yerel halkın ve adada uzun 
 * Gün batımı için hemen yukarıdaki **Promthep Cape** seyir noktası mutlaka ziyaret edilmelidir.
 
 Phuket'in en güzel seyir noktalarını, Big Buddha heykelini ve tarihi Old Town caddelerini konforlu özel araçla gezmek isterseniz [Phuket Şehir ve Kültür Turu](/turlar/phuket-sehir-ve-kultur-turu) programımıza göz atabilirsiniz. Otel veya villa rezervasyonunuzu yapmadan önce bölge ve ulaşım olanakları hakkında danışmak isterseniz bize dilediğiniz an WhatsApp üzerinden ulaşabilirsiniz.
+
+Güney bölgesinde konaklıyorsanız gün içinde [Banana Beach (Koh Hey) Turu](/turlar/banana-beach-koh-hey-gunu) ile Coral Adası'nın en özel koyunu, gün batımında ise özel tekneyle [Moonlight Lüks Yat Turu](/turlar/moonlight-luks-yat-turu) ile Promthep fenerini izleyebilirsiniz.

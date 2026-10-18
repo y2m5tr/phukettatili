@@ -48,3 +48,5 @@ Phi Phi çok popüler bir rota olduğu için saat 10:30 ile 14:00 arasında büy
 * **Nakit Baht (THB):** Millî park giriş ücretleri (genellikle kişi başı 400 THB) ve teknede ekstra içecekler için nakit bulundurun.
 
 Phi Phi Adaları'nı konforlu bir sürat teknesi veya katamaranla gezmek, Maya Bay ve Pileh Lagünü'nü yerinde görmek isterseniz [Phi Phi, Maya ve Bamboo Adası Turu](/turlar/phi-phi-maya-ve-bamboo-adasi) programımızı inceleyebilirsiniz. En uygun tekne tipi ve hava koşulları hakkında bilgi almak için WhatsApp hattımızdan bize her zaman ulaşabilirsiniz.
+
+Phi Phi'ye günübirlik tur yerine serbest zamanlı gitmek isterseniz [Phuket–Phi Phi Feribot ve Sürat Teknesi Ulaşımı](/turlar/phuketphi-phi-feribot-ve-surat-teknesi-ulasimi) seçeneklerimizi inceleyebilir; ada üzerinde konaklama planınız varsa dönüş saatleri için WhatsApp'tan bize danışabilirsiniz.
