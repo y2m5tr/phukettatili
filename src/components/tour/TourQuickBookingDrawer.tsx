@@ -126,37 +126,62 @@ export default function TourQuickBookingDrawer({
     }
   };
 
+  const directWhatsAppUrl = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
+    `🌴 Merhaba Phuket Tatili, "${tourTitle}" turu hakkında detaylı bilgi ve güncel müsaitlik almak istiyorum.`
+  )}`;
+
   return (
     <>
       {/* ==================================================== */}
       {/* 1. MOBİL SABİT (STICKY) ALT BAR */}
       {/* ==================================================== */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-slate-800 p-3.5 backdrop-blur-xl shadow-2xl flex items-center justify-between gap-3">
-        <div>
-          <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-mono">KİŞİ BAŞI</span>
-          <div className="flex items-baseline gap-1.5">
-            <strong className="text-lg font-black text-amber-400 font-mono">
-              {formatDisplayPrice(priceThb, currency)}
-            </strong>
-            {currency !== 'THB' && (
-              <span className="text-[10px] text-slate-400">
-                (฿ {priceThb.toLocaleString('tr-TR')})
-              </span>
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-slate-800 p-3 backdrop-blur-xl shadow-2xl flex items-center justify-between gap-2.5">
+        <div className="min-w-0 pr-1">
+          <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-mono">
+            {priceThb > 0 ? 'KİŞİ BAŞI' : 'FİYATLANDIRMA'}
+          </span>
+          <div className="flex items-baseline gap-1">
+            {priceThb > 0 ? (
+              <>
+                <strong className="text-base font-black text-amber-400 font-mono truncate">
+                  {formatDisplayPrice(priceThb, currency)}
+                </strong>
+                {currency !== 'THB' && (
+                  <span className="text-[9px] text-slate-400">
+                    (฿{priceThb.toLocaleString('tr-TR')})
+                  </span>
+                )}
+              </>
+            ) : (
+              <strong className="text-xs font-bold text-amber-400">Teklif Alın</strong>
             )}
           </div>
         </div>
 
-        <button
-          type="button"
-          onClick={() => {
-            setSubmitSuccess(null);
-            setIsOpen(true);
-          }}
-          className="px-5 py-2.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white font-black text-xs shadow-lg shadow-brand-accent/20 flex items-center gap-1.5 transition cursor-pointer"
-        >
-          <span>⚡</span>
-          <span>Hızlı Rezervasyon</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <a
+            href={directWhatsAppUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center gap-1 transition cursor-pointer"
+            title="WhatsApp ile Sor"
+          >
+            <span className="text-sm">💬</span>
+            <span className="hidden xs:inline">WhatsApp</span>
+          </a>
+
+          <button
+            type="button"
+            onClick={() => {
+              setSubmitSuccess(null);
+              setIsOpen(true);
+            }}
+            className="px-3.5 py-2.5 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white font-bold text-xs shadow-lg shadow-brand-accent/20 flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <span>⚡</span>
+            <span>Rezervasyon</span>
+          </button>
+        </div>
       </div>
 
       {/* ==================================================== */}

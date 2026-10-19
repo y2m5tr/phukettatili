@@ -343,11 +343,8 @@ export default function TransfersTab({
   };
 
   // Generate clipboard text for drivers / suppliers
-  const handleCopyManifest = () => {
-    if (dailyPickups.length === 0) {
-      showToast('Seçilen tarihte transfer kaydı bulunmuyor.');
-      return;
-    }
+  const generateManifestText = () => {
+    if (dailyPickups.length === 0) return '';
     const dateStr = (() => {
       try {
         const d = new Date(safeDate);
@@ -388,8 +385,16 @@ export default function TransfersTab({
       `───────────────────────────────`,
       `🇹🇭 Phuket Tatili Operasyon Merkezi`,
     ];
+    return textLines.join('\n');
+  };
 
-    navigator.clipboard.writeText(textLines.join('\n'));
+  const handleCopyManifest = () => {
+    const text = generateManifestText();
+    if (!text) {
+      showToast('Seçilen tarihte transfer kaydı bulunmuyor.');
+      return;
+    }
+    navigator.clipboard.writeText(text);
     showToast('Transfer listesi WhatsApp için panoya kopyalandı! 📋');
   };
 
@@ -458,6 +463,19 @@ export default function TransfersTab({
             <Copy className="w-3.5 h-3.5" />
             <span>Şoför İçin Kopyala</span>
           </button>
+
+          {dailyPickups.length > 0 && (
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(generateManifestText())}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-2 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold shadow-xs flex items-center gap-1.5 transition-all"
+              title="Şoför WhatsApp'ına doğrudan manifestoyu gönder"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span>WhatsApp ile Gönder</span>
+            </a>
+          )}
 
           {dailyPickups.length > 0 && (
             <a

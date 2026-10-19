@@ -3572,6 +3572,19 @@ export default function AdminDashboard({
                 childCount: 0,
               })
             }
+            onBulkUpdateTours={(updatedTours) => {
+              saveTours(updatedTours);
+              showToast('Tüm fiyat ve süre değişiklikleri başarıyla kaydedildi! ⚡');
+            }}
+            onOpenMultiTourProposal={(selectedTours) => {
+              setCuratedProposalData({
+                customerName: 'Sayın Misafirimiz',
+                proposalType: selectedTours.length === 1 ? 'single_tour' : 'package_multiday',
+                tourTitle: selectedTours[0]?.title || 'Özel Phuket Tur Paketi',
+                adultCount: 2,
+                childCount: 0,
+              });
+            }}
           />
         )}
 

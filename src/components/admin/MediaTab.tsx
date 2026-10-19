@@ -5,8 +5,9 @@
  * allImageOptions hesabı da aynı state'ten besleniyor.
  * Not: Diğer CMS sekmeleri gibi YEREL kaydeder (localStorage).
  */
-import { Search, Upload, ExternalLink, Maximize2, Copy, Star, Trash2, Edit2, Save, X, Wand2 } from 'lucide-react';
-import { useState } from 'react';
+import { Search, Upload, ExternalLink, Maximize2, Copy, Star, Trash2, Edit2, Save, X, Wand2, QrCode } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import type { MediaItem } from '../../data/adminInitialData';
 
 export type MediaTypeFilter = 'all' | 'system' | 'uploaded' | 'external';
@@ -52,6 +53,17 @@ export default function MediaTab({
   const [editSlug, setEditSlug] = useState('');
   const [editMaxWidth, setEditMaxWidth] = useState<number>(1600);
   const [editBusy, setEditBusy] = useState(false);
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState('');
+
+  useEffect(() => {
+    if (isQrModalOpen && typeof window !== 'undefined') {
+      const uploadUrl = `${window.location.origin}/admin/mobil-yukle`;
+      QRCode.toDataURL(uploadUrl, { width: 280, margin: 2, color: { dark: '#0f172a', light: '#ffffff' } })
+        .then((url: string) => setQrDataUrl(url))
+        .catch(() => {});
+    }
+  }, [isQrModalOpen]);
 
   const slugify = (s: string): string => {
     const map: Record<string, string> = { 'ç':'c','Ç':'c','ğ':'g','Ğ':'g','ı':'i','İ':'i','ö':'o','Ö':'o','ş':'s','Ş':'s','ü':'u','Ü':'u' };
@@ -199,18 +211,31 @@ export default function MediaTab({
 
           <label className="cursor-pointer px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all">
             <Upload className="w-4 h-4" />
-            <span>Fotoğraf Yükle</span>
+            <span>Fotoğraf Yükle (Çoklu)</span>
             <input
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               onChange={(e) => {
-                const file = e.target.files?.[0];
-                if (file) handleFileUpload(file);
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                  Array.from(files).forEach((file) => handleFileUpload(file));
+                }
                 e.target.value = '';
               }}
             />
           </label>
+
+          <button
+            type="button"
+            onClick={() => setIsQrModalOpen(true)}
+            className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm shadow-amber-500/20 transition-all cursor-pointer"
+            title="Telefondan QR ile Hızlı Fotoğraf Yükle"
+          >
+            <QrCode className="w-4 h-4" />
+            <span>Telefondan Yükle (QR)</span>
+          </button>
 
           <button
             onClick={onOpenUrlModal}
@@ -411,6 +436,59 @@ export default function MediaTab({
                   {editBusy ? 'İşleniyor...' : 'Kaydet'}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Telefondan Hızlı Yükleme QR Modalı */}
+      {isQrModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white dark:bg-surface-2 w-full max-w-sm rounded-3xl p-6 sm:p-8 text-center space-y-4 border border-slate-200 dark:border-slate-800 shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setIsQrModalOpen(false)}
+              className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-800 dark:hover:text-white transition cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            <div className="w-12 h-12 mx-auto rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+              <QrCode className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-lg font-bold font-serif text-slate-900 dark:text-white">
+                Telefondan Fotoğraf Yükle
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                Telefonunuzun kamerasıyla aşağıdaki QR kodu okutun. Şifre girmeden doğrudan galerinizden veya kameranızdan fotoğrafları yükleyin.
+              </p>
+            </div>
+
+            <div className="p-4 bg-white rounded-2xl border-2 border-slate-900/10 inline-block shadow-inner">
+              {qrDataUrl ? (
+                <img
+                  src={qrDataUrl}
+                  alt="Mobil Yükleme QR Kodu"
+                  className="w-56 h-56 object-contain rounded-xl"
+                />
+              ) : (
+                <div className="w-56 h-56 flex items-center justify-center text-xs text-slate-400">
+                  QR Kod Üretiliyor...
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2">
+              <a
+                href="/admin/mobil-yukle"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-brand-accent hover:underline font-bold block"
+              >
+                Yeni Sekmede Mobil Sayfayı Aç →
+              </a>
             </div>
           </div>
         </div>

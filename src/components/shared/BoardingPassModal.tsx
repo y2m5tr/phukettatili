@@ -180,27 +180,37 @@ export default function BoardingPassModal({
               </div>
 
               {/* Tur ve Alınış Saati */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-amber-500/10 dark:bg-amber-500/15 border border-amber-500/30 p-3.5 rounded-2xl">
-                  <span className="text-[10px] text-amber-700 dark:text-amber-300 uppercase font-semibold flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5" />
-                    Lobi Alınış Saati
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="bg-amber-500/15 dark:bg-amber-500/20 border-2 border-amber-500/40 p-4 rounded-2xl shadow-sm">
+                  <span className="text-[10px] text-amber-800 dark:text-amber-300 uppercase font-black tracking-wider flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-amber-500" />
+                    Lobi Alınış Penceresi
                   </span>
-                  <div className="text-2xl font-bold font-mono text-amber-600 dark:text-amber-400 mt-0.5">
+                  <div className="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400 mt-1">
                     {activeTour.pickupTime}
                   </div>
-                  <span className="text-[10px] text-slate-500">Lobide hazır bulununuz</span>
+                  <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200 mt-1.5 leading-snug">
+                    📍 Lütfen kahvaltınızı tamamlayıp otel ana lobisinde hazır bekleyiniz. Şoförümüz resepsiyonda isminizle çağrı yapacaktır.
+                  </p>
+                  <span className="text-[10px] text-slate-500 block mt-1">
+                    (Ada trafiğine bağlı ±10-15 dk esneme payı olabilir)
+                  </span>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 p-3.5 rounded-2xl">
-                  <span className="text-[10px] text-slate-400 uppercase font-semibold flex items-center gap-1">
-                    <Bus className="w-3.5 h-3.5 text-sky-400" />
-                    Transfer Hattı
-                  </span>
-                  <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-1 truncate">
-                    {vehicle}
+                <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/60 p-4 rounded-2xl flex flex-col justify-between">
+                  <div>
+                    <span className="text-[10px] text-slate-400 uppercase font-semibold flex items-center gap-1">
+                      <Bus className="w-3.5 h-3.5 text-sky-400" />
+                      Transfer Hattı
+                    </span>
+                    <div className="text-sm font-bold text-slate-800 dark:text-slate-200 mt-1 truncate">
+                      {vehicle}
+                    </div>
+                    <span className="text-[10px] text-sky-500 font-semibold">{hotelZone} Bölgesi</span>
                   </div>
-                  <span className="text-[10px] text-sky-500 font-semibold">{hotelZone} Bölgesi</span>
+                  <div className="text-[10px] text-slate-400 border-t border-slate-200/60 dark:border-slate-700/60 pt-2 mt-2">
+                    Klima ve sigortalı VIP transfer aracı.
+                  </div>
                 </div>
               </div>
 

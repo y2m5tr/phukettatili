@@ -111,7 +111,7 @@ export default function OverviewTab({
         viewCount: count,
       };
     });
-    return list.sort((a, b) => b.viewCount - a.viewCount).slice(0, 4);
+    return list.sort((a, b) => b.viewCount - a.viewCount).slice(0, 5);
   }, [tours, liveViews]);
 
   // Bugünün operasyon ve saha verileri
@@ -665,7 +665,7 @@ export default function OverviewTab({
           </button>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {topViewedTours.map((t, idx) => (
             <div
               key={t.id}

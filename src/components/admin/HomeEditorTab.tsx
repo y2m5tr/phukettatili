@@ -10,6 +10,10 @@ import {
   Camera,
   BookOpen,
   Eye,
+  Smartphone,
+  ExternalLink,
+  RefreshCw,
+  X,
 } from 'lucide-react';
 import type { MediaItem } from '../../data/adminInitialData';
 import ImagePickerModal from './ImagePickerModal';
@@ -39,6 +43,8 @@ export default function HomeEditorTab({
     'sections' | 'hero' | 'badges' | 'why_us' | 'video' | 'moments' | 'other'
   >('sections');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isMobileSimulatorOpen, setIsMobileSimulatorOpen] = useState(false);
+  const [previewKey, setPreviewKey] = useState(0);
 
   // Image picker modal state
   const [pickerConfig, setPickerConfig] = useState<{
@@ -111,6 +117,18 @@ export default function HomeEditorTab({
               <Check className="w-4 h-4" /> Kaydedildi!
             </span>
           )}
+          <button
+            type="button"
+            onClick={() => setIsMobileSimulatorOpen(!isMobileSimulatorOpen)}
+            className={`px-4 py-2.5 rounded-2xl border text-xs sm:text-sm font-bold flex items-center gap-2 cursor-pointer transition-all ${
+              isMobileSimulatorOpen
+                ? 'bg-amber-500 text-slate-950 border-amber-500 shadow-md shadow-amber-500/20'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700'
+            }`}
+          >
+            <Smartphone className="w-4 h-4" />
+            <span>{isMobileSimulatorOpen ? 'Simülatörü Kapat' : 'Canlı Mobil Simülatör'}</span>
+          </button>
           <button
             type="button"
             onClick={handleSave}
@@ -910,6 +928,69 @@ export default function HomeEditorTab({
         getImageUrl={getImageUrl}
         handleFileUpload={handleFileUpload}
       />
+
+      {/* Canlı Mobil Cihaz Simülatörü Modalı */}
+      {isMobileSimulatorOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-fadeIn">
+          <div className="relative flex flex-col items-center">
+            {/* Üst Kontrol Çubuğu */}
+            <div className="w-full max-w-[400px] flex items-center justify-between mb-3 px-2 text-white">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-bold tracking-wide">iPhone 15 Pro Simülatörü</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPreviewKey((k) => k + 1)}
+                  className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+                  title="Yeniden Yükle"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                </button>
+                <a
+                  href="/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition"
+                  title="Yeni Sekmede Aç"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </a>
+                <button
+                  type="button"
+                  onClick={() => setIsMobileSimulatorOpen(false)}
+                  className="p-1.5 rounded-xl bg-white/10 hover:bg-rose-500 text-white transition cursor-pointer ml-1"
+                  title="Kapat"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+
+            {/* iPhone Kasa Çerçevesi */}
+            <div className="relative w-[375px] h-[750px] bg-slate-950 rounded-[55px] p-3.5 shadow-2xl border-[5px] border-slate-700/80 ring-1 ring-white/20 flex flex-col overflow-hidden">
+              {/* Dynamic Island / Ahize */}
+              <div className="absolute top-5 left-1/2 -translate-x-1/2 w-28 h-6 bg-black rounded-full z-30 flex items-center justify-end pr-2.5 pointer-events-none">
+                <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700" />
+              </div>
+
+              {/* Ekran Alanı (Iframe) */}
+              <div className="w-full h-full rounded-[42px] overflow-hidden bg-slate-900 relative">
+                <iframe
+                  key={previewKey}
+                  src="/"
+                  title="Anasayfa Canlı Önizleme"
+                  className="w-full h-full border-0 select-none"
+                />
+              </div>
+
+              {/* Alt Home Çizgisi */}
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/50 rounded-full pointer-events-none z-30" />
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
