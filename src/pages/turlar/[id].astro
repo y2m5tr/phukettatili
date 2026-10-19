@@ -466,6 +466,19 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
 
 <script>
   document.addEventListener('astro:page-load', () => {
+    // 0. Background Tour View Tracker (Non-blocking)
+    const currentTourId = window.location.pathname.split('/').filter(Boolean).pop();
+    if (currentTourId) {
+      try {
+        fetch('/api/tour-views', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: currentTourId }),
+          keepalive: true,
+        }).catch(() => {});
+      } catch {}
+    }
+
     // 1. Dynamic WhatsApp Reservation Generator
     const dateInput = document.getElementById('booking-date-input') as HTMLInputElement | null;
     const guestsSelect = document.getElementById('booking-guests-select') as HTMLSelectElement | null;

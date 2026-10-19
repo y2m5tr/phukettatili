@@ -2387,6 +2387,22 @@ export default function AdminDashboard({
     showToast('Görsel seçilen turun kapak fotoğrafı yapıldı! ⭐');
   };
 
+  const handleAddMediaToTourGallery = (mediaUrl: string, tourId: string) => {
+    saveTours(
+      tours.map((t) => {
+        if (t.id === tourId) {
+          const gallery = t.gallery || [];
+          if (!gallery.includes(mediaUrl)) {
+            return { ...t, gallery: [...gallery, mediaUrl] };
+          }
+        }
+        return t;
+      })
+    );
+    setAssignMediaModal(null);
+    showToast('Görsel seçilen turun galerisine eklendi! 🖼️');
+  };
+
   // Blog CRUD
   const handleOpenCreateBlog = () => {
     setEditingBlog(null);
@@ -3842,10 +3858,10 @@ export default function AdminDashboard({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-surface-2 w-full max-w-md rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6">
             <h3 className="font-bold font-serif text-lg text-slate-900 dark:text-white mb-2">
-              Fotoğrafı Tur Kapağı Yap
+              Fotoğrafı Tura Ata
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
-              "{assignMediaModal.title}" görselini hangi turun kapak fotoğrafı yapmak istersiniz?
+              "{assignMediaModal.title}" görselini hangi turun kapağına veya galerisine eklemek istersiniz?
             </p>
 
             <div className="mb-4">
@@ -3873,11 +3889,11 @@ export default function AdminDashboard({
               </select>
             </div>
 
-            <div className="flex items-center justify-end gap-2.5">
+            <div className="flex flex-wrap items-center justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setAssignMediaModal(null)}
-                className="px-4 py-2 rounded-xl border text-xs font-semibold"
+                className="px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 Vazgeç
               </button>
@@ -3885,11 +3901,21 @@ export default function AdminDashboard({
                 type="button"
                 onClick={() => {
                   const sel = (document.getElementById('assignTourSelect') as HTMLSelectElement)?.value;
+                  if (sel) handleAddMediaToTourGallery(assignMediaModal.url, sel);
+                }}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-colors"
+              >
+                🖼️ Galeriye Ekle
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const sel = (document.getElementById('assignTourSelect') as HTMLSelectElement)?.value;
                   if (sel) handleAssignMediaAsTourCover(assignMediaModal.url, sel);
                 }}
-                className="px-5 py-2 rounded-xl bg-brand-primary text-white text-xs font-bold shadow-md"
+                className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold shadow-md transition-colors"
               >
-                Kapak Olarak Ata
+                ⭐ Kapak Olarak Ata
               </button>
             </div>
           </div>

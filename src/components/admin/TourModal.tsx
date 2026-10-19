@@ -360,6 +360,44 @@ export default function TourModal({
                       </label>
                     </div>
 
+                    {/* Hızlı Görsel Şeridi: Küçük Resme Tıklayarak Kapak Seç */}
+                    {allImageOptions.length > 0 && (
+                      <div className="pt-1">
+                        <span className="text-[11px] font-bold text-slate-500 uppercase block mb-1.5">
+                          Hızlı Kapak Seçimi (Küçük görsele tıklayarak anında seçebilirsiniz):
+                        </span>
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                          {allImageOptions.slice(0, 16).map((img) => {
+                            const isCurrent = (tourFormData.image || 'phuket_hero.webp') === img;
+                            return (
+                              <button
+                                key={`quick-cover-${img}`}
+                                type="button"
+                                onClick={() => setTourFormData((prev) => ({ ...prev, image: img }))}
+                                className={`relative group shrink-0 w-16 h-12 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                                  isCurrent
+                                    ? 'border-brand-accent ring-2 ring-brand-accent/40 scale-105 shadow-sm'
+                                    : 'border-slate-200 dark:border-slate-700 hover:border-brand-accent hover:scale-105 shadow-xs'
+                                }`}
+                                title={`${img.startsWith('data:') ? 'Özel Görsel' : img} — Kapak yapmak için tıkla`}
+                              >
+                                <img
+                                  src={getImageUrl(img)}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                                {isCurrent && (
+                                  <div className="absolute inset-0 bg-brand-accent/30 flex items-center justify-center">
+                                    <span className="text-white text-[9px] font-bold bg-black/70 px-1 py-0.5 rounded">Seçili</span>
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                       <select
                         value={tourFormData.image || 'phuket_hero.webp'}
@@ -518,6 +556,57 @@ export default function TourModal({
                         </select>
                       </div>
                     </div>
+
+                    {/* Hızlı Görsel Şeridi: Küçük Görsele Tıklayarak Galeriye Ekle */}
+                    {allImageOptions.length > 0 && (
+                      <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60">
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-[11px] font-bold text-slate-500 uppercase">
+                            Kütüphanedeki Görseller (Küçük görsele tıklayarak anında galeriye ekleyin):
+                          </span>
+                          <span className="text-[10px] text-slate-400">
+                            {allImageOptions.length} adet görsel
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+                          {allImageOptions.map((img) => {
+                            const isAlreadyInGallery = (tourFormData.gallery || []).includes(img);
+                            return (
+                              <button
+                                key={`quick-gallery-${img}`}
+                                type="button"
+                                onClick={() => {
+                                  if (!isAlreadyInGallery) {
+                                    setTourFormData((prev) => ({
+                                      ...prev,
+                                      gallery: [...(prev.gallery || []), img],
+                                    }));
+                                  }
+                                }}
+                                disabled={isAlreadyInGallery}
+                                className={`relative group shrink-0 w-16 h-12 rounded-xl overflow-hidden border-2 transition-all ${
+                                  isAlreadyInGallery
+                                    ? 'border-emerald-500 opacity-60 cursor-not-allowed'
+                                    : 'border-slate-200 dark:border-slate-700 hover:border-brand-accent hover:scale-105 cursor-pointer shadow-xs'
+                                }`}
+                                title={isAlreadyInGallery ? 'Zaten galeride ekli' : `${img.startsWith('data:') ? 'Özel Görsel' : img} — Galeriye eklemek için tıkla`}
+                              >
+                                <img
+                                  src={getImageUrl(img)}
+                                  alt=""
+                                  className="w-full h-full object-cover"
+                                />
+                                {isAlreadyInGallery && (
+                                  <div className="absolute inset-0 bg-emerald-950/40 flex items-center justify-center">
+                                    <span className="text-white text-xs font-bold">✓</span>
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -718,6 +807,33 @@ export default function TourModal({
                                 </button>
                               )}
                             </div>
+
+                            {/* Hızlı Seçim Küçük Resimleri */}
+                            {allImageOptions.length > 0 && (
+                              <div className="flex items-center gap-1.5 overflow-x-auto pt-2 pb-1 scrollbar-thin">
+                                {allImageOptions.slice(0, 14).map((img) => (
+                                  <button
+                                    key={`prog-step-${idx}-${img}`}
+                                    type="button"
+                                    onClick={() => {
+                                      const next = [...programImages];
+                                      while (next.length <= idx) next.push('');
+                                      next[idx] = img;
+                                      setTourFormData({ ...tourFormData, programImages: next });
+                                      setProgramImageFor(null);
+                                    }}
+                                    className={`shrink-0 w-12 h-9 rounded-md overflow-hidden border transition-all ${
+                                      stepImg === img
+                                        ? 'border-brand-accent ring-2 ring-brand-accent/40'
+                                        : 'border-slate-200 dark:border-slate-700 hover:border-brand-accent'
+                                    }`}
+                                    title={`${img} — Bu adıma ekle`}
+                                  >
+                                    <img src={getImageUrl(img)} alt="" className="w-full h-full object-cover" />
+                                  </button>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
