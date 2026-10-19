@@ -1,0 +1,63 @@
+---
+import FadeIn from '../ui/FadeIn';
+
+interface Props {
+  className?: string;
+}
+
+const { className = '' } = Astro.props;
+
+const badges = [
+  {
+    icon: '🇹🇷',
+    title: '%100 Türkçe Rehberlik',
+    desc: 'Dil engeli olmadan, yerel Türk operasyon ekibiyle güvenle gezin',
+    highlight: 'Yerinde Rehber',
+  },
+  {
+    icon: '⭐',
+    title: '4.9/5 Misafir Puanı',
+    desc: '140+ doğrulanmış Google & sosyal medya misafir değerlendirmesi',
+    highlight: 'Doğrulanmış Memnuniyet',
+  },
+  {
+    icon: '🛡️',
+    title: 'Resmi TAT Lisanslı',
+    desc: 'Tayland Turizm Otoritesi (TAT) onaylı lisanslı güvenli seyahat',
+    highlight: 'Yasal Güvence',
+  },
+  {
+    icon: '💬',
+    title: '7/24 Canlı Destek',
+    desc: 'Otelinizden dönüş anınıza kadar WhatsApp üzerinden anlık takip',
+    highlight: 'Her An Yanınızda',
+  },
+];
+---
+
+<section class={`py-8 bg-slate-900/40 border-y border-slate-200/20 dark:border-slate-800/60 ${className}`}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+      {badges.map((badge, idx) => (
+        <FadeIn client:visible delay={0.1 * idx} direction="up">
+          <div class="flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 hover:border-brand-accent/40 transition-all duration-300 hover:shadow-md">
+            <span class="text-2xl sm:text-3xl shrink-0 p-2 rounded-xl bg-amber-500/10 dark:bg-amber-400/10" aria-hidden="true">
+              {badge.icon}
+            </span>
+            <div class="min-w-0">
+              <span class="block text-[10px] font-bold uppercase tracking-wider text-brand-accent dark:text-amber-400">
+                {badge.highlight}
+              </span>
+              <h3 class="font-bold text-xs sm:text-sm text-brand-primary dark:text-white truncate">
+                {badge.title}
+              </h3>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed font-light">
+                {badge.desc}
+              </p>
+            </div>
+          </div>
+        </FadeIn>
+      ))}
+    </div>
+  </div>
+</section>

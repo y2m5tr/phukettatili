@@ -1,0 +1,113 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import FadeIn from '../ui/FadeIn';
+import { resolveAssetUrl } from '../../lib/assets';
+
+const posts: CollectionEntry<'blog'>[] = await getCollection('blog');
+const topPosts = [...posts]
+  .sort((a, b) => new Date(b.data.date || 0).getTime() - new Date(a.data.date || 0).getTime())
+  .slice(0, 3);
+
+function getPostCategory(id: string): string {
+  if (id.includes('hava-durumu')) return 'Hava Durumu';
+  if (id.includes('plajlar')) return 'Plaj Rehberi';
+  if (id.includes('fil')) return 'Doğa & Etik';
+  if (id.includes('mutfagi') || id.includes('yemek')) return 'Yeme - İçme';
+  if (id.includes('phi-phi') || id.includes('ada')) return 'Ada Turları';
+  return 'Gezi Rehberi';
+}
+---
+
+<section class="py-24 bg-white dark:bg-surface-1 px-4 border-t border-slate-100 dark:border-slate-800/80">
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+      <FadeIn client:visible delay={0.1}>
+        <div>
+          <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold uppercase tracking-wider mb-3">
+            📚 Phuket Gezi Rehberi
+          </span>
+          <h2 class="text-3xl md:text-5xl font-serif font-bold text-brand-primary dark:text-white">
+            Seyahatiniz İçin İpuçları & Rotalar
+          </h2>
+          <p class="text-slate-600 dark:text-slate-300 text-sm md:text-base mt-3 max-w-xl font-light">
+            Phuket tatilinizi planlarken ihtiyacınız olan en güncel ada karşılaştırmaları, mevsim analizleri ve yerel öneriler.
+          </p>
+        </div>
+      </FadeIn>
+
+      <FadeIn client:visible delay={0.2}>
+        <a
+          href="/blog"
+          class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-brand-accent hover:text-white dark:hover:bg-brand-accent text-slate-800 dark:text-slate-200 text-xs font-bold transition-all shadow-xs shrink-0"
+        >
+          <span>Tüm Rehberleri Oku</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </a>
+      </FadeIn>
+    </div>
+
+    <!-- 3'lü Blog Kart Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      {topPosts.map((post, idx) => (
+        <FadeIn client:visible delay={0.15 * (idx + 1)} direction="up">
+          <article class="group flex flex-col h-full rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 hover:border-brand-accent/50 transition-all duration-300 hover:shadow-xl">
+            <!-- Görsel -->
+            <a href={`/blog/${post.id}`} class="relative block h-52 overflow-hidden">
+              <img
+                src={resolveAssetUrl(post.data.cover_image, '/assets/beach.webp')}
+                alt={post.data.title}
+                loading="lazy"
+                decoding="async"
+                class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700 ease-out"
+              />
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-transparent to-transparent"></div>
+              
+              <div class="absolute top-4 left-4">
+                <span class="px-3 py-1 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-md text-brand-primary dark:text-amber-400 text-[11px] font-bold shadow-xs">
+                  {getPostCategory(post.id)}
+                </span>
+              </div>
+            </a>
+
+            <!-- İçerik -->
+            <div class="p-6 flex flex-col justify-between flex-grow">
+              <div>
+                <div class="flex items-center gap-3 text-xs text-slate-400 mb-2.5">
+                  <time datetime={post.data.date ? new Date(post.data.date).toISOString() : undefined}>
+                    {post.data.date ? new Date(post.data.date).toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Güncel'}
+                  </time>
+                  <span>·</span>
+                  <span>5 dk okuma</span>
+                </div>
+
+                <h3 class="font-serif text-lg font-bold text-slate-900 dark:text-white group-hover:text-brand-accent transition-colors line-clamp-2 leading-snug">
+                  <a href={`/blog/${post.id}`}>
+                    {post.data.title}
+                  </a>
+                </h3>
+
+                <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-2 mt-2 leading-relaxed font-light">
+                  {post.data.excerpt}
+                </p>
+              </div>
+
+              <!-- Alt Bağlantı -->
+              <div class="pt-4 mt-4 border-t border-slate-200/60 dark:border-slate-700/60">
+                <a
+                  href={`/blog/${post.id}`}
+                  class="inline-flex items-center gap-1.5 text-xs font-bold text-brand-accent group-hover:text-amber-600 dark:group-hover:text-amber-300 transition-colors"
+                >
+                  <span>Rehberi Oku</span>
+                  <span class="transform group-hover:translate-x-1 transition-transform">→</span>
+                </a>
+              </div>
+            </div>
+          </article>
+        </FadeIn>
+      ))}
+    </div>
+  </div>
+</section>

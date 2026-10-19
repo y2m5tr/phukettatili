@@ -1,15 +1,31 @@
 ---
+import { resolveAssetUrl } from '../lib/assets';
+
 interface Slide {
   src: string;
   alt: string;
 }
 
-const slides: Slide[] = [
+interface Props {
+  customFirstImage?: string;
+}
+
+const { customFirstImage } = Astro.props;
+
+const defaultSlides: Slide[] = [
   { src: '/assets/phuket_hero.webp', alt: "Phuket Kumsalları ve Turkuaz Deniz" },
   { src: '/assets/pileh.webp', alt: "Phi Phi Pi Leh Zümrüt Lagün" },
   { src: '/assets/yacht.webp', alt: "Lüks VIP Yat ve Katamaran Deneyimi" },
   { src: '/assets/longtail.webp', alt: "Geleneksel Longtail Rotaları" },
 ];
+
+const customSrc = customFirstImage ? resolveAssetUrl(customFirstImage) : null;
+const slides: Slide[] = customSrc
+  ? [
+      { src: customSrc, alt: "Phuket Tatili Özel Karşılama" },
+      ...defaultSlides.filter((s) => s.src !== customSrc),
+    ]
+  : defaultSlides;
 ---
 
 <div id="hero-slider" class="absolute inset-0 z-0 overflow-hidden">

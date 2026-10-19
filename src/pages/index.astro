@@ -3,25 +3,33 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import FadeIn from '../components/ui/FadeIn';
 import HeroSlider from '../components/HeroSlider.astro';
+import HomeQuickSearch from '../components/home/HomeQuickSearch.astro';
+import HomeTrustBadges from '../components/home/HomeTrustBadges.astro';
 import HomeBento from '../components/home/HomeBento.astro';
 import HomeFeaturedTours from '../components/home/HomeFeaturedTours.astro';
+import HomeHolidayAssistant from '../components/home/HomeHolidayAssistant';
 import HomeVideoShowcase from '../components/home/HomeVideoShowcase.astro';
 import HomeMarquee from '../components/home/HomeMarquee.astro';
 import HomeWhyUs from '../components/home/HomeWhyUs.astro';
 import HomeTestimonials from '../components/home/HomeTestimonials.astro';
 import HomeGuestMoments from '../components/home/HomeGuestMoments.astro';
+import HomeBlogSection from '../components/home/HomeBlogSection.astro';
 import HomeFaq from '../components/home/HomeFaq.astro';
-import HomeTourWizard from '../components/home/HomeTourWizard';
 import TourStoriesReel from '../components/tour/TourStoriesReel';
 import LiveTourSafetyRadar from '../components/weather/LiveTourSafetyRadar';
-import PhuketHolidayPlanner from '../components/tour/PhuketHolidayPlanner';
 import siteSettings from '../content/settings/site.json';
+import homeData from '../content/pages/home.json';
 import testimonialsData from '../content/settings/testimonials.json';
 import faqData from '../content/settings/faq.json';
 
 export const prerender = true;
 
 const whatsappUrl = `https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}`;
+
+// Admin panelinden veya home.json'dan dinamik Hero verileri
+const heroTitle = (siteSettings as any)?.heroTitle || homeData?.heroTitle || "Phuket'in Büyüsünü Keşfedin";
+const heroSubtitle = (siteSettings as any)?.heroSubtitle || homeData?.heroSubtitle || "Size özel tasarlanmış turlar, gizli kalmış cennet koylar ve unutulmaz anılar için en doğru yerdesiniz.";
+const heroImage = (siteSettings as any)?.heroImage || homeData?.heroImage;
 
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
 const featuredTours: CollectionEntry<'tours'>[] = tours.filter((tour) => tour.data.featured).slice(0, 3);
@@ -116,23 +124,31 @@ const guestMoments = [
 ---
 
 <Layout title="Ana Sayfa" description="Tayland'ın incisi Phuket'te unutulmaz bir tatil deneyimi." schemas={schemas}>
-  <!-- Hero Section -->
-  <section class="relative h-[80vh] min-h-[600px] flex items-center justify-center overflow-hidden">
-    <HeroSlider />
+  <!-- Hero Section with Dynamic Content & Quick Search -->
+  <section class="relative min-h-[85vh] lg:min-h-[720px] flex flex-col justify-center items-center overflow-hidden pt-28 pb-14">
+    <HeroSlider customFirstImage={heroImage} />
 
-    <div class="relative z-20 text-center px-4 max-w-4xl mx-auto mt-16">
+    <div class="relative z-20 text-center px-4 max-w-4xl mx-auto mb-6">
       <FadeIn client:load delay={0.2} direction="up">
-        <h1 class="text-5xl md:text-7xl text-white mb-6 drop-shadow-lg leading-tight font-serif font-bold">
-          Phuket'in <span class="text-brand-accent italic">Büyüsünü</span> Keşfedin
+        <h1 class="text-4xl sm:text-5xl md:text-7xl text-white mb-5 drop-shadow-lg leading-tight font-serif font-bold">
+          {heroTitle.includes('Büyüsünü') ? (
+            <>
+              {heroTitle.split('Büyüsünü')[0]}
+              <span class="text-brand-accent italic">Büyüsünü</span>
+              {heroTitle.split('Büyüsünü')[1]}
+            </>
+          ) : (
+            heroTitle
+          )}
         </h1>
       </FadeIn>
       <FadeIn client:load delay={0.4} direction="up">
-        <p class="text-lg md:text-xl text-slate-200 mb-10 max-w-2xl mx-auto font-light">
-          Size özel tasarlanmış turlar, gizli kalmış cennet koylar ve unutulmaz anılar için en doğru yerdesiniz.
+        <p class="text-base sm:text-lg md:text-xl text-slate-200 mb-8 max-w-2xl mx-auto font-light leading-relaxed">
+          {heroSubtitle}
         </p>
       </FadeIn>
       <FadeIn client:load delay={0.6} direction="up">
-        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
           <a href="/turlar" class="premium-cta bg-brand-accent hover:bg-brand-accent/90 text-white px-8 py-4 rounded-full font-medium transition-all transform hover:scale-105 shadow-xl">
             Turları İncele
           </a>
@@ -142,19 +158,43 @@ const guestMoments = [
         </div>
       </FadeIn>
     </div>
+
+    <!-- Hızlı Tur Arama & Akıllı Filtreleme -->
+    <HomeQuickSearch className="relative z-20 mt-2" />
   </section>
 
-  <!-- Extracted Home Modules -->
+  <!-- 4'lü Güven & Sosyal Kanıt Rozetleri -->
+  <HomeTrustBadges />
+
+  <!-- Stories & Deniz Güvenlik Radarı -->
   <TourStoriesReel client:load />
   <LiveTourSafetyRadar client:load />
+
+  <!-- Deneyimler Bento Grid -->
   <HomeBento />
+
+  <!-- Öne Çıkan Rotalar -->
   <HomeFeaturedTours featuredTours={featuredTours} />
-  <PhuketHolidayPlanner client:visible />
-  <HomeTourWizard client:visible tours={wizardTours} whatsappNumber={siteSettings?.whatsappNumber} />
+
+  <!-- Birleşik Akıllı Tatil & Tur Asistanı -->
+  <HomeHolidayAssistant client:visible tours={wizardTours} whatsappNumber={siteSettings?.whatsappNumber} />
+
+  <!-- Tanıtım Filmi & Marquee -->
   <HomeVideoShowcase />
   <HomeMarquee />
+
+  <!-- Neden Phuket Tatili? -->
   <HomeWhyUs />
+
+  <!-- Misafir Yorumları -->
   <HomeTestimonials testimonials={testimonials} />
+
+  <!-- Misafirlerimizden Kareler (Instagram) -->
   <HomeGuestMoments guestMoments={guestMoments} />
+
+  <!-- Phuket Gezi Rehberi & İpuçları (Blog Vitrini) -->
+  <HomeBlogSection />
+
+  <!-- Sıkça Sorulan Sorular -->
   <HomeFaq faqs={formattedFaqs} />
 </Layout>
