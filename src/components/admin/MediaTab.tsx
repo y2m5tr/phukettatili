@@ -104,8 +104,28 @@ export default function MediaTab({
       if (editMaxWidth > 0) {
         try {
           const r = await applyResolutionChange(editingMedia, editMaxWidth);
-          patch.url = r.url;
-          patch.size = r.size;
+          // Yeniden islenen WebP'i buluta yukle (fallback: base64 kalir)
+          try {
+            const resp = await fetch(r.url);
+            const blob = await resp.blob();
+            const fd = new FormData();
+            fd.append('file', blob, patch.slug as string);
+            fd.append('filename', patch.slug as string);
+            const up = await fetch('/api/upload', { method: 'POST', body: fd });
+            if (up.ok) {
+              const json = (await up.json()) as { url?: string };
+              if (json.url) {
+                patch.url = json.url;
+                patch.size = r.size;
+              }
+            } else {
+              patch.url = r.url;
+              patch.size = r.size;
+            }
+          } catch {
+            patch.url = r.url;
+            patch.size = r.size;
+          }
         } catch { /* cozunurluk degisimi basarisizsa sadece isim degisir */ }
       }
       onUpdateMedia(editingMedia.id, patch);

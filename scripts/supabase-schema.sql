@@ -292,3 +292,33 @@ create index if not exists idx_users_username on public.users (username);
 
 alter table public.users enable row level security;
 drop policy if exists "users_anon_all" on public.users;
+
+-- ==========================================================================
+-- STORAGE: Medya kütüphanesi bucket'ı (panel fotoğraf yüklemeleri)
+-- ==========================================================================
+-- Bucket public okumalı: site <img> etiketlerinden doğrudan yüklenebilsin.
+-- Yazma yalnızca servis rolü anahtarıyla /api/upload üzerinden — panel
+-- anon anahtarla storage'a YAZAMAZ (RLS policy yazmaya izin vermez).
+insert into storage.buckets (id, name, public)
+values ('media', 'media', true)
+on conflict (id) do nothing;
+
+-- Public okuma: herkes bucket'taki dosyaları GET ile okuyabilir.
+create policy "media public read" on storage.objects
+  for select to public
+  using (bucket_id = 'media');
+
+-- Yazma: sadece service role (anon/authenticated'a KAPALI).
+-- Storage RLS'de "service_role" bypass olduğu için ayrıca policy gerekmez;
+-- ancak yanlışlıkla authenticated'a açık bırakmamak için açıkça reddediyoruz.
+create policy "media no client write" on storage.objects
+  for insert to authenticated
+  with check (false);
+
+create policy "media no client update" on storage.objects
+  for update to authenticated
+  using (false);
+
+create policy "media no client delete" on storage.objects
+  for delete to authenticated
+  using (false);

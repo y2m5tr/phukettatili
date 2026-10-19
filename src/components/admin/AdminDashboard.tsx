@@ -2288,6 +2288,29 @@ export default function AdminDashboard({
     });
   };
 
+  // Islestigimiz WebP blob'unu Supabase Storage'a yukler.
+  // Basariliysa public URL doner;Storage yapilamadiysa (tanimlanmamis/erisilemez)
+  // base64 fallback — site hicbir durumda kirilmaz.
+  const uploadToStorage = async (blob: Blob, wantedName: string): Promise<{ url: string; cloud: boolean }> => {
+    try {
+      const fd = new FormData();
+      fd.append('file', blob, wantedName);
+      fd.append('filename', wantedName);
+      const res = await fetch('/api/upload', { method: 'POST', body: fd });
+      if (!res.ok) throw new Error('storage-unavailable');
+      const json = (await res.json()) as { url?: string };
+      if (!json.url) throw new Error('storage-unavailable');
+      return { url: json.url, cloud: true };
+    } catch {
+      // Fallback: base64 (localStorage riski surer ama islev bozulmaz)
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ url: reader.result as string, cloud: false });
+        reader.readAsDataURL(blob);
+      });
+    }
+  };
+
   const handleFileUpload = (file: File, callback?: (url: string) => void) => {
     if (!file) return;
     // 1) Dogrulama
@@ -2299,25 +2322,30 @@ export default function AdminDashboard({
       showToast(`Hata: Dosya çok büyük (${(file.size / 1024 / 1024).toFixed(1)}MB). En fazla ${UPLOAD_MAX_MB}MB — otomatik küçültülecek.`);
       return;
     }
-    // 2) Isle ve yukle
+    // 2) Isle (boyutlandir + WebP) ve Storage'a yukle
     processImageFile(file)
-      .then(({ url, width, height, blob }) => {
+      .then(async ({ url: base64, width, height, blob }) => {
         const slug = slugifyFileName(file.name);
         const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
+        const fileName = `${slug}.${ext}`;
+        const { url: finalUrl, cloud } = await uploadToStorage(blob, fileName);
         const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
         const newMedia: MediaItem = {
           id: `med-${Date.now()}`,
           title: cleanTitle,
-          url,
+          url: finalUrl,
           type: 'uploaded',
           size: `${Math.round(blob.size / 1024)} KB · ${width}×${height}`,
           createdAt: new Date().toLocaleDateString('tr-TR'),
-          slug: `${slug}.${ext}`,
+          slug: fileName,
         };
         const updated = [newMedia, ...mediaList];
         saveMediaList(updated);
-        showToast(`"${file.name}" yüklendi: ${width}×${height} → ${(blob.size / 1024).toFixed(0)}KB WebP`);
-        if (callback) callback(url);
+        showToast(cloud
+          ? `"${file.name}" buluta yüklendi: ${width}×${height} → ${(blob.size / 1024).toFixed(0)}KB WebP`
+          : `"${file.name}" yerel yüklendi (bulut kapalı): ${width}×${height}`);
+        if (callback) callback(finalUrl);
+        void base64; // base64 yalnız fallback'te kullanıldı
       })
       .catch((err) => {
         showToast(err?.message || 'Yükleme sırasında hata oluştu.');
