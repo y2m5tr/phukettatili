@@ -71,6 +71,9 @@ export default defineConfig({
     react(),
     keystatic(),
     markdoc(),
+    // Statik sitemap ana sayfalar (prerender edilen) için üretilir;
+    // dinamik SSR turları src/pages/sitemap-turlar.xml.ts tarafından
+    // eklenir (robots.txt her ikisini de işaret eder).
     sitemap({
       // Operasyon yüzeyleri noindex — sitemap'e girmeleri Google için
       // çelişkili sinyal üretir (sitemap "önemli" der, meta "indeksleme" der).
