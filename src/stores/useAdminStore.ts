@@ -12,6 +12,7 @@ export type AdminTab =
   | 'suppliers'
   | 'fleet'
   | 'tours'
+  | 'homepage'
   | 'media'
   | 'services'
   | 'blogs'

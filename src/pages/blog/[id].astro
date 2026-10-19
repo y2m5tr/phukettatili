@@ -89,7 +89,7 @@ const schemas: Record<string, unknown>[] = [
   title={`${post.data.title} — Phuket Tatili Rehberi`}
   noTitleSuffix
   description={post.data.excerpt}
-  image={post.data.cover_image ? `/assets/${post.data.cover_image}` : '/assets/beach.webp'}
+  image={post.data.cover_image ? `/assets/${post.data.cover_image}` : '/assets/blog-hero-phuket.webp'}
   ogType="article"
   publishedTime={publishedISO}
   schemas={schemas}
@@ -98,7 +98,7 @@ const schemas: Record<string, unknown>[] = [
   <section class="relative h-[50vh] min-h-[350px] flex items-end pb-12 overflow-hidden bg-brand-primary">
     <div class="absolute inset-0 z-0">
       <img
-        src={post.data.cover_image ? `/assets/${post.data.cover_image}` : '/assets/beach.webp'}
+        src={post.data.cover_image ? `/assets/${post.data.cover_image}` : '/assets/blog-hero-phuket.webp'}
         alt={post.data.title}
         loading="eager"
         fetchpriority="high"

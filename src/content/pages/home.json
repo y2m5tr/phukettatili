@@ -1,5 +1,133 @@
 {
   "heroTitle": "Phuket'in Büyüsünü Keşfedin",
   "heroSubtitle": "Size özel tasarlanmış turlar, gizli kalmış cennet koylar ve unutulmaz anılar için en doğru yerdesiniz.",
-  "heroImage": "phuket_hero.jpg"
+  "heroImage": "phuket_hero.webp",
+  "heroCtaPrimaryText": "Turları İncele",
+  "heroCtaPrimaryLink": "/turlar",
+  "heroCtaSecondaryText": "WhatsApp'tan Ulaşın",
+  "heroSliderImages": [
+    "phuket_hero.webp",
+    "pileh.webp",
+    "yacht.webp",
+    "longtail.webp"
+  ],
+  "quickSearchTitle": "Hızlı Tur Arama & Akıllı Filtre",
+  "quickSearchBadge": "18 Aktif Rota · Türkçe Rehber Güvencesi",
+  "trustBadges": [
+    {
+      "icon": "🇹🇷",
+      "title": "%100 Türkçe Rehberlik",
+      "desc": "Dil engeli olmadan, yerel Türk operasyon ekibiyle güvenle gezin",
+      "highlight": "Yerinde Rehber"
+    },
+    {
+      "icon": "⭐",
+      "title": "4.9/5 Misafir Puanı",
+      "desc": "140+ doğrulanmış Google & sosyal medya misafir değerlendirmesi",
+      "highlight": "Doğrulanmış Memnuniyet"
+    },
+    {
+      "icon": "🛡️",
+      "title": "Resmi TAT Lisanslı",
+      "desc": "Tayland Turizm Otoritesi (TAT) onaylı lisanslı güvenli seyahat",
+      "highlight": "Yasal Güvence"
+    },
+    {
+      "icon": "💬",
+      "title": "7/24 Canlı Destek",
+      "desc": "Otelinizden dönüş anınıza kadar WhatsApp üzerinden anlık takip",
+      "highlight": "Her An Yanınızda"
+    }
+  ],
+  "whyUsBadge": "★ Neden Phuket Tatili?",
+  "whyUsTitle": "Ayrıcalıklı, Güvenli ve Tamamen Size Özel",
+  "whyUsSubtitle": "Standart turların karmaşasından uzak, Tayland'daki yerel ekibimizle her anınız güvence altında.",
+  "whyUsCards": [
+    {
+      "badge": "Tam Güvence",
+      "title": "Güvenli Seyahat",
+      "desc": "Tayland Turizm Otoritesi (TAT) lisanslı, tam kasko sigortalı modern tekneler ve araçlarla sıfır risk.",
+      "image": "beach.webp",
+      "icon": "shield"
+    },
+    {
+      "badge": "Ana Dilinizde",
+      "title": "Türkçe Rehberlik",
+      "desc": "Yabancı dil stresine son. Phuket'te yaşayan Türk rehberlerimiz ve operasyon kadromuz her an yanınızda.",
+      "image": "couple.webp",
+      "icon": "chat"
+    },
+    {
+      "badge": "VIP Standart",
+      "title": "Esnek & Konforlu",
+      "desc": "Hava durumuna göre esnek tarih değişimi, klimalı VIP otel transferleri ve butik rota planlaması.",
+      "image": "yacht.webp",
+      "icon": "star"
+    }
+  ],
+  "videoBadge": "Tanıtım Filmi",
+  "videoTitle": "Phuket'i Saniyeler İçinde Keşfedin",
+  "videoSubtitle": "Turlarımızdan kareler: zümrüt lagünler, longtail tekneler, gün batımı yat seyri ve daha fazlası.",
+  "videoUrl": "/assets/tours_video.mp4",
+  "videoPoster": "phuket_hero.webp",
+  "guestMomentsBadge": "@phukettatili",
+  "guestMomentsTitle": "Misafirlerimizin Phuket Anıları",
+  "guestMomentsSubtitle": "Özel turlarımızda misafirlerimizin biriktirdiği gerçek anlar. Güncel ada rotaları ve turlarımızdan hikayeler için bizi Instagram'da takip edin.",
+  "guestMomentsInstagramHandle": "@phukettatili",
+  "guestMoments": [
+    {
+      "image": "couple.webp",
+      "title": "Phi Phi & Maya Bay",
+      "tag": "Balayı & Çift Rotaları",
+      "location": "Phi Phi Adaları"
+    },
+    {
+      "image": "pileh.webp",
+      "title": "Zümrüt Lagün Yüzme",
+      "tag": "Popüler Ada Turu",
+      "location": "Pileh Lagoon"
+    },
+    {
+      "image": "elephant.webp",
+      "title": "Etik Fil Barınağı",
+      "tag": "Doğa & Yaban Hayatı",
+      "location": "Phuket Elephant Sanctuary"
+    },
+    {
+      "image": "underwater.webp",
+      "title": "Şnorkel & Mercan Resifleri",
+      "tag": "Deniz Aktiviteleri",
+      "location": "Racha & Coral Adası"
+    },
+    {
+      "image": "bay.webp",
+      "title": "Phang Nga Kano Keşfi",
+      "tag": "Mağara & Lagün",
+      "location": "James Bond & Hong Adası"
+    }
+  ],
+  "bentoBadge": "Deneyimler & Rotalar",
+  "bentoTitle": "Phuket'te Neler Yapabilirsiniz?",
+  "bentoSubtitle": "Günübirlik tropik ada kaçamaklarından özel yat turlarına, konforlu VIP transferlerden etik doğa deneyimlerine kadar Phuket'in en iyileri.",
+  "blogSectionBadge": "📚 Phuket Gezi Rehberi",
+  "blogSectionTitle": "Seyahatiniz İçin İpuçları & Rotalar",
+  "blogSectionSubtitle": "Phuket tatilinizi planlarken ihtiyacınız olan en güncel ada karşılaştırmaları, mevsim analizleri ve yerel öneriler.",
+  "sections": {
+    "topBar": true,
+    "hero": true,
+    "quickSearch": true,
+    "trustBadges": true,
+    "stories": true,
+    "marineRadar": true,
+    "bentoGrid": true,
+    "featuredTours": true,
+    "holidayAssistant": true,
+    "videoShowcase": true,
+    "marquee": true,
+    "whyUs": true,
+    "testimonials": true,
+    "guestMoments": true,
+    "blogSection": true,
+    "faq": true
+  }
 }

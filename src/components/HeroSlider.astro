@@ -8,9 +8,10 @@ interface Slide {
 
 interface Props {
   customFirstImage?: string;
+  sliderImages?: string[];
 }
 
-const { customFirstImage } = Astro.props;
+const { customFirstImage, sliderImages } = Astro.props;
 
 const defaultSlides: Slide[] = [
   { src: '/assets/phuket_hero.webp', alt: "Phuket Kumsalları ve Turkuaz Deniz" },
@@ -19,13 +20,20 @@ const defaultSlides: Slide[] = [
   { src: '/assets/longtail.webp', alt: "Geleneksel Longtail Rotaları" },
 ];
 
-const customSrc = customFirstImage ? resolveAssetUrl(customFirstImage) : null;
-const slides: Slide[] = customSrc
-  ? [
-      { src: customSrc, alt: "Phuket Tatili Özel Karşılama" },
-      ...defaultSlides.filter((s) => s.src !== customSrc),
-    ]
-  : defaultSlides;
+let slides: Slide[] = defaultSlides;
+
+if (sliderImages && sliderImages.length > 0) {
+  slides = sliderImages.map((img, idx) => ({
+    src: resolveAssetUrl(img),
+    alt: `Phuket Tatili Karşılama Slayt ${idx + 1}`,
+  }));
+} else if (customFirstImage) {
+  const customSrc = resolveAssetUrl(customFirstImage);
+  slides = [
+    { src: customSrc, alt: "Phuket Tatili Özel Karşılama" },
+    ...defaultSlides.filter((s) => s.src !== customSrc),
+  ];
+}
 ---
 
 <div id="hero-slider" class="absolute inset-0 z-0 overflow-hidden">

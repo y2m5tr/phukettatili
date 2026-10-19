@@ -6,6 +6,7 @@ import {
   DEFAULT_INSTAGRAM_HANDLE,
   DEFAULT_GOOGLE_REVIEW_URL,
 } from '../../lib/tourMediaVault';
+import siteSettings from '../../content/settings/site.json';
 
 export const prerender = false;
 
@@ -61,7 +62,7 @@ const cloudAlbumUrl = Astro.url.searchParams.get('album') || 'https://drive.goog
             </a>
           )}
           <a
-            href="https://wa.me/66828900000"
+            href={`https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}`}
             target="_blank"
             rel="noopener noreferrer"
             class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition flex items-center gap-1.5"

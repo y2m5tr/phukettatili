@@ -52,6 +52,7 @@ const CONTENT_KEYS: ReadonlySet<string> = new Set([
   'testimonials',
   'media',
   'site-settings',
+  'home-settings',
   'vehicles',
   'drivers',
   'payments',

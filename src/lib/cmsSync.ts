@@ -25,6 +25,7 @@ export const CMS_COLLECTIONS = [
   'testimonials',
   'media',
   'site-settings',
+  'home-settings',
   'vehicles',
   'drivers',
   'payments',

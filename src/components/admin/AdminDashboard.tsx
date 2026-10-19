@@ -81,6 +81,7 @@ import BlogsTab from './BlogsTab';
 import ServicesTab from './ServicesTab';
 import MediaTab from './MediaTab';
 import ToursTab from './ToursTab';
+import HomeEditorTab from './HomeEditorTab';
 import TransfersTab from './TransfersTab';
 import OverviewTab from './OverviewTab';
 import BookingsTab from './BookingsTab';
@@ -148,6 +149,7 @@ const STORAGE_KEY_PAYMENTS = 'phuket_tatili_crm_payments_v1';
 const STORAGE_KEY_AGENTS = 'phuket_tatili_crm_agents_v1';
 const STORAGE_KEY_SUPPLIERS = 'phuket_tatili_crm_suppliers_v1';
 const STORAGE_KEY_TOUR_COSTS = 'phuket_tatili_crm_tour_costs_v1';
+const STORAGE_KEY_HOME_SETTINGS = 'phuket_tatili_crm_home_settings_v1';
 
 /* ---------------------------------------------------------------------------
    PANEL MENÜSÜ — tek kaynak
@@ -159,7 +161,7 @@ const STORAGE_KEY_TOUR_COSTS = 'phuket_tatili_crm_tour_costs_v1';
 
 export type AdminTab =
   | 'overview' | 'bookings' | 'finance' | 'transfers' | 'proposals' | 'partners' | 'settlements' | 'suppliers' | 'fleet'
-  | 'tours' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
+  | 'tours' | 'homepage' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
   | 'whatsapp' | 'settings' | 'users';
 
 export type NavCategory = 'operations' | 'finance' | 'content' | 'system' | 'all';
@@ -388,6 +390,20 @@ export const NAV_ITEMS: NavItem[] = [
     ],
   },
   {
+    id: 'homepage',
+    label: 'Anasayfa & Vitrin',
+    shortLabel: 'Anasayfa',
+    category: 'content',
+    icon: Globe,
+    description: 'Bölüm görünürlükleri, slaytlar, vitrin ve dinamik metinler',
+    subItems: [
+      { id: 'home_sections', label: 'Bölüm Aç / Kapa', icon: '🎛️' },
+      { id: 'home_hero', label: 'Hero & Slaytlar', icon: '🖼️' },
+      { id: 'home_trust', label: 'Güven Rozetleri', icon: '🛡️' },
+      { id: 'home_whyus', label: 'Neden Biz & Kartlar', icon: '✨' },
+    ],
+  },
+  {
     id: 'services',
     label: 'VIP & Hizmetler',
     shortLabel: 'Hizmetler',
@@ -502,6 +518,7 @@ interface AdminDashboardProps {
   initialFaqs: FaqItem[];
   initialTestimonials: TestimonialItem[];
   initialSiteSettings: SiteSettingsState;
+  initialHomeSettings?: any;
   availableImages?: string[];
   /** Giriş yapan üyenin rolü (üyelik sistemi) — null: eski şifre girişi. */
   viewerRole?: 'owner' | 'manager' | 'guide' | 'driver' | null;
@@ -535,6 +552,7 @@ export default function AdminDashboard({
   initialFaqs,
   initialTestimonials,
   initialSiteSettings,
+  initialHomeSettings,
   availableImages = DEFAULT_AVAILABLE_IMAGES,
   viewerRole = null,
 }: AdminDashboardProps) {
@@ -1097,6 +1115,17 @@ export default function AdminDashboard({
   const [siteSettings, setSiteSettings] = useState<SiteSettingsState>(initialSiteSettings);
   const [settingsSaved, setSettingsSaved] = useState<boolean>(false);
 
+  // 9. Homepage Settings State
+  const [homeSettings, setHomeSettings] = useState<any>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem(STORAGE_KEY_HOME_SETTINGS);
+        if (cached) return JSON.parse(cached);
+      } catch { /* ignore */ }
+    }
+    return initialHomeSettings || null;
+  });
+
   /* -------------------------------------------------------------------------
      Menü Durum ve Filtre Mantığı:
      Kategori filtresi, anlık arama ve aktif sekme senkronizasyonu
@@ -1353,6 +1382,7 @@ export default function AdminDashboard({
       apply('testimonials', setTestimonials);
       apply('media', setMediaList);
       apply('site-settings', setSiteSettings);
+      apply('home-settings', setHomeSettings);
       apply('vehicles', setVehicles);
       apply('drivers', setDrivers);
       apply('payments', setPayments);
@@ -1527,6 +1557,13 @@ export default function AdminDashboard({
   const saveTestimonials = (next: TestimonialItem[]) => {
     setTestimonials(next);
     saveCmsCollection('testimonials', next, showToast);
+  };
+  const saveHomeSettings = (next: any) => {
+    setHomeSettings(next);
+    try {
+      localStorage.setItem(STORAGE_KEY_HOME_SETTINGS, JSON.stringify(next));
+    } catch { /* ignore */ }
+    saveCmsCollection('home-settings', next, showToast);
   };
 
   // All available image URLs (system + uploaded) for pickers
@@ -2577,6 +2614,7 @@ export default function AdminDashboard({
         stars: tm.stars ?? 5,
         text: tm.text,
       })),
+      homeSettings,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -3534,6 +3572,22 @@ export default function AdminDashboard({
                 childCount: 0,
               })
             }
+          />
+        )}
+
+        {/* ==================================================== */}
+        {/* TAB: HOMEPAGE DESIGN & SECTION STUDIO */}
+        {/* ==================================================== */}
+        {activeTab === 'homepage' && (
+          <HomeEditorTab
+            homeSettings={homeSettings}
+            setHomeSettings={setHomeSettings}
+            onSave={saveHomeSettings}
+            getImageUrl={getImageUrl}
+            handleFileUpload={handleFileUpload}
+            allImageOptions={allImageOptions}
+            mediaList={mediaList}
+            showToast={showToast}
           />
         )}
 

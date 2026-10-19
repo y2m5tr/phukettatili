@@ -45,8 +45,6 @@ if (isSupabaseAdminConfigured()) {
           }
           if (typeof cloudTour.priceThb === 'number') {
             tour.data.price_thb = cloudTour.priceThb;
-          } else if (typeof cloudTour.price_thb === 'number') {
-            tour.data.price_thb = cloudTour.price_thb;
           }
           if (Array.isArray(cloudTour.program) && cloudTour.program.length > 0) {
             tour.data.program = cloudTour.program;

@@ -1,20 +1,34 @@
 ---
+import { resolveAssetUrl } from '../../lib/assets';
+
 interface Props {
   videoSrc?: string;
+  posterImage?: string;
+  title?: string;
+  subtitle?: string;
+  badge?: string;
 }
 
-const { videoSrc = '/assets/tours_video.mp4' } = Astro.props;
+const {
+  videoSrc = '/assets/tours_video.mp4',
+  posterImage = 'phuket_hero.webp',
+  title = "Phuket'i Saniyeler İçinde Keşfedin",
+  subtitle = "Turlarımızdan kareler: zümrüt lagünler, longtail tekneler, gün batımı yat seyri ve daha fazlası.",
+  badge = "Tanıtım Filmi",
+} = Astro.props;
+
+const resolvedPoster = resolveAssetUrl(posterImage, '/assets/phuket_hero.webp');
 ---
 
 <section class="relative py-20 bg-white dark:bg-surface-1 px-4 border-b border-slate-100 dark:border-slate-800/60">
   <div class="max-w-6xl mx-auto">
     <div class="text-center mb-10">
-      <span class="text-xs uppercase tracking-widest text-brand-accent font-bold">Tanıtım Filmi</span>
+      <span class="text-xs uppercase tracking-widest text-brand-accent font-bold">{badge}</span>
       <h2 class="text-3xl md:text-5xl font-serif font-bold text-brand-primary dark:text-white mt-2">
-        Phuket'i Saniyeler İçinde Keşfedin
+        {title}
       </h2>
       <p class="text-slate-600 dark:text-slate-300 text-sm md:text-base max-w-2xl mx-auto font-light mt-3 leading-relaxed">
-        Turlarımızdan kareler: zümrüt lagünler, longtail tekneler, gün batımı yat seyri ve daha fazlası.
+        {subtitle}
       </p>
     </div>
 
@@ -27,7 +41,7 @@ const { videoSrc = '/assets/tours_video.mp4' } = Astro.props;
     >
       <!-- Poster: hero görseli -->
       <img
-        src="/assets/phuket_hero.webp"
+        src={resolvedPoster}
         alt="Phuket tanıtım videosu kapak görüntüsü"
         loading="lazy"
         decoding="async"

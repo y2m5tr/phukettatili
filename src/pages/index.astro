@@ -26,10 +26,39 @@ export const prerender = true;
 
 const whatsappUrl = `https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}`;
 
-// Admin panelinden veya home.json'dan dinamik Hero verileri
-const heroTitle = (siteSettings as any)?.heroTitle || homeData?.heroTitle || "Phuket'in Büyüsünü Keşfedin";
-const heroSubtitle = (siteSettings as any)?.heroSubtitle || homeData?.heroSubtitle || "Size özel tasarlanmış turlar, gizli kalmış cennet koylar ve unutulmaz anılar için en doğru yerdesiniz.";
+// Admin panelinden veya home.json'dan dinamik Hero & Bölüm verileri
+const heroTitle = homeData?.heroTitle || (siteSettings as any)?.heroTitle || "Phuket'in Büyüsünü Keşfedin";
+const heroSubtitle = homeData?.heroSubtitle || (siteSettings as any)?.heroSubtitle || "Size özel tasarlanmış turlar, gizli kalmış cennet koylar ve unutulmaz anılar için en doğru yerdesiniz.";
 const heroImage = (siteSettings as any)?.heroImage || homeData?.heroImage;
+const heroCtaPrimaryText = homeData?.heroCtaPrimaryText || "Turları İncele";
+const heroCtaPrimaryLink = homeData?.heroCtaPrimaryLink || "/turlar";
+const heroCtaSecondaryText = homeData?.heroCtaSecondaryText || "WhatsApp'tan Ulaşın";
+const heroSliderImages = homeData?.heroSliderImages && homeData.heroSliderImages.length > 0 ? homeData.heroSliderImages : undefined;
+
+// Bölüm bazlı dinamik ayarlar
+const quickSearchTitle = homeData?.quickSearchTitle;
+const quickSearchBadge = homeData?.quickSearchBadge;
+const trustBadges = homeData?.trustBadges;
+const whyUsBadge = homeData?.whyUsBadge;
+const whyUsTitle = homeData?.whyUsTitle;
+const whyUsSubtitle = homeData?.whyUsSubtitle;
+const whyUsCards = homeData?.whyUsCards;
+const videoBadge = homeData?.videoBadge;
+const videoTitle = homeData?.videoTitle;
+const videoSubtitle = homeData?.videoSubtitle;
+const videoUrl = homeData?.videoUrl;
+const videoPoster = homeData?.videoPoster;
+const guestMomentsBadge = homeData?.guestMomentsBadge;
+const guestMomentsTitle = homeData?.guestMomentsTitle;
+const guestMomentsSubtitle = homeData?.guestMomentsSubtitle;
+const guestMoments = homeData?.guestMoments;
+const bentoBadge = homeData?.bentoBadge;
+const bentoTitle = homeData?.bentoTitle;
+const bentoSubtitle = homeData?.bentoSubtitle;
+const blogSectionBadge = homeData?.blogSectionBadge;
+const blogSectionTitle = homeData?.blogSectionTitle;
+const blogSectionSubtitle = homeData?.blogSectionSubtitle;
+const sections = homeData?.sections || {};
 
 const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
 const featuredTours: CollectionEntry<'tours'>[] = tours.filter((tour) => tour.data.featured).slice(0, 3);
@@ -88,113 +117,114 @@ const schemas: Record<string, unknown>[] = [
       }]
     : []),
 ];
-
-const guestMoments = [
-  {
-    image: 'couple.webp',
-    title: 'Phi Phi & Maya Bay',
-    tag: 'Balayı & Çift Rotaları',
-    location: 'Phi Phi Adaları',
-  },
-  {
-    image: 'pileh.webp',
-    title: 'Zümrüt Lagün Yüzme',
-    tag: 'Popüler Ada Turu',
-    location: 'Pileh Lagoon',
-  },
-  {
-    image: 'elephant.webp',
-    title: 'Etik Fil Barınağı',
-    tag: 'Doğa & Yaban Hayatı',
-    location: 'Phuket Elephant Sanctuary',
-  },
-  {
-    image: 'underwater.webp',
-    title: 'Şnorkel & Mercan Resifleri',
-    tag: 'Deniz Aktiviteleri',
-    location: 'Racha & Coral Adası',
-  },
-  {
-    image: 'bay.webp',
-    title: 'Phang Nga Kano Keşfi',
-    tag: 'Mağara & Lagün',
-    location: 'James Bond & Hong Adası',
-  },
-];
 ---
 
 <Layout title="Ana Sayfa" description="Tayland'ın incisi Phuket'te unutulmaz bir tatil deneyimi." schemas={schemas}>
   <!-- Hero Section with Dynamic Content & Quick Search -->
-  <section class="relative min-h-[85vh] lg:min-h-[720px] flex flex-col justify-center items-center overflow-hidden pt-28 pb-14">
-    <HeroSlider customFirstImage={heroImage} />
+  {sections.hero !== false && (
+    <section class="relative min-h-[85vh] lg:min-h-[720px] flex flex-col justify-center items-center overflow-hidden pt-28 pb-14">
+      <HeroSlider customFirstImage={heroImage} sliderImages={heroSliderImages} />
 
-    <div class="relative z-20 text-center px-4 max-w-4xl mx-auto mb-6">
-      <FadeIn client:load delay={0.2} direction="up">
-        <h1 class="text-4xl sm:text-5xl md:text-7xl text-white mb-5 drop-shadow-lg leading-tight font-serif font-bold">
-          {heroTitle.includes('Büyüsünü') ? (
-            <>
-              {heroTitle.split('Büyüsünü')[0]}
-              <span class="text-brand-accent italic">Büyüsünü</span>
-              {heroTitle.split('Büyüsünü')[1]}
-            </>
-          ) : (
-            heroTitle
-          )}
-        </h1>
-      </FadeIn>
-      <FadeIn client:load delay={0.4} direction="up">
-        <p class="text-base sm:text-lg md:text-xl text-slate-200 mb-8 max-w-2xl mx-auto font-light leading-relaxed">
-          {heroSubtitle}
-        </p>
-      </FadeIn>
-      <FadeIn client:load delay={0.6} direction="up">
-        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-          <a href="/turlar" class="premium-cta bg-brand-accent hover:bg-brand-accent/90 text-white px-8 py-4 rounded-full font-medium transition-all transform hover:scale-105 shadow-xl">
-            Turları İncele
-          </a>
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="premium-cta bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 px-8 py-4 rounded-full font-medium transition-all transform hover:scale-105 shadow-xl">
-            WhatsApp'tan Ulaşın
-          </a>
-        </div>
-      </FadeIn>
-    </div>
+      <div class="relative z-20 text-center px-4 max-w-4xl mx-auto mb-6">
+        <FadeIn client:load delay={0.2} direction="up">
+          <h1 class="text-4xl sm:text-5xl md:text-7xl text-white mb-5 drop-shadow-lg leading-tight font-serif font-bold">
+            {heroTitle.includes('Büyüsünü') ? (
+              <>
+                {heroTitle.split('Büyüsünü')[0]}
+                <span class="text-brand-accent italic">Büyüsünü</span>
+                {heroTitle.split('Büyüsünü')[1]}
+              </>
+            ) : (
+              heroTitle
+            )}
+          </h1>
+        </FadeIn>
+        <FadeIn client:load delay={0.4} direction="up">
+          <p class="text-base sm:text-lg md:text-xl text-slate-200 mb-8 max-w-2xl mx-auto font-light leading-relaxed">
+            {heroSubtitle}
+          </p>
+        </FadeIn>
+        <FadeIn client:load delay={0.6} direction="up">
+          <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+            <a href={heroCtaPrimaryLink} class="premium-cta bg-brand-accent hover:bg-brand-accent/90 text-white px-8 py-4 rounded-full font-medium transition-all transform hover:scale-105 shadow-xl">
+              {heroCtaPrimaryText}
+            </a>
+            <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" class="premium-cta bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/30 px-8 py-4 rounded-full font-medium transition-all transform hover:scale-105 shadow-xl">
+              {heroCtaSecondaryText}
+            </a>
+          </div>
+        </FadeIn>
+      </div>
 
-    <!-- Hızlı Tur Arama & Akıllı Filtreleme -->
-    <HomeQuickSearch className="relative z-20 mt-2" />
-  </section>
+      <!-- Hızlı Tur Arama & Akıllı Filtreleme -->
+      {sections.quickSearch !== false && (
+        <HomeQuickSearch className="relative z-20 mt-2" title={quickSearchTitle} badge={quickSearchBadge} />
+      )}
+    </section>
+  )}
 
   <!-- 4'lü Güven & Sosyal Kanıt Rozetleri -->
-  <HomeTrustBadges />
+  {sections.trustBadges !== false && (
+    <HomeTrustBadges badges={trustBadges} />
+  )}
 
-  <!-- Stories & Deniz Güvenlik Radarı -->
-  <TourStoriesReel client:load />
-  <LiveTourSafetyRadar client:load />
+  <!-- Stories Reels -->
+  {sections.stories !== false && (
+    <TourStoriesReel client:load />
+  )}
+
+  <!-- Canlı Deniz Güvenlik Radarı -->
+  {sections.marineRadar !== false && (
+    <LiveTourSafetyRadar client:load />
+  )}
 
   <!-- Deneyimler Bento Grid -->
-  <HomeBento />
+  {sections.bentoGrid !== false && (
+    <HomeBento badge={bentoBadge} title={bentoTitle} subtitle={bentoSubtitle} />
+  )}
 
   <!-- Öne Çıkan Rotalar -->
-  <HomeFeaturedTours featuredTours={featuredTours} />
+  {sections.featuredTours !== false && (
+    <HomeFeaturedTours featuredTours={featuredTours} />
+  )}
 
   <!-- Birleşik Akıllı Tatil & Tur Asistanı -->
-  <HomeHolidayAssistant client:visible tours={wizardTours} whatsappNumber={siteSettings?.whatsappNumber} />
+  {sections.holidayAssistant !== false && (
+    <HomeHolidayAssistant client:visible tours={wizardTours} whatsappNumber={siteSettings?.whatsappNumber} />
+  )}
 
-  <!-- Tanıtım Filmi & Marquee -->
-  <HomeVideoShowcase />
-  <HomeMarquee />
+  <!-- Tanıtım Filmi -->
+  {sections.videoShowcase !== false && (
+    <HomeVideoShowcase badge={videoBadge} title={videoTitle} subtitle={videoSubtitle} videoSrc={videoUrl} posterImage={videoPoster} />
+  )}
+
+  <!-- Marquee Kayan Bant -->
+  {sections.marquee !== false && (
+    <HomeMarquee />
+  )}
 
   <!-- Neden Phuket Tatili? -->
-  <HomeWhyUs />
+  {sections.whyUs !== false && (
+    <HomeWhyUs badge={whyUsBadge} title={whyUsTitle} subtitle={whyUsSubtitle} cards={whyUsCards} />
+  )}
 
   <!-- Misafir Yorumları -->
-  <HomeTestimonials testimonials={testimonials} />
+  {sections.testimonials !== false && (
+    <HomeTestimonials testimonials={testimonials} />
+  )}
 
   <!-- Misafirlerimizden Kareler (Instagram) -->
-  <HomeGuestMoments guestMoments={guestMoments} />
+  {sections.guestMoments !== false && (
+    <HomeGuestMoments badge={guestMomentsBadge} title={guestMomentsTitle} subtitle={guestMomentsSubtitle} guestMoments={guestMoments} instagramUrl={siteSettings?.instagramUrl} />
+  )}
 
   <!-- Phuket Gezi Rehberi & İpuçları (Blog Vitrini) -->
-  <HomeBlogSection />
+  {sections.blogSection !== false && (
+    <HomeBlogSection badge={blogSectionBadge} title={blogSectionTitle} subtitle={blogSectionSubtitle} />
+  )}
 
   <!-- Sıkça Sorulan Sorular -->
-  <HomeFaq faqs={formattedFaqs} />
+  {sections.faq !== false && (
+    <HomeFaq faqs={formattedFaqs} />
+  )}
 </Layout>

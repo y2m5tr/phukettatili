@@ -1,13 +1,21 @@
 ---
 import FadeIn from '../ui/FadeIn';
 
-interface Props {
-  className?: string;
+interface BadgeItem {
+  icon: string;
+  title: string;
+  desc: string;
+  highlight: string;
 }
 
-const { className = '' } = Astro.props;
+interface Props {
+  className?: string;
+  badges?: BadgeItem[];
+}
 
-const badges = [
+const { className = '', badges: customBadges } = Astro.props;
+
+const defaultBadges: BadgeItem[] = [
   {
     icon: '🇹🇷',
     title: '%100 Türkçe Rehberlik',
@@ -33,6 +41,8 @@ const badges = [
     highlight: 'Her An Yanınızda',
   },
 ];
+
+const badges = customBadges && customBadges.length > 0 ? customBadges : defaultBadges;
 ---
 
 <section class={`py-8 bg-slate-900/40 border-y border-slate-200/20 dark:border-slate-800/60 ${className}`}>
