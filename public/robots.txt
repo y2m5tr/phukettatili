@@ -9,7 +9,6 @@ Sitemap: https://phukettatili.com/sitemap-turlar.xml
 Disallow: /api/
 Disallow: /.astro/
 Disallow: /admin/
-Disallow: /keystatic/
 
 # Crawl delay for polite bots
 Crawl-delay: 1

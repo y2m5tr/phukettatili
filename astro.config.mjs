@@ -6,9 +6,6 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import vercel from '@astrojs/vercel';
 
-import keystatic from '@keystatic/astro';
-import markdoc from '@astrojs/markdoc';
-
 // https://astro.build/config
 export default defineConfig({
   site: 'https://phukettatili.com',
@@ -69,8 +66,6 @@ export default defineConfig({
   },
   integrations: [
     react(),
-    keystatic(),
-    markdoc(),
     // Statik sitemap ana sayfalar (prerender edilen) için üretilir;
     // dinamik SSR turları src/pages/sitemap-turlar.xml.ts tarafından
     // eklenir (robots.txt her ikisini de işaret eder).

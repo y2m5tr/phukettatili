@@ -21,7 +21,7 @@ interface Props {
 const {
   title,
   description = "Phuket Tatili - En özel anılarınız için lüks ve ayrıcalıklı seyahat deneyimleri.",
-  image = "/assets/phuket_hero.jpg",
+  image = "/assets/og-hero.jpg",
   ogType = 'website',
   publishedTime,
   noTitleSuffix = false,
@@ -70,7 +70,7 @@ const fullTitle = noTitleSuffix ? title : `${title} | Phuket Tatili`;
           "@type": "TravelAgency",
           "name": "Phuket Tatili",
           "url": (Astro.site || 'https://phukettatili.com').toString(),
-          "image": new URL("/assets/phuket_hero.jpg", Astro.site || 'https://phukettatili.com').toString(),
+          "image": new URL("/assets/og-hero.jpg", Astro.site || 'https://phukettatili.com').toString(),
           "description": "Phuket Tatili - Lüks VIP Turlar ve Yat Kiralama",
           "address": {
             "@type": "PostalAddress",

@@ -2241,7 +2241,7 @@ export default function AdminDashboard({
 
   const processImageFile = (file: File): Promise<{ blob: Blob; url: string; width: number; height: number }> => {
     return new Promise((resolve, reject) => {
-      const img = new Image();
+      const img = new window.Image();
       const objectUrl = URL.createObjectURL(file);
       img.onload = () => {
         // Boyutlandirma hesabi
@@ -2534,6 +2534,44 @@ export default function AdminDashboard({
     saveCmsCollection('site-settings', siteSettings, showToast);
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 2500);
+  };
+
+  // Site Verisi İndir (JSON) — apply-cms.ts uyumlu format
+  const handleExportSiteData = () => {
+    const payload = {
+      exportedAt: new Date().toISOString(),
+      tours: tours.map((t) => ({
+        id: t.id,
+        title: t.title,
+        category: t.category,
+        categoryLabel: t.categoryLabel,
+        priceThb: t.priceThb,
+        duration: t.duration,
+        featured: t.featured,
+        image: t.image,
+        excerpt: t.excerpt,
+        gallery: t.gallery,
+        programImages: t.programImages,
+      })),
+      faqs: faqs.map((f) => ({ question: f.question, answer: f.answer })),
+      testimonials: testimonials.map((tm) => ({
+        name: tm.name,
+        type: tm.type,
+        tour: tm.tour,
+        stars: tm.stars ?? 5,
+        text: tm.text,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `phuket-cms-data-${new Date().toISOString().split('T')[0]}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast('Site verisi JSON olarak indirildi');
   };
 
   // CSV Export
