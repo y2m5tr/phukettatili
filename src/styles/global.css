@@ -1,5 +1,18 @@
 @import "tailwindcss";
 
+/* Self-hosted fontlar — Google CDN'e dış bağlantı yok (LCP kazancı).
+   Kullanılan ağırlıklar: 400/500/600/700/800 (italik 400/600) */
+@import "@fontsource/dm-sans/400.css";
+@import "@fontsource/dm-sans/500.css";
+@import "@fontsource/dm-sans/600.css";
+@import "@fontsource/dm-sans/700.css";
+@import "@fontsource/dm-sans/400-italic.css";
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/600.css";
+@import "@fontsource/playfair-display/700.css";
+@import "@fontsource/playfair-display/400-italic.css";
+@import "@fontsource/playfair-display/600-italic.css";
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {

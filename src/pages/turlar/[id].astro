@@ -12,6 +12,11 @@ import { resolveAssetUrl, resolveOgImageUrl } from '../../lib/assets';
 // Bulut yoksa site statik veriyle calismaya devam eder.
 export const prerender = false;
 
+// CDN cache: sayfa 60sn Vercel edge'de, 5 dk bayat kabul edilir.
+// Panel degisikligi aninda degil en gec ~1 dk icinde yansir — ama
+// her goruntulemede SSR + Supabase fetch maliyeti ortadan kalkar.
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+
 // Tur kaydini id'den bul (dinamik route — props yok)
 const { id } = Astro.params;
 const allToursForRelated: CollectionEntry<'tours'>[] = await getCollection('tours');

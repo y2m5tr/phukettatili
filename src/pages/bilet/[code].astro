@@ -105,12 +105,18 @@ const managerPhone = siteSettings?.whatsappNumber || '66828950665';
     <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#020617" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&display=swap"
-      rel="stylesheet"
-    />
+    
+      <!-- Fontlar self-hosted (fontsource) -->
+    <style is:inline>
+      @import "@fontsource/plus-jakarta-sans/400.css";
+      @import "@fontsource/plus-jakarta-sans/500.css";
+      @import "@fontsource/plus-jakarta-sans/600.css";
+      @import "@fontsource/plus-jakarta-sans/700.css";
+      @import "@fontsource/plus-jakarta-sans/800.css";
+      @import "@fontsource/playfair-display/600.css";
+      @import "@fontsource/playfair-display/700.css";
+      @import "@fontsource/playfair-display/600-italic.css";
+    </style>
   </head>
   <body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
     {isRateLimitedRequest ? (
