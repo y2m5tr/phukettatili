@@ -4,11 +4,12 @@ import Layout from '../../layouts/Layout.astro';
 import Accordion from '../../components/ui/Accordion';
 import siteSettings from '../../content/settings/site.json';
 import TourQuickBookingDrawer from '../../components/tour/TourQuickBookingDrawer';
+import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../lib/server/supabaseAdmin';
+import { resolveAssetUrl, resolveOgImageUrl } from '../../lib/assets';
 
 // Dinamik SSR: panelde degisen kapak/galeri aninda yansir (bulut overlay).
 // Build'deki .md verisi taban; uzerine content_store bulut kaydi gelir.
 // Bulut yoksa site statik veriyle calismaya devam eder.
-// Dinamik SSR: her istekte render — panel kapak/galeri/fiyat degisikligi aninda yansir.
 export const prerender = false;
 
 // Tur kaydini id'den bul (dinamik route — props yok)
@@ -18,6 +19,58 @@ const tour = allToursForRelated.find((t) => t.id === id);
 
 if (!tour) {
   return Astro.redirect('/turlar', 302);
+}
+
+// Bulut overlay: Admin panelinde duzenlenen alanlar (kapak, galeri, program, fiyat) aninda yansir
+if (isSupabaseAdminConfigured()) {
+  try {
+    const db = getSupabaseAdmin();
+    if (db) {
+      const { data: cloudRow } = await db
+        .from('content_store')
+        .select('data')
+        .eq('key', 'tours')
+        .maybeSingle();
+
+      if (Array.isArray(cloudRow?.data)) {
+        const cloudTour = cloudRow.data.find(
+          (t: any) => t.id === id || t.slug === id
+        );
+        if (cloudTour) {
+          if (Array.isArray(cloudTour.gallery) && cloudTour.gallery.length > 0) {
+            tour.data.gallery = cloudTour.gallery;
+          }
+          if (cloudTour.image) {
+            tour.data.image = cloudTour.image;
+          }
+          if (typeof cloudTour.priceThb === 'number') {
+            tour.data.price_thb = cloudTour.priceThb;
+          } else if (typeof cloudTour.price_thb === 'number') {
+            tour.data.price_thb = cloudTour.price_thb;
+          }
+          if (Array.isArray(cloudTour.program) && cloudTour.program.length > 0) {
+            tour.data.program = cloudTour.program;
+          }
+          if (Array.isArray(cloudTour.program_images) && cloudTour.program_images.length > 0) {
+            tour.data.program_images = cloudTour.program_images;
+          } else if (Array.isArray(cloudTour.programImages) && cloudTour.programImages.length > 0) {
+            tour.data.program_images = cloudTour.programImages;
+          }
+          if (Array.isArray(cloudTour.included) && cloudTour.included.length > 0) {
+            tour.data.included = cloudTour.included;
+          }
+          if (Array.isArray(cloudTour.excluded) && cloudTour.excluded.length > 0) {
+            tour.data.excluded = cloudTour.excluded;
+          }
+          if (Array.isArray(cloudTour.faq) && cloudTour.faq.length > 0) {
+            tour.data.faq = cloudTour.faq;
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('[turlar/[id]] Supabase content_store overlay fallback:', err);
+  }
 }
 
 const { Content } = await render(tour);
@@ -37,7 +90,7 @@ const productSchema: Record<string, unknown> = {
   "name": tour.data.title,
   "description": tour.data.excerpt || tour.data.title,
   "url": tourURL,
-  ...(tour.data.image ? { "image": new URL(`/assets/${tour.data.image}`, site).toString() } : {}),
+  ...(tour.data.image ? { "image": resolveOgImageUrl(tour.data.image, site) } : {}),
   "brand": { "@type": "Brand", "name": "Phuket Tatili" },
 };
 
@@ -86,12 +139,12 @@ const initialMessage = `Merhaba, ${tour.data.title} turu için 2 Kişilik uygunl
 const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(initialMessage)}`;
 ---
 
-<Layout title={tour.data.title} description={tour.data.excerpt} image={tour.data.image ? `/assets/${tour.data.image}` : undefined} schemas={schemas}>
+<Layout title={tour.data.title} description={tour.data.excerpt} image={tour.data.image ? resolveOgImageUrl(tour.data.image, site) : undefined} schemas={schemas}>
   <!-- Hero Section for Tour -->
   <section class="relative h-[60vh] min-h-[400px] flex items-end pb-12">
     <div class="absolute inset-0 z-0">
       <img
-        src={`/assets/${tour.data.image || 'phuket_hero.webp'}`}
+        src={resolveAssetUrl(tour.data.image)}
         alt={tour.data.title}
         loading="eager"
         fetchpriority="high"
@@ -156,9 +209,9 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
                           <p class="text-slate-600 dark:text-slate-300 m-0 leading-relaxed">{desc.trim()}</p>
                         </div>
                         {stepImg && (
-                          <div class="relative w-full sm:w-40 h-32 sm:h-28 shrink-0 rounded-xl overflow-hidden group cursor-pointer gallery-trigger" data-index={`program-${idx}`} data-src={`/assets/${stepImg}`} aria-label={`${tour.data.title} program fotoğrafı ${idx + 1}`}>
+                          <div class="relative w-full sm:w-40 h-32 sm:h-28 shrink-0 rounded-xl overflow-hidden group cursor-pointer gallery-trigger" data-index={`program-${idx}`} data-src={resolveAssetUrl(stepImg)} aria-label={`${tour.data.title} program fotoğrafı ${idx + 1}`} role="button" tabindex="0">
                             <img
-                              src={`/assets/${stepImg}`}
+                              src={resolveAssetUrl(stepImg)}
                               alt={`${tour.data.title} — ${desc.trim().slice(0, 60)}`}
                               loading="lazy"
                               decoding="async"
@@ -188,11 +241,11 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
                   type="button"
                   class="gallery-trigger group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer border border-slate-100 dark:border-slate-700"
                   data-index={idx}
-                  data-src={`/assets/${img}`}
+                  data-src={resolveAssetUrl(img)}
                   aria-label={`${tour.data.title} Fotoğraf ${idx + 1}`}
                 >
                   <img 
-                    src={`/assets/${img}`} 
+                    src={resolveAssetUrl(img)} 
                     alt={`${tour.data.title} Fotoğraf ${idx + 1}`} 
                     loading="lazy"
                     decoding="async"
@@ -330,7 +383,7 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
             <a href={`/turlar/${t.id}`} class="premium-card group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-md hover:shadow-xl transition-all duration-300 border border-slate-100 dark:border-slate-700">
               <div class="relative h-44 overflow-hidden">
                 <img
-                  src={`/assets/${t.data.image || 'phuket_hero.webp'}`}
+                  src={resolveAssetUrl(t.data.image)}
                   alt={t.data.title}
                   loading="lazy"
                   decoding="async"
@@ -459,32 +512,19 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
     const closeBtn = document.getElementById('lightbox-close-btn');
     const prevBtn = document.getElementById('lightbox-prev-btn');
     const nextBtn = document.getElementById('lightbox-next-btn');
-    const triggers = document.querySelectorAll<HTMLButtonElement>('.gallery-trigger');
+    const triggers = document.querySelectorAll<HTMLElement>('.gallery-trigger');
 
     if (lightbox && lightboxImg && triggers.length > 0) {
       const images: string[] = [];
-      triggers.forEach(t => {
+      triggers.forEach((t) => {
         const src = t.dataset.src;
-        if (src) images.push(src);
+        if (src && !images.includes(src)) images.push(src);
       });
 
       let activeIndex = 0;
 
-      // Esnek liste destegi: galeri + program foto birlesik acilabilir
-      let currentList: string[] = images;
-      const showLightboxWithList = (list: string[], index: number) => {
-        currentList = list;
-        activeIndex = (index + list.length) % list.length;
-        lightboxImg.src = list[activeIndex];
-        if (lightboxCounter) {
-          lightboxCounter.textContent = `${activeIndex + 1} / ${list.length}`;
-        }
-        lightbox.classList.remove('hidden');
-        lightbox.classList.add('flex');
-        document.body.style.overflow = 'hidden';
-      };
       const showLightbox = (index: number) => {
-        currentList = images;
+        if (images.length === 0) return;
         activeIndex = (index + images.length) % images.length;
         lightboxImg.src = images[activeIndex];
         if (lightboxCounter) {
@@ -503,39 +543,32 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
 
       triggers.forEach((trigger) => {
         trigger.addEventListener('click', () => {
-          // "program-N" (program adim foto) veya sayisal (galeri) index desteklenir
-          const raw = String(trigger.dataset.index || '0');
-          const numeric = parseInt(raw.replace(/[^0-9]/g, ''), 10);
-          // Program fotoyraflari galeri listesinin sonuna eklenmis gibi davranir:
-          // images listesi sirasiyla doldurulur; program img'leri ayri tutulur.
-          const programImgs = Array.from(document.querySelectorAll<HTMLButtonElement>('.gallery-trigger[data-index^="program-"]')).map((t) => t.dataset.src || '');
-          const galleryImgs = images;
-          const isProgram = raw.startsWith('program-');
-          const progIdx = isProgram ? numeric : -1;
-          const galleryBase = galleryImgs.length;
-
-          if (isProgram && programImgs[progIdx]) {
-            // Program fotografi icin mini lightbox: tum liste = galeri + program
-            const all = [...galleryImgs, ...programImgs];
-            const globalIdx = galleryBase + progIdx;
-            // Gecici liste ile ac
-            showLightboxWithList(all, globalIdx);
-          } else {
-            showLightbox(numeric);
+          const src = trigger.dataset.src;
+          const idx = src ? images.indexOf(src) : -1;
+          showLightbox(idx !== -1 ? idx : 0);
+        });
+        trigger.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            const src = trigger.dataset.src;
+            const idx = src ? images.indexOf(src) : -1;
+            showLightbox(idx !== -1 ? idx : 0);
           }
         });
       });
 
       closeBtn?.addEventListener('click', hideLightbox);
       prevBtn?.addEventListener('click', () => {
-        activeIndex = (activeIndex - 1 + currentList.length) % currentList.length;
-        lightboxImg.src = currentList[activeIndex];
-        if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${currentList.length}`;
+        if (images.length === 0) return;
+        activeIndex = (activeIndex - 1 + images.length) % images.length;
+        lightboxImg.src = images[activeIndex];
+        if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${images.length}`;
       });
       nextBtn?.addEventListener('click', () => {
-        activeIndex = (activeIndex + 1 + currentList.length) % currentList.length;
-        lightboxImg.src = currentList[activeIndex];
-        if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${currentList.length}`;
+        if (images.length === 0) return;
+        activeIndex = (activeIndex + 1 + images.length) % images.length;
+        lightboxImg.src = images[activeIndex];
+        if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${images.length}`;
       });
 
       // Click backdrop to close
@@ -550,14 +583,16 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
         if (lightbox.classList.contains('hidden')) return;
         if (e.key === 'Escape') hideLightbox();
         if (e.key === 'ArrowLeft') {
-          activeIndex = (activeIndex - 1 + currentList.length) % currentList.length;
-          lightboxImg.src = currentList[activeIndex];
-          if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${currentList.length}`;
+          if (images.length === 0) return;
+          activeIndex = (activeIndex - 1 + images.length) % images.length;
+          lightboxImg.src = images[activeIndex];
+          if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${images.length}`;
         }
         if (e.key === 'ArrowRight') {
-          activeIndex = (activeIndex + 1 + currentList.length) % currentList.length;
-          lightboxImg.src = currentList[activeIndex];
-          if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${currentList.length}`;
+          if (images.length === 0) return;
+          activeIndex = (activeIndex + 1 + images.length) % images.length;
+          lightboxImg.src = images[activeIndex];
+          if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${images.length}`;
         }
       });
     }

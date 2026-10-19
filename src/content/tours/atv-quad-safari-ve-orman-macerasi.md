@@ -4,7 +4,11 @@ category: "adventure-tours"
 subcategory: "atv-quad-bike"
 category_label: "Macera Turları"
 excerpt: "Phuket'in dağ yollarında, çamurlu patikalarda ve kauçuk ormanlarında güçlü 4x4 motorlarla macera."
-image: "culture.webp"
+image: "atv-cover.webp"
+gallery:
+  - "atv-1.webp"
+  - "atv-2.webp"
+  - "atv-3.webp"
 price_type: "quote"
 price_thb: 0
 duration: "1 - 2 saat parkur"

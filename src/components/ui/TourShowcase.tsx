@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { resolveAssetUrl } from '../../lib/assets';
 
 interface TourSlide {
   id: string;
@@ -44,7 +45,7 @@ export default function TourShowcase({ tours }: { tours: TourSlide[] }) {
         touchStart.current = null;
       }}>
       <div className="showcase-backdrop" key={current.id}>
-        <img src={`/assets/${current.data.image || 'phuket_hero.webp'}`} alt="" loading="eager" decoding="async" />
+        <img src={resolveAssetUrl(current.data.image)} alt="" loading="eager" decoding="async" />
         <div className="showcase-wash" />
       </div>
       <div className="showcase-grain" aria-hidden="true" />
