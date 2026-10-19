@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, } from 'react';
 import {
   DollarSign,
   TrendingUp,
@@ -6,20 +6,11 @@ import {
   Plus,
   Download,
   AlertCircle,
-  CheckCircle2,
-  Phone,
-  Ticket,
   X,
   Wallet,
   Receipt,
   Car,
-  ShieldCheck,
-  ArrowRight,
   ArrowRightLeft,
-  Landmark,
-  Clock,
-  Coins,
-  RefreshCw,
   Fuel,
 } from 'lucide-react';
 import {
@@ -33,53 +24,16 @@ import {
   initialExpenses,
   PAYMENT_METHOD_LABELS,
   COLLECTION_LOCATION_LABELS,
-  convertToThb,
-  DEFAULT_EXCHANGE_RATES,
 } from '../../data/adminInitialData';
-import { getLiveExchangeRates, type SupportedCurrency } from '../../lib/exchangeRates';
 import { calculateFinancialBreakdown } from '../../lib/profitability';
+import OutstandingPanel from './finance/OutstandingPanel';
+import DriverHandoverPanel from './finance/DriverHandoverPanel';
+import VaultPanel from './finance/VaultPanel';
+import CollectPaymentModal from './finance/CollectPaymentModal';
 
-export type VaultAccountId = 'kbank' | 'office_cash' | 'tr_bank' | 'wise';
-
-export interface VirmanRecord {
-  id: string;
-  sourceAccount: VaultAccountId;
-  targetAccount: VaultAccountId;
-  amountThb: number;
-  date: string;
-  transferredBy: string;
-  note: string;
-}
-
-export const VAULT_ACCOUNTS: Record<
-  VaultAccountId,
-  { name: string; icon: string; detail: string; currency: string }
-> = {
-  kbank: {
-    name: 'K-Bank (Kasikorn Thai QR)',
-    icon: '🏦',
-    detail: 'PromptPay / K-Bank Phuket No: 142-8-39281-0',
-    currency: 'THB',
-  },
-  office_cash: {
-    name: 'Merkez Ofis Nakit Kasası',
-    icon: '💵',
-    detail: 'Patong Ana Ofis Fiziksel Çelik Kasa',
-    currency: 'THB',
-  },
-  tr_bank: {
-    name: 'TR Banka Hesabı (Havale/EFT)',
-    icon: '🇹🇷',
-    detail: 'Garanti BBVA TR & USD Hesabı',
-    currency: 'TRY / USD',
-  },
-  wise: {
-    name: 'Wise & Uluslararası Hesap',
-    icon: '🌐',
-    detail: 'Wise Multi-Currency & Stripe POS',
-    currency: 'Multi',
-  },
-};
+import { VAULT_ACCOUNTS, type VaultAccountId, type VirmanRecord } from './finance/vaultTypes';
+// Geriye dönük uyumluluk: bu tipleri FinanceTab'dan import eden olabilir.
+export { VAULT_ACCOUNTS, type VaultAccountId, type VirmanRecord };
 
 interface FinanceTabProps {
   bookings: Booking[];
@@ -102,48 +56,6 @@ export default function FinanceTab({
   const [subTab, setSubTab] = useState<'ledger' | 'outstanding' | 'accounts' | 'driver_handover' | 'expenses'>('ledger');
   const [settledDrivers, setSettledDrivers] = useState<string[]>([]);
 
-  // Döviz Çevirici State'i & Canlı Kurlar
-  const [showCurrencyCalc, setShowCurrencyCalc] = useState(false);
-  const [foreignAmount, setForeignAmount] = useState<number>(0);
-  const [foreignCurrency, setForeignCurrency] = useState<SupportedCurrency>('TRY');
-  const [exchangeRates, setExchangeRates] = useState<Record<SupportedCurrency, number>>(DEFAULT_EXCHANGE_RATES);
-  const [ratesSource, setRatesSource] = useState<'live' | 'fallback'>('fallback');
-  const [ratesLastUpdated, setRatesLastUpdated] = useState<string>('');
-  const [isRefreshingRates, setIsRefreshingRates] = useState<boolean>(false);
-
-  useEffect(() => {
-    let isMounted = true;
-    getLiveExchangeRates().then((data) => {
-      if (isMounted) {
-        setExchangeRates(data.rates);
-        setRatesSource(data.source);
-        setRatesLastUpdated(data.lastUpdated);
-      }
-    });
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const handleRefreshRates = async () => {
-    setIsRefreshingRates(true);
-    try {
-      const res = await fetch('/api/exchange-rates?refresh=true');
-      if (res.ok) {
-        const json = await res.json();
-        if (json.ok && json.rates) {
-          setExchangeRates(json.rates);
-          setRatesSource(json.source);
-          setRatesLastUpdated(json.lastUpdated);
-          showToast('💱 Canlı banka kurları güncellendi!');
-        }
-      }
-    } catch {
-      showToast('⚠️ Kur servisine ulaşılamadı, sabit kurlar kullanılıyor.');
-    } finally {
-      setIsRefreshingRates(false);
-    }
-  };
 
   // Filtreler
   const [searchQuery, setSearchQuery] = useState('');
@@ -938,505 +850,40 @@ export default function FinanceTab({
       {/* 4. GÖRÜNÜM B: OTELDE / SAHADA TAHSİL EDİLECEK BAKİYELER */}
       {/* ==================================================== */}
       {subTab === 'outstanding' && (
-        <div className="space-y-4">
-          <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-900/40 flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-bold shrink-0">
-                <AlertCircle className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">
-                  Açık Kalan Otel Tahsilatları ({outstandingBookings.length} Rezervasyon)
-                </h4>
-                <p className="text-xs text-amber-700 dark:text-amber-400">
-                  Şoför veya rehber tur sabahı otel lobisinde veya iskelede bu bakiyeleri nakit olarak tahsil etmelidir.
-                </p>
-              </div>
-            </div>
-            <div className="text-right">
-              <span className="text-xs font-bold text-amber-800 dark:text-amber-300 block">
-                Toplam Tahsil Edilecek
-              </span>
-              <span className="text-lg font-black text-amber-900 dark:text-amber-100 font-serif">
-                {totalOutstanding.toLocaleString()} THB
-              </span>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs sm:text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100 dark:border-slate-800 bg-slate-50/75 dark:bg-slate-900/40 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
-                    <th className="py-3.5 px-4">Tur Tarihi</th>
-                    <th className="py-3.5 px-4">Misafir & İletişim</th>
-                    <th className="py-3.5 px-4">Otel & Oda</th>
-                    <th className="py-3.5 px-4">Tur Bilgisi</th>
-                    <th className="py-3.5 px-4">Ciro / Kapora</th>
-                    <th className="py-3.5 px-4">Kalan Bakiye</th>
-                    <th className="py-3.5 px-4 text-right">Hızlı İşlem</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {outstandingBookings.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-400">
-                        🎉 Tebrikler! Bekleyen açık bakiye bulunmuyor, tüm rezervasyonlar tahsil edildi.
-                      </td>
-                    </tr>
-                  ) : (
-                    outstandingBookings.map((b) => (
-                      <tr
-                        key={b.id}
-                        className="hover:bg-slate-50/60 dark:hover:bg-slate-900/30 transition-colors"
-                      >
-                        <td className="py-3.5 px-4">
-                          <span className="font-bold text-slate-900 dark:text-white block">
-                            📅 {b.tourDate}
-                          </span>
-                          <span className="text-[11px] text-slate-500 block">
-                            ⏰ {b.pickupTime || '07:30'}
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-bold text-slate-900 dark:text-white">
-                              {b.customerName}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setVoucherBooking(b)}
-                              title="Dijital Biniş Kartı / Voucher Önizle"
-                              className="p-1 rounded-md text-amber-500 hover:bg-amber-100 dark:hover:bg-amber-950/60 transition-colors cursor-pointer"
-                            >
-                              <Ticket className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                          <a
-                            href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                              `Merhaba Sayın ${b.customerName}, Phuket Tatili turunuz için kalan bakiyeniz: ${b.remainingAmountThb.toLocaleString()} THB. Sabah otel lobisinde şoförümüze nakit olarak ödeyebilirsiniz.`
-                            )}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 mt-0.5"
-                          >
-                            <Phone className="w-3 h-3" /> {b.phone}
-                          </a>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <span className="font-semibold text-slate-800 dark:text-slate-200 block">
-                            📍 {b.hotel}
-                          </span>
-                          {b.roomNumber && (
-                            <span className="text-xs text-slate-500 block">
-                              Oda: {b.roomNumber}
-                            </span>
-                          )}
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <span className="font-medium text-slate-900 dark:text-white block truncate max-w-xs">
-                            {b.tourTitle}
-                          </span>
-                          <span className="text-xs text-slate-400 block">
-                            👥 {b.adultCount} Yetişkin {b.childCount > 0 ? `+ ${b.childCount} Ç.` : ''}
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                            Toplam: {b.totalPriceThb.toLocaleString()} THB
-                          </span>
-                          <span className="text-xs text-emerald-600 block">
-                            Alınan: {(b.paidAmountThb || 0).toLocaleString()} THB
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4">
-                          <span className="text-sm font-black text-amber-600 dark:text-amber-400 block font-mono">
-                            {b.remainingAmountThb.toLocaleString()} THB
-                          </span>
-                          <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded">
-                            Otel Lobisinde Nakit
-                          </span>
-                        </td>
-
-                        <td className="py-3.5 px-4 text-right">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenCollect(b)}
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all inline-flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Tahsilat Al</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <OutstandingPanel
+          outstandingBookings={outstandingBookings}
+          totalOutstanding={totalOutstanding}
+          onOpenCollect={handleOpenCollect}
+          setVoucherBooking={setVoucherBooking}
+        />
       )}
 
       {/* ==================================================== */}
       {/* 5. GÖRÜNÜM C: ÇOKLU KASA & BANKA HESAPLARI YÖNETİMİ (VAULT ENGINE) */}
       {/* ==================================================== */}
       {subTab === 'accounts' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Vault Top Control & Overview Bar */}
-          <div className="bg-white dark:bg-surface-2 p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-2xl bg-brand-primary/10 text-brand-primary dark:text-brand-accent flex items-center justify-center font-bold text-xl">
-                <Landmark className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Kurumsal Kasa & Banka Hesapları (Multi-Account Vault)</span>
-                </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Nakit ofis kasası, K-Bank PromptPay, TR bankası ve Wise döviz bakiyeleri canlı virman yönetimi.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="bg-slate-50 dark:bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-200 dark:border-slate-800 text-right">
-                <span className="text-[10px] uppercase font-bold text-slate-400 block">Konsolide Likit Varlık</span>
-                <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-serif">
-                  {vaultBalances.totalLiquid.toLocaleString()} THB
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsVirmanModalOpen(true)}
-                className="px-4 py-2.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold shadow-md shadow-brand-primary/20 flex items-center gap-2 transition-all cursor-pointer"
-              >
-                <ArrowRightLeft className="w-4 h-4" />
-                <span>Hesaplar Arası Virman Yap</span>
-              </button>
-            </div>
-          </div>
-
-          {/* 4 Ana Kurumsal Kasa Kartı */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {(Object.keys(VAULT_ACCOUNTS) as VaultAccountId[]).map((vaultKey) => {
-              const info = VAULT_ACCOUNTS[vaultKey];
-              const balance = vaultBalances.balances[vaultKey] || 0;
-              const share = vaultBalances.totalLiquid > 0 ? Math.round((balance / vaultBalances.totalLiquid) * 100) : 0;
-
-              return (
-                <div
-                  key={vaultKey}
-                  className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col justify-between hover:border-brand-primary/40 transition-all"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-2xl">{info.icon}</span>
-                        <div>
-                          <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
-                            {info.name}
-                          </h4>
-                          <span className="text-[10px] text-slate-400 block truncate max-w-[170px]" title={info.detail}>
-                            {info.detail}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
-                        {info.currency}
-                      </span>
-                    </div>
-
-                    <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
-                      <span className="text-[10px] uppercase font-bold text-slate-400 block">Kasa Bakiyesi</span>
-                      <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-serif mt-0.5">
-                        {balance.toLocaleString()}{' '}
-                        <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
-                      </div>
-
-                      {/* Pay bar */}
-                      <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden mt-3">
-                        <div
-                          className="bg-brand-primary dark:bg-brand-accent h-full rounded-full transition-all"
-                          style={{ width: `${Math.min(100, Math.max(0, share))}%` }}
-                        />
-                      </div>
-                      <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
-                        <span>Likit Payı: %{share}</span>
-                        <span>Aktif Kasa</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-4 pt-2 flex items-center justify-end">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setVirmanSource(vaultKey);
-                        setIsVirmanModalOpen(true);
-                      }}
-                      className="text-xs font-bold text-brand-primary dark:text-brand-accent hover:underline flex items-center gap-1"
-                    >
-                      <span>Buradan Fon Aktar</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Virman Transfer Geçmişi Tablosu */}
-          <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-              <div>
-                <h4 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
-                  <ArrowRightLeft className="w-4 h-4 text-brand-primary dark:text-brand-accent" />
-                  <span>Son Hesaplar Arası Virman Transferleri</span>
-                </h4>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Kasalar arasında aktarılan nakit ve banka fon kayıtları.
-                </p>
-              </div>
-              <span className="text-xs font-mono font-bold bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-slate-600 dark:text-slate-300">
-                {virmans.length} Virman Kaydı
-              </span>
-            </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-900/60 text-slate-500 font-bold uppercase text-[10px] border-b border-slate-200/80 dark:border-slate-800">
-                  <tr>
-                    <th className="py-3 px-4">Tarih & Kod</th>
-                    <th className="py-3 px-4">Kaynak Kasa</th>
-                    <th className="py-3 px-4">Hedef Kasa</th>
-                    <th className="py-3 px-4">Tutar (THB)</th>
-                    <th className="py-3 px-4">İşlemi Yapan</th>
-                    <th className="py-3 px-4">Açıklama</th>
-                    <th className="py-3 px-4 text-right">İşlem</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {virmans.length === 0 ? (
-                    <tr>
-                      <td colSpan={7} className="py-8 text-center text-slate-400">
-                        Henüz kaydedilmiş virman transferi bulunmuyor.
-                      </td>
-                    </tr>
-                  ) : (
-                    virmans.map((v) => {
-                      const src = VAULT_ACCOUNTS[v.sourceAccount];
-                      const dst = VAULT_ACCOUNTS[v.targetAccount];
-                      return (
-                        <tr key={v.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                          <td className="py-3 px-4">
-                            <span className="font-mono font-bold text-slate-900 dark:text-white block">{v.id}</span>
-                            <span className="text-[10px] text-slate-400">{v.date}</span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="font-semibold text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                              <span>{src.icon}</span>
-                              <span>{src.name}</span>
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                              <span>{dst.icon}</span>
-                              <span>{dst.name}</span>
-                            </span>
-                          </td>
-                          <td className="py-3 px-4">
-                            <span className="font-mono font-black text-slate-900 dark:text-white">
-                              {v.amountThb.toLocaleString()} THB
-                            </span>
-                          </td>
-                          <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
-                            {v.transferredBy}
-                          </td>
-                          <td className="py-3 px-4 text-slate-500 max-w-xs truncate" title={v.note}>
-                            {v.note}
-                          </td>
-                          <td className="py-3 px-4 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteVirman(v.id)}
-                              className="text-slate-400 hover:text-rose-500 p-1 text-xs transition-colors"
-                              title="Virman Kaydını Sil"
-                            >
-                              Sil
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Alt Bölüm: Ödeme Yöntemleri Bazında Detaylı Kırılım */}
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">
-              Ödeme Yöntemleri Bazında Ham Tahsilat Dağılımı
-            </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {Object.entries(PAYMENT_METHOD_LABELS).map(([key, info]) => {
-                const amount = methodTotals[key as PaymentMethod] || 0;
-                const txCount = payments.filter((p) => p.method === key).length;
-
-                return (
-                  <div
-                    key={key}
-                    className="bg-white dark:bg-surface-2 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-xl">{info.icon}</span>
-                      <div>
-                        <h5 className="text-xs font-bold text-slate-900 dark:text-white">
-                          {info.label}
-                        </h5>
-                        <span className="text-[10px] text-slate-400">
-                          {txCount} Tahsilat Fişi
-                        </span>
-                      </div>
-                    </div>
-                    <span className="text-sm font-bold font-mono text-slate-900 dark:text-white">
-                      {amount.toLocaleString()} THB
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+        <VaultPanel
+          vaultBalances={vaultBalances}
+          virmans={virmans}
+          methodTotals={methodTotals}
+          payments={payments}
+          setIsVirmanModalOpen={setIsVirmanModalOpen}
+          setVirmanSource={setVirmanSource}
+          onDeleteVirman={handleDeleteVirman}
+        />
       )}
 
       {/* ==================================================== */}
       {/* 5.5 ŞOFÖR KASA KAPATMA & Z-RAPORU (DRIVER HANDOVER) */}
       {/* ==================================================== */}
       {subTab === 'driver_handover' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          <div className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Car className="w-5 h-5 text-purple-600 dark:text-purple-400" />
-                <span>Şoför & Saha Kasa Kapatma (Z-Raporu)</span>
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Şoför ve rehberlerin otel lobilerinden elden topladığı nakitleri ofis kasasına teslim alın ve devir kaydını kapatın.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-500 font-medium">Toplam Saha Tahsilatçısı:</span>
-              <span className="px-2.5 py-1 rounded-xl bg-purple-500/10 text-purple-700 dark:text-purple-300 text-xs font-bold border border-purple-500/20">
-                {driverCashGroups.length} Kişi
-              </span>
-            </div>
-          </div>
-
-          {driverCashGroups.length === 0 ? (
-            <div className="bg-white dark:bg-surface-2 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-12 text-center text-slate-400">
-              <Car className="w-10 h-10 mx-auto mb-2 opacity-30" />
-              <p className="text-sm font-semibold">Henüz elden nakit tahsilat kaydedilmiş şoför kaydı bulunmuyor.</p>
-              <p className="text-xs text-slate-500 mt-1">
-                Lobiden tahsilat yapıldığında veya rezervasyona tahsilat makbuzu girildiğinde burada listelenir.
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {driverCashGroups.map((g) => {
-                const isSettled = settledDrivers.includes(g.driverName);
-                return (
-                  <div
-                    key={g.driverName}
-                    className={`p-5 rounded-3xl border transition-all ${
-                      isSettled
-                        ? 'bg-slate-50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-75'
-                        : 'bg-white dark:bg-surface-2 border-purple-500/30 shadow-md ring-1 ring-purple-500/10'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2 mb-3">
-                      <div>
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
-                          Saha Tahsilatçısı
-                        </span>
-                        <h4 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
-                          {g.driverName}
-                        </h4>
-                      </div>
-
-                      {isSettled ? (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
-                          <CheckCircle2 className="w-3 h-3" />
-                          <span>Kasaya Teslim Alındı</span>
-                        </span>
-                      ) : (
-                        <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          <span>Eldeki Nakit</span>
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 space-y-1.5 mb-4">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="text-slate-500">Toplanan Nakit Tutar:</span>
-                        <span className="font-extrabold text-base font-mono text-emerald-600 dark:text-emerald-400">
-                          {g.totalAmountThb.toLocaleString()} THB
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between text-xs text-slate-500">
-                        <span>Makbuz Sayısı:</span>
-                        <span className="font-bold text-slate-700 dark:text-slate-300">
-                          {g.payments.length} Tahsilat
-                        </span>
-                      </div>
-                    </div>
-
-                    {!isSettled ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const receiptNo = `DEVIR-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, '0')}-${String(Math.floor(100 + Math.random() * 900))}`;
-                          onAddPayment({
-                            bookingId: 'OFIS-DEVIR',
-                            customerName: `Kasa Teslimatı (${g.driverName})`,
-                            tourTitle: 'Gün Sonu Z-Raporu & Teslimat',
-                            amountThb: g.totalAmountThb,
-                            method: 'cash_thb',
-                            collectedBy: 'Ofis Ana Kasası',
-                            collectionLocation: 'office',
-                            note: `${g.driverName} tarafından teslim edilen gün sonu nakit toplamı`,
-                            receiptNo,
-                          });
-                          setSettledDrivers((prev) => [...prev, g.driverName]);
-                          showToast(`✅ ${g.driverName} gün sonu nakit teslimatı (${g.totalAmountThb.toLocaleString()} THB) ana kasaya aktarıldı ve kapatıldı!`);
-                        }}
-                        className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
-                      >
-                        <Wallet className="w-3.5 h-3.5" />
-                        <span>💰 Kasaya Teslim Al & Kapat ({g.totalAmountThb.toLocaleString()} THB)</span>
-                      </button>
-                    ) : (
-                      <div className="text-center py-2 text-xs text-slate-400 flex items-center justify-center gap-1">
-                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                        <span>Bu tutar ana kasaya devredilmiştir.</span>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        <DriverHandoverPanel
+          driverCashGroups={driverCashGroups}
+          settledDrivers={settledDrivers}
+          setSettledDrivers={setSettledDrivers}
+          onAddPayment={onAddPayment}
+          showToast={showToast}
+        />
       )}
 
       {/* ==================================================== */}
@@ -1624,271 +1071,24 @@ export default function FinanceTab({
       {/* 6. HIZLI TAHSİLAT AL MODALI */}
       {/* ==================================================== */}
       {isCollectModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white dark:bg-surface-2 w-full max-w-lg rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-7 space-y-5 animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-bold">
-                  <Receipt className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">
-                    Yeni Tahsilat Makbuzu Ekle
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Misafirden veya şoförden alınan ödemeyi kasaya işle
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsCollectModalOpen(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmitCollect} className="space-y-4">
-              {/* Rezervasyon Seçimi */}
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  Rezervasyon & Misafir *
-                </label>
-                <select
-                  value={selectedBookingId}
-                  onChange={(e) => {
-                    const id = e.target.value;
-                    setSelectedBookingId(id);
-                    const b = bookings.find((item) => item.id === id);
-                    if (b) {
-                      setCollectAmount(b.remainingAmountThb || 0);
-                      setCollectNote(`${b.hotel} otelinde tahsilat`);
-                    }
-                  }}
-                  required
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold text-slate-900 dark:text-white focus:outline-none"
-                >
-                  <option value="">— Rezervasyon Seçin —</option>
-                  {bookings.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.customerName} · {b.tourTitle} (Kalan: {(b.remainingAmountThb || 0).toLocaleString()} THB)
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* 💱 Çoklu Para Birimi (TRY / USD / EUR → THB) Çevirici */}
-              <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                    <Coins className="w-4 h-4 text-amber-500" />
-                    <span>Döviz / Kur Çevirici (TRY / USD / EUR → THB)</span>
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setShowCurrencyCalc(!showCurrencyCalc)}
-                    className="text-[11px] font-bold text-brand-primary dark:text-brand-accent hover:underline cursor-pointer"
-                  >
-                    {showCurrencyCalc ? '✕ Gizle' : '+ Çeviriciyi Aç'}
-                  </button>
-                </div>
-
-                {showCurrencyCalc && (
-                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-800/60 space-y-2">
-                    <div className="flex items-center justify-between pb-1">
-                      <div className="flex items-center gap-1.5">
-                        <span
-                          className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-bold ${
-                            ratesSource === 'live'
-                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
-                          }`}
-                        >
-                          <span className={`w-1.5 h-1.5 rounded-full ${ratesSource === 'live' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-                          {ratesSource === 'live' ? 'Canlı Banka Kurları (BOT/FX)' : 'Sabit Kurlar'}
-                        </span>
-                        {ratesLastUpdated && (
-                          <span className="text-[10px] text-slate-400">
-                            {new Date(ratesLastUpdated).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                        )}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={handleRefreshRates}
-                        disabled={isRefreshingRates}
-                        className="inline-flex items-center gap-1 text-[10px] font-bold text-sky-600 dark:text-sky-400 hover:underline cursor-pointer disabled:opacity-50"
-                        title="Kurları Şimdi Güncelle"
-                      >
-                        <RefreshCw className={`w-3 h-3 ${isRefreshingRates ? 'animate-spin' : ''}`} />
-                        <span>{isRefreshingRates ? 'Güncelleniyor...' : 'Kurları Yenile'}</span>
-                      </button>
-                    </div>
-
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
-                          Alınan Döviz Tutarı
-                        </label>
-                        <input
-                          type="number"
-                          min="1"
-                          placeholder="Örn: 5000"
-                          value={foreignAmount || ''}
-                          onChange={(e) => setForeignAmount(Number(e.target.value) || 0)}
-                          className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">
-                          Para Birimi
-                        </label>
-                        <select
-                          value={foreignCurrency}
-                          onChange={(e) => setForeignCurrency(e.target.value as any)}
-                          className="w-full px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
-                        >
-                          <option value="TRY">🇹🇷 Türk Lirası (1 TRY ≈ {exchangeRates.TRY} THB)</option>
-                          <option value="USD">🇺🇸 ABD Doları (1 USD ≈ {exchangeRates.USD} THB)</option>
-                          <option value="EUR">🇪🇺 Euro (1 EUR ≈ {exchangeRates.EUR} THB)</option>
-                          <option value="GBP">🇬🇧 İngiliz Sterlini (1 GBP ≈ {exchangeRates.GBP} THB)</option>
-                        </select>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between pt-1">
-                      <div className="text-xs text-slate-600 dark:text-slate-400">
-                        Karşılığı:{' '}
-                        <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono text-sm">
-                          {convertToThb(foreignAmount, foreignCurrency, exchangeRates).toLocaleString()} THB
-                        </span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const converted = convertToThb(foreignAmount, foreignCurrency, exchangeRates);
-                          setCollectAmount(converted);
-                          setCollectNote(
-                            `${foreignAmount.toLocaleString()} ${foreignCurrency} nakit/havale alındı (Canlı Kur: ${exchangeRates[foreignCurrency]})`
-                          );
-                          showToast(`💱 ${converted.toLocaleString()} THB olarak tahsilat kutusuna aktarıldı!`);
-                        }}
-                        disabled={foreignAmount <= 0}
-                        className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all disabled:opacity-40 cursor-pointer flex items-center gap-1 shadow-sm"
-                      >
-                        <ArrowRight className="w-3.5 h-3.5" />
-                        <span>Tutara Aktar</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Tutar & Kasa Yöntemi */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Tahsil Edilen Tutar (THB) *
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={collectAmount || ''}
-                    onChange={(e) => setCollectAmount(Number(e.target.value) || 0)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-black text-emerald-600 focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Ödeme Yöntemi / Kasa *
-                  </label>
-                  <select
-                    value={collectMethod}
-                    onChange={(e) => setCollectMethod(e.target.value as PaymentMethod)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-bold text-slate-900 dark:text-white focus:outline-none"
-                  >
-                    <option value="cash_thb">💵 Nakit THB (El Kasası)</option>
-                    <option value="promptpay">📱 PromptPay (K-Bank QR)</option>
-                    <option value="tr_bank_transfer">🇹🇷 TR Banka Havale / EFT</option>
-                    <option value="kbank_transfer">🏦 Tayland Banka Havalesi</option>
-                    <option value="credit_card">💳 Kredi Kartı / POS</option>
-                    <option value="cash_usd">💵 Nakit USD</option>
-                    <option value="cash_eur">💶 Nakit EUR</option>
-                    <option value="wise">🌐 Wise / Uluslararası</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Tahsil Eden & Nokta */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Tahsil Eden Kişi *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={collectedBy}
-                    onChange={(e) => setCollectedBy(e.target.value)}
-                    placeholder="Örn: Somchai (Şoför) veya Murat (Ofis)"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                    Tahsilat Noktası
-                  </label>
-                  <select
-                    value={collectLocation}
-                    onChange={(e) => setCollectLocation(e.target.value as CollectionLocation)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
-                  >
-                    <option value="hotel_lobby">🏨 Otel Lobisi (Alış Anında)</option>
-                    <option value="pier_marina">⚓ İskele / Marina Girişi</option>
-                    <option value="office">🏢 Acenta Ofisi</option>
-                    <option value="bank_online">💻 Önceden Havale / Online</option>
-                    <option value="other">📍 Diğer Nokta</option>
-                  </select>
-                </div>
-              </div>
-
-              {/* Açıklama / Not */}
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  Makbuz Notu / Açıklama
-                </label>
-                <input
-                  type="text"
-                  value={collectNote}
-                  onChange={(e) => setCollectNote(e.target.value)}
-                  placeholder="Örn: Patong otel lobisinde şoföre elden teslim edildi"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none"
-                />
-              </div>
-
-              {/* Butonlar */}
-              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
-                <button
-                  type="button"
-                  onClick={() => setIsCollectModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  Vazgeç
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-500/20"
-                >
-                  ✓ Kasaya İşle & Makbuz Kes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <CollectPaymentModal
+          bookings={bookings}
+          selectedBookingId={selectedBookingId}
+          setSelectedBookingId={setSelectedBookingId}
+          collectAmount={collectAmount}
+          setCollectAmount={setCollectAmount}
+          collectMethod={collectMethod}
+          setCollectMethod={setCollectMethod}
+          collectLocation={collectLocation}
+          setCollectLocation={setCollectLocation}
+          collectedBy={collectedBy}
+          setCollectedBy={setCollectedBy}
+          collectNote={collectNote}
+          setCollectNote={setCollectNote}
+          onSubmit={handleSubmitCollect}
+          onClose={() => setIsCollectModalOpen(false)}
+          showToast={showToast}
+        />
       )}
 
       {/* ==================================================== */}
