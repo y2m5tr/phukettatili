@@ -581,6 +581,28 @@ export default function TourModal({
                         {programImageFor === idx && (
                           <div className="mt-2.5 pt-2.5 border-t border-slate-200 dark:border-slate-700/60">
                             <div className="flex items-center gap-2">
+                              <label className="cursor-pointer px-3.5 py-2 rounded-lg bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold flex items-center gap-1.5 whitespace-nowrap shrink-0">
+                                <Upload className="w-3.5 h-3.5" />
+                                <span>PC'den Yükle</span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file && handleFileUpload) {
+                                      handleFileUpload(file, (url) => {
+                                        const next = [...(tourFormData.programImages || [])];
+                                        while (next.length <= idx) next.push('');
+                                        next[idx] = url;
+                                        setTourFormData({ ...tourFormData, programImages: next });
+                                        setProgramImageFor(null);
+                                      });
+                                    }
+                                    e.target.value = '';
+                                  }}
+                                />
+                              </label>
                               <select
                                 value=""
                                 onChange={(e) => {
