@@ -1,4 +1,5 @@
 import { generateHolidayPackage, type PackageDuration, type TravelStyle } from './holidayPlanner';
+import { fmtMoney } from './moneyFormat';
 
 export type TransportType = 'speedboat' | 'catamaran' | 'longtail' | 'vip_minivan' | 'ferry' | 'other';
 export type MealPlanType = 'buffet_lunch' | 'set_menu' | 'picnic_island' | 'dinner_show' | 'none';
@@ -853,13 +854,13 @@ ${proposal.welcomeMessage || 'Talep ettiğiniz tur için hazırladığımız öz
 ${timelineStr}
 ───────────────────────────────
 💰 *FİYATLANDIRMA & ÖDEME:*
-• Tur Liste Fiyatı: ${financials.subtotalThb.toLocaleString('en-US')} THB
-${proposal.discountPercent > 0 ? `• Özel İndirim (%${proposal.discountPercent}): -${financials.discountThb.toLocaleString('en-US')} THB\n` : ''}💎 *NET TUR TUTARI:* *${financials.totalThb.toLocaleString('en-US')} THB*
-   (~${financials.totalTry.toLocaleString('en-US')} TL / ~${financials.totalUsd.toLocaleString('en-US')} USD / ~${financials.totalEur.toLocaleString('en-US')} EUR)
-   (Kişi başı: ${financials.perPersonThb.toLocaleString('en-US')} THB)
+• Tur Liste Fiyatı: ${fmtMoney(financials.subtotalThb)} THB
+${proposal.discountPercent > 0 ? `• Özel İndirim (%${proposal.discountPercent}): -${fmtMoney(financials.discountThb)} THB\n` : ''}💎 *NET TUR TUTARI:* *${fmtMoney(financials.totalThb)} THB*
+   (~${fmtMoney(financials.totalTry)} TL / ~${fmtMoney(financials.totalUsd)} USD / ~${fmtMoney(financials.totalEur)} EUR)
+   (Kişi başı: ${fmtMoney(financials.perPersonThb)} THB)
 
-💵 *Rezervasyon Kapora Bedeli (%${proposal.depositPercent}):* *${financials.depositThb.toLocaleString('en-US')} THB*
-💵 *Tur Günü Kalan Bakiye:* *${financials.remainingThb.toLocaleString('en-US')} THB* (Nakit Baht)
+💵 *Rezervasyon Kapora Bedeli (%${proposal.depositPercent}):* *${fmtMoney(financials.depositThb)} THB*
+💵 *Tur Günü Kalan Bakiye:* *${fmtMoney(financials.remainingThb)} THB* (Nakit Baht)
 ${giftsSummary}
 🛡️ *Dahil Olan Güvenceler:*
 ${inclusionsSummary}
@@ -890,7 +891,7 @@ Keyifli bir tur dileriz! 🇹🇭✨`;
         `   • Ulaşım: ${trans} | Yemek: ${meal}\n` +
         `   • Durum: ${np}\n` +
         `   • Öne Çıkan: _${d.highlight}_\n` +
-        `   • Tutar: *${d.priceThb.toLocaleString('en-US')} THB*`
+        `   • Tutar: *${fmtMoney(d.priceThb)} THB*`
       );
     })
     .join('\n\n');
@@ -930,13 +931,13 @@ ${daysSummary}
 
 ───────────────────────────────
 💰 *FİYATLANDIRMA & ÖDEME PLANI:*
-• Turlar Liste Fiyatı: ${financials.subtotalThb.toLocaleString('en-US')} THB
-${proposal.discountPercent > 0 ? `• Özel Paket İndirimi (%${proposal.discountPercent}): -${financials.discountThb.toLocaleString('en-US')} THB\n` : ''}💎 *NET PAKET FİYATI:* *${financials.totalThb.toLocaleString('en-US')} THB*
-   (~${financials.totalTry.toLocaleString('en-US')} TL / ~${financials.totalUsd.toLocaleString('en-US')} USD / ~${financials.totalEur.toLocaleString('en-US')} EUR)
-   (Kişi başı yaklaşık: ${financials.perPersonThb.toLocaleString('en-US')} THB)
+• Turlar Liste Fiyatı: ${fmtMoney(financials.subtotalThb)} THB
+${proposal.discountPercent > 0 ? `• Özel Paket İndirimi (%${proposal.discountPercent}): -${fmtMoney(financials.discountThb)} THB\n` : ''}💎 *NET PAKET FİYATI:* *${fmtMoney(financials.totalThb)} THB*
+   (~${fmtMoney(financials.totalTry)} TL / ~${fmtMoney(financials.totalUsd)} USD / ~${fmtMoney(financials.totalEur)} EUR)
+   (Kişi başı yaklaşık: ${fmtMoney(financials.perPersonThb)} THB)
 
-💵 *Rezervasyon Kapora Bedeli (%${proposal.depositPercent}):* *${financials.depositThb.toLocaleString('en-US')} THB*
-💵 *Tur Günü Teslim Edilecek Kalan:* *${financials.remainingThb.toLocaleString('en-US')} THB* (Nakit Baht)
+💵 *Rezervasyon Kapora Bedeli (%${proposal.depositPercent}):* *${fmtMoney(financials.depositThb)} THB*
+💵 *Tur Günü Teslim Edilecek Kalan:* *${fmtMoney(financials.remainingThb)} THB* (Nakit Baht)
 ${giftsSummary}
 🛡️ *Dahil Olan Güvenceler:*
 ${inclusionsSummary}

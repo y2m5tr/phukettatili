@@ -1,6 +1,7 @@
 // publicRefs: bkz. lib/publicRefs.ts başlığı — tohum verisini client
 // bundle'a taşımamak için paylaşılan sabitler buradan alınır.
 import { DEFAULT_EXCHANGE_RATES } from './publicRefs';
+import { fmtMoney } from './moneyFormat';
 
 export type SupportedCurrency = 'TRY' | 'USD' | 'EUR' | 'GBP';
 
@@ -217,17 +218,17 @@ export function generateCashPaymentSlipWhatsApp(params: {
   const location = params.hotelOrLocation ? `📍 Konum: ${params.hotelOrLocation}\n` : '';
   const isForeign = params.paidCurrency !== 'THB';
 
-  let paymentDetails = `💵 Alınan Ödeme: ${params.paidAmount.toLocaleString('en-US')} ${params.paidCurrency}\n`;
+  let paymentDetails = `💵 Alınan Ödeme: ${fmtMoney(params.paidAmount)} ${params.paidCurrency}\n`;
   if (isForeign) {
     paymentDetails += `📈 Uygulanan Kur: 1 ${params.paidCurrency} = ${params.effectiveRate} THB\n`;
-    paymentDetails += `🇹🇭 Tahsil Edilen Karşılık: ${Math.round(params.paidAmount * params.effectiveRate).toLocaleString('en-US')} THB\n`;
+    paymentDetails += `🇹🇭 Tahsil Edilen Karşılık: ${fmtMoney(Math.round(params.paidAmount * params.effectiveRate))} THB\n`;
   }
 
   let balanceLine = '';
   if (params.changeDueThb > 0) {
-    balanceLine = `🪙 Verilen Para Üstü: ${params.changeDueThb.toLocaleString('en-US')} THB\n`;
+    balanceLine = `🪙 Verilen Para Üstü: ${fmtMoney(params.changeDueThb)} THB\n`;
   } else if (params.remainingDebtThb > 0) {
-    balanceLine = `⚠️ Kalan Bakiye: ${params.remainingDebtThb.toLocaleString('en-US')} THB\n`;
+    balanceLine = `⚠️ Kalan Bakiye: ${fmtMoney(params.remainingDebtThb)} THB\n`;
   } else {
     balanceLine = `✅ Tam Ödeme Alındı (Para Üstü Yok)\n`;
   }
@@ -236,7 +237,7 @@ export function generateCashPaymentSlipWhatsApp(params: {
 ══════════════════════════════════════
 👤 Misafir: ${guest}
 🚗 Hizmet: ${params.serviceTitle}
-${location}💰 Hizmet Bedeli: ${params.dueThb.toLocaleString('en-US')} THB
+${location}💰 Hizmet Bedeli: ${fmtMoney(params.dueThb)} THB
 ${paymentDetails}══════════════════════════════════════
 ${balanceLine}══════════════════════════════════════
 👨‍✈️ Tahsil Eden: ${collector}

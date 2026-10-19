@@ -12,6 +12,7 @@
 
 import type { Booking } from '../data/adminInitialData';
 import { DEFAULT_GOOGLE_REVIEW_URL } from './reviewBooster';
+import { fmtMoney } from './moneyFormat';
 
 export type WhatsAppTriggerType =
   | 't24_reminder'
@@ -100,7 +101,7 @@ Yarın katılacağınız *${booking.tourTitle}* turumuz için transfer detaylar�
 👥 *Kişi Sayısı:* ${paxStr}
 ${
   booking.remainingAmountThb > 0
-    ? `💵 *Tur Sabahı Ödenecek Bakiye:* ${booking.remainingAmountThb.toLocaleString('en-US')} THB (Nakit Baht)`
+    ? `💵 *Tur Sabahı Ödenecek Bakiye:* ${fmtMoney(booking.remainingAmountThb)} THB (Nakit Baht)`
     : '✓ *Ödeme Durumu:* Tamamı Ödenmiştir'
 }
 🎫 *Canlı Biletiniz & Alınış Takibi:* ${ticketUrl}
@@ -163,7 +164,7 @@ Harika bir tatil dileriz! 🇹🇭✨`;
 Sayın *${booking.customerName}*,
 
 *${booking.tourTitle}* turunuz için kalan ödemeniz:
-💵 *Kalan Tutar:* ${booking.remainingAmountThb.toLocaleString('en-US')} THB
+💵 *Kalan Tutar:* ${fmtMoney(booking.remainingAmountThb)} THB
 
 Lütfen bu tutarı tur sabahı şoförümüze veya limandaki Türkçe rehberimize *nakit Baht (THB)* olarak teslim ediniz.
 
@@ -272,7 +273,7 @@ export function getPendingAutomationTriggers(
         phone: booking.phone,
         cleanPhone: formatWhatsAppPhone(booking.phone),
         type: 'balance_alert',
-        title: `Kalan Bakiye Uyarısı (${booking.remainingAmountThb.toLocaleString('en-US')} THB)`,
+        title: `Kalan Bakiye Uyarısı (${fmtMoney(booking.remainingAmountThb)} THB)`,
         tourTitle: booking.tourTitle,
         tourDate: booking.tourDate,
         pickupTime: booking.pickupTime || '07:30',
@@ -399,7 +400,7 @@ Sayın *${booking.customerName}*, merhaba!
 👥 *Misafir Sayısı:* ${pax}
 ${hasLuggage ? `🧳 *Bagaj Durumu:* Otel Değişimi / Araçta Valiz Alanınız Ayrılmıştır (${booking.luggageCount || 2} Valiz)\n` : ''}${
   booking.remainingAmountThb > 0
-    ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${booking.remainingAmountThb.toLocaleString('en-US')} THB (Nakit Baht)\n`
+    ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${fmtMoney(booking.remainingAmountThb)} THB (Nakit Baht)\n`
     : ''
 }
 💡 *Önemli Hatırlatmalarımız:*

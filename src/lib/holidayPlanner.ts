@@ -1,3 +1,4 @@
+import { fmtMoney } from './moneyFormat';
 export type PackageDuration = 3 | 5 | 7;
 export type TravelStyle = 'honeymoon' | 'family' | 'adventure' | 'vip_luxury';
 
@@ -474,9 +475,9 @@ export function generatePackageWhatsAppMessage(plan: HolidayPackagePlan): string
     ),
     ``,
     `💰 *FİYAT VE İNDİRİM BİLGİSİ:*`,
-    `• Normal Tekil Toplam: ~${plan.totalIndividualPriceThb.toLocaleString('en-US')} THB~`,
-    `• Paket İndirimi (%${plan.discountPercentage}): *-${plan.discountAmountThb.toLocaleString('en-US')} THB*`,
-    `🎉 *Paket Avantajlı Fiyat (Kişi Başı): ${plan.finalPackagePriceThb.toLocaleString('en-US')} THB*`,
+    `• Normal Tekil Toplam: ~${fmtMoney(plan.totalIndividualPriceThb)} THB~`,
+    `• Paket İndirimi (%${plan.discountPercentage}): *-${fmtMoney(plan.discountAmountThb)} THB*`,
+    `🎉 *Paket Avantajlı Fiyat (Kişi Başı): ${fmtMoney(plan.finalPackagePriceThb)} THB*`,
     ``,
     `Bu paketi 2 kişi için rezerve etmek ve müsaitlik teyidi almak istiyorum. Yardımcı olabilir misiniz? 🙏🇹🇭`,
   ];

@@ -1,3 +1,4 @@
+import { fmtMoney } from './moneyFormat';
 /**
  * Phuket Tatili - Saha Rehber Masraf Masası (Tour Guide Field Expense Desk)
  * Rehberlerin gün içinde yaptığı taksi/Grab/Bolt (misafir karşılama & otele gitme),
@@ -173,7 +174,7 @@ export function generateGuideDayEndSettlementWhatsApp(params: {
     expenseLines = settlement.guideExpenses
       .map(
         (e) =>
-          `• ${GUIDE_EXPENSE_CATEGORIES[e.category].icon} ${GUIDE_EXPENSE_CATEGORIES[e.category].shortLabel}: *${e.amountThb.toLocaleString('en-US')} THB* (${e.description})`
+          `• ${GUIDE_EXPENSE_CATEGORIES[e.category].icon} ${GUIDE_EXPENSE_CATEGORIES[e.category].shortLabel}: *${fmtMoney(e.amountThb)} THB* (${e.description})`
       )
       .join('\n');
   } else {
@@ -183,9 +184,9 @@ export function generateGuideDayEndSettlementWhatsApp(params: {
   const finalBalanceSection =
     settlement.reimbursementDueThb > 0
       ? `💰 OFFICE REIMBURSEMENT TO GUIDE / ออฟฟิศจ่ายคืนให้ไกด์:
-👉 *+ ${settlement.reimbursementDueThb.toLocaleString('en-US')} THB* (Rehber cebinden ödeme yaptı)`
+👉 *+ ${fmtMoney(settlement.reimbursementDueThb)} THB* (Rehber cebinden ödeme yaptı)`
       : `💰 NET CASH HANDOVER TO OFFICE / ยอดเงินสุทธินำส่งออฟฟิศ:
-👉 *${settlement.netHandoverToOfficeThb.toLocaleString('en-US')} THB*`;
+👉 *${fmtMoney(settlement.netHandoverToOfficeThb)} THB*`;
 
   return `Sawadee khrup Khun ${guideName} 🙏 (Phuket Tatili Operations)
 
@@ -194,11 +195,11 @@ export function generateGuideDayEndSettlementWhatsApp(params: {
 
 ══════════════════════════════════════
 💵 Collected From Guests / เงินเก็บจากลูกค้า:
-👉 *${collectedCashThb.toLocaleString('en-US')} THB*
+👉 *${fmtMoney(collectedCashThb)} THB*
 
 🗣️ Deducted Field Expenses / หักค่าใช้จ่ายภาคสนาม (Grab, Yemek, İkram):
 ${expenseLines}
-📊 Total Expenses / รวมค่าใช้จ่าย: *- ${settlement.totalExpensesThb.toLocaleString('en-US')} THB*
+📊 Total Expenses / รวมค่าใช้จ่าย: *- ${fmtMoney(settlement.totalExpensesThb)} THB*
 
 ══════════════════════════════════════
 ${finalBalanceSection}

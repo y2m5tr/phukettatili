@@ -1,3 +1,4 @@
+import { fmtMoney } from './moneyFormat';
 /**
  * Phuket Tatili - Şoför Saha Yakıt, Otopark & Harç Masraf Masası (Driver Mini-Expense Desk)
  * Şoförlerin gün içinde yaptığı yakıt, otopark, milli park harçlarının takibi ve
@@ -174,7 +175,7 @@ export function generateDriverDayEndSettlementWhatsApp(params: {
     expenseLines = settlement.driverExpenses
       .map(
         (e) =>
-          `• ${DRIVER_EXPENSE_CATEGORIES[e.category].icon} ${DRIVER_EXPENSE_CATEGORIES[e.category].shortLabel}: *${e.amountThb.toLocaleString('en-US')} THB* (${e.description})`
+          `• ${DRIVER_EXPENSE_CATEGORIES[e.category].icon} ${DRIVER_EXPENSE_CATEGORIES[e.category].shortLabel}: *${fmtMoney(e.amountThb)} THB* (${e.description})`
       )
       .join('\n');
   } else {
@@ -189,18 +190,18 @@ export function generateDriverDayEndSettlementWhatsApp(params: {
 
 ══════════════════════════════════════
 💵 Collected From Guests / เงินเก็บจากลูกค้า:
-👉 *${collectedCashThb.toLocaleString('en-US')} THB*
+👉 *${fmtMoney(collectedCashThb)} THB*
 
 ⛽ Deducted Field Expenses / หักค่าใช้จ่ายภาคสนาม:
 ${expenseLines}
-📊 Total Expenses / รวมค่าใช้จ่าย: *- ${settlement.totalExpensesThb.toLocaleString('en-US')} THB*
+📊 Total Expenses / รวมค่าใช้จ่าย: *- ${fmtMoney(settlement.totalExpensesThb)} THB*
 
 ══════════════════════════════════════
 💰 NET CASH HANDOVER TO OFFICE / ยอดเงินสุทธินำส่งออฟฟิศ:
-👉 *${settlement.netHandoverToOfficeThb.toLocaleString('en-US')} THB*
+👉 *${fmtMoney(settlement.netHandoverToOfficeThb)} THB*
 ══════════════════════════════════════
 
-กรุณานำเงินสดสุทธิ ${settlement.netHandoverToOfficeThb.toLocaleString('en-US')} THB พร้อมใบเสร็จน้ำมัน/ที่จอดรถ มาส่งที่เคาน์เตอร์การเงินออฟฟิศป่าตองครับ
+กรุณานำเงินสดสุทธิ ${fmtMoney(settlement.netHandoverToOfficeThb)} THB พร้อมใบเสร็จน้ำมัน/ที่จอดรถ มาส่งที่เคาน์เตอร์การเงินออฟฟิศป่าตองครับ
 🙏 ขอบคุณสำหรับการทำงานอย่างปลอดภัยในวันนี้ครับ! (Thank you!)`;
 }
 

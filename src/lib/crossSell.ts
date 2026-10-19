@@ -1,4 +1,5 @@
 import type { Booking } from '../data/adminInitialData';
+import { fmtMoney } from './moneyFormat';
 
 export interface RecommendedTourItem {
   id: string;
@@ -124,7 +125,7 @@ export function generateCrossSellWhatsAppMessage(
   const toursListStr = recommended
     .map(
       (t, idx) =>
-        `${idx + 1}️⃣ *${t.title}*\n   • ${t.tagline}\n   • Fiyat: ~${t.regularPriceThb.toLocaleString('en-US')} THB~ ➔ *${t.discountedPriceThb.toLocaleString('en-US')} THB*`
+        `${idx + 1}️⃣ *${t.title}*\n   • ${t.tagline}\n   • Fiyat: ~${fmtMoney(t.regularPriceThb)} THB~ ➔ *${fmtMoney(t.discountedPriceThb)} THB*`
     )
     .join('\n\n');
 

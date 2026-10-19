@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Aynı dal için yeni push gelirse eski koşuyu iptal et (token tasarrufu)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Tip · Lint · Test · Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # KRİTİK: Runner locale'i sabitlenir. WhatsApp mesaj formatlayıcıları
+    # artık 'en-US' kullanıyor ama test beklentileri ve üçüncü taraf
+    # davranışları deterministik kalsın diye ortam da sabitleniyor.
+    # (tr-TR runner'da binlik ayraçlar değişip testler kırılmasın.)
+    env:
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # npm ci: package-lock.json'a sadık, tekrarlanabilir kurulum
+      - name: Bağımlılıkları kur
+        run: npm ci
+
+      - name: Tip kontrolü (astro check)
+        run: npx astro check
+
+      - name: Lint (Biome)
+        run: npm run lint
+
+      - name: Testler
+        run: npm test
+
+      # Üretim derlemesi — SSR/adapter/sitemap zincirinin çalıştığını kanıtlar.
+      # Supabase env'leri opsiyonel; client'lar guard'lı, build secrets'sız geçer.
+      - name: Build
+        run: npm run build
+
+      # Build çıktısında hassas verinin statik (auth'suz) asset olarak
+      # sızmadığını doğrula. adminInitialData tohum verisi (müşteri/pasaport/
+      # maliyet/komisyon) statik çıktıya düşmemeli — yalnızca sunucuda kalmalı.
+      - name: Statik çıktı sızıntı taraması
+        run: |
+          static=.vercel/output/static
+          if [ -d "$static/_astro" ]; then
+            if ls "$static"/_astro/adminInitialData*.js >/dev/null 2>&1; then
+              echo "::error::adminInitialData chunk statik çıktıya sızmış (tohum verisi herkese açık olur)."
+              exit 1
+            fi
+            echo "✓ adminInitialData statik çıktıda yok"
+          else
+            echo "Statik çıktı dizini bulunamadı, tarama atlandı"
+          fi
