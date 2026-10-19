@@ -3616,6 +3616,7 @@ export default function AdminDashboard({
             getImageUrl={getImageUrl}
             handleFileUpload={handleFileUpload}
             allImageOptions={allImageOptions}
+            mediaList={mediaList}
             viewerRole={viewerRole}
             showToast={showToast}
             onExportSiteData={handleExportSiteData}
@@ -3739,6 +3740,7 @@ export default function AdminDashboard({
         getImageUrl={getImageUrl}
         handleFileUpload={handleFileUpload}
         allImageOptions={allImageOptions}
+        mediaList={mediaList}
       />
 
       {/* ==================================================== */}
@@ -3754,6 +3756,7 @@ export default function AdminDashboard({
             getImageUrl={getImageUrl}
             handleFileUpload={handleFileUpload}
             allImageOptions={allImageOptions}
+            mediaList={mediaList}
           />
         )}
 
@@ -3769,6 +3772,7 @@ export default function AdminDashboard({
             getImageUrl={getImageUrl}
             handleFileUpload={handleFileUpload}
             allImageOptions={allImageOptions}
+            mediaList={mediaList}
           />
         )}
 

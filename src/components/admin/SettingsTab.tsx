@@ -21,7 +21,10 @@ import {
   AlertTriangle,
   RefreshCw,
   Star,
+  Image as ImageIcon,
 } from 'lucide-react';
+import type { MediaItem } from '../../data/adminInitialData';
+import ImagePickerModal from './ImagePickerModal';
 
 export interface SiteSettingsState {
   whatsappNumber: string;
@@ -71,6 +74,7 @@ interface SettingsTabProps {
   handleFileUpload: (file: File, cb: (url: string) => void) => void;
   /** Select'te sunulacak görsel seçenekleri (sistem + yüklenen). */
   allImageOptions: string[];
+  mediaList?: MediaItem[];
   viewerRole?: 'owner' | 'manager' | 'guide' | 'driver' | null;
   showToast?: (msg: string) => void;
   /** Panel CMS verisini tek JSON olarak indirir (repo'ya uygulanmak uzere). */
@@ -85,10 +89,12 @@ export default function SettingsTab({
   getImageUrl,
   handleFileUpload,
   allImageOptions,
+  mediaList = [],
   viewerRole = null,
   showToast,
   onExportSiteData,
 }: SettingsTabProps) {
+  const [isHeroPickerOpen, setIsHeroPickerOpen] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
@@ -385,6 +391,15 @@ export default function SettingsTab({
                     />
                   </label>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setIsHeroPickerOpen(true)}
+                  className="w-full py-2.5 px-4 mb-3 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+                >
+                  <ImageIcon className="w-4 h-4" />
+                  <span>🖼️ Hero Fotoğrafını Görerek Seç (Önizlemeli Kütüphane)</span>
+                </button>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
                   <select
@@ -892,6 +907,20 @@ export default function SettingsTab({
             </div>
           </form>
         </div>
+      )}
+
+      {isHeroPickerOpen && (
+        <ImagePickerModal
+          isOpen={isHeroPickerOpen}
+          onClose={() => setIsHeroPickerOpen(false)}
+          title="Ana Sayfa Hero Görselini Seç"
+          currentValue={siteSettings.heroImage}
+          onSelect={(url) => setSiteSettings({ ...siteSettings, heroImage: url })}
+          mediaList={mediaList}
+          allImageOptions={allImageOptions}
+          getImageUrl={getImageUrl}
+          handleFileUpload={handleFileUpload}
+        />
       )}
     </div>
   );

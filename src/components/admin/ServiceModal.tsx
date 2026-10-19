@@ -2,7 +2,10 @@
  * Hizmet Sayfası düzenleme modalı — AdminDashboard'tan ayrıldı.
  * Form state'i parent'ta kalır (handleSubmitService zinciri orada).
  */
-import { Upload } from 'lucide-react';
+import { useState } from 'react';
+import { Upload, Image as ImageIcon } from 'lucide-react';
+import type { MediaItem } from '../../data/adminInitialData';
+import ImagePickerModal from './ImagePickerModal';
 
 interface ServiceModalProps {
   serviceFormData: Record<string, unknown>;
@@ -14,6 +17,7 @@ interface ServiceModalProps {
   handleFileUpload: (file: File, cb: (url: string) => void) => void;
   /** Select'te sunulacak görsel seçenekleri (sistem + yüklenen). */
   allImageOptions: string[];
+  mediaList?: MediaItem[];
 }
 
 export default function ServiceModal({
@@ -24,11 +28,14 @@ export default function ServiceModal({
   getImageUrl,
   handleFileUpload,
   allImageOptions,
+  mediaList = [],
 }: ServiceModalProps) {
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
   const fd = serviceFormData as { eyebrow?: string; heading?: string; intro?: string; media?: string };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-white dark:bg-surface-2 w-full max-w-xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 p-6 sm:p-8">
         <h2 className="text-xl font-bold font-serif mb-4">Hizmet Sayfasını Düzenle</h2>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -71,7 +78,7 @@ export default function ServiceModal({
               </label>
               <label className="cursor-pointer px-3 py-1 rounded-xl bg-brand-accent hover:bg-brand-accent/90 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
                 <Upload className="w-3.5 h-3.5" />
-                <span>Görsel Yükle</span>
+                <span>PC'den Yükle</span>
                 <input
                   type="file"
                   accept="image/*"
@@ -88,6 +95,15 @@ export default function ServiceModal({
                 />
               </label>
             </div>
+
+            <button
+              type="button"
+              onClick={() => setIsPickerOpen(true)}
+              className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent hover:opacity-95 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer"
+            >
+              <ImageIcon className="w-4 h-4" />
+              <span>🖼️ Görsel Kütüphanesinden Seç (Önizlemeli)</span>
+            </button>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <select
@@ -135,5 +151,20 @@ export default function ServiceModal({
         </form>
       </div>
     </div>
+
+    {isPickerOpen && (
+      <ImagePickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        title="Hizmet Görselini Seç"
+        currentValue={fd.media}
+        onSelect={(url) => setServiceFormData({ ...serviceFormData, media: url })}
+        mediaList={mediaList}
+        allImageOptions={allImageOptions}
+        getImageUrl={getImageUrl}
+        handleFileUpload={handleFileUpload}
+      />
+    )}
+  </>
   );
 }

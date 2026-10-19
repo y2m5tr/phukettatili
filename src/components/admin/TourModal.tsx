@@ -11,7 +11,8 @@ import { Edit2,
   FileText,
   Plus,
 } from 'lucide-react';
-import type { TourItem } from '../../data/adminInitialData';
+import type { TourItem, MediaItem } from '../../data/adminInitialData';
+import ImagePickerModal from './ImagePickerModal';
 
 interface TourModalProps {
   isOpen: boolean;
@@ -23,6 +24,7 @@ interface TourModalProps {
   getImageUrl?: (url?: string) => string;
   handleFileUpload?: (file: File, callback?: (url: string) => void) => void;
   allImageOptions?: string[];
+  mediaList?: MediaItem[];
 }
 
 export default function TourModal({
@@ -47,8 +49,33 @@ export default function TourModal({
     reader.readAsDataURL(file);
   },
   allImageOptions = [],
+  mediaList = [],
 }: TourModalProps) {
   if (!isOpen) return null;
+
+  const [pickerConfig, setPickerConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    currentValue?: string;
+    onSelect: (url: string) => void;
+  }>({
+    isOpen: false,
+    title: '',
+    onSelect: () => {},
+  });
+
+  const openPicker = (title: string, currentValue: string | undefined, onSelect: (url: string) => void) => {
+    setPickerConfig({
+      isOpen: true,
+      title,
+      currentValue,
+      onSelect,
+    });
+  };
+
+  const closePicker = () => {
+    setPickerConfig((prev) => ({ ...prev, isOpen: false }));
+  };
 
   const [tourActiveTab, setTourActiveTab] = useState<
     'general' | 'photos' | 'itinerary' | 'inclusions' | 'faqs' | 'notes'
@@ -64,7 +91,8 @@ export default function TourModal({
   const [tempRestrictionItem, setTempRestrictionItem] = useState<string>('');
 
   return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
           <div className="bg-white dark:bg-surface-2 w-full max-w-3xl rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-800 max-h-[92vh] flex flex-col overflow-hidden">
             {/* Modal Header */}
             <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0">
@@ -294,9 +322,27 @@ export default function TourModal({
                       <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
                         Ana Kapak Fotoğrafı *
                       </label>
-                      <label className="cursor-pointer px-3 py-1.5 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs">
-                        <Upload className="w-3.5 h-3.5" />
-                        <span>Bilgisayardan Yükle</span>
+                      <span className="text-[11px] text-slate-400">Tur kartı ve sayfa başlığı görseli</span>
+                    </div>
+
+                    {/* Hızlı Seçim Butonları: Önizlemeli Kütüphane + PC'den Yükle */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openPicker('Tur Kapak Fotoğrafını Seç', tourFormData.image, (url) => {
+                            setTourFormData((prev) => ({ ...prev, image: url }));
+                          })
+                        }
+                        className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-brand-primary to-brand-accent hover:opacity-95 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                      >
+                        <Image className="w-4 h-4" />
+                        <span>🖼️ Fotoğrafı Görerek Seç (Önizlemeli Kütüphane)</span>
+                      </button>
+
+                      <label className="cursor-pointer px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs flex items-center justify-center gap-2 transition-all whitespace-nowrap">
+                        <Upload className="w-4 h-4 text-brand-accent" />
+                        <span>PC'den Yükle</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -429,28 +475,48 @@ export default function TourModal({
                     )}
 
                     {/* Kütüphaneden Seçerek Galeriye Ekle */}
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
-                      <select
-                        value=""
-                        onChange={(e) => {
-                          const selected = e.target.value;
-                          if (selected && !(tourFormData.gallery || []).includes(selected)) {
-                            setTourFormData({
-                              ...tourFormData,
-                              gallery: [...(tourFormData.gallery || []), selected],
-                            });
-                          }
-                          e.target.value = '';
-                        }}
-                        className="flex-1 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 pt-3 border-t border-slate-200 dark:border-slate-800">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openPicker('Galeriye Fotoğraf Ekle', undefined, (url) => {
+                            if (url && !(tourFormData.gallery || []).includes(url)) {
+                              setTourFormData((prev) => ({
+                                ...prev,
+                                gallery: [...(prev.gallery || []), url],
+                              }));
+                            }
+                          })
+                        }
+                        className="flex-1 py-2.5 px-4 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
                       >
-                        <option value="">+ Kütüphaneden Fotoğraf Seç ve Ekle...</option>
-                        {allImageOptions.map((img) => (
-                          <option key={img} value={img}>
-                            {img.startsWith('data:') ? 'Özel Yüklenen Görsel' : img}
-                          </option>
-                        ))}
-                      </select>
+                        <Image className="w-4 h-4" />
+                        <span>🖼️ Kütüphaneden Fotoğraf Seç & Ekle (Önizlemeli)</span>
+                      </button>
+
+                      <div className="sm:w-64">
+                        <select
+                          value=""
+                          onChange={(e) => {
+                            const selected = e.target.value;
+                            if (selected && !(tourFormData.gallery || []).includes(selected)) {
+                              setTourFormData({
+                                ...tourFormData,
+                                gallery: [...(tourFormData.gallery || []), selected],
+                              });
+                            }
+                            e.target.value = '';
+                          }}
+                          className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
+                        >
+                          <option value="">veya listeden seç...</option>
+                          {allImageOptions.map((img) => (
+                            <option key={img} value={img}>
+                              {img.startsWith('data:') ? 'Özel Yüklenen Görsel' : img}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -603,6 +669,22 @@ export default function TourModal({
                                   }}
                                 />
                               </label>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openPicker(`${idx + 1}. Adım İçin Görsel Seç`, stepImg, (url) => {
+                                    const next = [...(tourFormData.programImages || [])];
+                                    while (next.length <= idx) next.push('');
+                                    next[idx] = url;
+                                    setTourFormData({ ...tourFormData, programImages: next });
+                                    setProgramImageFor(null);
+                                  })
+                                }
+                                className="px-3 py-2 rounded-lg bg-brand-primary hover:bg-brand-primary/90 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs cursor-pointer whitespace-nowrap"
+                              >
+                                <Image className="w-3.5 h-3.5" />
+                                <span>🖼️ Önizlemeli Seç</span>
+                              </button>
                               <select
                                 value=""
                                 onChange={(e) => {
@@ -617,7 +699,7 @@ export default function TourModal({
                                 }}
                                 className="flex-1 px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:outline-none"
                               >
-                                <option value="">+ Bu adım için fotoğraf seç...</option>
+                                <option value="">veya listeden seç...</option>
                                 {allImageOptions.map((img) => (
                                   <option key={img} value={img}>{img}</option>
                                 ))}
@@ -984,5 +1066,20 @@ export default function TourModal({
             </form>
           </div>
         </div>
+
+        {pickerConfig.isOpen && (
+          <ImagePickerModal
+            isOpen={pickerConfig.isOpen}
+            onClose={closePicker}
+            title={pickerConfig.title}
+            currentValue={pickerConfig.currentValue}
+            onSelect={pickerConfig.onSelect}
+            mediaList={mediaList}
+            allImageOptions={allImageOptions}
+            getImageUrl={getImageUrl}
+            handleFileUpload={handleFileUpload}
+          />
+        )}
+      </>
   );
 }
