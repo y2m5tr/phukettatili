@@ -124,7 +124,7 @@ export function generateCrossSellWhatsAppMessage(
   const toursListStr = recommended
     .map(
       (t, idx) =>
-        `${idx + 1}️⃣ *${t.title}*\n   • ${t.tagline}\n   • Fiyat: ~${t.regularPriceThb.toLocaleString()} THB~ ➔ *${t.discountedPriceThb.toLocaleString()} THB*`
+        `${idx + 1}️⃣ *${t.title}*\n   • ${t.tagline}\n   • Fiyat: ~${t.regularPriceThb.toLocaleString('en-US')} THB~ ➔ *${t.discountedPriceThb.toLocaleString('en-US')} THB*`
     )
     .join('\n\n');
 

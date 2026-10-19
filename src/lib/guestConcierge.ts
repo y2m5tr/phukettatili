@@ -93,7 +93,7 @@ Sabah lobiden çıkarken resepsiyondan kahvaltınızı ücretsiz teslim alabilir
 
 ${
   booking.remainingAmountThb > 0
-    ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${booking.remainingAmountThb.toLocaleString()} THB (Nakit Baht)\n`
+    ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${booking.remainingAmountThb.toLocaleString('en-US')} THB (Nakit Baht)\n`
     : '✓ *Ödeme Durumu:* Tur bedeli tamamı ödenmiştir.\n'
 }${
   booking.nationalParkFeeIncluded === false

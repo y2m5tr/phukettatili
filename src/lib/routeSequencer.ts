@@ -152,7 +152,7 @@ export function formatDriverWhatsAppRouteMessage(route: SequencedRoute, dateStr:
       const pax = `${s.adultCount || 1} Yetişkin${(s.childCount || 0) > 0 ? ` + ${s.childCount} Çocuk` : ''}`;
       const cash =
         s.remainingAmountThb > 0
-          ? `\n   💵 *ALINACAK NAKİT:* ${s.remainingAmountThb.toLocaleString()} THB`
+          ? `\n   💵 *ALINACAK NAKİT:* ${s.remainingAmountThb.toLocaleString('en-US')} THB`
           : `\n   ✅ *Ödeme Alındı*`;
       const room = s.roomNumber ? ` (Oda: ${s.roomNumber})` : '';
       const hotelMaps = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(formatHotelLocation(s.hotel))}`;
@@ -161,7 +161,7 @@ export function formatDriverWhatsAppRouteMessage(route: SequencedRoute, dateStr:
     }),
     `───────────────────────────────`,
     route.totalCashToCollectThb > 0
-      ? `💰 *TOPLAM TAHSİL EDİLECEK NAKİT:* ${route.totalCashToCollectThb.toLocaleString()} THB\n───────────────────────────────\n`
+      ? `💰 *TOPLAM TAHSİL EDİLECEK NAKİT:* ${route.totalCashToCollectThb.toLocaleString('en-US')} THB\n───────────────────────────────\n`
       : '',
     `İyi ve güvenli sürüşler dileriz! 🌴🇹🇭`,
   ];

@@ -43,7 +43,7 @@ Keyifli turlar dileriz! 🌴🌊`;
 Sayın *${item.customerName}*,
 
 *${item.tourTitle}* turunuz için tur sabahı ödenecek kalan tutarınız:
-💵 *Kalan Bakiye:* ${item.remainingAmountThb.toLocaleString()} THB
+💵 *Kalan Bakiye:* ${item.remainingAmountThb.toLocaleString('en-US')} THB
 
 Lütfen bu tutarı yarın sabah sizi otelinizden alacak şoförümüze veya limandaki Türkçe rehberimize *nakit Baht (THB)* olarak teslim ediniz.
 
@@ -66,7 +66,7 @@ Yarın katılacağınız *${item.tourTitle}* turumuz için otel transfer detayla
 👥 *Kişi Sayısı:* ${paxStr}
 ${
   item.remainingAmountThb > 0
-    ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${item.remainingAmountThb.toLocaleString()} THB (Nakit Baht)`
+    ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${item.remainingAmountThb.toLocaleString('en-US')} THB (Nakit Baht)`
     : '✓ *Ödeme Durumu:* Tamamı Ödenmiştir'
 }
 🎫 *Canlı Biletiniz & Alınış Takibi:* https://phukettatili.com/bilet/${item.bookingId}

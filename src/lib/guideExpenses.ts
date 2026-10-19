@@ -173,7 +173,7 @@ export function generateGuideDayEndSettlementWhatsApp(params: {
     expenseLines = settlement.guideExpenses
       .map(
         (e) =>
-          `• ${GUIDE_EXPENSE_CATEGORIES[e.category].icon} ${GUIDE_EXPENSE_CATEGORIES[e.category].shortLabel}: *${e.amountThb.toLocaleString()} THB* (${e.description})`
+          `• ${GUIDE_EXPENSE_CATEGORIES[e.category].icon} ${GUIDE_EXPENSE_CATEGORIES[e.category].shortLabel}: *${e.amountThb.toLocaleString('en-US')} THB* (${e.description})`
       )
       .join('\n');
   } else {
@@ -183,9 +183,9 @@ export function generateGuideDayEndSettlementWhatsApp(params: {
   const finalBalanceSection =
     settlement.reimbursementDueThb > 0
       ? `💰 OFFICE REIMBURSEMENT TO GUIDE / ออฟฟิศจ่ายคืนให้ไกด์:
-👉 *+ ${settlement.reimbursementDueThb.toLocaleString()} THB* (Rehber cebinden ödeme yaptı)`
+👉 *+ ${settlement.reimbursementDueThb.toLocaleString('en-US')} THB* (Rehber cebinden ödeme yaptı)`
       : `💰 NET CASH HANDOVER TO OFFICE / ยอดเงินสุทธินำส่งออฟฟิศ:
-👉 *${settlement.netHandoverToOfficeThb.toLocaleString()} THB*`;
+👉 *${settlement.netHandoverToOfficeThb.toLocaleString('en-US')} THB*`;
 
   return `Sawadee khrup Khun ${guideName} 🙏 (Phuket Tatili Operations)
 
@@ -194,11 +194,11 @@ export function generateGuideDayEndSettlementWhatsApp(params: {
 
 ══════════════════════════════════════
 💵 Collected From Guests / เงินเก็บจากลูกค้า:
-👉 *${collectedCashThb.toLocaleString()} THB*
+👉 *${collectedCashThb.toLocaleString('en-US')} THB*
 
 🗣️ Deducted Field Expenses / หักค่าใช้จ่ายภาคสนาม (Grab, Yemek, İkram):
 ${expenseLines}
-📊 Total Expenses / รวมค่าใช้จ่าย: *- ${settlement.totalExpensesThb.toLocaleString()} THB*
+📊 Total Expenses / รวมค่าใช้จ่าย: *- ${settlement.totalExpensesThb.toLocaleString('en-US')} THB*
 
 ══════════════════════════════════════
 ${finalBalanceSection}

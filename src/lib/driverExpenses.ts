@@ -174,7 +174,7 @@ export function generateDriverDayEndSettlementWhatsApp(params: {
     expenseLines = settlement.driverExpenses
       .map(
         (e) =>
-          `• ${DRIVER_EXPENSE_CATEGORIES[e.category].icon} ${DRIVER_EXPENSE_CATEGORIES[e.category].shortLabel}: *${e.amountThb.toLocaleString()} THB* (${e.description})`
+          `• ${DRIVER_EXPENSE_CATEGORIES[e.category].icon} ${DRIVER_EXPENSE_CATEGORIES[e.category].shortLabel}: *${e.amountThb.toLocaleString('en-US')} THB* (${e.description})`
       )
       .join('\n');
   } else {
@@ -189,18 +189,18 @@ export function generateDriverDayEndSettlementWhatsApp(params: {
 
 ══════════════════════════════════════
 💵 Collected From Guests / เงินเก็บจากลูกค้า:
-👉 *${collectedCashThb.toLocaleString()} THB*
+👉 *${collectedCashThb.toLocaleString('en-US')} THB*
 
 ⛽ Deducted Field Expenses / หักค่าใช้จ่ายภาคสนาม:
 ${expenseLines}
-📊 Total Expenses / รวมค่าใช้จ่าย: *- ${settlement.totalExpensesThb.toLocaleString()} THB*
+📊 Total Expenses / รวมค่าใช้จ่าย: *- ${settlement.totalExpensesThb.toLocaleString('en-US')} THB*
 
 ══════════════════════════════════════
 💰 NET CASH HANDOVER TO OFFICE / ยอดเงินสุทธินำส่งออฟฟิศ:
-👉 *${settlement.netHandoverToOfficeThb.toLocaleString()} THB*
+👉 *${settlement.netHandoverToOfficeThb.toLocaleString('en-US')} THB*
 ══════════════════════════════════════
 
-กรุณานำเงินสดสุทธิ ${settlement.netHandoverToOfficeThb.toLocaleString()} THB พร้อมใบเสร็จน้ำมัน/ที่จอดรถ มาส่งที่เคาน์เตอร์การเงินออฟฟิศป่าตองครับ
+กรุณานำเงินสดสุทธิ ${settlement.netHandoverToOfficeThb.toLocaleString('en-US')} THB พร้อมใบเสร็จน้ำมัน/ที่จอดรถ มาส่งที่เคาน์เตอร์การเงินออฟฟิศป่าตองครับ
 🙏 ขอบคุณสำหรับการทำงานอย่างปลอดภัยในวันนี้ครับ! (Thank you!)`;
 }
 

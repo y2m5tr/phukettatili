@@ -36,6 +36,6 @@ describe('Aşama 2: Kendi Phuket Tatilini Oluştur (Tatil Sihirbazı)', () => {
     expect(message).toContain('AKILLI PAKET REZERVASYON TALEBİ');
     expect(message).toContain(plan.packageName);
     expect(message).toContain('GÜNLÜK TUR PROGRAMI:');
-    expect(message).toContain(`${plan.finalPackagePriceThb.toLocaleString()} THB`);
+    expect(message).toContain(`${plan.finalPackagePriceThb.toLocaleString('en-US')} THB`);
   });
 });

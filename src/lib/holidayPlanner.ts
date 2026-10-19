@@ -474,9 +474,9 @@ export function generatePackageWhatsAppMessage(plan: HolidayPackagePlan): string
     ),
     ``,
     `💰 *FİYAT VE İNDİRİM BİLGİSİ:*`,
-    `• Normal Tekil Toplam: ~${plan.totalIndividualPriceThb.toLocaleString()} THB~`,
-    `• Paket İndirimi (%${plan.discountPercentage}): *-${plan.discountAmountThb.toLocaleString()} THB*`,
-    `🎉 *Paket Avantajlı Fiyat (Kişi Başı): ${plan.finalPackagePriceThb.toLocaleString()} THB*`,
+    `• Normal Tekil Toplam: ~${plan.totalIndividualPriceThb.toLocaleString('en-US')} THB~`,
+    `• Paket İndirimi (%${plan.discountPercentage}): *-${plan.discountAmountThb.toLocaleString('en-US')} THB*`,
+    `🎉 *Paket Avantajlı Fiyat (Kişi Başı): ${plan.finalPackagePriceThb.toLocaleString('en-US')} THB*`,
     ``,
     `Bu paketi 2 kişi için rezerve etmek ve müsaitlik teyidi almak istiyorum. Yardımcı olabilir misiniz? 🙏🇹🇭`,
   ];
