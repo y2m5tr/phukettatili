@@ -105,20 +105,6 @@ export default function AgentPortalApp({
     };
   }, []);
 
-  const formatWithCurrency = (thb: number): string => {
-    if (displayCurrency === 'THB') return `${thb.toLocaleString()} THB`;
-    const converted = convertThbToForeign(thb, displayCurrency, exchangeRates);
-    const sym =
-      displayCurrency === 'TRY'
-        ? 'TL'
-        : displayCurrency === 'USD'
-        ? '$'
-        : displayCurrency === 'EUR'
-        ? '€'
-        : '£';
-    return `${thb.toLocaleString()} THB (~${converted.toLocaleString()} ${sym})`;
-  };
-
   // Acentanın Kendi Rezervasyonları Listesi
   const [agentBookings, setAgentBookings] = useState<Booking[]>(() => {
     return existingBookings.filter(

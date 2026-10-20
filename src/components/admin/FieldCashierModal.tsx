@@ -46,8 +46,6 @@ export default function FieldCashierModal({
 }: FieldCashierModalProps) {
   // Live rates state
   const [exchangeRates, setExchangeRates] = useState<Record<SupportedCurrency, number>>(DEFAULT_EXCHANGE_RATES);
-  const [ratesSource, setRatesSource] = useState<'live' | 'fallback'>('fallback');
-  const [ratesLastUpdated, setRatesLastUpdated] = useState<string>('');
   const [isRefreshingRates, setIsRefreshingRates] = useState<boolean>(false);
 
   // Form state
@@ -75,8 +73,6 @@ export default function FieldCashierModal({
     getLiveExchangeRates().then((data) => {
       if (isMounted) {
         setExchangeRates(data.rates);
-        setRatesSource(data.source);
-        setRatesLastUpdated(data.lastUpdated);
       }
     });
     return () => {
@@ -119,8 +115,6 @@ export default function FieldCashierModal({
     try {
       const data = await getLiveExchangeRates(true);
       setExchangeRates(data.rates);
-      setRatesSource(data.source);
-      setRatesLastUpdated(data.lastUpdated);
       showToast('💱 Canlı döviz kurları başarıyla güncellendi!');
     } catch {
       showToast('⚠️ Kurlar güncellenirken hata oluştu.');

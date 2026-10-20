@@ -43,9 +43,9 @@ export default function FlightRadarModal({
   const [guestPhone, setGuestPhone] = useState<string>('+905321112233');
   const [driverName, setDriverName] = useState<string>('Somchai Prasert');
   const [driverPhone, setDriverPhone] = useState<string>('+66812345678');
-  const [vehicleCode, setVehicleCode] = useState<string>('VIP Van Toyota Commuter 35-1249');
+  // Araç plakası bu modaldan düzenlenmiyor; WhatsApp metinlerinde sabit kullanılır.
+  const vehicleCode = 'VIP Van Toyota Commuter 35-1249';
   const [hotelName, setHotelName] = useState<string>('Amari Phuket Patong');
-  const [copied, setCopied] = useState<boolean>(false);
 
   const flightInfo: FlightInfo = useMemo(() => {
     return getFlightStatusInfo(flightInput, delayMinutes);

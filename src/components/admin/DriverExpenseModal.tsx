@@ -64,7 +64,9 @@ export default function DriverExpenseModal({
   const [amount, setAmount] = useState<number>(1200);
   const [description, setDescription] = useState<string>('');
   const [receiptNo, setReceiptNo] = useState<string>('');
-  const [driverPhone, setDriverPhone] = useState<string>('+66812345678');
+  // Yedek şoför telefonu — formda düzenlenmiyor, yalnızca WhatsApp URL'sinde
+  // (aktif şoförün telefonu yoksa) kullanılır.
+  const driverPhone = '+66812345678';
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
