@@ -17,20 +17,27 @@ import HomeBlogSection from '../components/home/HomeBlogSection.astro';
 import HomeFaq from '../components/home/HomeFaq.astro';
 import TourStoriesReel from '../components/tour/TourStoriesReel';
 import LiveTourSafetyRadar from '../components/weather/LiveTourSafetyRadar';
-import siteSettings from '../content/settings/site.json';
+import siteSettingsJson from '../content/settings/site.json';
 import homeDataJson from '../content/pages/home.json';
-import testimonialsData from '../content/settings/testimonials.json';
-import faqData from '../content/settings/faq.json';
-import { getPublicHomeSettings, mergeHomeSettings } from '../lib/server/homeSettings';
+import testimonialsJson from '../content/settings/testimonials.json';
+import faqJson from '../content/settings/faq.json';
+import {
+  getPublicHomeContent,
+  mergeHomeSettings,
+  mergeSiteSettings,
+  mergeListContent,
+} from '../lib/server/homeSettings';
 
-// Anasayfa SSR üretilir: panelin "Anasayfa Modül & Metin Yönetimi" ekranında
-// yapılan bölüm aç/kapa ve metin değişiklikleri `home-settings` koleksiyonuna
-// yazılır ve burada istek anında okunur. `prerender = true` iken sayfa build
-// sırasında home.json'a sabitleniyordu; paneldeki "Gizli" seçimleri canlıya
-// yansımıyordu. Bulut erişilemezse merge sessizce home.json'a düşer.
+// Anasayfa SSR üretilir: panelde yapılan bölüm aç/kapa, metin, Misafir
+// Yorumları, SSS ve Ayarlar değişiklikleri `content_store`'a yazılır ve burada
+// istek anında TEK sorguyla okunur. `prerender = true` iken sayfa build
+// sırasında statik JSON'lara sabitleniyordu; paneldeki değişiklikler canlıya
+// yansımıyordu. Bulut erişilemezse merge sessizce statik JSON'lara düşer.
 export const prerender = false;
 
-const homeData = mergeHomeSettings(homeDataJson, await getPublicHomeSettings());
+const panelContent = await getPublicHomeContent();
+const homeData = mergeHomeSettings(homeDataJson, panelContent.homeSettings);
+const siteSettings = mergeSiteSettings(siteSettingsJson, panelContent.siteSettings);
 
 const whatsappUrl = `https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}`;
 
@@ -87,14 +94,20 @@ interface TestimonialItem {
   stars?: number;
 }
 
-const testimonials: TestimonialItem[] = (testimonialsData?.testimonials || []) as TestimonialItem[];
+const testimonials: TestimonialItem[] = mergeListContent<TestimonialItem>(
+  (testimonialsJson?.testimonials || []) as TestimonialItem[],
+  panelContent.testimonials,
+);
 
 interface RawFaqItem {
   question: string;
   answer: string;
 }
 
-const formattedFaqs = (faqData?.faq || []).map((item: RawFaqItem) => ({
+const formattedFaqs = mergeListContent<RawFaqItem>(
+  (faqJson?.faq || []) as RawFaqItem[],
+  panelContent.faqs,
+).map((item: RawFaqItem) => ({
   q: item.question,
   a: item.answer,
 }));
