@@ -4,7 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import Accordion from '../../components/ui/Accordion';
 import siteSettings from '../../content/settings/site.json';
 import TourQuickBookingDrawer from '../../components/tour/TourQuickBookingDrawer';
-import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../lib/server/supabaseAdmin';
+import { getCloudTours, applyTourOverlay, applyTourOverlayToEntry } from '../../lib/server/tourContent';
 import { resolveAssetUrl, resolveOgImageUrl } from '../../lib/assets';
 
 // Dinamik SSR: panelde degisen kapak/galeri aninda yansir (bulut overlay).
@@ -26,61 +26,23 @@ if (!tour) {
   return Astro.redirect('/turlar', 302);
 }
 
-// Bulut overlay: Admin panelinde duzenlenen alanlar (kapak, galeri, program, fiyat) aninda yansir
-if (isSupabaseAdminConfigured()) {
-  try {
-    const db = getSupabaseAdmin();
-    if (db) {
-      const { data: cloudRow } = await db
-        .from('content_store')
-        .select('data')
-        .eq('key', 'tours')
-        .maybeSingle();
+// Bulut overlay: panelde düzenlenen alanlar (başlık, kapak, galeri, fiyat,
+// program, dahil/hariç, SSS) anında yansır. Liste sayfalarıyla (turlar/index,
+// tur-kategorisi, anasayfa) AYNI modülü kullanır — detay/liste tutarlılığı
+// yapısal olarak garanti.
+const cloudTours = await getCloudTours();
 
-      if (Array.isArray(cloudRow?.data)) {
-        const cloudTour = cloudRow.data.find(
-          (t: any) => t.id === id || t.slug === id
-        );
-        if (cloudTour) {
-          if (Array.isArray(cloudTour.gallery) && cloudTour.gallery.length > 0) {
-            tour.data.gallery = cloudTour.gallery;
-          }
-          if (cloudTour.image) {
-            tour.data.image = cloudTour.image;
-          }
-          if (typeof cloudTour.priceThb === 'number') {
-            tour.data.price_thb = cloudTour.priceThb;
-          }
-          if (Array.isArray(cloudTour.program) && cloudTour.program.length > 0) {
-            tour.data.program = cloudTour.program;
-          }
-          if (Array.isArray(cloudTour.program_images) && cloudTour.program_images.length > 0) {
-            tour.data.program_images = cloudTour.program_images;
-          } else if (Array.isArray(cloudTour.programImages) && cloudTour.programImages.length > 0) {
-            tour.data.program_images = cloudTour.programImages;
-          }
-          if (Array.isArray(cloudTour.included) && cloudTour.included.length > 0) {
-            tour.data.included = cloudTour.included;
-          }
-          if (Array.isArray(cloudTour.excluded) && cloudTour.excluded.length > 0) {
-            tour.data.excluded = cloudTour.excluded;
-          }
-          if (Array.isArray(cloudTour.faq) && cloudTour.faq.length > 0) {
-            tour.data.faq = cloudTour.faq;
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.warn('[turlar/[id]] Supabase content_store overlay fallback:', err);
-  }
-}
+// Bu entry YERİNDE güncellenir: render(tour) gövdeyi entry'nin iç
+// (body/loader) alanlarından üretir, yeni obje bu alanları düşürür.
+applyTourOverlayToEntry(tour, cloudTours);
 
 const { Content } = await render(tour);
 const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
 
-// Benzer turlar: aynı kategoriden, mevcut tur hariç, sıralamaya göre ilk 3
-const relatedTours = allToursForRelated
+// Benzer turlar: aynı kategoriden, mevcut tur hariç, sıralamaya göre ilk 3.
+// Bu kartlar da taze fiyat/başlıkla görünsün diye overlay'i saf fonksiyonla
+// uygula (yeni objeler üretir; `tour` zaten render için yerinde güncellendi).
+const relatedTours = applyTourOverlay(allToursForRelated, cloudTours)
   .filter((t) => t.id !== tour.id && t.data.category === tour.data.category)
   .sort((a, b) => a.data.order - b.data.order)
   .slice(0, 3);

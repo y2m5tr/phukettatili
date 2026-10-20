@@ -4,10 +4,18 @@ import Layout from '../../layouts/Layout.astro';
 import FadeIn from '../../components/ui/FadeIn';
 import TourShowcase from '../../components/ui/TourShowcase';
 import { resolveAssetUrl } from '../../lib/assets';
+import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
 
-export const prerender = true;
+// Dinamik SSR: panelde değişen fiyat/başlık/kapak listede de görünsün. Eskiden
+// bu sayfa prerender=true iken tur DETAY sayfası content_store okuyordu;
+// panelde fiyat değişince detayda yeni, listede eski fiyat görünüyordu.
+export const prerender = false;
 
-const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
+// CDN cache: sayfa 60sn Vercel edge'de, 5 dk bayat kabul edilir.
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+
+const mdTours: CollectionEntry<'tours'>[] = await getCollection('tours');
+const tours: CollectionEntry<'tours'>[] = applyTourOverlay(mdTours, await getCloudTours());
 const categoriesCollection = await getCollection('categories');
 const sortedTours = [...tours].sort((a, b) => a.data.order - b.data.order);
 const sliderTours = [...tours]

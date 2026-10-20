@@ -5,6 +5,7 @@ Allow: /
 Sitemap: https://phukettatili.com/sitemap-index.xml
 Sitemap: https://phukettatili.com/sitemap-turlar.xml
 Sitemap: https://phukettatili.com/sitemap-blog.xml
+Sitemap: https://phukettatili.com/sitemap-kategoriler.xml
 
 # Block search bots from internal paths
 Disallow: /api/

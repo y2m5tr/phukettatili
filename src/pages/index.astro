@@ -27,6 +27,7 @@ import {
   mergeSiteSettings,
   mergeListContent,
 } from '../lib/server/homeSettings';
+import { getCloudTours, applyTourOverlay } from '../lib/server/tourContent';
 
 // Anasayfa SSR üretilir: panelde yapılan bölüm aç/kapa, metin, Misafir
 // Yorumları, SSS ve Ayarlar değişiklikleri `content_store`'a yazılır ve burada
@@ -34,6 +35,11 @@ import {
 // sırasında statik JSON'lara sabitleniyordu; paneldeki değişiklikler canlıya
 // yansımıyordu. Bulut erişilemezse merge sessizce statik JSON'lara düşer.
 export const prerender = false;
+
+// CDN cache: anasayfa sitenin en çok istenen sayfası. Her görüntülemede SSR +
+// Supabase fetch maliyeti yerine 60sn Vercel edge cache, 5dk bayat kabul.
+// Panel değişikliği en geç ~1dk içinde yansır (blog/tur detayı ile aynı).
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 
 const panelContent = await getPublicHomeContent();
 const homeData = mergeHomeSettings(homeDataJson, panelContent.homeSettings);
@@ -75,7 +81,10 @@ const blogSectionTitle = homeData?.blogSectionTitle;
 const blogSectionSubtitle = homeData?.blogSectionSubtitle;
 const sections = homeData?.sections || {};
 
-const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
+const tours: CollectionEntry<'tours'>[] = applyTourOverlay(
+  (await getCollection('tours')) as CollectionEntry<'tours'>[],
+  await getCloudTours(),
+);
 const featuredTours: CollectionEntry<'tours'>[] = tours.filter((tour) => tour.data.featured).slice(0, 3);
 const wizardTours = tours.map((t) => ({
   id: t.id,
