@@ -3,10 +3,19 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import FadeIn from '../../components/ui/FadeIn';
 import { resolveAssetUrl } from '../../lib/assets';
+import { getCloudBlogPosts, applyBlogOverlay } from '../../lib/server/blogContent';
 
-export const prerender = true;
+// Dinamik SSR: panelin Blog ekranında değişen başlık/özet/kapak/tarih anında
+// yansır (bulut overlay). Build'deki .md verisi taban; üzerine content_store
+// 'blogs' kaydı gelir. Bulut yoksa site statik veriyle çalışmaya devam eder.
+// Not: gövde içeriği yalnızca .md dosyalarından gelir (panelde gövde alanı yok).
+export const prerender = false;
 
-const posts: CollectionEntry<'blog'>[] = await getCollection('blog');
+// CDN cache: sayfa 60sn Vercel edge'de, 5 dk bayat kabul edilir.
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+
+const mdPosts: CollectionEntry<'blog'>[] = await getCollection('blog');
+const posts: CollectionEntry<'blog'>[] = applyBlogOverlay(mdPosts, await getCloudBlogPosts());
 const sortedPosts = posts.sort((a, b) => {
   const dateA = new Date(a.data.date || 0).getTime();
   const dateB = new Date(b.data.date || 0).getTime();

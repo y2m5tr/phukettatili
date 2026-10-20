@@ -3,24 +3,31 @@ import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import BlogRelatedTour from '../../components/BlogRelatedTour.astro';
 import siteSettings from '../../content/settings/site.json';
+import { getCloudBlogPosts, applyBlogOverlayToEntry } from '../../lib/server/blogContent';
 
-export const prerender = true;
+// Dinamik SSR: panelde değişen başlık/özet/kapak/tarih anında yansır (bulut
+// overlay). Build'deki .md verisi taban; üzerine content_store 'blogs' kaydı
+// gelir. Bulut yoksa site statik veriyle çalışmaya devam eder.
+export const prerender = false;
 
-export async function getStaticPaths() {
-  const posts: CollectionEntry<'blog'>[] = await getCollection('blog');
-  const tours: CollectionEntry<'tours'>[] = await getCollection('tours');
-  return posts.map((post) => ({
-    params: { id: post.id },
-    props: { post, allTours: tours },
-  }));
+// CDN cache: sayfa 60sn Vercel edge'de, 5 dk bayat kabul edilir.
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+
+// Yazı kaydını id'den bul (dinamik route — getStaticPaths yok)
+const { id } = Astro.params;
+const mdPosts: CollectionEntry<'blog'>[] = await getCollection('blog');
+const post = mdPosts.find((p) => p.id === id);
+
+if (!post) {
+  return Astro.redirect('/blog', 302);
 }
 
-interface Props {
-  post: CollectionEntry<'blog'>;
-  allTours: CollectionEntry<'tours'>[];
-}
+// Bulut overlay: panelde düzenlenen metadata alanları bu yazıya uygulanır.
+// Entry YERİNDE güncellenir — render(post) gövdeyi entry'nin iç alanlarından
+// üretir (turlar/[id].astro emsalindeki gibi).
+applyBlogOverlayToEntry(post, await getCloudBlogPosts());
 
-const { post, allTours } = Astro.props;
+const allTours: CollectionEntry<'tours'>[] = await getCollection('tours');
 const { Content } = await render(post);
 const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
 

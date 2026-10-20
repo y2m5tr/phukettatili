@@ -2,6 +2,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import FadeIn from '../ui/FadeIn';
 import { resolveAssetUrl } from '../../lib/assets';
+import { getCloudBlogPosts, applyBlogOverlay } from '../../lib/server/blogContent';
 
 interface Props {
   badge?: string;
@@ -15,7 +16,11 @@ const {
   subtitle = 'Phuket tatilinizi planlarken ihtiyacınız olan en güncel ada karşılaştırmaları, mevsim analizleri ve yerel öneriler.',
 } = Astro.props;
 
-const posts: CollectionEntry<'blog'>[] = await getCollection('blog');
+// Panelin Blog ekranındaki metadata değişiklikleri anasayfa kartlarına da
+// yansısın (blog/index ile aynı overlay, aynı 30sn cache paylaşılır).
+// Bu bileşen yalnızca SSR sayfalarda (index.astro, prerender=false) kullanılır.
+const mdPosts: CollectionEntry<'blog'>[] = await getCollection('blog');
+const posts: CollectionEntry<'blog'>[] = applyBlogOverlay(mdPosts, await getCloudBlogPosts());
 const topPosts = [...posts]
   .sort((a, b) => new Date(b.data.date || 0).getTime() - new Date(a.data.date || 0).getTime())
   .slice(0, 3);
