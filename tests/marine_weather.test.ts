@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import {
   getMarineSafetyStatus,
   generateWeatherPostponeMessage,
@@ -7,6 +7,24 @@ import {
 import type { Booking } from '../src/data/adminInitialData';
 
 describe('Marine Safety & Weather Sentinel', () => {
+  // Bu testler canlı Open-Meteo API'sine bağlanmaz. `fetch` mock'lanır ki
+  // rüzgar/dalga verisi her koşuda deterministik olsun — aksi halde düşük
+  // rüzgarlı bir günde windSpeedKnots 0'a yuvarlanıp test kendiliğinden kırılır.
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  /** Open-Meteo yanıtını taklit eden fetch stub'ı. */
+  function stubMarineFetch(windSpeedKn: number, windDirDeg = 240) {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        current: { wind_speed_10m: windSpeedKn, wind_direction_10m: windDirDeg },
+      }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+  }
   const sampleBooking: Booking = {
     id: 'PT-SEA-01',
     customerName: 'Burak Özdemir',
@@ -25,14 +43,69 @@ describe('Marine Safety & Weather Sentinel', () => {
   };
 
   it('should fetch marine safety report with valid level and wave metrics', async () => {
-    const report = await getMarineSafetyStatus();
+    // 12 knot → waveHeight = 12 * 0.08 + 0.4 = 1.4 → 'moderate' eşiği (>= 1.2)
+    stubMarineFetch(12);
+
+    const report = await getMarineSafetyStatus(true);
     expect(report).toBeDefined();
+    expect(report.source).toBe('live');
     expect(['calm', 'moderate', 'severe']).toContain(report.level);
-    expect(report.waveHeightMeters).toBeGreaterThan(0);
-    expect(report.windSpeedKnots).toBeGreaterThan(0);
+    expect(report.windSpeedKnots).toBe(12);
+    expect(report.waveHeightMeters).toBe(1.4);
+    expect(report.level).toBe('moderate');
     expect(report.regionStatus.phi_phi).toBeDefined();
     expect(report.regionStatus.phang_nga).toBeDefined();
     expect(report.regionStatus.similan).toBeDefined();
+  });
+
+  it('should classify high wind as severe and restrict open-sea tours', async () => {
+    // 26 knot → waveHeight = 2.5 → 'severe' (windKnots >= 24)
+    stubMarineFetch(26);
+
+    const report = await getMarineSafetyStatus(true);
+    expect(report.level).toBe('severe');
+    expect(report.waveHeightMeters).toBe(2.5);
+    expect(report.regionStatus.phi_phi.status).toBe('closed');
+    expect(report.regionStatus.similan.status).toBe('closed');
+  });
+
+  it('should stay calm and keep a positive wave height on a dead-calm day', async () => {
+    // Kenar durum: API 0.4 knot döndürürse Math.round(0.4) = 0 olur.
+    // `|| 10` fallback'i yalnızca 0/undefined için devreye girer, 0.4 truthy'dir.
+    // Rüzgar 0'a yuvarlansa da dalga tabanı (0.4 m) sayesinde seviye 'calm' kalır.
+    stubMarineFetch(0.4);
+
+    const report = await getMarineSafetyStatus(true);
+    expect(report.source).toBe('live');
+    expect(report.windSpeedKnots).toBe(0);
+    expect(report.waveHeightMeters).toBe(0.4);
+    expect(report.waveHeightMeters).toBeGreaterThan(0);
+    expect(report.level).toBe('calm');
+    expect(report.regionStatus.phi_phi.status).toBe('safe');
+  });
+
+  it('should fall back to a safe default report when the weather API is unreachable', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error (No internet)')));
+
+    const report = await getMarineSafetyStatus(true);
+    expect(report.source).toBe('fallback');
+    expect(report.level).toBe('calm');
+    expect(report.windSpeedKnots).toBeGreaterThan(0);
+    expect(report.waveHeightMeters).toBeGreaterThan(0);
+    expect(report.regionStatus.similan.status).toBe('safe');
+  });
+
+  it('should serve the cached report without a second network call', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ current: { wind_speed_10m: 8, wind_direction_10m: 180 } }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const first = await getMarineSafetyStatus(true);
+    const second = await getMarineSafetyStatus(); // forceRefresh yok → cache
+    expect(second).toBe(first);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it('should generate personalized weather postpone message', () => {
