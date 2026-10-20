@@ -18,11 +18,19 @@ import HomeFaq from '../components/home/HomeFaq.astro';
 import TourStoriesReel from '../components/tour/TourStoriesReel';
 import LiveTourSafetyRadar from '../components/weather/LiveTourSafetyRadar';
 import siteSettings from '../content/settings/site.json';
-import homeData from '../content/pages/home.json';
+import homeDataJson from '../content/pages/home.json';
 import testimonialsData from '../content/settings/testimonials.json';
 import faqData from '../content/settings/faq.json';
+import { getPublicHomeSettings, mergeHomeSettings } from '../lib/server/homeSettings';
 
-export const prerender = true;
+// Anasayfa SSR üretilir: panelin "Anasayfa Modül & Metin Yönetimi" ekranında
+// yapılan bölüm aç/kapa ve metin değişiklikleri `home-settings` koleksiyonuna
+// yazılır ve burada istek anında okunur. `prerender = true` iken sayfa build
+// sırasında home.json'a sabitleniyordu; paneldeki "Gizli" seçimleri canlıya
+// yansımıyordu. Bulut erişilemezse merge sessizce home.json'a düşer.
+export const prerender = false;
+
+const homeData = mergeHomeSettings(homeDataJson, await getPublicHomeSettings());
 
 const whatsappUrl = `https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}`;
 

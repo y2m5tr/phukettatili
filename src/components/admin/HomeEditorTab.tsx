@@ -187,8 +187,11 @@ export default function HomeEditorTab({
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* 'topBar' burada BİLİNÇLİ olarak yok: üst duyuru barı Settings
+                sekmesindeki topBarEnabled ile yönetilir (TopAnnouncementBar
+                site.json'u okur). Buradaki anahtar hiçbir sayfaya bağlı
+                değildi ve iki yerden yönetiliyor izlenimi veriyordu. */}
             {[
-              { key: 'topBar', label: 'Üst Duyuru & Bilgi Barı', desc: 'Acente lisansı, para birimi ve acil iletişim bandı', icon: '📢' },
               { key: 'hero', label: 'Hero Karşılama Alanı', desc: 'Büyük başlık, slider görselleri ve çağrı butonları', icon: '🖼️' },
               { key: 'quickSearch', label: 'Hızlı Tur Arama & Filtre', desc: 'Hero altındaki kategori, süre ve tarz arama çubuğu', icon: '🔍' },
               { key: 'trustBadges', label: '4 Güven & Kalite Rozeti', desc: 'Türkçe rehberlik, TAT lisansı, 4.9/5 puan rozetleri', icon: '🛡️' },
