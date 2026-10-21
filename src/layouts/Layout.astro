@@ -85,7 +85,26 @@ const fullTitle = noTitleSuffix ? title : `${title} | Phuket Tatili`;
         ))}
 
         <!-- Fontlar self-hosted (global.css içinde @fontsource) — dış CDN bağımlılığı yok -->
-		
+
+        <!-- Performance marker for navigation timing -->
+        <script is:inline>
+          // Navigation Timing API - LCP ölçümü için
+          if (typeof performance !== 'undefined') {
+            window.addEventListener('load', () => {
+              setTimeout(() => {
+                const navEntries = performance.getEntriesByType('navigation');
+                if (navEntries && navEntries.length > 0) {
+                  const navigation = navEntries[0];
+                  const lcpEstimate = navigation.loadEventEnd - navigation.fetchStart;
+                  if (typeof window.gtag === 'function') {
+                    window.gtag('event', 'page_lcp', { value: Math.round(lcpEstimate) });
+                  }
+                }
+              }, 0);
+            });
+          }
+        </script>
+        
         <ClientRouter />
 
         <!-- Dark Mode Setup -->
