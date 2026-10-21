@@ -19,6 +19,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { NAV_CATEGORIES, type AdminTab, type NavCategory, type NavItem } from './adminNav';
+import { resolveAssetUrl } from '../../lib/assets';
 
 interface AdminSidebarProps {
   isMobileSidebarOpen: boolean;
@@ -38,6 +39,8 @@ interface AdminSidebarProps {
   /** Oturum sahibinin rol rozeti etiketi (ör. 'Kurucu'). */
   roleBadgeLabel: string;
   onToggleCollapse: () => void;
+  logoUrl?: string;
+  logoText?: string;
 }
 
 export default function AdminSidebar({
@@ -56,6 +59,8 @@ export default function AdminSidebar({
   bookingsCount,
   roleBadgeLabel,
   onToggleCollapse,
+  logoUrl,
+  logoText,
 }: AdminSidebarProps) {
   return (
     <>
@@ -75,21 +80,31 @@ export default function AdminSidebar({
       >
         {/* Sidebar Üst: Logo & Başlık */}
         <div className="h-16 px-4 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 shrink-0">
-          <div className="flex items-center gap-3 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-slate-900 dark:bg-brand-primary text-white flex items-center justify-center font-serif font-black text-sm shrink-0 shadow-sm border border-slate-700/60 ring-1 ring-white/10">
-              PT
+          <a
+            href="/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-3 overflow-hidden group/brand"
+            title="Web Sitesini Görüntüle"
+          >
+            <div className="w-9 h-9 rounded-xl bg-slate-900/5 dark:bg-slate-800/80 p-1 flex items-center justify-center shrink-0 border border-slate-200 dark:border-slate-700/60 shadow-xs ring-1 ring-black/5 dark:ring-white/10 group-hover:scale-105 transition-transform overflow-hidden">
+              <img
+                src={resolveAssetUrl(logoUrl, '/assets/logo-main-transparent.png')}
+                alt={logoText || 'Phuket Tatili'}
+                className="w-full h-full object-contain"
+              />
             </div>
             {!isSidebarCollapsed && (
               <div className="min-w-0">
-                <span className="font-serif font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate block leading-tight">
-                  Phuket Tatili
+                <span className="font-serif font-bold text-sm sm:text-base text-slate-900 dark:text-white truncate block leading-tight group-hover:text-brand-accent transition-colors">
+                  {logoText || 'Phuket Tatili'}
                 </span>
                 <span className="text-[10px] font-bold text-brand-accent uppercase tracking-wider block">
                   Yönetim Paneli
                 </span>
               </div>
             )}
-          </div>
+          </a>
           {/* Mobilde Kapatma Butonu */}
           <button
             type="button"

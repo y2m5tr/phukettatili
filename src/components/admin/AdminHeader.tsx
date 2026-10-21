@@ -30,6 +30,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import type { NavItem } from './adminNav';
+import { resolveAssetUrl } from '../../lib/assets';
 
 /** Hızlı araçlar menüsünün açtığı tüm masalar — parent'taki modal setter'ları. */
 export interface AdminHeaderActions {
@@ -68,6 +69,8 @@ interface AdminHeaderProps {
   sync: AdminHeaderSyncState;
   onManualSync: () => void;
   actions: AdminHeaderActions;
+  logoUrl?: string;
+  logoText?: string;
 }
 
 export default function AdminHeader({
@@ -81,13 +84,15 @@ export default function AdminHeader({
   sync,
   onManualSync,
   actions,
+  logoUrl,
+  logoText,
 }: AdminHeaderProps) {
   const [isQuickToolsDropdownOpen, setIsQuickToolsDropdownOpen] = useState<boolean>(false);
   const { isOnline, isCloudConnected, isSyncing, pendingSyncCount, lastSyncedAt } = sync;
 
   return (
     <header className="sticky top-0 z-30 min-h-16 py-2 bg-white/95 dark:bg-surface-1/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3 shadow-2xs">
-      {/* Sol: Menü Açma (Mobil) + Aktif Sekme Başlığı */}
+      {/* Sol: Menü Açma (Mobil) + Logo + Aktif Sekme Başlığı */}
       <div className="flex items-center gap-3 min-w-0">
         <button
           type="button"
@@ -97,6 +102,23 @@ export default function AdminHeader({
         >
           <Menu className="w-5 h-5" />
         </button>
+
+        {/* Mobilde Sol Üst Logo */}
+        <a
+          href="/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="md:hidden shrink-0 flex items-center"
+          title="Web Sitesini Yeni Sekmede Aç"
+        >
+          <div className="w-8 h-8 rounded-lg bg-slate-900/5 dark:bg-slate-800/80 p-0.5 flex items-center justify-center border border-slate-200 dark:border-slate-700/60 shadow-2xs">
+            <img
+              src={resolveAssetUrl(logoUrl, '/assets/logo-main-transparent.png')}
+              alt={logoText || 'Phuket Tatili'}
+              className="w-full h-full object-contain"
+            />
+          </div>
+        </a>
 
         {activeNavItem && (
           <div className="flex items-center gap-2.5 min-w-0">

@@ -2239,6 +2239,8 @@ export default function AdminDashboard({
         bookingsCount={bookings.length}
         roleBadgeLabel={roleBadge.label}
         onToggleCollapse={toggleSidebar}
+        logoUrl={siteSettings.logoUrl}
+        logoText={siteSettings.logoText || siteSettings.siteTitle}
       />
 
       {/* 3. Ana Sütun (Header + Main) */}
@@ -2255,6 +2257,8 @@ export default function AdminDashboard({
           sync={{ isOnline, isCloudConnected, isSyncing, pendingSyncCount, lastSyncedAt }}
           onManualSync={handleManualSync}
           actions={headerActions}
+          logoUrl={siteSettings.logoUrl}
+          logoText={siteSettings.logoText || siteSettings.siteTitle}
         />
 
         {/* Main Content */}
