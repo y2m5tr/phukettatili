@@ -1039,11 +1039,21 @@ export default function TransfersTab({
                       <span className="font-bold text-slate-900 dark:text-white block">
                         {p.hotel}
                       </span>
-                      {p.roomNumber && (
-                        <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                          Oda: {p.roomNumber}
-                        </span>
-                      )}
+                      <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                        {p.roomNumber && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            Oda: {p.roomNumber}
+                          </span>
+                        )}
+                        {(p.specialNotes?.includes('LOBİDE') ||
+                          (typeof window !== 'undefined' &&
+                            localStorage.getItem(`ptt_lobby_ready_${p.bookingId}`) === 'true')) && (
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                            <span>🙋‍♂️ Lobide Bekliyor</span>
+                          </span>
+                        )}
+                      </div>
                     </td>
 
                     <td className="py-4 px-5">

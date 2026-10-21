@@ -119,6 +119,58 @@ export default function GuestTicketPortal({
   const [checkinMessage, setCheckinMessage] = useState<string>('');
   const [isPromptPayOpen, setIsPromptPayOpen] = useState<boolean>(false);
 
+  // 🙋‍♂️ Lobi Hazırlık Durumu (Misafir Butonu)
+  const [isLobbyReady, setIsLobbyReady] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem(`ptt_lobby_ready_${booking.id}`) === 'true';
+  });
+  const [lobbyReadyTime, setLobbyReadyTime] = useState<string>(() => {
+    if (typeof window === 'undefined') return '';
+    return localStorage.getItem(`ptt_lobby_ready_time_${booking.id}`) || '';
+  });
+  const [isSubmittingLobbyReady, setIsSubmittingLobbyReady] = useState<boolean>(false);
+
+  const handleToggleLobbyReady = async () => {
+    const nextState = !isLobbyReady;
+    const nowTime = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+
+    setIsSubmittingLobbyReady(true);
+    setIsLobbyReady(nextState);
+    if (nextState) {
+      setLobbyReadyTime(nowTime);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`ptt_lobby_ready_${booking.id}`, 'true');
+        localStorage.setItem(`ptt_lobby_ready_time_${booking.id}`, nowTime);
+      }
+    } else {
+      setLobbyReadyTime('');
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(`ptt_lobby_ready_${booking.id}`);
+        localStorage.removeItem(`ptt_lobby_ready_time_${booking.id}`);
+      }
+    }
+
+    try {
+      await fetch('/api/guest-lobby-ready', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: booking.id,
+          isReady: nextState,
+          customerName: booking.customerName,
+          hotel: booking.hotel,
+          roomNumber: booking.roomNumber,
+          tourTitle: booking.tourTitle,
+          time: nowTime,
+        }),
+      });
+    } catch (err) {
+      console.warn('Lobi hazır bildirimi gönderilirken hata:', err);
+    } finally {
+      setIsSubmittingLobbyReady(false);
+    }
+  };
+
   // 🌊 Andaman Denizi Canlı Güvenlik & Hava Durumu
   const [marineSafety, setMarineSafety] = useState<{
     level: 'calm' | 'moderate' | 'severe';
@@ -350,6 +402,57 @@ export default function GuestTicketPortal({
                 </div>
               </div>
             )}
+
+            {/* LOBİDEYİM HAZIRIM BUTONU & DURUMU */}
+            <div className="mt-4 pt-3.5 border-t border-slate-800/80">
+              {isLobbyReady ? (
+                <div className="p-3.5 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 shadow-lg space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                      </span>
+                      <span className="font-bold text-sm text-emerald-300">
+                        Lobidesiniz & Hazırsınız {lobbyReadyTime ? `(${lobbyReadyTime})` : ''}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleToggleLobbyReady}
+                      disabled={isSubmittingLobbyReady}
+                      className="text-[11px] text-slate-400 hover:text-slate-200 underline cursor-pointer"
+                    >
+                      Geri Al
+                    </button>
+                  </div>
+                  <p className="text-[11px] text-slate-300 leading-relaxed">
+                    ✨ Hazır olduğunuz operasyon ekibimize ve transfer aracınıza iletildi. Şoförümüz lobide sizi isminizle karşılayacaktır.
+                  </p>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleToggleLobbyReady}
+                  disabled={isSubmittingLobbyReady}
+                  className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-600 hover:from-emerald-500 hover:to-teal-500 active:scale-[0.99] text-white font-extrabold text-sm shadow-xl shadow-emerald-950/50 flex items-center justify-center gap-2 transition-all cursor-pointer border border-emerald-400/30"
+                >
+                  <span className="text-lg">🙋‍♂️</span>
+                  <span>Lobideyim, Hazırım! (Şoföre Bildir)</span>
+                </button>
+              )}
+            </div>
+
+            {/* ATANAN ARAÇ / HAT BİLGİSİ */}
+            <div className="mt-3 flex items-center justify-between px-3.5 py-2.5 rounded-2xl bg-slate-950/70 border border-slate-800/80 text-xs">
+              <span className="text-slate-400 flex items-center gap-2 font-medium">
+                <Bus className="w-4 h-4 text-amber-400 shrink-0" />
+                <span>Atanan Hat / Araç:</span>
+              </span>
+              <span className="font-mono font-bold text-amber-300 bg-amber-500/10 px-2.5 py-1 rounded-lg border border-amber-500/20">
+                {booking.assignedVehicle || 'VIP Tur Minibüsü'}
+              </span>
+            </div>
           </div>
         </div>
 
