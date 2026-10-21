@@ -13,8 +13,9 @@ import {
   Package,
   ShieldAlert,
   Coins,
+  Compass,
 } from 'lucide-react';
-import type { Booking } from '../../data/adminInitialData';
+import type { Booking, TourItem } from '../../data/adminInitialData';
 import type { AdminTab, NavItem } from './AdminDashboard';
 
 interface CommandPaletteModalProps {
@@ -32,6 +33,8 @@ interface CommandPaletteModalProps {
   onOpenFieldCashier?: () => void;
   onSelectBooking: (b: Booking) => void;
   onSetNavMode: (mode: 'operations' | 'cms') => void;
+  tours?: TourItem[];
+  onSelectTour?: (tour: TourItem) => void;
 }
 
 interface PaletteAction {
@@ -60,6 +63,8 @@ export default function CommandPaletteModal({
   onOpenFieldCashier,
   onSelectBooking,
   onSetNavMode,
+  tours = [],
+  onSelectTour,
 }: CommandPaletteModalProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -260,8 +265,42 @@ export default function CommandPaletteModal({
       });
     }
 
+    // 4. Turlar (Tour Catalog Search)
+    if (q && tours && tours.length > 0) {
+      const matchedTours = tours
+        .filter((t) => {
+          return (
+            t.title.toLowerCase().includes(q) ||
+            (t.categoryLabel && t.categoryLabel.toLowerCase().includes(q)) ||
+            (t.category && t.category.toLowerCase().includes(q)) ||
+            t.id.toLowerCase().includes(q)
+          );
+        })
+        .slice(0, 6);
+
+      matchedTours.forEach((t) => {
+        results.push({
+          id: `tour-${t.id}`,
+          type: 'action',
+          title: t.title,
+          subtitle: `${t.categoryLabel || t.category} · ${t.duration || 'Tam Gün'} ${t.priceThb ? `· ${t.priceThb.toLocaleString()} THB` : ''}`,
+          badge: 'Tur Kataloğu',
+          badgeColor: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/30',
+          icon: Compass,
+          handler: () => {
+            onClose();
+            if (onSelectTour) {
+              onSelectTour(t);
+            } else {
+              onSelectTab('tours');
+            }
+          },
+        });
+      });
+    }
+
     return results;
-  }, [query, bookings, navItems, onClose, onOpenCreateBooking, onOpenQrScanner, onOpenPoliceManifest, onSelectTab, onSelectBooking, onSetNavMode]);
+  }, [query, bookings, navItems, tours, onClose, onOpenCreateBooking, onOpenQrScanner, onOpenPoliceManifest, onSelectTab, onSelectBooking, onSelectTour, onSetNavMode]);
 
   // Klavye Kontrolleri: Up, Down, Enter, Esc
   useEffect(() => {

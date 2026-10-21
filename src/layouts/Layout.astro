@@ -5,6 +5,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import Tracking from '../components/Tracking.astro';
 import WhatsAppSupportWidget from '../components/WhatsAppSupportWidget.astro';
+import HolidayShortlist from '../components/ui/HolidayShortlist';
 
 interface Props {
 	title: string;
@@ -122,6 +123,9 @@ const fullTitle = noTitleSuffix ? title : `${title} | Phuket Tatili`;
         
         <!-- Proactive Floating WhatsApp Widget -->
         <WhatsAppSupportWidget />
+
+        <!-- Interactive Holiday Shortlist (Wishlist & Multi-Tour Inquiry) -->
+        <HolidayShortlist client:load />
 
         <script>
           document.addEventListener('astro:page-load', () => {

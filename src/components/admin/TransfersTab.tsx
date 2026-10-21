@@ -51,6 +51,7 @@ interface TransfersTabProps {
   setManifestDate: (d: string) => void;
   vehicles?: VehicleItem[];
   drivers?: DriverItem[];
+  googleReviewUrl?: string;
   /** Toast gösterici — AdminDashboard ile aynı davranış. */
   showToast: (msg: string) => void;
   handleAssignVehicleToBooking: (bookingId: string, tourIndex: number, vehicle: string) => void;
@@ -82,6 +83,7 @@ export default function TransfersTab({
   setManifestDate,
   vehicles = [],
   drivers = [],
+  googleReviewUrl,
   showToast,
   handleAssignVehicleToBooking,
   handleAssignDriverToBooking,
@@ -1255,6 +1257,20 @@ export default function TransfersTab({
                         >
                           <Ticket className="w-4 h-4" />
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const target = bookings.find((b) => b.id === p.bookingId);
+                            if (target) {
+                              const url = getGoogleReviewWhatsAppUrl(target, { googleReviewUrl });
+                              window.open(url, '_blank', 'noopener,noreferrer');
+                            }
+                          }}
+                          className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 hover:bg-amber-400 hover:text-slate-950 transition-colors"
+                          title="⭐ Misafirden 5-Yıldızlı Google Yorumu İste (WhatsApp)"
+                        >
+                          <Star className="w-4 h-4 fill-current" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -1546,6 +1562,23 @@ export default function TransfersTab({
                                     <option value="completed">✅ Bitti</option>
                                     <option value="no_show">❌ Gelmedi</option>
                                   </select>
+                                  {stop.pickupStatus === 'completed' && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const target = bookings.find((b) => b.id === stop.bookingId);
+                                        if (target) {
+                                          const url = getGoogleReviewWhatsAppUrl(target, { googleReviewUrl });
+                                          window.open(url, '_blank', 'noopener,noreferrer');
+                                        }
+                                      }}
+                                      className="px-2 py-1 rounded-lg bg-amber-400 hover:bg-amber-500 text-slate-950 font-bold text-[10px] flex items-center gap-1 shadow-xs transition-colors cursor-pointer"
+                                      title="Misafire Google Yorum Daveti Gönder (WhatsApp)"
+                                    >
+                                      <Star className="w-3 h-3 fill-current" />
+                                      <span>Yorum</span>
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                             </div>

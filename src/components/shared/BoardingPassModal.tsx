@@ -65,9 +65,148 @@ export default function BoardingPassModal({
       .catch((err) => console.error('QR Kod üretme hatası:', err));
   }, [qrPayload]);
 
-  // Yazdırma (Print / PDF)
+  // Resmi A4 Antetli Seyahat Voucher'ı Yazdırma / PDF
   const handlePrint = () => {
-    window.print();
+    const newWin = window.open('', '_blank');
+    if (!newWin) {
+      window.print();
+      return;
+    }
+
+    const todayStr = new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const pickupWindow = activeTour.pickupTime || '07:30';
+
+    newWin.document.write(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VOUCHER-${booking.id} · ${booking.customerName} · Phuket Tatili</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; margin: 0; padding: 0; background: #fff !important; }
+      .no-print { display: none !important; }
+      .a4-voucher { box-shadow: none !important; border: 1px solid #cbd5e1 !important; margin: 0 auto !important; width: 100% !important; max-width: none !important; }
+    }
+    body { background-color: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  </style>
+</head>
+<body class="p-3 sm:p-8 flex flex-col items-center min-h-screen">
+  <!-- Üst Eylem Barı -->
+  <div class="no-print w-full max-w-[800px] mb-5 p-3.5 bg-slate-900 text-white rounded-2xl border border-slate-700 shadow-xl flex items-center justify-between gap-3">
+    <div class="flex items-center gap-2 text-xs">
+      <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+      <span class="font-bold">Resmi Seyahat Voucher'ı</span>
+      <span class="text-slate-400">·</span>
+      <span class="font-mono text-amber-400 font-bold">${booking.id}</span>
+    </div>
+    <div class="flex items-center gap-2">
+      <button onclick="window.print()" style="cursor:pointer;" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition flex items-center gap-1.5 shadow-md">
+        🖨️ A4 PDF İndir / Yazdır
+      </button>
+      <button onclick="window.close()" style="cursor:pointer;" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition">
+        Kapat
+      </button>
+    </div>
+  </div>
+
+  <!-- A4 Belge Gövdesi -->
+  <div class="a4-voucher w-full max-w-[800px] bg-white p-8 sm:p-10 rounded-3xl shadow-2xl border border-slate-200 text-slate-900 relative">
+    <!-- Antet & Logo -->
+    <div class="flex items-center justify-between border-b-2 border-slate-900 pb-6 mb-6">
+      <div class="flex items-center gap-3">
+        <img src="/assets/logo-main-transparent.png" alt="Phuket Tatili" class="h-14 w-auto object-contain" />
+        <div>
+          <h1 class="text-2xl font-serif font-black tracking-tight text-slate-950">PHUKET TATİLİ</h1>
+          <p class="text-[11px] font-bold uppercase tracking-wider text-amber-700">Lüks Seyahat & VIP Tur Operasyonu · Tayland</p>
+        </div>
+      </div>
+      <div class="text-right">
+        <span class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 border border-emerald-300 rounded-full text-xs font-black uppercase mb-1">
+          ✓ ONAYLANDI (CONFIRMED)
+        </span>
+        <p class="text-xs text-slate-500 font-mono">Ref No: <strong>${booking.id}</strong></p>
+        <p class="text-[11px] text-slate-400">Düzenlenme: ${todayStr}</p>
+      </div>
+    </div>
+
+    <!-- Başlık -->
+    <div class="text-center mb-6">
+      <h2 class="text-xl font-bold tracking-tight uppercase text-slate-900">RESMİ TUR VE TRANSFER BİNİŞ BELGESİ</h2>
+      <p class="text-xs text-slate-500">OFFICIAL SERVICE VOUCHER & BOARDING PASS</p>
+    </div>
+
+    <!-- Bilgi Izgarası -->
+    <div class="grid grid-cols-2 gap-4 mb-6 text-xs">
+      <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Misafir & İletişim Bilgileri</span>
+        <p class="text-sm font-bold text-slate-900">${booking.customerName}</p>
+        <p class="text-slate-600">👥 Kişi Sayısı: <strong>${booking.adultCount} Yetişkin${booking.childCount ? `, ${booking.childCount} Çocuk` : ''}</strong></p>
+        <p class="text-slate-600">📱 Telefon: <strong>${booking.phone}</strong></p>
+        <p class="text-slate-600">🏨 Otel: <strong>${booking.hotel}</strong> ${booking.roomNumber ? `(Oda: ${booking.roomNumber})` : ''}</p>
+        <p class="text-slate-500 text-[11px]">Bölge: ${hotelZone}</p>
+      </div>
+
+      <div class="p-4 rounded-xl bg-amber-50/60 border border-amber-200 space-y-1.5">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-amber-800 block">Tur & Zamanlama Bilgileri</span>
+        <p class="text-sm font-bold text-slate-950">${activeTour.tourTitle}</p>
+        <p class="text-slate-700">📅 Tur Tarihi: <strong>${activeTour.tourDate}</strong></p>
+        <p class="text-emerald-700 font-bold">⏰ Lobi Alınış Saati: <span class="text-base">${pickupWindow}</span></p>
+        <p class="text-slate-600">🚐 Transfer Aracı: <strong>${vehicle}</strong></p>
+        <p class="text-slate-500 text-[11px]">Rehberlik: Türkçe & İngilizce Destekli</p>
+      </div>
+    </div>
+
+    <!-- Ödeme Durumu & Fiyatlandırma -->
+    <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 mb-6 flex items-center justify-between text-xs">
+      <div>
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Finansal Durum</span>
+        <p class="text-sm font-bold text-slate-900">Toplam Tur Tutarı: ${booking.totalPriceThb.toLocaleString()} THB</p>
+      </div>
+      <div class="text-right">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Kalan Tahsilat (Rehbere)</span>
+        <p class="text-sm font-bold ${booking.remainingAmountThb > 0 ? 'text-amber-700' : 'text-emerald-600'}">
+          ${booking.remainingAmountThb > 0 ? `${booking.remainingAmountThb.toLocaleString()} THB` : 'ÖDENDİ (0 THB)'}
+        </p>
+      </div>
+    </div>
+
+    <!-- Saha ve Lobi Kuralları -->
+    <div class="p-4 rounded-xl border border-slate-200 space-y-2 mb-6 text-xs text-slate-700 bg-white">
+      <h4 class="font-bold text-slate-900 text-xs uppercase flex items-center gap-1.5">
+        <span>⚠️</span> Misafir Bilgilendirme ve Lobi Alınış Kuralları
+      </h4>
+      <ul class="space-y-1 text-[11px] list-disc list-inside leading-relaxed text-slate-600">
+        <li><strong>Lobi Karşılama:</strong> Lütfen belirtilen saatte otelinizin ana lobisinde hazır bulununuz. Şoförümüz lobide isminizi veya rezervasyon numaranızı anons edecektir.</li>
+        <li><strong>Trafik Toleransı:</strong> Phuket trafiğine bağlı olarak araç alış saatinde &plusmn;10-15 dakikalık esneklik olabilir.</li>
+        <li><strong>Yanınızda Bulundurmanız Gerekenler:</strong> Mayo, havlu, güneş kremi, su geçirmez telefon kılıfı ve şapka bulundurmanız önerilir.</li>
+        ${activeTour.nationalParkFeeIncluded === false ? '<li class="text-amber-800 font-bold">Milli park harcı fiyata dahil değildir; limanda kişi başı nakit (Baht) ödenir.</li>' : ''}
+      </ul>
+    </div>
+
+    <!-- QR Kod ve Acente İletişim / Damga -->
+    <div class="flex items-center justify-between pt-4 border-t border-slate-200">
+      <div class="flex items-center gap-3">
+        ${qrDataUrl ? `<img src="${qrDataUrl}" alt="QR Kod" class="w-20 h-20 border border-slate-200 rounded-lg p-1" />` : ''}
+        <div class="text-[11px] text-slate-500">
+          <p class="font-bold text-slate-800">Dijital Doğrulama QR</p>
+          <p>Saha rehberi ve transfer denetimi için geçerlidir.</p>
+          <p class="font-mono text-[10px] text-slate-400">${booking.id}</p>
+        </div>
+      </div>
+
+      <div class="text-right text-[11px] text-slate-600">
+        <p class="font-bold text-slate-900 text-xs">Phuket Tatili 7/24 Destek Hattı</p>
+        <p>WhatsApp: <strong>+${managerPhone}</strong></p>
+        <p>E-posta: <strong>info@phukettatili.com</strong></p>
+        <p class="text-[10px] text-slate-400 mt-1">www.phukettatili.com</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>`);
+    newWin.document.close();
   };
 
   // WhatsApp ile Gönderme

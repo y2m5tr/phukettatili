@@ -2387,6 +2387,7 @@ export default function AdminDashboard({
             setManifestDate={setManifestDate}
             vehicles={vehicles || []}
             drivers={drivers || []}
+            googleReviewUrl={siteSettings.googleReviewUrl}
             showToast={showToast}
             handleAssignVehicleToBooking={handleAssignVehicleToBooking}
             handleAssignDriverToBooking={handleAssignDriverToBooking}
@@ -3009,6 +3010,8 @@ export default function AdminDashboard({
           setIsFieldCashierOpen(true);
         }}
         onSelectBooking={(b) => handleOpenEditBooking(b)}
+        tours={tours}
+        onSelectTour={(t) => handleOpenEditTour(t)}
         onSetNavMode={(mode) => {
           const cat = mode === 'operations' ? 'operations' : 'content';
           setCategoryFilter(cat);

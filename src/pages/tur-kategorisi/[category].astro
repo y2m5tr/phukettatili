@@ -130,6 +130,17 @@ const schemas: Record<string, unknown>[] = [
                     class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                   />
                   <div class="absolute inset-0 bg-brand-primary/20 group-hover:bg-transparent transition-colors duration-500"></div>
+                  <!-- Wishlist Heart Button -->
+                  <button
+                    type="button"
+                    class="ptt-wishlist-btn absolute top-4 left-4 z-20 w-9 h-9 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur text-slate-400 hover:text-rose-500 flex items-center justify-center shadow-md border border-white/40 dark:border-slate-700/60 cursor-pointer"
+                    data-tour-id={tour.id}
+                    onclick={`event.preventDefault(); event.stopPropagation(); window.togglePttShortlist && window.togglePttShortlist({ id: '${tour.id}', title: ${JSON.stringify(tour.data.title)}, image: '${tour.data.image || ''}', duration: '${tour.data.duration || 'Tam Gün'}', category: '${tour.data.category_label || categoryLabel || ''}' });`}
+                    title="Tatil Planıma Ekle"
+                    aria-label={`${tour.data.title} turunu tatil planıma ekle`}
+                  >
+                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                  </button>
                   <div class="absolute top-4 right-4 bg-white/90 backdrop-blur text-brand-primary text-xs font-bold px-3 py-1 rounded-full">
                     {tour.data.category_label || categoryLabel}
                   </div>
