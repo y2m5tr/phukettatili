@@ -162,26 +162,54 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
                 const match = item.match(/^(\d{1,2}:\d{2})\s*[-–]\s*(.+)$/);
                 const time = match ? match[1] : '';
                 const desc = match ? match[2] : item;
-                const stepImg = tour.data.program_images?.[idx];
+                const rawImages = tour.data.program_images?.[idx];
+                const stepImages: string[] = Array.isArray(rawImages)
+                  ? (rawImages.filter(Boolean) as string[])
+                  : (rawImages ? [rawImages as string] : []);
                 
                 return (
                   <div class="relative pl-8">
                     <span class="absolute -left-[11px] top-1 w-5 h-5 rounded-full bg-brand-accent border-4 border-slate-50 dark:border-surface-1"></span>
                     <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-                      <div class={stepImg ? "flex flex-col sm:flex-row gap-5" : ""}>
-                        <div class={stepImg ? "flex-1" : ""}>
+                      <div class={stepImages.length > 0 ? "flex flex-col sm:flex-row gap-5 items-start justify-between" : ""}>
+                        <div class={stepImages.length > 0 ? "flex-1" : ""}>
                           {time && <span class="inline-block bg-brand-accent/10 text-brand-accent font-bold px-3 py-1 rounded-full text-sm mb-3">{time.trim()}</span>}
                           <p class="text-slate-600 dark:text-slate-300 m-0 leading-relaxed">{desc.trim()}</p>
                         </div>
-                        {stepImg && (
-                          <div class="relative w-full sm:w-40 h-32 sm:h-28 shrink-0 rounded-xl overflow-hidden group cursor-pointer gallery-trigger" data-index={`program-${idx}`} data-src={resolveAssetUrl(stepImg)} aria-label={`${tour.data.title} program fotoğrafı ${idx + 1}`} role="button" tabindex="0">
+                        {stepImages.length === 1 && (
+                          <div class="relative w-full sm:w-44 h-36 sm:h-28 shrink-0 rounded-xl overflow-hidden group cursor-pointer gallery-trigger shadow-xs" data-index={`program-${idx}-0`} data-src={resolveAssetUrl(stepImages[0])} aria-label={`${tour.data.title} program fotoğrafı ${idx + 1}`} role="button" tabindex="0">
                             <img
-                              src={resolveAssetUrl(stepImg)}
+                              src={resolveAssetUrl(stepImages[0])}
                               alt={`${tour.data.title} — ${desc.trim().slice(0, 60)}`}
                               loading="lazy"
                               decoding="async"
                               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
+                          </div>
+                        )}
+                        {stepImages.length > 1 && (
+                          <div class="flex flex-wrap sm:flex-nowrap gap-2 shrink-0 pt-2 sm:pt-0">
+                            {stepImages.map((img, imgIdx) => (
+                              <div
+                                class="relative w-24 sm:w-28 h-20 sm:h-24 rounded-xl overflow-hidden group cursor-pointer gallery-trigger shadow-xs hover:shadow-md transition-all border border-slate-100 dark:border-slate-700"
+                                data-index={`program-${idx}-${imgIdx}`}
+                                data-src={resolveAssetUrl(img)}
+                                aria-label={`${tour.data.title} program fotoğrafı ${idx + 1}.${imgIdx + 1}`}
+                                role="button"
+                                tabindex="0"
+                              >
+                                <img
+                                  src={resolveAssetUrl(img)}
+                                  alt={`${tour.data.title} — ${desc.trim().slice(0, 60)} (${imgIdx + 1})`}
+                                  loading="lazy"
+                                  decoding="async"
+                                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                />
+                                <span class="absolute bottom-1 right-1 px-1.5 py-0.5 rounded-md bg-black/65 backdrop-blur-xs text-[10px] text-white font-medium">
+                                  {imgIdx + 1}/{stepImages.length}
+                                </span>
+                              </div>
+                            ))}
                           </div>
                         )}
                       </div>

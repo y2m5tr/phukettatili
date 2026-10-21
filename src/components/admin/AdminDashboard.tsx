@@ -2773,6 +2773,7 @@ export default function AdminDashboard({
         handleFileUpload={handleFileUpload}
         allImageOptions={allImageOptions}
         mediaList={mediaList}
+        allTours={tours}
       />
 
       {/* ==================================================== */}

@@ -41,7 +41,7 @@ export interface TourOverlayItem {
   included?: string[];
   excluded?: string[];
   program?: string[];
-  programImages?: string[];
+  programImages?: (string | string[])[];
   faq?: { q: string; a: string }[];
   restrictions?: string[];
   [key: string]: unknown;
@@ -127,6 +127,15 @@ function nonEmptyStringArray(value: unknown): string[] | null {
   return null;
 }
 
+function normalizeProgramImages(value: unknown): (string | string[])[] | null {
+  if (!Array.isArray(value)) return null;
+  return value.map((item) => {
+    if (typeof item === 'string') return item;
+    if (Array.isArray(item) && item.every((image) => typeof image === 'string')) return item;
+    return '';
+  });
+}
+
 /**
  * Cloud kaydının alanlarını `.md` frontmatter isimlerine çevirir.
  * Panel `priceThb`/`categoryLabel`/`programImages` kullanır; koleksiyon
@@ -169,8 +178,7 @@ function overlayOnto(
   const program = nonEmptyStringArray(cloud.program);
   if (program) next.program = program;
 
-  const programImages =
-    nonEmptyStringArray(cloud.programImages) ?? nonEmptyStringArray(cloud.program_images);
+  const programImages = normalizeProgramImages(cloud.programImages ?? cloud.program_images);
   if (programImages) next.program_images = programImages;
 
   const restrictions = nonEmptyStringArray(cloud.restrictions);

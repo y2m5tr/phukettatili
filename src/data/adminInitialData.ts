@@ -249,7 +249,7 @@ export interface TourItem {
   included?: string[];
   excluded?: string[];
   program?: string[];
-  programImages?: string[];
+  programImages?: (string | string[])[];
   faq?: TourFaq[];
   restrictions?: string[];
   body?: string;

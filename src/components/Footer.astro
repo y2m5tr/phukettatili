@@ -1,17 +1,40 @@
 ---
-import siteSettings from '../content/settings/site.json';
+import siteSettingsJson from '../content/settings/site.json';
+import { getPublicHomeContent, mergeSiteSettings } from '../lib/server/homeSettings';
+import { resolveAssetUrl } from '../lib/assets';
+
+let siteSettings: Record<string, any> = siteSettingsJson;
+try {
+  const panelContent = await getPublicHomeContent();
+  siteSettings = mergeSiteSettings(siteSettingsJson, panelContent.siteSettings) as Record<string, any>;
+} catch {}
+
 const currentYear = new Date().getFullYear();
 const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
 const whatsappUrl = `https://wa.me/${whatsappNumber}`;
 const email = siteSettings?.email || 'info@phukettatili.com';
 const instagramUrl = siteSettings?.instagramUrl || 'https://instagram.com/phukettatili';
+const logoUrl = siteSettings?.logoUrl || '/assets/logo-main-transparent.png';
+const logoText = (siteSettings?.logoText || 'Phuket Tatili').trim();
+const lastSpaceIdx = logoText.lastIndexOf(' ');
+const logoFirstPart = lastSpaceIdx !== -1 ? logoText.substring(0, lastSpaceIdx) : logoText;
+const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1) : '';
 ---
 <footer class="bg-brand-primary text-slate-300 py-16 mt-auto border-t border-slate-800">
   <div class="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-10">
     <div class="col-span-1 md:col-span-2">
       <div class="flex items-center gap-3 mb-6">
-        <img src="/assets/logo-main-transparent.png" alt="Phuket Tatili Logo" class="h-16 w-auto object-contain brightness-0 invert opacity-90" />
-        <h3 class="font-serif text-3xl text-white">Phuket <span class="text-brand-gold italic">Tatili</span></h3>
+        <img
+          src={resolveAssetUrl(logoUrl, '/assets/logo-main-transparent.png')}
+          alt={`${logoText} Logo`}
+          class="h-16 w-auto object-contain brightness-0 invert opacity-90"
+        />
+        {logoText && (
+          <h3 class="font-serif text-3xl text-white">
+            {logoFirstPart}{' '}
+            {logoAccentPart && <span class="text-brand-gold italic">{logoAccentPart}</span>}
+          </h3>
+        )}
       </div>
       <p class="text-sm font-light leading-relaxed max-w-sm mb-6 text-slate-400">
         Tayland'ın en güzel adalarında unutulmaz anılar biriktirin. Özel turlar, VIP hizmetler ve 7/24 Türkçe rehberlik ile ayrıcalıklı bir tatil deneyimi.

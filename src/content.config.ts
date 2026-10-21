@@ -18,7 +18,7 @@ const toursCollection = defineCollection({
     included: z.array(z.string()).optional(),
     excluded: z.array(z.string()).optional(),
     program: z.array(z.string()).optional(),
-    program_images: z.array(z.string()).optional(),
+    program_images: z.array(z.union([z.string(), z.array(z.string())])).optional(),
     faq: z.array(
       z.object({
         q: z.string(),

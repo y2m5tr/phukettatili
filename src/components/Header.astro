@@ -1,8 +1,21 @@
 ---
-import siteSettings from '../content/settings/site.json';
+import siteSettingsJson from '../content/settings/site.json';
+import { getPublicHomeContent, mergeSiteSettings } from '../lib/server/homeSettings';
+import { resolveAssetUrl } from '../lib/assets';
 import TopAnnouncementBar from './TopAnnouncementBar.astro';
 
+let siteSettings: Record<string, any> = siteSettingsJson;
+try {
+  const panelContent = await getPublicHomeContent();
+  siteSettings = mergeSiteSettings(siteSettingsJson, panelContent.siteSettings) as Record<string, any>;
+} catch {}
+
 const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
+const logoUrl = siteSettings?.logoUrl || '/assets/logo-main-transparent.png';
+const logoText = (siteSettings?.logoText || 'Phuket Tatili').trim();
+const lastSpaceIdx = logoText.lastIndexOf(' ');
+const logoFirstPart = lastSpaceIdx !== -1 ? logoText.substring(0, lastSpaceIdx) : logoText;
+const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1) : '';
 ---
 <header id="site-header" class="fixed w-full top-0 z-50 transition-all duration-500 bg-white/90 dark:bg-surface-1/95 backdrop-blur-xl border-b border-slate-200/50 dark:border-slate-800/80 shadow-sm">
   <TopAnnouncementBar />
@@ -10,8 +23,20 @@ const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
     <div class="flex items-center justify-between h-20">
       <!-- Logo -->
       <a href="/" class="flex items-center gap-2.5 shrink-0 group mr-8 lg:mr-12 xl:mr-16">
-        <img src="/assets/logo-main-transparent.png" alt="Phuket Tatili Logo" width="460" height="340" decoding="async" class="h-14 lg:h-16 w-auto object-contain group-hover:scale-105 transition-transform duration-300" />
-        <span class="font-serif text-2xl lg:text-3xl font-bold text-brand-primary dark:text-white tracking-tight whitespace-nowrap">Phuket <span class="text-brand-accent italic">Tatili</span></span>
+        <img
+          src={resolveAssetUrl(logoUrl, '/assets/logo-main-transparent.png')}
+          alt={`${logoText} Logo`}
+          width="460"
+          height="340"
+          decoding="async"
+          class="h-14 lg:h-16 w-auto object-contain group-hover:scale-105 transition-transform duration-300"
+        />
+        {logoText && (
+          <span class="font-serif text-2xl lg:text-3xl font-bold text-brand-primary dark:text-white tracking-tight whitespace-nowrap">
+            {logoFirstPart}{' '}
+            {logoAccentPart && <span class="text-brand-accent italic">{logoAccentPart}</span>}
+          </span>
+        )}
       </a>
 
       <!-- Desktop Navigation -->
