@@ -31,6 +31,7 @@ import {
   Moon,
   FileText,
   UserCheck,
+  BellRing,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
@@ -44,6 +45,7 @@ import {
 import { type RouteSortMode } from '../../lib/routeSequencer';
 import { getConciergeWhatsAppUrl } from '../../lib/guestConcierge';
 import { getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
+import { sendTransferPushNotification } from '../../lib/pwaNotifications';
 
 interface TransfersTabProps {
   bookings?: Booking[];
@@ -61,6 +63,7 @@ interface TransfersTabProps {
     tourIndex: number,
     status: 'pending' | 'picked_up' | 'on_tour' | 'completed' | 'no_show'
   ) => void;
+  handleUpdatePickupTime?: (bookingId: string, tourIndex: number, newTime: string) => Promise<void> | void;
   setWhatsAppModalBooking: (b: Booking) => void;
   setVoucherBooking: (b: Booking) => void;
   onOpenPoliceManifest: () => void;
@@ -88,6 +91,7 @@ export default function TransfersTab({
   handleAssignVehicleToBooking,
   handleAssignDriverToBooking,
   handleUpdatePickupStatus,
+  handleUpdatePickupTime,
   setWhatsAppModalBooking,
   setVoucherBooking,
   onOpenPoliceManifest,
@@ -1013,7 +1017,22 @@ export default function TransfersTab({
                     className="hover:bg-slate-50/60 dark:hover:bg-slate-900/30 transition-colors"
                   >
                     <td className="py-4 px-5 font-mono text-sm font-extrabold text-brand-primary dark:text-brand-accent">
-                      ⏰ {p.pickupTime}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const current = p.pickupTime || '07:30';
+                          const next = prompt(`"${p.customerName}" (${p.hotel}) için yeni alınış saatini girin:`, current);
+                          if (next && next.trim() && next.trim() !== current) {
+                            if (handleUpdatePickupTime) {
+                              handleUpdatePickupTime(p.bookingId, p.tourIndex, next.trim());
+                            }
+                          }
+                        }}
+                        className="hover:underline hover:text-amber-500 cursor-pointer text-left"
+                        title="Alınış Saatini Değiştir & Şoföre PWA Bildirimi Gönder"
+                      >
+                        ⏰ {p.pickupTime} ✎
+                      </button>
                     </td>
 
                     <td className="py-4 px-5">
@@ -1271,6 +1290,26 @@ export default function TransfersTab({
                         >
                           <Star className="w-4 h-4 fill-current" />
                         </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await sendTransferPushNotification({
+                              bookingId: p.bookingId,
+                              customerName: p.customerName,
+                              hotel: p.hotel,
+                              newTime: p.pickupTime || '07:30',
+                              vehicle: p.assignedVehicle,
+                              driverId: p.assignedDriver,
+                              roomNumber: p.roomNumber,
+                              phone: p.phone,
+                            });
+                            showToast(`📢 ${p.customerName} transfer bildirimi şoföre iletildi!`);
+                          }}
+                          className="p-2 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
+                          title="📲 Şoföre Anlık PWA Push Bildirimi Gönder"
+                        >
+                          <BellRing className="w-4 h-4" />
+                        </button>
                       </div>
                     </td>
                   </tr>
@@ -1455,6 +1494,27 @@ export default function TransfersTab({
                           <Copy className="w-3.5 h-3.5" />
                           <span>Kopyala</span>
                         </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const firstStop = route.stops[0];
+                            await sendTransferPushNotification({
+                              bookingId: `ROUTE-${route.vehicle}`,
+                              customerName: `${route.totalGuests} Yolcu (${route.stops.length} Durak)`,
+                              hotel: `${route.stops.map((s) => s.hotel).slice(0, 2).join(', ')}${route.stops.length > 2 ? '...' : ''}`,
+                              newTime: firstStop?.pickupTime || '07:30',
+                              vehicle: route.vehicle,
+                              driverName: route.driver?.fullName,
+                              driverId: route.driver?.id,
+                            });
+                            showToast(`📲 "${route.vehicle}" şoförüne (${route.driver?.fullName || 'Tüm Ekip'}) PWA bildirimi iletildi!`);
+                          }}
+                          className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm transition-all cursor-pointer"
+                          title="Şoförün telefonuna anlık PWA push bildirimi fırlat"
+                        >
+                          <BellRing className="w-3.5 h-3.5" />
+                          <span>PWA Bildir</span>
+                        </button>
                       </div>
                     </div>
 
@@ -1509,9 +1569,22 @@ export default function TransfersTab({
                                   <span>{stop.hotel}</span>
                                   <ExternalLink className="w-2.5 h-2.5 text-slate-400 shrink-0" />
                                 </a>
-                                <span className="px-2 py-0.5 rounded-md font-mono text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
-                                  ⏰ {stop.pickupTime || '07:30'}
-                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const current = stop.pickupTime || '07:30';
+                                    const next = prompt(`"${stop.customerName}" (${stop.hotel}) için yeni alınış saatini girin:`, current);
+                                    if (next && next.trim() && next.trim() !== current) {
+                                      if (handleUpdatePickupTime) {
+                                        handleUpdatePickupTime(stop.bookingId, stop.tourIndex, next.trim());
+                                      }
+                                    }
+                                  }}
+                                  className="px-2 py-0.5 rounded-md font-mono text-xs font-bold bg-slate-100 hover:bg-amber-100 dark:bg-slate-800 dark:hover:bg-amber-950/60 text-slate-700 hover:text-amber-700 dark:text-slate-300 dark:hover:text-amber-400 shrink-0 cursor-pointer transition border border-transparent hover:border-amber-300"
+                                  title="Alınış Saatini Değiştir & Şoföre PWA Bildirimi Gönder"
+                                >
+                                  ⏰ {stop.pickupTime || '07:30'} ✎
+                                </button>
                               </div>
 
                               <div className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">

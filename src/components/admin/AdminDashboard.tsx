@@ -114,6 +114,7 @@ import {
   processImageFile,
   uploadToStorage,
 } from '../../lib/imageUpload';
+import { sendTransferPushNotification } from '../../lib/pwaNotifications';
 
 // Geriye dönük uyumluluk: CommandPaletteModal ve OverviewTab bu tipleri
 // AdminDashboard üzerinden import ediyor.
@@ -1617,12 +1618,15 @@ export default function AdminDashboard({
   const applyAssignment = async (
     bookingId: string,
     tourIndex: number,
-    patch: Partial<Pick<BookingTourSchedule, 'assignedVehicle' | 'assignedDriver' | 'pickupStatus' | 'pickedUpAt'>>
+    patch: Partial<Pick<BookingTourSchedule, 'assignedVehicle' | 'assignedDriver' | 'pickupStatus' | 'pickedUpAt' | 'pickupTime'>>
   ) => {
     const target = bookings.find((b) => b.id === bookingId);
     if (!target) return null;
 
     const full = { ...target };
+    if (patch.pickupTime && (tourIndex === 0 || !full.tours || full.tours.length === 0)) {
+      full.pickupTime = patch.pickupTime;
+    }
     if (tourIndex >= 0 && full.tours && full.tours[tourIndex]) {
       const nextTours = [...full.tours];
       nextTours[tourIndex] = { ...nextTours[tourIndex], ...patch };
@@ -1731,7 +1735,17 @@ export default function AdminDashboard({
     vehicle: string
   ) => {
     const full = await applyAssignment(bookingId, tourIndex, { assignedVehicle: vehicle });
-    if (full) showToast(`🚐 ${full.customerName} için hat atandı: ${vehicle}`);
+    if (full) {
+      showToast(`🚐 ${full.customerName} için hat atandı: ${vehicle}`);
+      void sendTransferPushNotification({
+        bookingId: full.id,
+        customerName: full.customerName,
+        hotel: full.hotel,
+        newTime: full.pickupTime || '07:30',
+        vehicle,
+        roomNumber: full.roomNumber,
+      });
+    }
   };
 
   const handleAssignDriverToBooking = async (
@@ -1752,6 +1766,50 @@ export default function AdminDashboard({
           ? `🧑‍✈️ ${full.customerName} için görevli atandı: ${driverName}`
           : `ℹ️ ${full.customerName} için görevli ataması kaldırıldı.`
       );
+      if (driverName) {
+        void sendTransferPushNotification({
+          bookingId: full.id,
+          customerName: full.customerName,
+          hotel: full.hotel,
+          newTime: full.pickupTime || '07:30',
+          driverName,
+          driverId,
+          roomNumber: full.roomNumber,
+        });
+      }
+    }
+  };
+
+  const handleUpdatePickupTime = async (
+    bookingId: string,
+    tourIndex: number,
+    newTime: string
+  ) => {
+    const booking = bookings.find((b) => b.id === bookingId);
+    if (!booking) return;
+
+    const currentSchedule = booking.tours || [];
+    const targetTour = currentSchedule[tourIndex] || currentSchedule[0];
+    const oldTime = targetTour?.pickupTime || booking.pickupTime || '07:30';
+
+    const full = await applyAssignment(bookingId, tourIndex, { pickupTime: newTime });
+    if (full) {
+      showToast(`⏰ ${full.customerName} alınış saati güncellendi: ${newTime}`);
+
+      // Şoföre & Ekibe PWA Anlık Push Bildirimi Gönder
+      const assignedDriver = drivers.find((d) => d.id === targetTour?.assignedDriver);
+      void sendTransferPushNotification({
+        bookingId: full.id,
+        customerName: full.customerName,
+        hotel: full.hotel,
+        oldTime,
+        newTime,
+        vehicle: targetTour?.assignedVehicle,
+        driverName: assignedDriver?.fullName,
+        driverId: assignedDriver?.id,
+        roomNumber: full.roomNumber,
+        phone: full.phone,
+      });
     }
   };
 
@@ -2396,6 +2454,7 @@ export default function AdminDashboard({
             handleAssignVehicleToBooking={handleAssignVehicleToBooking}
             handleAssignDriverToBooking={handleAssignDriverToBooking}
             handleUpdatePickupStatus={handleUpdatePickupStatus}
+            handleUpdatePickupTime={handleUpdatePickupTime}
             setWhatsAppModalBooking={setWhatsAppModalBooking}
             setVoucherBooking={setVoucherBooking}
             onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}

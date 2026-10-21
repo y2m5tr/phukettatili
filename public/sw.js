@@ -104,3 +104,83 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+// 5. PWA Anlık Push Bildirimleri (Web Push & Transfer Saati Güncellemeleri)
+self.addEventListener('push', (event) => {
+  let data = {
+    title: 'Phuket Tatili Operasyon',
+    body: 'Yeni bir transfer saati güncellemesi alındı.',
+    icon: '/assets/logo-main-transparent.png',
+    badge: '/favicon.svg',
+    url: '/admin?tab=transfers',
+    tag: 'transfer-update',
+  };
+
+  if (event.data) {
+    try {
+      data = Object.assign(data, event.data.json());
+    } catch {
+      data.body = event.data.text() || data.body;
+    }
+  }
+
+  const options = {
+    body: data.body,
+    icon: data.icon || '/assets/logo-main-transparent.png',
+    badge: data.badge || '/favicon.svg',
+    tag: data.tag || `transfer-${Date.now()}`,
+    renotify: true,
+    data: {
+      url: data.url || '/admin?tab=transfers',
+      dateOfArrival: Date.now(),
+      ...data.data,
+    },
+    vibrate: [200, 100, 200, 100, 200],
+    actions: [
+      { action: 'open_transfers', title: '📋 Manifestoyu Aç' },
+      { action: 'close', title: 'Kapat' },
+    ],
+  };
+
+  event.waitUntil(self.registration.showNotification(data.title, options));
+});
+
+// Bildirime tıklanınca pencereyi aç veya mevcut transfer sekmesine odaklan
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  const targetUrl = event.notification.data?.url || '/admin?tab=transfers';
+
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        if (client.url.includes('/admin') && 'focus' in client) {
+          if ('navigate' in client && targetUrl) {
+            client.navigate(targetUrl);
+          }
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow(targetUrl);
+      }
+    })
+  );
+});
+
+// Sayfa içinden gelen doğrudan bildirim tetiklemelerini yönet
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SHOW_NOTIFICATION') {
+    const { title, options } = event.data;
+    self.registration.showNotification(title || 'Transfer Güncellemesi', {
+      icon: '/assets/logo-main-transparent.png',
+      badge: '/favicon.svg',
+      vibrate: [200, 100, 200],
+      ...options,
+    });
+  }
+});
