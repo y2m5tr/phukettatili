@@ -25,6 +25,7 @@ import {
   convertThbToForeign,
   type SupportedCurrency,
 } from '../../lib/exchangeRates';
+import { formatDayMonthYear } from '../../lib/whatsappEngine';
 
 interface AgentPortalAppProps {
   agent: PartnerAgent;
@@ -191,7 +192,7 @@ export default function AgentPortalApp({
       `Sayın *${booking.customerName}*,\n` +
       `Acentemiz aracılığıyla rezerve edilen tur detaylarınız onaylanmıştır:\n\n` +
       `🏝️ *Tur:* ${booking.tourTitle}\n` +
-      `📅 *Tarih:* ${booking.tourDate}\n` +
+      `📅 *Tarih:* ${formatDayMonthYear(booking.tourDate)}\n` +
       `⏰ *Otelden Alınış Saati:* ${booking.pickupTime || '07:30'}\n` +
       `🏨 *Alınış Yeri:* ${booking.hotel} ${booking.roomNumber ? `(Oda: ${booking.roomNumber})` : ''}\n` +
       `👥 *Kişi Sayısı:* ${booking.adultCount} Yetişkin${booking.childCount > 0 ? ` + ${booking.childCount} Çocuk` : ''}\n` +

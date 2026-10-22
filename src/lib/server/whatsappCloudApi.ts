@@ -14,7 +14,7 @@
 
 import crypto from 'node:crypto';
 import type { Booking } from '../../data/adminInitialData';
-import { formatWhatsAppPhone, generateTriggerMessage } from '../whatsappEngine';
+import { formatWhatsAppPhone, generateTriggerMessage, formatDayMonthYear } from '../whatsappEngine';
 import siteSettings from '../../content/settings/site.json';
 
 export interface WhatsAppSendResult {
@@ -182,7 +182,7 @@ Sayın *${booking.customerName}*, merhaba!
 *${booking.tourTitle}* turunuz için talebiniz operasyon ekibimize ulaşmıştır.
 
 🎫 *Referans Kodu:* ${booking.ticketCode || booking.id}
-📅 *Tur Tarihi:* ${booking.tourDate}
+📅 *Tur Tarihi:* ${formatDayMonthYear(booking.tourDate)}
 🏨 *Otel:* ${booking.hotel}${booking.roomNumber ? ` (Oda: ${booking.roomNumber})` : ''}
 👥 *Misafir:* ${booking.adultCount} Yetişkin${booking.childCount > 0 ? ` + ${booking.childCount} Çocuk` : ''}
 
@@ -238,7 +238,7 @@ export async function sendDriverDispatchNotice(
 👤 *Guest / ลูกค้า:* ${booking.customerName} (${pax})
 📱 *Guest Phone / เบอร์ติดต่อ:* ${booking.phone}
 🏝️ *Tour / ทัวร์:* ${booking.tourTitle}
-📅 *Date / วันที่:* ${booking.tourDate}
+📅 *Date / วันที่:* ${formatDayMonthYear(booking.tourDate)}
 ${
   booking.remainingAmountThb > 0
     ? `💵 *Collect Cash / เก็บเงินสด:* ${booking.remainingAmountThb.toLocaleString('th-TH')} THB`

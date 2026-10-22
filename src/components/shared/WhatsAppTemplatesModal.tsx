@@ -12,6 +12,7 @@ import {
   generateVehicleInZoneAlert,
 } from '../../lib/guestConcierge';
 import { generate1830ReviewInviteMessage } from '../../lib/reviewBooster';
+import { formatDayMonthYear } from '../../lib/whatsappEngine';
 
 export type TemplateId =
   | 'concierge_evening_breakfast'
@@ -65,7 +66,7 @@ Sayın *${booking.customerName}*, iyi akşamlar!
 
 Yarın katılacağınız *${booking.tourTitle}* turumuz için transfer detaylarınız aşağıdadır:
 
-📅 *Tarih:* ${booking.tourDate}
+📅 *Tarih:* ${formatDayMonthYear(booking.tourDate)}
 ⏰ *Otel Lobi Alınış Saati:* ${pickupTime}
 📍 *Alınış Noktası:* ${booking.hotel}${booking.roomNumber ? ` (Oda: ${booking.roomNumber})` : ''}
 🚐 *Tahsis Edilen Hat:* ${booking.assignedVehicle || 'VIP Minibüs'}

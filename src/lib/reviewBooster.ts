@@ -1,5 +1,5 @@
 import type { Booking } from '../data/adminInitialData';
-import { formatWhatsAppPhone, buildWhatsAppDeepLink } from './whatsappEngine';
+import { formatWhatsAppPhone, buildWhatsAppDeepLink, formatDayMonthYear } from './whatsappEngine';
 
 export interface ReviewBoosterOptions {
   googleReviewUrl?: string;
@@ -146,7 +146,7 @@ export function generateManagerEscalationWhatsAppUrl(
 📞 *Telefon:* ${booking.phone}
 🏨 *Otel:* ${booking.hotel}${booking.roomNumber ? ` (Oda: ${booking.roomNumber})` : ''}
 🏝️ *Tur:* ${booking.tourTitle}
-📅 *Tarih:* ${booking.tourDate}
+📅 *Tarih:* ${formatDayMonthYear(booking.tourDate)}
 ⭐ *Verilen Puan:* ${rating} / 5 Yıldız (${rating <= 2 ? 'Kritik Düzeyde Olumsuz' : 'İyileştirme Gerekiyor'})
 
 📝 *Misafirin Şikayeti / Geri Bildirimi:*

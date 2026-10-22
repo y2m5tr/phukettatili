@@ -69,6 +69,25 @@ export function buildWhatsAppDeepLink(phone: string, text: string): string {
 }
 
 /**
+ * Tarih metnini (ISO YYYY-MM-DD veya Date string) gün/ay/yıl (DD/MM/YYYY) formatına dönüştürür.
+ * Örn: "2026-10-16" -> "16/10/2026"
+ */
+export function formatDayMonthYear(dateStr?: string): string {
+  if (!dateStr) return '';
+  const trimmed = dateStr.trim();
+  const matchIso = trimmed.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+  if (matchIso) {
+    const [, y, m, d] = matchIso;
+    return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+  }
+  if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(trimmed)) {
+    const [d, m, y] = trimmed.split('/');
+    return `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+  }
+  return trimmed;
+}
+
+/**
  * Belirtilen tetikleme türüne göre dinamik, profesyonel Türkçe WhatsApp mesajı üretir.
  */
 export function generateTriggerMessage(
@@ -85,6 +104,7 @@ export function generateTriggerMessage(
   }`;
   const pickupTime = booking.pickupTime || '07:30';
   const ticketUrl = `https://phukettatili.com/bilet/${booking.ticketCode || booking.id}`;
+  const displayTourDate = formatDayMonthYear(booking.tourDate);
 
   switch (type) {
     case 't24_reminder':
@@ -94,7 +114,7 @@ Sayın *${booking.customerName}*, iyi akşamlar!
 
 Yarın katılacağınız *${booking.tourTitle}* turumuz için transfer detaylarınız aşağıdadır:
 
-📅 *Tarih:* ${booking.tourDate}
+📅 *Tarih:* ${displayTourDate}
 ⏰ *Otel Lobi Alınış Saati:* ${pickupTime}
 📍 *Alınış Noktası:* ${booking.hotel}${booking.roomNumber ? ` (Oda: ${booking.roomNumber})` : ''}
 🚐 *Tahsis Edilen Araç:* ${booking.assignedVehicle || 'VIP Minibüs'}
@@ -131,7 +151,7 @@ Keyifli turlar dileriz! 🌴🌊`;
 
 Sayın *${booking.customerName}*,
 
-*${booking.tourDate}* tarihindeki *${booking.tourTitle}* turunuz için saha transfer detayları belirlenmiştir:
+*${displayTourDate}* tarihindeki *${booking.tourTitle}* turunuz için saha transfer detayları belirlenmiştir:
 
 🚐 *Araç:* ${booking.assignedVehicle || 'VIP Minibüs'}
 👤 *Şoför / Rehber:* ${booking.assignedDriver || 'Saha Görevlisi'}
@@ -329,7 +349,8 @@ export function generateDriverPickupJobThai(
   const hotelName = activeTour.hotel || booking.hotel;
   const room = activeTour.roomNumber || booking.roomNumber || '-';
   const pickup = activeTour.pickupTime || booking.pickupTime || '07:30';
-  const date = activeTour.tourDate || booking.tourDate;
+  const rawDate = activeTour.tourDate || booking.tourDate;
+  const date = formatDayMonthYear(rawDate);
   const tourName = activeTour.tourTitle || booking.tourTitle;
   const pax = `${booking.adultCount} Adult(s)${booking.childCount > 0 ? ` + ${booking.childCount} Child(ren)` : ''}`;
   const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(hotelName + ', Phuket, Thailand')}`;
@@ -382,7 +403,8 @@ export function generateGuestPickupReminderTurkish(
   const hotelName = activeTour.hotel || booking.hotel;
   const room = activeTour.roomNumber || booking.roomNumber;
   const pickup = activeTour.pickupTime || booking.pickupTime || '07:30';
-  const date = activeTour.tourDate || booking.tourDate;
+  const rawDate = activeTour.tourDate || booking.tourDate;
+  const date = formatDayMonthYear(rawDate);
   const tourName = activeTour.tourTitle || booking.tourTitle;
   const pax = `${booking.adultCount} Yetişkin${booking.childCount > 0 ? ` + ${booking.childCount} Çocuk` : ''}`;
   const ticketUrl = `https://phukettatili.com/gezi/${booking.ticketCode || booking.id}`;
