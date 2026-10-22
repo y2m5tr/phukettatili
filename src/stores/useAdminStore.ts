@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Booking, TourItem } from '../data/adminInitialData';
+import type { FailedMutation } from '../lib/offlineQueue';
 
 export type AdminTab =
   | 'overview'
@@ -35,6 +36,7 @@ export interface AdminStoreState {
   isSyncing: boolean;
   isOnline: boolean;
   pendingSyncCount: number;
+  failedSyncItems: FailedMutation[];
   lastSyncedAt: Date | null;
   toastMessage: string;
 
@@ -81,6 +83,7 @@ export interface AdminStoreState {
   setIsSyncing: (v: boolean) => void;
   setIsOnline: (v: boolean) => void;
   setPendingSyncCount: (v: number | ((prev: number) => number)) => void;
+  setFailedSyncItems: (items: FailedMutation[]) => void;
   setLastSyncedAt: (date: Date | null) => void;
 
   // Modal Controls
@@ -122,6 +125,7 @@ export const useAdminStore = create<AdminStoreState>((set) => ({
   isSyncing: false,
   isOnline: typeof navigator !== 'undefined' ? navigator.onLine : true,
   pendingSyncCount: 0,
+  failedSyncItems: [],
   lastSyncedAt: null,
   toastMessage: '',
 
@@ -218,6 +222,7 @@ export const useAdminStore = create<AdminStoreState>((set) => ({
     set((state) => ({
       pendingSyncCount: typeof v === 'function' ? v(state.pendingSyncCount) : v,
     })),
+  setFailedSyncItems: (failedSyncItems) => set({ failedSyncItems }),
   setLastSyncedAt: (lastSyncedAt) => set({ lastSyncedAt }),
 
   setIsCommandPaletteOpen: (v) =>

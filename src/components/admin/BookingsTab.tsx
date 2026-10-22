@@ -5,7 +5,7 @@
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
 import { useMemo } from 'react';
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, Zap, } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 import { getCrossSellWhatsAppUrl } from '../../lib/crossSell';
@@ -39,6 +39,7 @@ interface BookingsTabProps {
   onUpdateStatus?: (b: Booking, status: Booking['status']) => void;
   onOpenSupplierDispatch?: (b: Booking) => void;
   onOpenPromptPayQr?: (b: Booking) => void;
+  onOpenWorkflow?: (b: Booking) => void;
 }
 
 export default function BookingsTab({
@@ -67,6 +68,7 @@ export default function BookingsTab({
   onUpdateStatus,
   onOpenSupplierDispatch,
   onOpenPromptPayQr,
+  onOpenWorkflow,
 }: BookingsTabProps) {
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const tomorrowStr = useMemo(() => {
@@ -584,6 +586,17 @@ export default function BookingsTab({
                               title="📄 Kurumsal Teklif / Voucher (PDF) Oluştur"
                             >
                               <FileText className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                          {onOpenWorkflow && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenWorkflow(b)}
+                              className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition-colors cursor-pointer flex items-center gap-1 font-bold text-xs"
+                              title="⚡ Saha İş Akışı & 5 Adımlı Operasyon Yönetimi"
+                            >
+                              <Zap className="w-3.5 h-3.5" />
+                              <span className="hidden sm:inline">İş Akışı</span>
                             </button>
                           )}
                           <button

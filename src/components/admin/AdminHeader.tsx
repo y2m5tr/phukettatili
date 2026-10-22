@@ -33,6 +33,7 @@ import {
   WifiOff,
 } from 'lucide-react';
 import type { NavItem } from './adminNav';
+import type { FailedMutation } from '../../lib/offlineQueue';
 import { resolveAssetUrl } from '../../lib/assets';
 import {
   getNotificationPermissionStatus,
@@ -67,6 +68,7 @@ export interface AdminHeaderSyncState {
   isCloudConnected: boolean;
   isSyncing: boolean;
   pendingSyncCount: number;
+  failedSyncItems: FailedMutation[];
   lastSyncedAt: Date | null;
 }
 
@@ -103,7 +105,7 @@ export default function AdminHeader({
   const [isNotificationMenuOpen, setIsNotificationMenuOpen] = useState<boolean>(false);
   const [notifications, setNotifications] = useState<CrewNotificationItem[]>([]);
   const [permissionStatus, setPermissionStatus] = useState<string>('default');
-  const { isOnline, isCloudConnected, isSyncing, pendingSyncCount, lastSyncedAt } = sync;
+  const { isOnline, isCloudConnected, isSyncing, pendingSyncCount, failedSyncItems, lastSyncedAt } = sync;
 
   useEffect(() => {
     setNotifications(getNotificationHistory());
@@ -613,6 +615,20 @@ export default function AdminHeader({
               <span>{pendingSyncCount} Eşitle</span>
             </button>
           ) : null}
+
+          {failedSyncItems.length > 0 && (
+            <div
+              role="status"
+              aria-live="polite"
+              className="max-w-56 rounded-lg border border-rose-300 bg-rose-50 px-2 py-1 text-[10px] text-rose-800 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200"
+              title={failedSyncItems.map((item) => `${item.description}: ${item.error}`).join('\n')}
+            >
+              {failedSyncItems.filter((item) => item.status === 'needs_attention').length > 0
+                ? `${failedSyncItems.filter((item) => item.status === 'needs_attention').length} işlem müdahale bekliyor`
+                : `${failedSyncItems.length} işlem tekrar denenecek`}
+              <span className="sr-only">{failedSyncItems.map((item) => `${item.description}: ${item.error}`).join('; ')}</span>
+            </div>
+          )}
 
           {/* Canlı Bulut Senkronizasyon Durumu & Manuel Yenileme */}
           <button

@@ -77,6 +77,27 @@ export const PUT: APIRoute = async (context) => {
   const db = getSupabaseAdmin();
   if (!db) return jsonError(503, 'Bulut veritabanı yapılandırılmamış.');
 
+  // Eşzamanlı değişiklik denetimi (Optimistic Concurrency Control):
+  // Eğer istemci expectedUpdatedAt gönderdiyse ve veritabanındaki kayıt
+  // bundan daha yeniyse (başka bir kullanıcı araya girdiyse), 409 Conflict döner.
+  if (body.expectedUpdatedAt) {
+    const { data: existing } = await db
+      .from('bookings')
+      .select('updated_at')
+      .eq('id', body.id)
+      .maybeSingle();
+
+    if (
+      existing?.updated_at &&
+      new Date(existing.updated_at).getTime() > new Date(body.expectedUpdatedAt).getTime() + 1000
+    ) {
+      return jsonError(
+        409,
+        'Bu rezervasyon başka bir kullanıcı tarafından daha yeni bir tarihte güncellendi. Lütfen en güncel veriyi kontrol ediniz.'
+      );
+    }
+  }
+
   const { error } = await db.from('bookings').upsert(bookingToRow(body));
   if (error) return jsonError(502, 'Veritabanı yazma hatası: ' + error.message);
 

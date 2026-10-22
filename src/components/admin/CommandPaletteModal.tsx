@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Search,
   Plus,
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import type { Booking, TourItem } from '../../data/adminInitialData';
 import type { AdminTab, NavItem } from './AdminDashboard';
+import { safeGet, safeSet } from '../../lib/safeStorage';
 
 interface CommandPaletteModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ interface CommandPaletteModalProps {
   onSetNavMode: (mode: 'operations' | 'cms') => void;
   tours?: TourItem[];
   onSelectTour?: (tour: TourItem) => void;
+  onOpenWorkflow?: (b: Booking) => void;
 }
 
 interface PaletteAction {
@@ -46,7 +48,10 @@ interface PaletteAction {
   badgeColor?: string;
   icon: React.ComponentType<{ className?: string }>;
   handler: () => void;
+  isRecent?: boolean;
 }
+
+const RECENT_PALETTE_KEY = 'ptt_recent_palette_actions';
 
 export default function CommandPaletteModal({
   isOpen,
@@ -65,15 +70,40 @@ export default function CommandPaletteModal({
   onSetNavMode,
   tours = [],
   onSelectTour,
+  onOpenWorkflow,
 }: CommandPaletteModalProps) {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [recentActionIds, setRecentActionIds] = useState<string[]>(() => {
+    return safeGet<string[]>(RECENT_PALETTE_KEY, []);
+  });
+
+  const recordRecentAction = useCallback((actionId: string) => {
+    try {
+      const current = safeGet<string[]>(RECENT_PALETTE_KEY, []);
+      const next = [actionId, ...current.filter((id) => id !== actionId)].slice(0, 6);
+      safeSet(RECENT_PALETTE_KEY, next);
+      setRecentActionIds(next);
+    } catch {
+      // safeStorage handles quota & parse safely
+    }
+  }, []);
+
+  const wrapHandler = useCallback(
+    (actionId: string, fn: () => void) => () => {
+      recordRecentAction(actionId);
+      fn();
+    },
+    [recordRecentAction]
+  );
+
   useEffect(() => {
     if (isOpen) {
       setQuery('');
       setSelectedIndex(0);
+      setRecentActionIds(safeGet<string[]>(RECENT_PALETTE_KEY, []));
       setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isOpen]);
@@ -85,6 +115,24 @@ export default function CommandPaletteModal({
     // 1. Temel Hızlı Eylemler (Arama boşken veya eşleşince)
     const quickActions: PaletteAction[] = [
       {
+        id: 'act-workflow-first',
+        type: 'action',
+        title: 'Saha İş Akışı & Operasyon Stepper',
+        subtitle: 'Rezervasyon → Araç/Rehber → WhatsApp → Check-in → Tahsilat',
+        icon: Zap,
+        badge: 'Saha Stepper',
+        badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
+        handler: wrapHandler('act-workflow-first', () => {
+          onClose();
+          const target = bookings.find((b) => b.status === 'confirmed') || bookings[0];
+          if (target && onOpenWorkflow) {
+            onOpenWorkflow(target);
+          } else {
+            onSelectTab('overview');
+          }
+        }),
+      },
+      {
         id: 'act-new-booking',
         type: 'action',
         title: 'Yeni Rezervasyon Ekle',
@@ -92,10 +140,10 @@ export default function CommandPaletteModal({
         icon: Plus,
         badge: 'Hızlı Kayıt',
         badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
-        handler: () => {
+        handler: wrapHandler('act-new-booking', () => {
           onClose();
           onOpenCreateBooking();
-        },
+        }),
       },
       {
         id: 'act-qr-scan',
@@ -105,10 +153,10 @@ export default function CommandPaletteModal({
         icon: Camera,
         badge: 'Saha / Giriş',
         badgeColor: 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/30',
-        handler: () => {
+        handler: wrapHandler('act-qr-scan', () => {
           onClose();
           onOpenQrScanner();
-        },
+        }),
       },
       {
         id: 'act-police-manifest',
@@ -118,10 +166,10 @@ export default function CommandPaletteModal({
         icon: FileText,
         badge: 'Manifesto',
         badgeColor: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30',
-        handler: () => {
+        handler: wrapHandler('act-police-manifest', () => {
           onClose();
           onOpenPoliceManifest();
-        },
+        }),
       },
       {
         id: 'act-switch-ops',
@@ -131,11 +179,11 @@ export default function CommandPaletteModal({
         icon: Zap,
         badge: 'ERP Modu',
         badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
-        handler: () => {
+        handler: wrapHandler('act-switch-ops', () => {
           onSetNavMode('operations');
           onSelectTab('overview');
           onClose();
-        },
+        }),
       },
       {
         id: 'act-switch-cms',
@@ -145,11 +193,11 @@ export default function CommandPaletteModal({
         icon: Globe,
         badge: 'CMS Modu',
         badgeColor: 'bg-sky-500/10 text-sky-600 dark:text-sky-400 border-sky-500/30',
-        handler: () => {
+        handler: wrapHandler('act-switch-cms', () => {
           onSetNavMode('cms');
           onSelectTab('tours');
           onClose();
-        },
+        }),
       },
       {
         id: 'act-weather-reschedule',
@@ -159,10 +207,10 @@ export default function CommandPaletteModal({
         icon: Waves,
         badge: 'Operasyon & Güvenlik',
         badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
-        handler: () => {
+        handler: wrapHandler('act-weather-reschedule', () => {
           onClose();
           if (onOpenBulkReschedule) onOpenBulkReschedule();
-        },
+        }),
       },
       {
         id: 'act-lost-found',
@@ -172,10 +220,10 @@ export default function CommandPaletteModal({
         icon: Package,
         badge: 'Saha Takip',
         badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
-        handler: () => {
+        handler: wrapHandler('act-lost-found', () => {
           onClose();
           if (onOpenLostFound) onOpenLostFound();
-        },
+        }),
       },
       {
         id: 'act-dietary-manifest',
@@ -185,10 +233,10 @@ export default function CommandPaletteModal({
         icon: ShieldAlert,
         badge: 'Emniyet & Sağlık',
         badgeColor: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/30',
-        handler: () => {
+        handler: wrapHandler('act-dietary-manifest', () => {
           onClose();
           if (onOpenDietaryManifest) onOpenDietaryManifest();
-        },
+        }),
       },
       {
         id: 'act-field-cashier',
@@ -198,10 +246,10 @@ export default function CommandPaletteModal({
         icon: Coins,
         badge: 'Kasa & Döviz',
         badgeColor: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30',
-        handler: () => {
+        handler: wrapHandler('act-field-cashier', () => {
           onClose();
           if (onOpenFieldCashier) onOpenFieldCashier();
-        },
+        }),
       },
     ];
 
@@ -224,10 +272,10 @@ export default function CommandPaletteModal({
           icon: nav.icon,
           badge: nav.category === 'operations' ? 'Operasyon' : nav.category === 'content' ? 'Web CMS' : 'Sistem',
           badgeColor: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700',
-          handler: () => {
+          handler: wrapHandler(`nav-${nav.id}`, () => {
             onClose();
             onSelectTab(nav.id);
-          },
+          }),
         });
       }
     });
@@ -257,10 +305,10 @@ export default function CommandPaletteModal({
           badge: remaining > 0 ? `Kalan: ${remaining.toLocaleString()} THB` : 'Ödendi',
           badgeColor: remaining > 0 ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
           icon: Users,
-          handler: () => {
+          handler: wrapHandler(`book-${b.id}`, () => {
             onClose();
             onSelectBooking(b);
-          },
+          }),
         });
       });
     }
@@ -287,20 +335,46 @@ export default function CommandPaletteModal({
           badge: 'Tur Kataloğu',
           badgeColor: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/30',
           icon: Compass,
-          handler: () => {
+          handler: wrapHandler(`tour-${t.id}`, () => {
             onClose();
             if (onSelectTour) {
               onSelectTour(t);
             } else {
               onSelectTab('tours');
             }
-          },
+          }),
         });
       });
     }
 
+    // Son Kullanılanları (Recents) Başa Al (Arama boşken)
+    if (!q && recentActionIds.length > 0) {
+      const recents: PaletteAction[] = [];
+      const others: PaletteAction[] = [];
+      const map = new Map(results.map((r) => [r.id, r]));
+
+      recentActionIds.forEach((id) => {
+        const item = map.get(id);
+        if (item) {
+          recents.push({
+            ...item,
+            id: `recent-${item.id}`,
+            badge: '🕒 Son Kullanılan',
+            badgeColor: 'bg-amber-500/15 text-amber-700 dark:text-amber-300 border-amber-500/30',
+            isRecent: true,
+          });
+        }
+      });
+
+      results.forEach((r) => {
+        others.push(r);
+      });
+
+      return [...recents, ...others];
+    }
+
     return results;
-  }, [query, bookings, navItems, tours, onClose, onOpenCreateBooking, onOpenQrScanner, onOpenPoliceManifest, onSelectTab, onSelectBooking, onSelectTour, onSetNavMode]);
+  }, [query, bookings, navItems, tours, onClose, onOpenCreateBooking, onOpenQrScanner, onOpenPoliceManifest, onSelectTab, onSelectBooking, onSelectTour, onSetNavMode, onOpenWorkflow, wrapHandler, recentActionIds]);
 
   // Klavye Kontrolleri: Up, Down, Enter, Esc
   useEffect(() => {
@@ -330,7 +404,12 @@ export default function CommandPaletteModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Komut Paleti ve Hızlı Arama"
+      className="fixed inset-0 z-50 flex items-start justify-center pt-16 sm:pt-24 px-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-150"
+    >
       <div
         className="bg-white dark:bg-surface-2 w-full max-w-2xl rounded-2xl sm:rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col max-h-[80vh]"
         onClick={(e) => e.stopPropagation()}
@@ -341,6 +420,10 @@ export default function CommandPaletteModal({
           <input
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-expanded={items.length > 0}
+            aria-controls="palette-results-list"
+            aria-autocomplete="list"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
@@ -353,6 +436,7 @@ export default function CommandPaletteModal({
             <button
               onClick={() => setQuery('')}
               className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"
+              aria-label="Aramayı Temizle"
             >
               <X className="w-4 h-4" />
             </button>
@@ -363,7 +447,12 @@ export default function CommandPaletteModal({
         </div>
 
         {/* Sonuç Listesi */}
-        <div className="flex-1 overflow-y-auto p-2 sm:p-3 divide-y divide-slate-100/50 dark:divide-slate-800/50">
+        <div
+          id="palette-results-list"
+          role="listbox"
+          aria-label="Arama Sonuçları"
+          className="flex-1 overflow-y-auto p-2 sm:p-3 divide-y divide-slate-100/50 dark:divide-slate-800/50"
+        >
           {items.length === 0 ? (
             <div className="py-12 text-center text-slate-400">
               <Search className="w-8 h-8 mx-auto mb-2 opacity-40" />
@@ -377,9 +466,11 @@ export default function CommandPaletteModal({
               return (
                 <div
                   key={item.id}
+                  role="option"
+                  aria-selected={isSelected}
                   onClick={item.handler}
                   onMouseEnter={() => setSelectedIndex(index)}
-                  className={`flex items-center justify-between gap-3 p-3 rounded-xl cursor-pointer transition-all ${
+                  className={`flex items-center justify-between gap-3 p-3 sm:p-3.5 min-h-[48px] sm:min-h-[52px] rounded-xl cursor-pointer transition-all ${
                     isSelected
                       ? 'bg-brand-primary text-white shadow-sm'
                       : 'hover:bg-slate-50 dark:hover:bg-slate-800/60 text-slate-800 dark:text-slate-200'

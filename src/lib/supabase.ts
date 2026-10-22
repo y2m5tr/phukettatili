@@ -144,5 +144,6 @@ export function rowToBooking(r: any): Booking {
     createdAt: r.created_at
       ? new Date(r.created_at).toISOString().split('T')[0]
       : new Date().toISOString().split('T')[0],
+    updatedAt: r.updated_at || undefined,
   };
 }

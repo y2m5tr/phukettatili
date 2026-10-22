@@ -23,10 +23,18 @@ import {
   FileText,
   Plus,
   Waves,
+  Zap,
+  AlertTriangle,
+  WifiOff,
+  RefreshCw,
+  ExternalLink,
+  MessageCircle,
+  ArrowRight,
 } from 'lucide-react';
 import type { AdminTab } from './AdminDashboard';
 import { type Booking, type TourItem, getPhuketSeason } from '../../data/adminInitialData';
 import { calculateTourOccupancy, getTourCapacity } from '../../lib/allotment';
+import { generateGuestPickupReminderTurkish } from '../../lib/whatsappEngine';
 
 /** AdminDashboard'taki stats useMemo çıktısı — alan isimleri birebir. */
 export interface OverviewStats {
@@ -59,6 +67,15 @@ interface OverviewTabProps {
   onOpenQrScanner?: () => void;
   onOpenPoliceManifest?: () => void;
   onOpenBulkReschedule?: () => void;
+  onOpenWorkflow?: (b: Booking) => void;
+  sync?: {
+    isOnline: boolean;
+    isCloudConnected: boolean;
+    isSyncing: boolean;
+    pendingSyncCount: number;
+    failedSyncItems: Array<{ id: string; error: string; bookingId?: string }>;
+    lastSyncedAt: Date | null;
+  };
 }
 
 export default function OverviewTab({
@@ -77,6 +94,8 @@ export default function OverviewTab({
   onOpenQrScanner,
   onOpenPoliceManifest,
   onOpenBulkReschedule,
+  onOpenWorkflow,
+  sync,
 }: OverviewTabProps) {
   // Bugünün Phuket tarihi (UTC+7)
   const todayStr = useMemo(() => {
@@ -215,6 +234,33 @@ export default function OverviewTab({
       .slice(0, 6);
   }, [tours, bookings, todayStr]);
 
+  const [todayFilter, setTodayFilter] = useState<'all' | 'pending' | 'picked_up' | 'cash'>('all');
+
+  const overdueBookings = useMemo(() => {
+    return bookings.filter(
+      (b) => b.status !== 'cancelled' && (Number(b.remainingAmountThb) || 0) > 0 && b.tourDate < todayStr
+    );
+  }, [bookings, todayStr]);
+
+  const overdueAmountThb = useMemo(() => {
+    return overdueBookings.reduce((sum, b) => sum + (Number(b.remainingAmountThb) || 0), 0);
+  }, [overdueBookings]);
+
+  const filteredTodayItems = useMemo(() => {
+    return todayDispatch.todayItems.filter((item) => {
+      if (todayFilter === 'pending') return item.pickupStatus === 'pending';
+      if (todayFilter === 'picked_up') {
+        return (
+          item.pickupStatus === 'picked_up' ||
+          item.pickupStatus === 'on_tour' ||
+          item.pickupStatus === 'completed'
+        );
+      }
+      if (todayFilter === 'cash') return (Number(item.remainingAmountThb) || 0) > 0;
+      return true;
+    });
+  }, [todayDispatch.todayItems, todayFilter]);
+
   return (
     <div className="space-y-8">
       {/* ==================================================== */}
@@ -302,6 +348,42 @@ export default function OverviewTab({
             </div>
           </div>
 
+          {/* Canlı Bağlantı & Senkron Bildirimi (Item 4) */}
+          {sync && (!sync.isOnline || (sync.failedSyncItems && sync.failedSyncItems.length > 0) || sync.pendingSyncCount > 0) && (
+            <div
+              role="status"
+              className={`p-3.5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-semibold ${
+                !sync.isOnline
+                  ? 'bg-amber-500/15 border border-amber-500/30 text-amber-200'
+                  : sync.failedSyncItems && sync.failedSyncItems.length > 0
+                  ? 'bg-rose-500/15 border border-rose-500/30 text-rose-200'
+                  : 'bg-sky-500/15 border border-sky-500/30 text-sky-200'
+              }`}
+            >
+              <div className="flex items-center gap-2.5">
+                {!sync.isOnline ? (
+                  <WifiOff className="w-4 h-4 text-amber-400 shrink-0" />
+                ) : sync.failedSyncItems && sync.failedSyncItems.length > 0 ? (
+                  <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0" />
+                ) : (
+                  <RefreshCw className="w-4 h-4 text-sky-400 animate-spin shrink-0" />
+                )}
+                <span>
+                  {!sync.isOnline
+                    ? 'Çevrimdışı Çalışma Modu: Değişiklikler cihazınızda saklanıyor, bağlantı açıldığında buluta otomatik gönderilecek.'
+                    : sync.failedSyncItems && sync.failedSyncItems.length > 0
+                    ? `⚠️ ${sync.failedSyncItems.length} işlem sunucuya iletilemedi. Lütfen bağlantınızı veya çakışmaları kontrol edin.`
+                    : `${sync.pendingSyncCount} operasyonel değişiklik sunucuya aktarılıyor...`}
+                </span>
+              </div>
+              {sync.lastSyncedAt && (
+                <span className="text-[10px] text-slate-300/80 font-mono shrink-0">
+                  Son Başarılı Senkron: {new Date(sync.lastSyncedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Kokpit 4 Ana Metrik Kartı */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* 1. Bugünkü Misafir & Tur */}
@@ -376,8 +458,237 @@ export default function OverviewTab({
               </p>
             </div>
           </div>
+
+          {/* 5. Bugünün Canlı Saha ve Transfer Tablosu (Item 1) */}
+          <div className="pt-4 border-t border-white/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <Compass className="w-4 h-4 text-brand-accent" />
+                  Bugünün Saha & Karşılama Akışı
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/10 text-slate-300">
+                  {todayDispatch.todayItems.length} Operasyon
+                </span>
+              </div>
+
+              {/* Filtre Butonları */}
+              <div className="flex items-center gap-1 bg-black/30 p-1 rounded-xl text-[11px] font-semibold border border-white/10 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => setTodayFilter('all')}
+                  className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                    todayFilter === 'all'
+                      ? 'bg-brand-accent text-slate-950 font-bold'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  Tümü ({todayDispatch.todayItems.length})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTodayFilter('pending')}
+                  className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                    todayFilter === 'pending'
+                      ? 'bg-amber-400 text-slate-950 font-bold'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  🟡 Bekleyen ({todayDispatch.pendingCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTodayFilter('picked_up')}
+                  className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                    todayFilter === 'picked_up'
+                      ? 'bg-emerald-500 text-slate-950 font-bold'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  🟢 Binen ({todayDispatch.pickedUpCount})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTodayFilter('cash')}
+                  className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
+                    todayFilter === 'cash'
+                      ? 'bg-sky-400 text-slate-950 font-bold'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  💰 Kalan Tahsilat
+                </button>
+              </div>
+            </div>
+
+            {filteredTodayItems.length === 0 ? (
+              <div className="p-6 rounded-2xl bg-white/5 border border-white/10 text-center text-xs text-slate-400">
+                {todayDispatch.todayItems.length === 0
+                  ? '🌴 Bugün için planlanmış tur veya transfer kaydı bulunmuyor.'
+                  : 'Seçili filtreye uygun operasyon kaydı bulunamadı.'}
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/40">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-white/10 text-[11px] text-slate-400 uppercase tracking-wider bg-white/5">
+                      <th className="py-2.5 px-4 font-semibold">Saat & Otel</th>
+                      <th className="py-2.5 px-4 font-semibold">Misafir & Tur</th>
+                      <th className="py-2.5 px-4 font-semibold">Biniş Durumu</th>
+                      <th className="py-2.5 px-4 font-semibold">Bakiye</th>
+                      <th className="py-2.5 px-4 font-semibold text-right">Saha Aksiyonu</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {filteredTodayItems.map((item) => {
+                      const b = bookings.find((x) => x.id === item.bookingId);
+                      return (
+                        <tr key={`${item.bookingId}-${item.tourTitle}`} className="hover:bg-white/5 transition-colors">
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            <span className="font-mono font-bold text-amber-300 text-xs px-2 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 mr-2">
+                              {item.pickupTime}
+                            </span>
+                            <span className="font-semibold text-white">{item.hotel}</span>
+                            {item.hotelZone && (
+                              <span className="text-[10px] text-slate-400 block ml-1">{item.hotelZone}</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-white">{item.customerName}</div>
+                            <div className="text-[11px] text-slate-300 truncate max-w-xs">{item.tourTitle}</div>
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            {item.pickupStatus === 'picked_up' || item.pickupStatus === 'on_tour' || item.pickupStatus === 'completed' ? (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                                🟢 Bindi / Turda
+                              </span>
+                            ) : item.pickupStatus === 'no_show' ? (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                                🔴 No-Show
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                🟡 Lobide Bekliyor
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 whitespace-nowrap">
+                            {Number(item.remainingAmountThb) > 0 ? (
+                              <span className="text-amber-300 font-mono font-bold text-xs bg-amber-500/15 px-2 py-0.5 rounded-md border border-amber-500/30">
+                                💰 {item.remainingAmountThb.toLocaleString()} THB
+                              </span>
+                            ) : (
+                              <span className="text-emerald-400 font-semibold text-xs">
+                                ✓ Ödendi
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-4 text-right whitespace-nowrap">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {b && onOpenWorkflow && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenWorkflow(b)}
+                                  className="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition-colors font-bold text-xs flex items-center gap-1 cursor-pointer"
+                                  title="⚡ Saha İş Akışı & 5 Adımlı Operasyon Stepper"
+                                >
+                                  <Zap className="w-3.5 h-3.5" />
+                                  <span>İş Akışı</span>
+                                </button>
+                              )}
+                              {b && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const reminder = generateGuestPickupReminderTurkish(b);
+                                    window.open(reminder.waUrl, '_blank', 'noopener,noreferrer');
+                                  }}
+                                  className="p-1.5 rounded-lg bg-teal-500/20 text-teal-300 hover:bg-teal-500 hover:text-white transition-colors cursor-pointer"
+                                  title="🇹🇷 Misafire Lobi Alınış Hatırlatması (WhatsApp)"
+                                >
+                                  <MessageCircle className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                              <a
+                                href={`/bilet/${item.bookingId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 rounded-lg bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white transition-colors"
+                                title="🎟️ Canlı Misafir Takip Portalını Aç"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* ==================================================== */}
+      {/* ⚠️ OPERASYONEL DİKKAT: BEKLEYEN TALEPLER & GECİKEN TAHSİLATLAR */}
+      {/* ==================================================== */}
+      {(stats.pendingCount > 0 || overdueBookings.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {stats.pendingCount > 0 && (
+            <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-amber-800 dark:text-amber-300">
+                    {stats.pendingCount} Bekleyen Rezervasyon Talebi
+                  </div>
+                  <p className="text-[11px] text-amber-700/80 dark:text-amber-400/80 mt-0.5">
+                    İnceleme bekleyen web/WhatsApp talepleri
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('bookings')}
+                className="px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 text-xs font-bold hover:bg-amber-400 transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+              >
+                <span>İncele</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+
+          {overdueBookings.length > 0 && (
+            <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-rose-800 dark:text-rose-300">
+                    {overdueBookings.length} Geciken Tahsilat Kaydı
+                  </div>
+                  <p className="text-[11px] text-rose-700/80 dark:text-rose-400/80 mt-0.5 font-mono">
+                    Toplam {overdueAmountThb.toLocaleString()} THB tahsil edilmedi
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveTab('finance')}
+                className="px-3 py-1.5 rounded-xl bg-rose-500 text-white text-xs font-bold hover:bg-rose-600 transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+              >
+                <span>Kasaya Git</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ==================================================== */}
       {/* 🌊 PHUKET DENİZ GÜVENLİK RADARI & AKTİF SEZON GÖSTERGESİ */}

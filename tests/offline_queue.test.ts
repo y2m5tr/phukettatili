@@ -7,6 +7,7 @@ import {
   setOfflineCache,
   getOfflineCache,
   flushPendingMutations,
+  submitMutation,
 } from '../src/lib/offlineQueue';
 
 describe('Aşama 4: Offline Queue & Resilience Engine', () => {
@@ -123,30 +124,97 @@ describe('Aşama 4: Offline Queue & Resilience Engine', () => {
     expect(pending.length).toBe(0);
   });
 
-  it('flushPendingMutations istemci 4xx hatalarında kuyruğu kilitlemeyip işlemi çıkarmalı', async () => {
+  it('submitMutation queues an offline booking write and marks it pending', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+
+    const result = await submitMutation({
+      type: 'PUT_BOOKING',
+      url: '/api/bookings',
+      method: 'PUT',
+      body: { id: 'BK-OFFLINE' },
+      description: 'Çevrimdışı rezervasyon güncellemesi',
+    });
+
+    expect(result.status).toBe('queued');
+    expect(await getPendingMutations()).toEqual([
+      expect.objectContaining({
+        body: { id: 'BK-OFFLINE' },
+        syncStatus: 'pending',
+      }),
+    ]);
+  });
+
+  it('submitMutation does not enqueue a rejected online write as successful', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 403,
+      json: async () => ({ error: 'Bu işlem için yetkiniz yok.' }),
+    }));
+
+    const result = await submitMutation({
+      type: 'PUT_BOOKING',
+      url: '/api/bookings',
+      method: 'PUT',
+      body: { id: 'BK-DENIED' },
+      description: 'Yetkisiz rezervasyon güncellemesi',
+    });
+
+    expect(result.status).toBe('rejected');
+    if (result.status !== 'rejected') throw new Error('Expected rejected mutation');
+    expect(result.error).toBe('Bu işlem için yetkiniz yok.');
+    expect(await getPendingMutations()).toHaveLength(0);
+  });
+
+  it('flushPendingMutations keeps rejected client mutations queued and reports status and reason', async () => {
     await enqueueMutation({
       type: 'PUT_BOOKING',
       url: '/api/bookings',
       method: 'PUT',
       body: { invalid: true },
-      description: 'Hatalı veri',
+      description: 'Hatalı rezervasyon',
     });
 
-    // fetch mock: 400 Bad Request
-    const fetchMock = vi.fn().mockResolvedValue({
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: false,
-      status: 400,
-      json: async () => ({ error: 'Bad Request' }),
+      status: 422,
+      json: async () => ({ error: 'Rezervasyon alanları doğrulanamadı.' }),
+    }));
+
+    const result = await flushPendingMutations();
+
+    expect(result.failed).toBe(1);
+    expect(result.remaining).toBe(1);
+    expect(result.items).toEqual([
+      expect.objectContaining({
+        status: 'needs_attention',
+        statusCode: 422,
+        error: 'Rezervasyon alanları doğrulanamadı.',
+        description: 'Hatalı rezervasyon',
+      }),
+    ]);
+    expect(await getPendingMutations()).toHaveLength(1);
+  });
+
+  it('flushPendingMutations keeps transient failures retryable', async () => {
+    await enqueueMutation({
+      type: 'PUT_BOOKING',
+      url: '/api/bookings',
+      method: 'PUT',
+      body: { id: 'BK-RETRY' },
+      description: 'Tekrar denenecek',
     });
-    vi.stubGlobal('fetch', fetchMock);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      json: async () => ({ error: 'Geçici sunucu hatası.' }),
+    }));
 
-    const res = await flushPendingMutations();
-    expect(res.succeeded).toBe(0);
-    expect(res.failed).toBe(1);
-    expect(res.remaining).toBe(0);
+    const result = await flushPendingMutations();
 
-    const pending = await getPendingMutations();
-    expect(pending.length).toBe(0); // Kuyruktan çıkarıldı
+    expect(result.items).toEqual([
+      expect.objectContaining({ status: 'retrying', statusCode: 503 }),
+    ]);
+    expect(await getPendingMutations()).toHaveLength(1);
   });
 
   it('flushPendingMutations ağ hatasında döngüyü kesmeli ve kuyruğu korumalı', async () => {

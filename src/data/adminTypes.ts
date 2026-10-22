@@ -148,6 +148,8 @@ export interface Booking {
   luggageCount?: number;
   luggageNotes?: string;
   createdAt?: string;
+  updatedAt?: string;
+  expectedUpdatedAt?: string;
 }
 
 /** Araç tipi — filo kaydı. */

@@ -81,6 +81,7 @@ import PierManifestModal from './PierManifestModal';
 import SupplierDispatchModal from './SupplierDispatchModal';
 import CuratedProposalModal from './CuratedProposalModal';
 import CaptainOfflineDrawer from './CaptainOfflineDrawer';
+import BookingWorkflowModal from './BookingWorkflowModal';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
 import AdminErrorBoundary from './AdminErrorBoundary';
 import {
@@ -99,11 +100,13 @@ import { useAdminStore } from '../../stores/useAdminStore';
 import { getRolePermissions, getRoleBadge } from '../../lib/rbac';
 import {
   enqueueMutation,
+  submitMutation,
   getPendingMutations,
   flushPendingMutations,
   setOfflineCache,
   getOfflineCache,
 } from '../../lib/offlineQueue';
+import { safeGetRaw, safeSetRaw } from '../../lib/safeStorage';
 import {
   NAV_ITEMS,
   type AdminTab,
@@ -208,7 +211,7 @@ export default function AdminDashboard({
           Boolean(t && perms.allowedTabs.includes(t as AdminTab));
         const urlTab = new URL(window.location.href).searchParams.get('tab');
         if (isAllowedTab(urlTab)) return urlTab;
-        const saved = window.localStorage.getItem('ptt_admin_active_tab');
+        const saved = safeGetRaw('ptt_admin_active_tab');
         if (isAllowedTab(saved)) return saved;
       } catch { /* gizli mod / kota: sessizce varsayılana düş */ }
     }
@@ -224,39 +227,28 @@ export default function AdminDashboard({
     } catch { /* yok say */ }
   };
   useEffect(() => {
-    try { window.localStorage.setItem('ptt_admin_active_tab', activeTab); } catch { /* yok say */ }
+    safeSetRaw('ptt_admin_active_tab', activeTab);
   }, [activeTab]);
 
   // Kenar Çubuğu (Sidebar) kontrolü — kullanıcı tercihi localStorage'da saklanır
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return localStorage.getItem('ptt_admin_sidebar_collapsed') === 'true';
-      } catch { /* yok say */ }
-    }
-    return false;
+    return safeGetRaw('ptt_admin_sidebar_collapsed') === 'true';
   });
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState<boolean>(false);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed((prev) => {
       const next = !prev;
-      try {
-        localStorage.setItem('ptt_admin_sidebar_collapsed', String(next));
-      } catch { /* yok say */ }
+      safeSetRaw('ptt_admin_sidebar_collapsed', String(next));
       return next;
     });
   };
 
   // ⚡ Kategori Filtresi: 'all' | 'operations' | 'finance' | 'content' | 'system'
   const [categoryFilter, setCategoryFilter] = useState<NavCategory>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem('ptt_admin_nav_category');
-        if (saved && ['all', 'operations', 'finance', 'content', 'system'].includes(saved)) {
-          return saved as NavCategory;
-        }
-      } catch { /* yok say */ }
+    const saved = safeGetRaw('ptt_admin_nav_category');
+    if (saved && ['all', 'operations', 'finance', 'content', 'system'].includes(saved)) {
+      return saved as NavCategory;
     }
     return 'operations';
   });
@@ -264,9 +256,7 @@ export default function AdminDashboard({
   /** Sidebar'daki masa switcher'ı — state'i günceller ve tercihi kalıcılaştırır. */
   const handleSelectCategory = (cat: NavCategory) => {
     setCategoryFilter(cat);
-    try {
-      localStorage.setItem('ptt_admin_nav_category', cat);
-    } catch { /* yok say */ }
+    safeSetRaw('ptt_admin_nav_category', cat);
   };
 
   /** Header'daki ⚡ Hızlı Araçlar menüsünün açtığı masalar — modal state'leri burada kalır. */
@@ -419,6 +409,8 @@ export default function AdminDashboard({
     setIsOnline,
     pendingSyncCount,
     setPendingSyncCount,
+    failedSyncItems,
+    setFailedSyncItems,
     lastSyncedAt,
     setLastSyncedAt,
   } = useAdminStore();
@@ -454,6 +446,9 @@ export default function AdminDashboard({
 
   // WhatsApp Automation Templates Modal
   const [whatsAppModalBooking, setWhatsAppModalBooking] = useState<Booking | null>(null);
+
+  // Saha İş Akışı & 5 Adımlı Operasyon Stepper Modalı (Item 2)
+  const [workflowBooking, setWorkflowBooking] = useState<Booking | null>(null);
 
   // Marine Police Manifest Modal
   const [isPoliceManifestOpen, setIsPoliceManifestOpen] = useState<boolean>(false);
@@ -831,6 +826,7 @@ export default function AdminDashboard({
     isModalOpen ||
     Boolean(voucherBooking) ||
     Boolean(curatedProposalData) ||
+    Boolean(workflowBooking) ||
     isCaptainDrawerOpen ||
     Boolean(whatsAppModalBooking) ||
     isPoliceManifestOpen ||
@@ -988,6 +984,10 @@ export default function AdminDashboard({
           showToast(`✅ ${res.succeeded} adet çevrimdışı işlem buluta aktarıldı!`);
         }
         setPendingSyncCount(res.remaining);
+        setFailedSyncItems(res.items);
+        if (res.items.some((item) => item.status === 'needs_attention')) {
+          showToast(`⚠️ ${res.items.filter((item) => item.status === 'needs_attention').length} işlem müdahale bekliyor; senkron ayrıntılarını kontrol edin.`);
+        }
       } catch {}
       void fetchBookingsFromServer(true);
       void refreshCmsFromServer();
@@ -1004,6 +1004,9 @@ export default function AdminDashboard({
 
       void getPendingMutations().then((list) => {
         setPendingSyncCount(list.length);
+        setFailedSyncItems(list.flatMap((item) => item.syncStatus === 'retrying' || item.syncStatus === 'needs_attention'
+          ? [{ ...item, status: item.syncStatus, statusCode: item.lastStatusCode, error: item.lastError || 'Senkronizasyon başarısız.' }]
+          : []));
       });
 
       const hasLocal = typeof window !== 'undefined' && localStorage.getItem(STORAGE_KEY_BOOKINGS);
@@ -1102,12 +1105,15 @@ export default function AdminDashboard({
         showToast(`📶 ${flushResult.succeeded} adet çevrimdışı işlem buluta aktarıldı!`);
       }
       setPendingSyncCount(flushResult.remaining);
+      setFailedSyncItems(flushResult.items);
+      if (flushResult.items.some((item) => item.status === 'needs_attention')) {
+        showToast(`⚠️ ${flushResult.items.filter((item) => item.status === 'needs_attention').length} işlem müdahale bekliyor; senkron ayrıntılarını kontrol edin.`);
+      }
 
       await Promise.all([
         fetchBookingsFromServer(false),
         refreshCmsFromServer(),
       ]);
-      showToast('✅ Bulut verileri ve çevrimdışı kuyruk eşitlendi.');
     } catch {
       showToast('⚠️ Eşitleme sırasında hata oluştu.');
     } finally {
@@ -1156,48 +1162,45 @@ export default function AdminDashboard({
    */
   const handleUpdateSingleBooking = useCallback(
     async (updated: Booking, successMsg?: string) => {
-      const prevBookings = bookings;
       const next = bookings.map((b) => (b.id === updated.id ? updated : b));
       saveBookings(next);
-      if (successMsg) showToast(successMsg);
 
-      try {
-        const res = await fetch('/api/bookings', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(updated),
-        });
-        if (!res.ok) {
-          if (res.status >= 400 && res.status < 500) {
-            setBookings(prevBookings);
-            localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-            showToast('⚠️ Bulut kayıt hatası: Sunucu isteği kabul etmedi, değişiklik geri alındı.');
-          } else {
-            await enqueueMutation({
-              type: 'PUT_BOOKING',
-              url: '/api/bookings',
-              method: 'PUT',
-              body: updated,
-              description: `${updated.customerName} rezervasyon güncellemesi`,
-            });
-            setPendingSyncCount((c) => c + 1);
-            showToast('📶 Çevrimdışı kaydedildi: Sunucu geçici yanıt veremedi, kuyruğa alındı.');
-          }
-        }
-      } catch {
-        await enqueueMutation({
-          type: 'PUT_BOOKING',
+      const result = await submitMutation({
+        type: 'PUT_BOOKING',
+        url: '/api/bookings',
+        method: 'PUT',
+        body: updated,
+        description: `${updated.customerName} rezervasyon güncellemesi`,
+      });
+      if (result.status === 'saved') {
+        if (successMsg) showToast(successMsg);
+        return;
+      }
+      if (result.status === 'rejected') {
+        const failed = {
+          ...result,
+          id: `rejected-${updated.id}-${Date.now()}`,
+          type: 'PUT_BOOKING' as const,
           url: '/api/bookings',
-          method: 'PUT',
+          method: 'PUT' as const,
           body: updated,
           description: `${updated.customerName} rezervasyon güncellemesi`,
-        });
-        setPendingSyncCount((c) => c + 1);
-        showToast('📶 Çevrimdışı kaydedildi: Değişiklik internet gelince buluta aktarılacak.');
+          createdAt: Date.now(),
+          retryCount: 0,
+          status: 'needs_attention' as const,
+          error: result.error,
+        };
+        setFailedSyncItems([failed]);
+        showToast(`⚠️ Rezervasyon sunucu tarafından kabul edilmedi: ${result.error}`);
+        return;
       }
+      setPendingSyncCount((count) => count + 1);
+      showToast('📶 Rezervasyon yerelde saklandı; internet gelince senkronlanacak.');
+      if (successMsg) showToast(`${successMsg} (Yerel olarak kaydedildi; senkron bekliyor.)`);
     },
-    [bookings, showToast, setPendingSyncCount]
+    [bookings, showToast, setPendingSyncCount, setFailedSyncItems]
   );
+
   const saveTours = (next: TourItem[]) => {
     setTours(next);
     saveCmsCollection('tours', next, showToast);
@@ -2315,7 +2318,7 @@ export default function AdminDashboard({
           onLogout={handleLogout}
           isSigningOut={isSigningOut}
           canCreateBookings={perms.canCreateBookings}
-          sync={{ isOnline, isCloudConnected, isSyncing, pendingSyncCount, lastSyncedAt }}
+          sync={{ isOnline, isCloudConnected, isSyncing, pendingSyncCount, failedSyncItems, lastSyncedAt }}
           onManualSync={handleManualSync}
           actions={headerActions}
           logoUrl={siteSettings.logoUrl}
@@ -2357,6 +2360,15 @@ export default function AdminDashboard({
             onOpenQrScanner={() => setIsQrScannerOpen(true)}
             onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
             onOpenBulkReschedule={perms.canAssignTransfers ? () => setIsBulkRescheduleOpen(true) : undefined}
+            onOpenWorkflow={(b) => setWorkflowBooking(b)}
+            sync={{
+              isOnline,
+              isCloudConnected,
+              isSyncing,
+              pendingSyncCount,
+              failedSyncItems,
+              lastSyncedAt,
+            }}
           />
         )}
 
@@ -2431,6 +2443,7 @@ export default function AdminDashboard({
               setPromptPayQrBooking(b);
               setIsPromptPayQrOpen(true);
             }}
+            onOpenWorkflow={(b) => setWorkflowBooking(b)}
           />
         )}
 
@@ -3087,12 +3100,11 @@ export default function AdminDashboard({
         onSelectBooking={(b) => handleOpenEditBooking(b)}
         tours={tours}
         onSelectTour={(t) => handleOpenEditTour(t)}
+        onOpenWorkflow={(b) => setWorkflowBooking(b)}
         onSetNavMode={(mode) => {
           const cat = mode === 'operations' ? 'operations' : 'content';
           setCategoryFilter(cat);
-          try {
-            localStorage.setItem('ptt_admin_nav_category', cat);
-          } catch {}
+          safeSetRaw('ptt_admin_nav_category', cat);
         }}
       />
 
@@ -3328,6 +3340,21 @@ export default function AdminDashboard({
           onClose={() => setIsCaptainDrawerOpen(false)}
           currentDate={manifestDate || new Date().toISOString().split('T')[0]}
           pickups={buildDailyPickups(bookings || [], manifestDate || new Date().toISOString().split('T')[0])}
+          showToast={showToast}
+        />
+      )}
+
+      {/* ==================================================== */}
+      {/* MODAL 29: SAHA İŞ AKIŞI & GÖREV ADIMLARI (PIPELINE) */}
+      {/* ==================================================== */}
+      {workflowBooking && (
+        <BookingWorkflowModal
+          isOpen={Boolean(workflowBooking)}
+          onClose={() => setWorkflowBooking(null)}
+          booking={workflowBooking}
+          onUpdateBooking={handleUpdateSingleBooking}
+          vehicles={vehicles}
+          drivers={drivers}
           showToast={showToast}
         />
       )}

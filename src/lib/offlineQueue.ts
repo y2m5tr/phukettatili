@@ -22,6 +22,9 @@ export interface QueuedMutation {
   description: string;
   createdAt: number;
   retryCount: number;
+  syncStatus?: 'pending' | 'retrying' | 'needs_attention';
+  lastStatusCode?: number;
+  lastError?: string;
 }
 
 const DB_NAME = 'phuket_tatili_offline_v1';
@@ -280,10 +283,46 @@ export async function getOfflineCache<T>(key: string): Promise<T | null> {
   return (memoryCache.get(key) as T) ?? null;
 }
 
+export type MutationSubmissionResult =
+  | { status: 'saved' }
+  | { status: 'queued'; item: QueuedMutation }
+  | { status: 'rejected'; statusCode: number; error: string };
+
+export async function submitMutation(
+  mutation: Omit<QueuedMutation, 'id' | 'createdAt' | 'retryCount' | 'syncStatus' | 'lastStatusCode' | 'lastError'>
+): Promise<MutationSubmissionResult> {
+  try {
+    const response = await fetch(mutation.url, {
+      method: mutation.method,
+      headers: { 'Content-Type': 'application/json' },
+      body: mutation.body === undefined ? undefined : JSON.stringify(mutation.body),
+    });
+    if (response.ok) return { status: 'saved' };
+    if (response.status >= 400 && response.status < 500) {
+      const body = await response.json().catch(() => null) as { error?: unknown } | null;
+      return {
+        status: 'rejected',
+        statusCode: response.status,
+        error: typeof body?.error === 'string' ? body.error : `İstek reddedildi (HTTP ${response.status}).`,
+      };
+    }
+  } catch { /* çevrimdışı veya istek başarısız */ }
+
+  const item = await enqueueMutation({ ...mutation, syncStatus: 'pending' });
+  return { status: 'queued', item };
+}
+
+export interface FailedMutation extends QueuedMutation {
+  status: 'retrying' | 'needs_attention';
+  statusCode?: number;
+  error: string;
+}
+
 export interface FlushResult {
   succeeded: number;
   failed: number;
   remaining: number;
+  items: FailedMutation[];
 }
 
 /**
@@ -295,11 +334,12 @@ export async function flushPendingMutations(
 ): Promise<FlushResult> {
   const list = await getPendingMutations();
   if (list.length === 0) {
-    return { succeeded: 0, failed: 0, remaining: 0 };
+    return { succeeded: 0, failed: 0, remaining: 0, items: [] };
   }
 
   let succeeded = 0;
   let failed = 0;
+  const items: FailedMutation[] = [];
 
   for (let i = 0; i < list.length; i++) {
     const item = list[i];
@@ -315,24 +355,26 @@ export async function flushPendingMutations(
       if (res.ok) {
         await removeMutation(item.id);
         succeeded++;
-      } else if (res.status >= 400 && res.status < 500) {
-        // İstemci/doğrulama hatası (4xx) — sonsuza kadar kuyrukta kalıp sistemi kilitlemesin
-        console.warn(`[OfflineSync] 4xx yanıtı alındı, işlem kuyruktan çıkarıldı:`, item.description, res.status);
-        await removeMutation(item.id);
-        failed++;
       } else {
-        // Sunucu 5xx hatası — daha sonra tekrar denemek üzere döngüyü durdur
+        const isClientError = res.status >= 400 && res.status < 500;
+        const errorBody = await res.json().catch(() => null) as { error?: unknown } | null;
+        const error = typeof errorBody?.error === 'string'
+          ? errorBody.error
+          : `Senkronizasyon başarısız oldu (HTTP ${res.status}).`;
+        const status = isClientError ? 'needs_attention' : 'retrying';
+        const failedItem: FailedMutation = { ...item, status, statusCode: res.status, error };
+        items.push(failedItem);
+        await updateMutationStatus(item.id, status, res.status, error);
         failed++;
-        break;
+        if (!isClientError) break;
       }
     } catch (networkErr) {
       // Ağ hatası (cihaz halen çevrimdışı veya bağlantı koptu)
       // Kalan mutasyonlar kuyrukta tutulur, döngü sonlanır
-      console.warn(
-        '[OfflineSync] Ağ hatası, senkronizasyon durduruldu — kalan işlemler kuyrukta:',
-        item.description,
-        networkErr instanceof Error ? networkErr.message : networkErr
-      );
+      const error = networkErr instanceof Error ? 'Ağ bağlantısı kurulamadı.' : 'Ağ bağlantısı kurulamadı.';
+      const failedItem: FailedMutation = { ...item, status: 'retrying', error };
+      items.push(failedItem);
+      await updateMutationStatus(item.id, 'retrying', undefined, error);
       break;
     }
   }
@@ -342,5 +384,39 @@ export async function flushPendingMutations(
     succeeded,
     failed,
     remaining: remainingList.length,
+    items,
   };
+}
+
+async function updateMutationStatus(
+  id: string,
+  syncStatus: 'retrying' | 'needs_attention',
+  lastStatusCode?: number,
+  lastError?: string
+): Promise<void> {
+  const list = await getPendingMutations();
+  const mutation = list.find((item) => item.id === id);
+  if (!mutation) return;
+  Object.assign(mutation, { syncStatus, lastStatusCode, lastError });
+
+  if (hasIndexedDB()) {
+    try {
+      const db = await openDb();
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(STORE_MUTATIONS, 'readwrite');
+        const request = tx.objectStore(STORE_MUTATIONS).put(mutation);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+      return;
+    } catch { /* fallback */ }
+  }
+  if (hasLocalStorage()) {
+    try {
+      window.localStorage.setItem(FALLBACK_STORAGE_KEY, JSON.stringify(list));
+      return;
+    } catch { /* fallback */ }
+  }
+  const memoryItem = memoryQueue.find((item) => item.id === id);
+  if (memoryItem) Object.assign(memoryItem, { syncStatus, lastStatusCode, lastError });
 }
