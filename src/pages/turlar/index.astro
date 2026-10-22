@@ -38,6 +38,12 @@ const categories = uniqueCategorySlugs.map(slug => ({
 const site = Astro.site || 'https://phukettatili.com';
 const schemas: Record<string, unknown>[] = [
   {
+    "@type": "CollectionPage",
+    "name": "Phuket Turları — Türkçe Rehberli Ada & Doğa Gezileri",
+    "description": "Phuket'in en popüler ada turları, Phi Phi, James Bond, Similan sürat teknesi gezileri, fil bakım deneyimi ve şehir turları.",
+    "url": new URL('/turlar/', site).toString(),
+  },
+  {
     "@type": "ItemList",
     "name": "Phuket Turları",
     "numberOfItems": sortedTours.length,
@@ -47,6 +53,13 @@ const schemas: Record<string, unknown>[] = [
       "url": new URL(`/turlar/${tour.id}/`, site).toString(),
       "name": tour.data.title,
     })),
+  },
+  {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": new URL('/', site).toString() },
+      { "@type": "ListItem", "position": 2, "name": "Turlar", "item": new URL('/turlar/', site).toString() },
+    ],
   },
 ];
 ---

@@ -1,7 +1,57 @@
 User-agent: *
 Allow: /
 
+# AI Search Engines & Crawlers (Explicitly permitted for AEO/GEO Visibility)
+User-agent: GPTBot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /ops-login/
+Disallow: /ekip/
+Disallow: /bilet/
+
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /ops-login/
+Disallow: /ekip/
+Disallow: /bilet/
+
+User-agent: PerplexityBot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /ops-login/
+Disallow: /ekip/
+Disallow: /bilet/
+
+User-agent: ClaudeBot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /ops-login/
+Disallow: /ekip/
+Disallow: /bilet/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /ops-login/
+Disallow: /ekip/
+Disallow: /bilet/
+
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+Disallow: /ops-login/
+Disallow: /ekip/
+Disallow: /bilet/
+
 # Sitemaps
+Sitemap: https://phukettatili.com/sitemap.xml
 Sitemap: https://phukettatili.com/sitemap-index.xml
 Sitemap: https://phukettatili.com/sitemap-turlar.xml
 Sitemap: https://phukettatili.com/sitemap-blog.xml

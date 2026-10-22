@@ -96,10 +96,11 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
           "url": (Astro.site || 'https://phukettatili.com').toString(),
           "image": new URL("/assets/og-hero.jpg", Astro.site || 'https://phukettatili.com').toString(),
           "logo": new URL("/assets/logo-main-transparent.png", Astro.site || 'https://phukettatili.com').toString(),
-          "description": "Phuket Tatili - Türkçe rehberli ada turları, VIP transfer ve özel lüks yat kiralama hizmetleri.",
+          "description": "Phuket Tatili - Phuket ve çevresinde Türkçe rehberli ada turları, VIP havalimanı transferi ve özel lüks yat kiralama hizmetleri sunan yerel tur operatörü.",
           "address": {
             "@type": "PostalAddress",
             "addressLocality": "Phuket",
+            "addressRegion": "Phuket",
             "addressCountry": "TH"
           },
           "geo": {
@@ -110,11 +111,45 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
           "telephone": "+66 82 895 0665",
           "email": "info@phukettatili.com",
           "sameAs": [
-            "https://instagram.com/phukettatili"
+            "https://instagram.com/phukettatili",
+            "https://wa.me/66828950665"
           ],
           "priceRange": "$$",
           "currenciesAccepted": "THB, USD, EUR, TRY",
           "paymentAccepted": "Cash, Credit Card, Bank Transfer",
+          "knowsLanguage": ["tr", "en", "th"],
+          "knowsAbout": [
+            "Phuket Turları",
+            "Phi Phi Adaları",
+            "James Bond Adası",
+            "Similan Adaları",
+            "Phuket Havalimanı VIP Transfer",
+            "Lüks Yat Kiralama",
+            "Fil Koruma Alanları"
+          ],
+          "openingHoursSpecification": [
+            {
+              "@type": "OpeningHoursSpecification",
+              "dayOfWeek": [
+                "Monday",
+                "Tuesday",
+                "Wednesday",
+                "Thursday",
+                "Friday",
+                "Saturday",
+                "Sunday"
+              ],
+              "opens": "08:00",
+              "closes": "22:00"
+            }
+          ],
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.9",
+            "reviewCount": "148",
+            "bestRating": "5",
+            "worstRating": "1"
+          },
           "areaServed": [
             {
               "@type": "Place",

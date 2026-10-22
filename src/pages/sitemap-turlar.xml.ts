@@ -9,19 +9,22 @@
  */
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { getCloudTours, applyTourOverlay } from '../lib/server/tourContent';
 
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
-  const tours = await getCollection('tours');
+  const mdTours = await getCollection('tours');
+  const cloudTours = await getCloudTours();
+  const tours = applyTourOverlay(mdTours, cloudTours);
   const site = 'https://phukettatili.com';
-  const now = new Date().toISOString();
+  const today = new Date().toISOString().split('T')[0];
 
   const urls = tours
     .map((tour) => {
       return `  <url>
     <loc>${site}/turlar/${tour.id}/</loc>
-    <lastmod>${now}</lastmod>
+    <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>`;

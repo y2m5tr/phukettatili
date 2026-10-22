@@ -2,7 +2,9 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import FadeIn from '../../components/ui/FadeIn';
+import Accordion from '../../components/ui/Accordion';
 import { resolveAssetUrl } from '../../lib/assets';
+import siteSettings from '../../content/settings/site.json';
 import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
 import { getCloudCategories, applyCategoryOverlay } from '../../lib/server/categoryContent';
 
@@ -64,8 +66,89 @@ const tours = matchingTours.sort(
   (a, b) => (Number(a.data.order) || 999) - (Number(b.data.order) || 999),
 );
 
+// Kategori navigasyon hapları (pills): üst kategorinin alt destinasyonlarını listele
+const activeParent = parent || parentOfChild;
+const subPills = activeParent?.data?.children || [];
+
+// Kategoriye özel zengin SSS ve AI Özeti
+interface CatFaq {
+  q: string;
+  a: string;
+}
+
+const getCategoryFaqs = (slug: string, label: string): CatFaq[] => {
+  if (slug === 'island-tours' || activeParent?.data?.slug === 'island-tours') {
+    return [
+      {
+        q: `${label} için en ideal ziyaret dönemi ne zamandır?`,
+        a: "Phuket ada turları (özellikle Phi Phi, James Bond ve Similan) için en popüler ve sakin deniz dönemi Kasım ile Mayıs ayları arasındaki yüksek sezondur. Bu dönemde Andaman Denizi berrak, dalga seviyesi minimumdur. Similan Adaları sadece bu sezonda (15 Ekim - 15 Mayıs) ziyarete açıktır.",
+      },
+      {
+        q: "Ada turlarına otel transferi ve öğle yemeği dahil mi?",
+        a: "Evet. Phuket Tatili turlarının tamamında Patong, Kata, Karon, Rawai gibi ana bölgelerden çift yönlü otel transferi, öğle yemeği, şnorkel ekipmanı, can yeleği ve temel kaza sigortası fiyata dahildir.",
+      },
+      {
+        q: "Tayland Millî Park ücreti nasıl ödenir?",
+        a: "Tayland Millî Parklar İdaresi (DNP) kuralları gereği Phi Phi ve Similan gibi doğal koruma bölgelerine giriş harçları (yetişkin 400 THB, çocuk 200 THB) iskelede biniş öncesi resmi makbuz karşılığında tahsil edilmektedir.",
+      },
+      {
+        q: "Sürat teknesi (Speedboat) mi yoksa Katamaran mı tercih edilmeli?",
+        a: "Sürat tekneleri daha hızlı olup adalarda daha uzun süre vakit geçirmenizi sağlar. Katamaran ve yatlar ise geniş güverteleri sayesinde sarsıntıyı hissettirmez; çocuklu aileler ve konfor arayanlar için idealdir.",
+      },
+    ];
+  }
+  if (slug === 'adventure-tours' || activeParent?.data?.slug === 'adventure-tours') {
+    return [
+      {
+        q: "Phuket macera ve safari turları için ne giyilmelidir?",
+        a: "ATV safari, zipline ve doğa turları için spor ayakkabı, rahat pamuklu kıyafetler, güneş kremi ve sinek kovucu sprey önerilir. Değerli eşyalarınız için iskele/üslerde kilitli dolaplar sağlanmaktadır.",
+      },
+      {
+        q: "Fil turlarında etik kurallara uyuluyor mu?",
+        a: "Kesinlikle evet. Phuket Tatili olarak yalnızca fillerin doğal ortamında serbestçe dolaştığı, banyo yaptığı ve beslendiği etik fil koruma alanları (Elephant Sanctuary) ile çalışıyoruz. File binme (riding) etkinlikleri kesinlikle sunulmamaktadır.",
+      },
+      {
+        q: "Çocuklar ve aileler için macera turları uygun mu?",
+        a: "Hanuman World zipline parkurunda çocuklar için özel emniyet kemerli rotalar bulunur. Fil besleme deneyimi ise her yaştan çocuk ve aile için tamamen güvenli ve eğitici bir deneyimdir.",
+      },
+    ];
+  }
+  if (slug === 'private-charters' || activeParent?.data?.slug === 'private-charters') {
+    return [
+      {
+        q: "Özel tekne kiralama ücretine neler dahildir?",
+        a: "Özel katamaran ve yat kiralama hizmetlerimizde lisanslı kaptan, mürettebat, yakıt, şnorkel ekipmanları, meyve ikramları, alkolsüz içecekler ve seçilen rotaya göre otel transferi dahildir.",
+      },
+      {
+        q: "Özel rotayı kendimiz belirleyebilir miyiz?",
+        a: "Evet. Günlük hava ve deniz güvenliği şartlarına uygun olmak kaydıyla kalkış saatinizi, yüzme molası vereceğiniz koyları ve gezi sürenizi tamamen sizin tercihinize göre kişiselleştiriyoruz.",
+      },
+    ];
+  }
+  return [
+    {
+      q: `${label} için rezervasyon nasıl yapılır?`,
+      a: "İncelediğiniz tur için WhatsApp destek hattımız üzerinden tarih ve kişi sayınızı ileterek anında Türkçe danışmanlık alabilir, yerinizi kolayca ayırtabilirsiniz.",
+    },
+    {
+      q: "Ödemeler hangi para birimlerinde yapılabilir?",
+      a: "Ödemelerinizi Tay Bahtı (THB), Türk Lirası (TRY), USD veya EUR olarak havale, nakit veya kredi kartı ile güvenle gerçekleştirebilirsiniz.",
+    },
+  ];
+};
+
+const categoryFaqs = getCategoryFaqs(categorySlug || '', categoryLabel);
+
 const site = Astro.site || 'https://phukettatili.com';
+const categoryCanonical = new URL(`/tur-kategorisi/${categorySlug}/`, site).toString();
+
 const schemas: Record<string, unknown>[] = [
+  {
+    "@type": "CollectionPage",
+    "name": `${categoryLabel} Turları`,
+    "description": description || `${categoryLabel} turları ve gezi programları`,
+    "url": categoryCanonical,
+  },
   {
     "@type": "ItemList",
     "name": `${categoryLabel} Turları`,
@@ -82,9 +165,21 @@ const schemas: Record<string, unknown>[] = [
     "itemListElement": [
       { "@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": new URL('/', site).toString() },
       { "@type": "ListItem", "position": 2, "name": "Turlar", "item": new URL('/turlar/', site).toString() },
-      { "@type": "ListItem", "position": 3, "name": categoryLabel },
+      { "@type": "ListItem", "position": 3, "name": categoryLabel, "item": categoryCanonical },
     ],
   },
+  ...(categoryFaqs.length > 0
+    ? [
+        {
+          "@type": "FAQPage",
+          "mainEntity": categoryFaqs.map((faq) => ({
+            "@type": "Question",
+            "name": faq.q,
+            "acceptedAnswer": { "@type": "Answer", "text": faq.a },
+          })),
+        },
+      ]
+    : []),
 ];
 ---
 
@@ -120,6 +215,38 @@ const schemas: Record<string, unknown>[] = [
   <!-- Tours List -->
   <section class="py-16 bg-slate-50 dark:bg-surface-1 px-4 min-h-[500px]">
     <div class="max-w-6xl mx-auto">
+      {subPills.length > 0 && (
+        <div class="mb-8 flex flex-wrap items-center gap-2 pb-2">
+          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-2">
+            Rotalar:
+          </span>
+          {activeParent && (
+            <a
+              href={`/tur-kategorisi/${activeParent.data.slug}/`}
+              class={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                categorySlug === activeParent.data.slug
+                  ? 'bg-brand-primary text-white shadow-sm'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-brand-accent/50 border border-slate-200 dark:border-slate-700'
+              }`}
+            >
+              Tümü ({activeParent.data.label_tr})
+            </a>
+          )}
+          {subPills.map((sub) => (
+            <a
+              href={`/tur-kategorisi/${sub.slug}/`}
+              class={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
+                categorySlug === sub.slug
+                  ? 'bg-brand-primary text-white shadow-sm'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-brand-accent/50 border border-slate-200 dark:border-slate-700'
+              }`}
+            >
+              {sub.label_tr}
+            </a>
+          ))}
+        </div>
+      )}
+
       <div class="flex justify-between items-center mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
         <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">
           Toplam {tours.length} Tur Bulundu
@@ -175,6 +302,52 @@ const schemas: Record<string, unknown>[] = [
           <p class="text-slate-500 dark:text-slate-400">Bu kategoriye ait planlanan yeni turlar yakında eklenecektir.</p>
         </div>
       )}
+
+      <!-- SEO Informational & AI Context Section -->
+      <div class="mt-20 border-t border-slate-200 dark:border-slate-800 pt-16">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+          <div class="lg:col-span-5">
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-accent">Uzmanından Phuket Rehberi</span>
+            <h2 class="text-2xl md:text-3xl font-serif font-bold text-brand-primary dark:text-white mt-2 mb-4">
+              {categoryLabel} Hakkında Bilmeniz Gerekenler
+            </h2>
+            <div class="prose dark:prose-invert text-slate-600 dark:text-slate-400 text-sm leading-relaxed space-y-3">
+              <p>
+                Phuket çıkışlı {categoryLabel.toLowerCase()} turlarımız; Türkçe destekli operasyon, lisanslı kaptanlar ve otelinizden konforlu çift yönlü transfer ile organize edilir.
+              </p>
+              <p>
+                Tur programlarımızda misafirlerimizin güvenliği, konforu ve koylardaki kalabalıktan uzak özel anlar yakalayabilmesi için hareket saatleri özenle planlanır.
+              </p>
+            </div>
+
+            <div class="mt-8 p-5 bg-brand-primary/5 dark:bg-slate-800/60 rounded-2xl border border-brand-accent/20">
+              <h3 class="font-bold text-sm text-brand-primary dark:text-white mb-2 flex items-center gap-2">
+                <span>🇹🇭</span> Yerinde Türkçe Destek & Danışmanlık
+              </h3>
+              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
+                Tarihiniz, kişi sayınız veya özel talepleriniz için yerel ekibimize WhatsApp üzerinden 7/24 ulaşabilirsiniz.
+              </p>
+              <a
+                href={`https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}?text=${encodeURIComponent(`Merhaba, ${categoryLabel} turları hakkında bilgi ve fiyat almak istiyorum.`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-full shadow-sm transition-colors"
+              >
+                <span>WhatsApp ile Danışın</span>
+                <span>→</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- FAQ Accordion for Search Bots & Visitors -->
+          <div class="lg:col-span-7">
+            <h3 class="text-xl font-serif font-bold text-brand-primary dark:text-white mb-6">
+              Sıkça Sorulan Sorular
+            </h3>
+            <Accordion client:visible faqs={categoryFaqs} />
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 </Layout>
