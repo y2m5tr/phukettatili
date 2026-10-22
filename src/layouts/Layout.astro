@@ -6,6 +6,7 @@ import Footer from '../components/Footer.astro';
 import Tracking from '../components/Tracking.astro';
 import WhatsAppSupportWidget from '../components/WhatsAppSupportWidget.astro';
 import HolidayShortlist from '../components/ui/HolidayShortlist';
+import siteSettings from '../content/settings/site.json';
 
 interface Props {
 	title: string;
@@ -69,9 +70,12 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
         <link rel="alternate" hreflang="tr" href={canonicalURL} />
         <link rel="alternate" hreflang="x-default" href={canonicalURL} />
 
-        <!-- Google Search Console dogrulama: PUBLIC_GSC_VERIFICATION env degiskeni ile set edilir -->
-        {import.meta.env.PUBLIC_GSC_VERIFICATION && (
-          <meta name="google-site-verification" content={import.meta.env.PUBLIC_GSC_VERIFICATION} />
+        <!-- Google Search Console dogrulama: PUBLIC_GSC_VERIFICATION env veya site.json ile set edilir -->
+        {(import.meta.env.PUBLIC_GSC_VERIFICATION || (siteSettings as any)?.googleSiteVerification || (siteSettings as any)?.gscVerification) && (
+          <meta
+            name="google-site-verification"
+            content={import.meta.env.PUBLIC_GSC_VERIFICATION || (siteSettings as any)?.googleSiteVerification || (siteSettings as any)?.gscVerification}
+          />
         )}
 
         <meta property="og:type" content={ogType} />

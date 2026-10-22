@@ -279,3 +279,209 @@ export function generatePierManifestWhatsApp(report: PierManifestReport): string
     `Phuket Tatili Operasyon Masası | Tel: +66 82 895 0665`
   );
 }
+
+/**
+ * İskele ve tur manifestosunu A4 formatında temiz, resmi ve yazdırılabilir/PDF bir pencereye döker.
+ */
+export function printPierManifestA4(report: PierManifestReport): void {
+  if (typeof window === 'undefined') return;
+
+  const dateParts = report.date.split('-');
+  const formattedDate = dateParts.length === 3 ? `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}` : report.date;
+
+  const rows = report.items
+    .map((item, idx) => {
+      const parkStatus = item.nationalParkFeeIncluded ? '<span style="color:#059669;font-weight:bold;">Dahil</span>' : '<span style="color:#dc2626;font-weight:bold;">Ödenecek</span>';
+      const balance = item.remainingAmountThb > 0 ? `<strong>${item.remainingAmountThb.toLocaleString()} THB</strong>` : '<span style="color:#059669;">Ödendi</span>';
+      const notes = [
+        item.specialNotes || '',
+        item.passengersList.filter(p => p.dietaryPreference && p.dietaryPreference !== 'standard').map(p => `${p.name}: ${p.dietaryPreference}`).join(', ')
+      ].filter(Boolean).join(' | ');
+
+      return `
+        <tr>
+          <td style="text-align:center;font-weight:bold;">${idx + 1}</td>
+          <td style="text-align:center;font-weight:bold;font-size:13px;">${item.pickupTime || '07:30'}</td>
+          <td><strong>${item.customerName}</strong><br><small style="color:#4b5563;">${item.phone || '-'}</small></td>
+          <td>${item.hotel}${item.roomNumber ? ` (Oda: ${item.roomNumber})` : ''}</td>
+          <td><span style="font-size:12px;">${item.tourTitle}</span></td>
+          <td style="text-align:center;font-weight:bold;">${item.totalPax} <span style="font-size:11px;color:#6b7280;font-weight:normal;">(${item.adultCount}Y+${item.childCount}Ç)</span></td>
+          <td style="text-align:center;font-size:12px;">${item.assignedVehicle || '-'}</td>
+          <td style="text-align:right;">${balance}</td>
+          <td style="text-align:center;font-size:11px;">${parkStatus}</td>
+          <td style="font-size:11px;color:#374151;">${notes || '-'}</td>
+          <td style="width:60px;border-bottom:1px solid #9ca3af;"></td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  const html = `<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>Manifesto - ${report.pier.name} - ${formattedDate}</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 10mm;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+      color: #111827;
+      background: #fff;
+      font-size: 12px;
+      line-height: 1.3;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      border-bottom: 2px solid #0a192f;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+    .logo-title {
+      font-size: 18px;
+      font-weight: 800;
+      color: #0a192f;
+      letter-spacing: 0.5px;
+    }
+    .sub-title {
+      font-size: 13px;
+      font-weight: bold;
+      color: #4b5563;
+      margin-top: 2px;
+    }
+    .meta-box {
+      text-align: right;
+      font-size: 11px;
+    }
+    .meta-pill {
+      display: inline-block;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      padding: 3px 8px;
+      border-radius: 6px;
+      font-weight: bold;
+      margin-left: 4px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 6px;
+    }
+    th {
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 6px 4px;
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: #1e293b;
+    }
+    td {
+      border: 1px solid #cbd5e1;
+      padding: 5px 6px;
+      vertical-align: middle;
+    }
+    tr:nth-child(even) {
+      background-color: #fbfcfe;
+    }
+    .summary-bar {
+      margin-top: 12px;
+      display: flex;
+      justify-content: space-between;
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    .signatures {
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 40px;
+      font-size: 11px;
+    }
+    .sig-box {
+      text-align: center;
+      width: 200px;
+      border-top: 1px solid #6b7280;
+      padding-top: 4px;
+    }
+    @media print {
+      button { display: none !important; }
+      body { padding: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div style="margin-bottom: 8px; text-align: right;">
+    <button onclick="window.print()" style="padding: 6px 14px; background: #0a192f; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">🖨️ Yazdır / PDF Kaydet</button>
+  </div>
+  
+  <div class="header">
+    <div>
+      <div class="logo-title">🌴 PHUKET TATİLİ — SAHA & İSKELE YOLCU MANİFESTOSU</div>
+      <div class="sub-title">📍 ${report.pier.name} (${report.pier.thaiName}) &bull; ${report.pier.zone}</div>
+    </div>
+    <div class="meta-box">
+      <div><strong>Tarih:</strong> <span class="meta-pill">${formattedDate}</span></div>
+      <div style="margin-top: 4px;"><strong>Yolcu:</strong> <span class="meta-pill">${report.totalPax} Kişi (${report.totalAdults}Y + ${report.totalChildren}Ç)</span></div>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:25px;">#</th>
+        <th style="width:50px;">Lobi</th>
+        <th>Misafir & İletişim</th>
+        <th>Otel & Oda</th>
+        <th>Tur Rota</th>
+        <th style="width:65px;">Pax</th>
+        <th style="width:75px;">Araç</th>
+        <th style="width:80px;">Kalan (THB)</th>
+        <th style="width:65px;">Millî Park</th>
+        <th>Özel Not / Diyet</th>
+        <th style="width:60px;">İmza</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${rows}
+    </tbody>
+  </table>
+
+  <div class="summary-bar">
+    <span>📋 Toplam Rezervasyon: ${report.totalBookings} Kayıt</span>
+    <span>👥 Toplam Misafir: ${report.totalPax} Kişi</span>
+    <span>💵 Limanda Tahsil Edilecek Toplam: ${report.totalRemainingThb.toLocaleString()} THB</span>
+    <span>📞 7/24 Saha Destek: +66 82 895 0665</span>
+  </div>
+
+  <div class="signatures">
+    <div class="sig-box">İskele Koordinatörü İmzası</div>
+    <div class="sig-box">Kaptan / Baş Rehber İmzası</div>
+  </div>
+
+  <script>
+    window.onload = function() {
+      // Otomatik yazdırma penceresini aç
+      setTimeout(function() { window.print(); }, 350);
+    };
+  </script>
+</body>
+</html>`;
+
+  const printWindow = window.open('', '_blank', 'width=1100,height=750');
+  if (printWindow) {
+    printWindow.document.open();
+    printWindow.document.write(html);
+    printWindow.document.close();
+  }
+}

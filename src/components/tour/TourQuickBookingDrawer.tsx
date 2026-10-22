@@ -58,12 +58,13 @@ export default function TourQuickBookingDrawer({
 
   const generateWhatsAppUrl = (ticketCode?: string) => {
     const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
+    const displayDate = date ? date.split('-').reverse().join('/') : '';
     const lines = [
       `🌴 *Merhaba Phuket Tatili, ${tourTitle} Turu İçin Rezervasyon Talebi:*`,
       ``,
       ...(ticketCode ? [`🎫 *Referans Kodu:* ${ticketCode}`, ``] : []),
       ...(customerName ? [`👤 *İsim:* ${customerName.trim()}`] : []),
-      `📅 *Tarih:* ${date}`,
+      `📅 *Tarih:* ${displayDate}`,
       `👥 *Kişi:* ${adults} Yetişkin${children > 0 ? `, ${children} Çocuk` : ''} (Toplam ${totalPax} Kişi)`,
       `🏨 *Otel / Bölge:* ${hotel ? hotel.trim() : 'Belirtilmedi (Görüşmede netleşecek)'}`,
       `💰 *Tahmini Tutar:* ~${totalThb.toLocaleString('tr-TR')} THB (${formatDisplayPrice(totalThb, currency)})`,

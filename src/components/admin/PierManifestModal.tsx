@@ -16,6 +16,7 @@ import {
   PHUKET_PIERS,
   buildPierManifest,
   generatePierManifestWhatsApp,
+  printPierManifestA4,
 } from '../../lib/pierManifest';
 
 interface PierManifestModalProps {
@@ -85,7 +86,7 @@ export default function PierManifestModal({
   };
 
   const handlePrint = () => {
-    window.print();
+    printPierManifestA4(manifest);
   };
 
   const handleSendToCaptain = () => {

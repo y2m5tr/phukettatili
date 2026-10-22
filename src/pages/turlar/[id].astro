@@ -380,6 +380,18 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
                 <option value="6+ Kişi">6+ Kişi (Özel Grup Teklifi)</option>
               </select>
             </div>
+
+            <div>
+              <label for="booking-hotel-input" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                Konaklama Oteli / Bölge (İsteğe Bağlı)
+              </label>
+              <input 
+                type="text" 
+                id="booking-hotel-input"
+                placeholder="Örn: Patong, Karon, Kata..."
+                class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-accent transition-all"
+              />
+            </div>
           </div>
 
           <a 
@@ -554,6 +566,7 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
     // 1. Dynamic WhatsApp Reservation Generator
     const dateInput = document.getElementById('booking-date-input') as HTMLInputElement | null;
     const guestsSelect = document.getElementById('booking-guests-select') as HTMLSelectElement | null;
+    const hotelInput = document.getElementById('booking-hotel-input') as HTMLInputElement | null;
     const desktopBtn = document.getElementById('whatsapp-booking-btn') as HTMLAnchorElement | null;
     const mobileBtn = document.getElementById('mobile-wa-booking-btn') as HTMLAnchorElement | null;
 
@@ -570,16 +583,18 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
       const updateWhatsAppUrl = () => {
         const selectedDate = dateInput?.value || '';
         const selectedGuests = guestsSelect?.value || '2 Kişi';
+        const hotelVal = (hotelInput?.value || '').trim();
 
         let dateStr = '';
         if (selectedDate) {
           const parts = selectedDate.split('-');
           if (parts.length === 3) {
-            dateStr = `${parts[2]}.${parts[1]}.${parts[0]} tarihinde `;
+            dateStr = `${parts[2]}/${parts[1]}/${parts[0]} tarihinde `;
           }
         }
 
-        const message = `Merhaba, ${tourTitle} için ${dateStr}${selectedGuests} teklif ve uygunluk bilgisi almak istiyorum.`;
+        const hotelStr = hotelVal ? `(Otel: ${hotelVal}) ` : '';
+        const message = `Merhaba, ${tourTitle} için ${dateStr}${selectedGuests} ${hotelStr}uygunluk ve fiyat teklifi almak istiyorum.`;
         const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
 
         if (desktopBtn) desktopBtn.href = waUrl;
@@ -588,6 +603,7 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
 
       dateInput?.addEventListener('change', updateWhatsAppUrl);
       guestsSelect?.addEventListener('change', updateWhatsAppUrl);
+      hotelInput?.addEventListener('input', updateWhatsAppUrl);
     }
 
     // 2. Gallery Lightbox Functionality
