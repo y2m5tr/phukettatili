@@ -1,4 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import React from 'react';
+import { renderToString } from 'react-dom/server';
+import GuestItineraryCard from '../src/components/guest/GuestItineraryCard';
 import {
   buildGuestItinerary,
   getTourPackingChecklist,
@@ -79,5 +82,24 @@ describe('Smart Digital Itinerary & Day-by-Day Vacations', () => {
 
     const url = getItineraryWhatsAppUrl('+905321112233', msg);
     expect(url).toContain('https://wa.me/905321112233?text=');
+  });
+
+  it('renders GuestItineraryCard component in story mode without errors', () => {
+    const itinerary = buildGuestItinerary(multiTourBooking[0]);
+    const html = renderToString(
+      React.createElement(GuestItineraryCard, {
+        itinerary,
+        ticketCode: 'BK-501',
+        whatsappNumber: '66828950665',
+        whatsappShareUrl: 'https://wa.me/test',
+        whatsappSummaryText: 'Test gezi özeti',
+      })
+    );
+
+    expect(html).toContain('PHUKET TATİL KARNESİ');
+    expect(html).toContain('Cemil Demir');
+    expect(html).toContain('The Shore at Katathani');
+    expect(html).toContain('Phi Phi');
+    expect(html).toContain('Bilet Portalım');
   });
 });

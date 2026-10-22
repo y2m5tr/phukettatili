@@ -45,7 +45,7 @@ import {
 import { type RouteSortMode } from '../../lib/routeSequencer';
 import { getConciergeWhatsAppUrl } from '../../lib/guestConcierge';
 import { getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
-import { sendTransferPushNotification } from '../../lib/pwaNotifications';
+import { sendTransferPushNotification, playLobbyReadyChime } from '../../lib/pwaNotifications';
 
 interface TransfersTabProps {
   bookings?: Booking[];
@@ -78,6 +78,14 @@ interface TransfersTabProps {
   onOpenLuggageExpress?: () => void;
   onOpenCaptainVault?: () => void;
   onOpenCuratedProposal?: (b?: Booking) => void;
+}
+
+export function isPickupLobbyReady(p: PickupItem): boolean {
+  if (p.specialNotes && p.specialNotes.includes('LOBİDE')) return true;
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem(`ptt_lobby_ready_${p.bookingId}`) === 'true';
+  }
+  return false;
 }
 
 export default function TransfersTab({
@@ -121,18 +129,67 @@ export default function TransfersTab({
 
   const [vehicleFilter, setVehicleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [lobbyOnlyFilter, setLobbyOnlyFilter] = useState<boolean>(false);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return true;
+    return localStorage.getItem('ptt_lobby_sound_enabled') !== 'false';
+  });
+  const [lastKnownLobbyReadyIds, setLastKnownLobbyReadyIds] = useState<string[]>([]);
+  const [storageTick, setStorageTick] = useState<number>(0);
+
+  // Depolama ve sekme senkronizasyonu dinleyicisi
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key && e.key.startsWith('ptt_lobby_ready_')) {
+        setStorageTick((t) => t + 1);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   const routeVehicles = useMemo(() => {
     return Array.from(new Set(dailyPickups.map((p) => p.assignedVehicle).filter(Boolean)));
   }, [dailyPickups]);
 
+  const lobbyReadyCount = useMemo(() => {
+    return dailyPickups.filter(isPickupLobbyReady).length;
+  }, [dailyPickups, storageTick]);
+
   const filteredPickups = useMemo(() => {
     return dailyPickups.filter((p) => {
       const matchVehicle = vehicleFilter === 'all' || p.assignedVehicle === vehicleFilter;
       const matchStatus = statusFilter === 'all' || (p.pickupStatus || 'pending') === statusFilter;
-      return matchVehicle && matchStatus;
+      const matchLobby = !lobbyOnlyFilter || isPickupLobbyReady(p);
+      return matchVehicle && matchStatus && matchLobby;
     });
-  }, [dailyPickups, vehicleFilter, statusFilter]);
+  }, [dailyPickups, vehicleFilter, statusFilter, lobbyOnlyFilter, storageTick]);
+
+  // Yeni lobide hazır olan misafirler için anlık sesli ve görsel bildirim
+  useEffect(() => {
+    const currentReadyPickups = dailyPickups.filter(isPickupLobbyReady);
+    const currentReadyIds = currentReadyPickups.map((p) => p.bookingId);
+
+    if (lastKnownLobbyReadyIds.length > 0) {
+      const newlyReady = currentReadyPickups.find(
+        (p) => !lastKnownLobbyReadyIds.includes(p.bookingId)
+      );
+      if (newlyReady) {
+        if (soundEnabled) {
+          playLobbyReadyChime();
+        }
+        showToast(`🙋‍♂️ Misafir Lobide Hazır: ${newlyReady.customerName} (${newlyReady.hotel})`);
+        if (typeof window !== 'undefined' && 'navigator' in window && 'vibrate' in navigator) {
+          try {
+            navigator.vibrate([150, 80, 150]);
+          } catch {}
+        }
+      }
+    }
+
+    setLastKnownLobbyReadyIds(currentReadyIds);
+  }, [dailyPickups, soundEnabled, storageTick]);
 
   const pickedUpCount = dailyPickups.filter((p) => p.pickupStatus === 'picked_up').length;
   const pendingCount = dailyPickups.filter((p) => !p.pickupStatus || p.pickupStatus === 'pending').length;
@@ -934,6 +991,54 @@ export default function TransfersTab({
             <option value="completed">✅ Tamamlananlar</option>
             <option value="no_show">❌ Gelmeyenler (No-Show)</option>
           </select>
+
+          {/* 🙋‍♂️ Lobide Hazır Hızlı Filtresi & Sesli Uyarı */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setLobbyOnlyFilter((prev) => !prev)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer border ${
+                lobbyOnlyFilter
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm ring-2 ring-emerald-500/30'
+                  : lobbyReadyCount > 0
+                  ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-500/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40'
+                  : 'bg-slate-50 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 hover:text-slate-900'
+              }`}
+              title="Sadece otel lobisinde hazır olduğunu bildiren misafirleri göster"
+            >
+              <span className={lobbyReadyCount > 0 ? 'animate-bounce inline-block' : ''}>🙋‍♂️</span>
+              <span>Lobide Hazır</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono font-extrabold ${
+                  lobbyOnlyFilter
+                    ? 'bg-white/20 text-white'
+                    : 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300'
+                }`}
+              >
+                {lobbyReadyCount}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                const next = !soundEnabled;
+                setSoundEnabled(next);
+                if (typeof window !== 'undefined') {
+                  localStorage.setItem('ptt_lobby_sound_enabled', String(next));
+                }
+                if (next) playLobbyReadyChime();
+              }}
+              className={`p-2 rounded-xl border text-xs transition-colors cursor-pointer ${
+                soundEnabled
+                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20'
+                  : 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-400 hover:text-slate-600'
+              }`}
+              title={soundEnabled ? 'Lobi sesli bildirimi açık (kapatmak için tıkla)' : 'Lobi sesli bildirimi kapalı (açmak için tıkla)'}
+            >
+              <BellRing className={`w-3.5 h-3.5 ${soundEnabled ? 'text-emerald-600 dark:text-emerald-400' : ''}`} />
+            </button>
+          </div>
         </div>
 
         {/* Görünüm Seçici & Live Pickup Counter */}
@@ -1014,7 +1119,11 @@ export default function TransfersTab({
                 filteredPickups.map((p, idx) => (
                   <tr
                     key={`${p.bookingId}-${idx}`}
-                    className="hover:bg-slate-50/60 dark:hover:bg-slate-900/30 transition-colors"
+                    className={`transition-colors ${
+                      isPickupLobbyReady(p)
+                        ? 'bg-emerald-500/10 dark:bg-emerald-950/25 border-l-4 border-l-emerald-500 hover:bg-emerald-500/15'
+                        : 'hover:bg-slate-50/60 dark:hover:bg-slate-900/30'
+                    }`}
                   >
                     <td className="py-4 px-5 font-mono text-sm font-extrabold text-brand-primary dark:text-brand-accent">
                       <button

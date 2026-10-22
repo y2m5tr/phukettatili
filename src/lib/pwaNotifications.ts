@@ -99,6 +99,38 @@ export function playNotificationChime(): void {
 }
 
 /**
+ * Misafir otel lobisinde 'Hazırım' butonuna bastığında çalan üç tonlu melodik uyarı (Do -> Mi -> Sol)
+ */
+export function playLobbyReadyChime(): void {
+  try {
+    if (typeof window === 'undefined') return;
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const ctx = new AudioContextClass();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    // Üç tonlu neşeli 'hazırım' melodisi (C5 -> E5 -> G5)
+    osc.type = 'triangle';
+    const now = ctx.currentTime;
+    osc.frequency.setValueAtTime(523.25, now); // Do (C5)
+    osc.frequency.setValueAtTime(659.25, now + 0.1); // Mi (E5)
+    osc.frequency.setValueAtTime(783.99, now + 0.2); // Sol (G5)
+
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+    osc.start(now);
+    osc.stop(now + 0.55);
+  } catch {
+    // Tarayıcı otomatik oynatma politikası engellerse sessizce geç
+  }
+}
+
+/**
  * Transfer saati değişikliği için başlık ve gövde metnini standartlaştırır.
  */
 export function formatTransferChangeMessage(payload: TransferNotificationPayload): {

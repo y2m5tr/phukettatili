@@ -6,6 +6,7 @@ import {
   markAllNotificationsAsRead,
   clearNotificationHistory,
   getNotificationPermissionStatus,
+  playLobbyReadyChime,
   type TransferNotificationPayload,
 } from '../src/lib/pwaNotifications';
 
@@ -130,6 +131,9 @@ describe('PWA Bildirim Motoru (pwaNotifications)', () => {
     it('Notification API destekleniyorsa izni okur', () => {
       const status = getNotificationPermissionStatus();
       expect(['granted', 'denied', 'default', 'unsupported']).toContain(status);
+    });
+    it('playLobbyReadyChime node ortamında çökmeden çalışır', () => {
+      expect(() => playLobbyReadyChime()).not.toThrow();
     });
   });
 });
