@@ -20,6 +20,7 @@ import {
   getDriverExpenseWhatsAppUrl,
 } from '../../lib/driverExpenses';
 import type { DriverItem, VehicleItem } from '../../data/adminInitialData';
+import { readLocalCollection, saveCmsCollection } from '../../lib/cmsSync';
 
 interface DriverExpenseModalProps {
   isOpen: boolean;
@@ -46,13 +47,7 @@ export default function DriverExpenseModal({
   onAddFinanceExpense,
 }: DriverExpenseModalProps) {
   const [expenses, setExpenses] = useState<DriverExpenseItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return INITIAL_DRIVER_EXPENSES;
+    return readLocalCollection<DriverExpenseItem[]>('driver-expenses', INITIAL_DRIVER_EXPENSES) || INITIAL_DRIVER_EXPENSES;
   });
 
   const [selectedDriverId, setSelectedDriverId] = useState<string>('drv-somchai');
@@ -67,14 +62,6 @@ export default function DriverExpenseModal({
   // Yedek şoför telefonu — formda düzenlenmiyor, yalnızca WhatsApp URL'sinde
   // (aktif şoförün telefonu yoksa) kullanılır.
   const driverPhone = '+66812345678';
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
-      } catch {}
-    }
-  }, [expenses]);
 
   const activeDriver = useMemo<DriverItem>(() => {
     return (
@@ -119,7 +106,9 @@ export default function DriverExpenseModal({
       recordedAt: new Date().toISOString(),
     };
 
-    setExpenses((prev) => [newExp, ...prev]);
+    const next = [newExp, ...expenses];
+    setExpenses(next);
+    void saveCmsCollection('driver-expenses', next, (err) => showToast(`⚠️ ${err}`));
     showToast(`✅ ${amount.toLocaleString()} THB ${DRIVER_EXPENSE_CATEGORIES[category].shortLabel} fişi eklendi!`);
 
     setDescription('');
@@ -127,7 +116,9 @@ export default function DriverExpenseModal({
   };
 
   const handleDeleteExpense = (id: string) => {
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
+    const next = expenses.filter((e) => e.id !== id);
+    setExpenses(next);
+    void saveCmsCollection('driver-expenses', next, (err) => showToast(`⚠️ ${err}`));
     showToast('🗑️ Masraf fişi silindi.');
   };
 

@@ -15,6 +15,7 @@ import {
   getLuggageWhatsAppUrl,
 } from '../../lib/luggageExpress';
 import type { Booking, DriverItem } from '../../data/adminInitialData';
+import { readLocalCollection, saveCmsCollection } from '../../lib/cmsSync';
 
 interface LuggageExpressModalProps {
   isOpen: boolean;
@@ -36,13 +37,7 @@ export default function LuggageExpressModal({
   if (!isOpen) return null;
 
   const [records, setRecords] = useState<LuggageTransferRecord[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return INITIAL_LUGGAGE_RECORDS;
+    return readLocalCollection<LuggageTransferRecord[]>('luggage', INITIAL_LUGGAGE_RECORDS) || INITIAL_LUGGAGE_RECORDS;
   });
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -60,9 +55,7 @@ export default function LuggageExpressModal({
 
   const saveRecords = (next: LuggageTransferRecord[]) => {
     setRecords(next);
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    } catch {}
+    void saveCmsCollection('luggage', next, (err) => showToast(`⚠️ ${err}`));
   };
 
   const handleStatusChange = (id: string, nextStatus: LuggageStatus) => {

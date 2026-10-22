@@ -84,6 +84,7 @@ import SupplierDispatchModal from './SupplierDispatchModal';
 import CuratedProposalModal from './CuratedProposalModal';
 import CaptainOfflineDrawer from './CaptainOfflineDrawer';
 import BookingWorkflowModal from './BookingWorkflowModal';
+import ConflictResolutionModal, { type ConflictData } from './ConflictResolutionModal';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
 import AdminErrorBoundary from './AdminErrorBoundary';
 import {
@@ -108,7 +109,7 @@ import {
   setOfflineCache,
   getOfflineCache,
 } from '../../lib/offlineQueue';
-import { safeGetRaw, safeSetRaw } from '../../lib/safeStorage';
+import { safeGet, safeSet, safeGetRaw, safeSetRaw } from '../../lib/safeStorage';
 import {
   NAV_ITEMS,
   type AdminTab,
@@ -455,6 +456,9 @@ export default function AdminDashboard({
   // Saha İş Akışı & 5 Adımlı Operasyon Stepper Modalı (Item 2)
   const [workflowBooking, setWorkflowBooking] = useState<Booking | null>(null);
 
+  // Eşzamanlı Düzenleme & Çakışma Yönetimi Modalı (Item 6)
+  const [conflictBooking, setConflictBooking] = useState<ConflictData | null>(null);
+
   // Çevrimdışı kuyruktaki bekleyen kayıtların ID kümesi (Item 4)
   const [pendingBookingIds, setPendingBookingIds] = useState<Set<string>>(new Set());
 
@@ -571,15 +575,11 @@ export default function AdminDashboard({
       localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
     } catch { /* ignore */ }
 
-    // Bulut yazımı
+    // Bulut yazımı (Unified pipeline ile çakışma ve çevrimdışı kuyruk korumalı)
     for (const id of bookingIds) {
       const found = updated.find((b) => b.id === id);
       if (found) {
-        void fetch('/api/bookings', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(found),
-        });
+        void handleUpdateSingleBooking(found);
       }
     }
     showToast(`🌊 ${bookingIds.length} rezervasyon ${newDate} tarihine ertelendi.`);
@@ -596,29 +596,7 @@ export default function AdminDashboard({
     if (!target) return;
 
     const full: Booking = { ...target, passengers };
-    const updated = bookings.map((b) => (b.id === bookingId ? full : b));
-
-    setBookings(updated);
-    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(updated));
-
-    // Bulut yazımı /api/bookings üzerinden (oturum cookie'si ile).
-    // Sunucu servis rolüyle yazar ve sinyal yayınlar.
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(full),
-      });
-      if (!res.ok) {
-        showToast('⚠️ Kaydedildi ama buluta yazılamadı.');
-        return;
-      }
-    } catch {
-      showToast('⚠️ Kaydedildi ama buluta yazılamadı.');
-      return;
-    }
-
-    showToast('✅ Yolcu pasaport bilgileri kaydedildi.');
+    await handleUpdateSingleBooking(full, 'Manifesto pasaport bilgileri kaydedildi ve senkronlandı!');
   };
 
   // Driver Manifest & Operations State
@@ -655,11 +633,6 @@ export default function AdminDashboard({
 
   const savePayments = (next: PaymentRecord[]) => {
     setPayments(next);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY_PAYMENTS, JSON.stringify(next));
-      } catch { /* ignore */ }
-    }
     saveCmsCollection('payments', next, () =>
       showToast('⚠️ Bulut yazma hatası: kasa kayıtları buluta kaydedilemedi.')
     );
@@ -676,24 +649,11 @@ export default function AdminDashboard({
 
   // 1.7 ERP B2B Partner & Alt Acentalar State'i (Faz 2)
   const [agents, setAgents] = useState<PartnerAgent[]>(() => {
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem(STORAGE_KEY_AGENTS);
-      if (cached) {
-        try {
-          return JSON.parse(cached);
-        } catch { /* ignore */ }
-      }
-    }
-    return initialAgents;
+    return safeGet<PartnerAgent[]>(STORAGE_KEY_AGENTS, initialAgents);
   });
 
   const saveAgents = (next: PartnerAgent[]) => {
     setAgents(next);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY_AGENTS, JSON.stringify(next));
-      } catch { /* ignore */ }
-    }
     saveCmsCollection('agents', next, () =>
       showToast('⚠️ Bulut yazma hatası: acenta kayıtları buluta kaydedilemedi.')
     );
@@ -701,48 +661,22 @@ export default function AdminDashboard({
 
   // 1.8 ERP Tedarikçi Kataloğu & Net Alış Fiyatları State'i (Faz 3)
   const [suppliers, setSuppliers] = useState<SupplierItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem(STORAGE_KEY_SUPPLIERS);
-      if (cached) {
-        try {
-          return JSON.parse(cached);
-        } catch { /* ignore */ }
-      }
-    }
-    return initialSuppliers;
+    return safeGet<SupplierItem[]>(STORAGE_KEY_SUPPLIERS, initialSuppliers);
   });
 
   const saveSuppliers = (next: SupplierItem[]) => {
     setSuppliers(next);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY_SUPPLIERS, JSON.stringify(next));
-      } catch { /* ignore */ }
-    }
     saveCmsCollection('suppliers', next, () =>
       showToast('⚠️ Bulut yazma hatası: tedarikçi kayıtları buluta kaydedilemedi.')
     );
   };
 
   const [tourCosts, setTourCosts] = useState<TourCostItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem(STORAGE_KEY_TOUR_COSTS);
-      if (cached) {
-        try {
-          return JSON.parse(cached);
-        } catch { /* ignore */ }
-      }
-    }
-    return initialTourCosts;
+    return safeGet<TourCostItem[]>(STORAGE_KEY_TOUR_COSTS, initialTourCosts);
   });
 
   const saveTourCosts = (next: TourCostItem[]) => {
     setTourCosts(next);
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY_TOUR_COSTS, JSON.stringify(next));
-      } catch { /* ignore */ }
-    }
     saveCmsCollection('tour-costs', next, () =>
       showToast('⚠️ Bulut yazma hatası: tur maliyet kayıtları buluta kaydedilemedi.')
     );
@@ -753,13 +687,7 @@ export default function AdminDashboard({
   const [tourSearchQuery, setTourSearchQuery] = useState<string>('');
   const [tourCategoryFilter, setTourCategoryFilter] = useState<string>('all');
   const [categories, setCategories] = useState<CategoryItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const local = localStorage.getItem(STORAGE_KEY_CATEGORIES);
-        if (local) return JSON.parse(local);
-      } catch {}
-    }
-    return initialCategories;
+    return safeGet<CategoryItem[]>(STORAGE_KEY_CATEGORIES, initialCategories);
   });
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
 
@@ -877,6 +805,7 @@ export default function AdminDashboard({
     isFlightRadarOpen ||
     isDriverExpenseOpen ||
     isGuideExpenseOpen ||
+    Boolean(conflictBooking) ||
     isTourModalOpen ||
     isCategoryModalOpen ||
     isAddMediaModalOpen ||
@@ -957,63 +886,35 @@ export default function AdminDashboard({
   // Initialize data on mount
   useEffect(() => {
     try {
-      // 1) Anında yerel yükleme (bulut yoksa panel boş açılmasın).
-      const savedBookings = localStorage.getItem(STORAGE_KEY_BOOKINGS);
-      setBookings(savedBookings ? JSON.parse(savedBookings) : initialBookings);
-
-      const savedTours = localStorage.getItem(STORAGE_KEY_TOURS);
-      setTours(savedTours ? JSON.parse(savedTours) : initialTours);
-
-      const savedCategories = localStorage.getItem(STORAGE_KEY_CATEGORIES);
-      if (savedCategories) {
-        try {
-          setCategories(JSON.parse(savedCategories));
-        } catch {}
-      } else if (initialCategories && initialCategories.length > 0) {
-        setCategories(initialCategories);
-      }
+      // 1) Anında yerel yükleme (safeGet ile hata toleranslı — bozuk JSON veya kota çökertmez).
+      setBookings(safeGet<Booking[]>(STORAGE_KEY_BOOKINGS, initialBookings));
+      setTours(safeGet<TourItem[]>(STORAGE_KEY_TOURS, initialTours));
+      setCategories(safeGet<CategoryItem[]>(STORAGE_KEY_CATEGORIES, initialCategories));
 
       // Load Fleet & Crew (araç filosu + şoför/rehber kadrosu)
-      const savedVehicles = localStorage.getItem(STORAGE_KEY_VEHICLES);
-      setVehicles(savedVehicles ? JSON.parse(savedVehicles) : initialVehicles);
-
-      const savedDrivers = localStorage.getItem(STORAGE_KEY_DRIVERS);
-      setDrivers(savedDrivers ? JSON.parse(savedDrivers) : initialDrivers);
+      setVehicles(safeGet<VehicleItem[]>(STORAGE_KEY_VEHICLES, initialVehicles));
+      setDrivers(safeGet<DriverItem[]>(STORAGE_KEY_DRIVERS, initialDrivers));
 
       // Load B2B Partners, Suppliers & Tour Costs (Faz 2 & 3 ERP)
-      const savedAgents = localStorage.getItem(STORAGE_KEY_AGENTS);
-      setAgents(savedAgents ? JSON.parse(savedAgents) : initialAgents);
-
-      const savedSuppliers = localStorage.getItem(STORAGE_KEY_SUPPLIERS);
-      setSuppliers(savedSuppliers ? JSON.parse(savedSuppliers) : initialSuppliers);
-
-      const savedTourCosts = localStorage.getItem(STORAGE_KEY_TOUR_COSTS);
-      setTourCosts(savedTourCosts ? JSON.parse(savedTourCosts) : initialTourCosts);
+      setAgents(safeGet<PartnerAgent[]>(STORAGE_KEY_AGENTS, initialAgents));
+      setSuppliers(safeGet<SupplierItem[]>(STORAGE_KEY_SUPPLIERS, initialSuppliers));
+      setTourCosts(safeGet<TourCostItem[]>(STORAGE_KEY_TOUR_COSTS, initialTourCosts));
 
       // Load Media
-      const savedMedia = localStorage.getItem(STORAGE_KEY_MEDIA);
-      if (savedMedia) {
-        setMediaList(JSON.parse(savedMedia));
+      const savedMedia = safeGet<MediaItem[] | null>(STORAGE_KEY_MEDIA, null);
+      if (savedMedia && savedMedia.length > 0) {
+        setMediaList(savedMedia);
       } else {
         const defaultMedia = getDefaultSystemMedia();
         setMediaList(defaultMedia);
-        localStorage.setItem(STORAGE_KEY_MEDIA, JSON.stringify(defaultMedia));
+        safeSet(STORAGE_KEY_MEDIA, defaultMedia);
       }
 
-      const savedBlogs = localStorage.getItem(STORAGE_KEY_BLOGS);
-      setBlogs(savedBlogs ? JSON.parse(savedBlogs) : initialBlogs);
-
-      const savedServices = localStorage.getItem(STORAGE_KEY_SERVICES);
-      setServices(savedServices ? JSON.parse(savedServices) : initialServices);
-
-      const savedFaqs = localStorage.getItem(STORAGE_KEY_FAQS);
-      setFaqs(savedFaqs ? JSON.parse(savedFaqs) : initialFaqs);
-
-      const savedTestis = localStorage.getItem(STORAGE_KEY_TESTIMONIALS);
-      setTestimonials(savedTestis ? JSON.parse(savedTestis) : initialTestimonials);
-
-      const savedSettings = localStorage.getItem(STORAGE_KEY_SITE);
-      if (savedSettings) setSiteSettings(JSON.parse(savedSettings));
+      setBlogs(safeGet<BlogItem[]>(STORAGE_KEY_BLOGS, initialBlogs));
+      setServices(safeGet<ServiceItem[]>(STORAGE_KEY_SERVICES, initialServices));
+      setFaqs(safeGet<FaqItem[]>(STORAGE_KEY_FAQS, initialFaqs));
+      setTestimonials(safeGet<TestimonialItem[]>(STORAGE_KEY_TESTIMONIALS, initialTestimonials));
+      setSiteSettings(safeGet<SiteSettingsState>(STORAGE_KEY_SITE, initialSiteSettings));
 
       // ☁️ Bulut verisi & CMS koleksiyonları: ilk açılışta paralel senkronize et
       void fetchBookingsFromServer(true);
@@ -1107,6 +1008,14 @@ export default function AdminDashboard({
       apply('agents', setAgents);
       apply('suppliers', setSuppliers);
       apply('tour-costs', setTourCosts);
+      // Ortak iş ve saha operasyon kayıtlarını yerel depolama cache'ine senkronla (Madde 5)
+      apply('expenses', (val) => writeLocalCollection('expenses', val));
+      apply('virmans', (val) => writeLocalCollection('virmans', val));
+      apply('driver-expenses', (val) => writeLocalCollection('driver-expenses', val));
+      apply('guide-expenses', (val) => writeLocalCollection('guide-expenses', val));
+      apply('proposals', (val) => writeLocalCollection('proposals', val));
+      apply('lost-found', (val) => writeLocalCollection('lost-found', val));
+      apply('luggage', (val) => writeLocalCollection('luggage', val));
     } catch {
       // Çevrimdışı veya JSON parse hatası
     }
@@ -1129,8 +1038,8 @@ export default function AdminDashboard({
       if (Array.isArray(payload.bookings)) {
         if (payload.bookings.length > 0 || hasSyncedOnce.current) {
           setBookings(payload.bookings);
-          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(payload.bookings));
-        } else if (payload.bookings.length === 0 && !localStorage.getItem(STORAGE_KEY_BOOKINGS)) {
+          safeSet(STORAGE_KEY_BOOKINGS, payload.bookings);
+        } else if (payload.bookings.length === 0 && !safeGet(STORAGE_KEY_BOOKINGS, null)) {
           setBookings(initialBookings);
         }
         hasSyncedOnce.current = true;
@@ -1202,7 +1111,7 @@ export default function AdminDashboard({
   // olduğunu söyler. Yerel yazma davranışı değişmedi.
   const saveBookings = (next: Booking[]) => {
     setBookings(next);
-    localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(next));
+    safeSet(STORAGE_KEY_BOOKINGS, next);
     void setOfflineCache('bookings', next);
   };
 
@@ -1212,7 +1121,14 @@ export default function AdminDashboard({
    * IndexedDB çevrimdışı outbox kuyruğuna alarak internet geldiğinde senkronlar.
    */
   const handleUpdateSingleBooking = useCallback(
-    async (updated: Booking, successMsg?: string) => {
+    async (updated: Booking, successMsg?: string, force = false) => {
+      const original = bookings.find((b) => b.id === updated.id);
+      const payload = {
+        ...updated,
+        expectedUpdatedAt: force ? undefined : (updated.expectedUpdatedAt || original?.updatedAt),
+        force: Boolean(force || (updated as any).force),
+      };
+
       const next = bookings.map((b) => (b.id === updated.id ? updated : b));
       saveBookings(next);
 
@@ -1220,7 +1136,7 @@ export default function AdminDashboard({
         type: 'PUT_BOOKING',
         url: '/api/bookings',
         method: 'PUT',
-        body: updated,
+        body: payload,
         description: `${updated.customerName} rezervasyon güncellemesi`,
       });
       if (result.status === 'saved') {
@@ -1228,6 +1144,16 @@ export default function AdminDashboard({
         return;
       }
       if (result.status === 'rejected') {
+        if (result.statusCode === 409) {
+          setConflictBooking({
+            local: updated,
+            server: original || null,
+            message: result.error,
+          });
+          showToast(`⚠️ Çakışma: ${result.error}`);
+          return;
+        }
+
         const failed = {
           ...result,
           id: `rejected-${updated.id}-${Date.now()}`,
@@ -1251,6 +1177,17 @@ export default function AdminDashboard({
     },
     [bookings, showToast, setPendingSyncCount, setFailedSyncItems]
   );
+
+  const handleAcceptServerConflict = async () => {
+    setConflictBooking(null);
+    showToast('🔄 Sunucudaki en güncel kayıtlar indiriliyor...');
+    await fetchBookingsFromServer(false);
+  };
+
+  const handleForceOverwriteConflict = async (localBooking: Booking) => {
+    setConflictBooking(null);
+    await handleUpdateSingleBooking(localBooking, '⚡ Değişikliğiniz sunucu üzerine zorla yazıldı!', true);
+  };
 
   const saveTours = (next: TourItem[]) => {
     const sorted = [...next].sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
@@ -1500,7 +1437,7 @@ export default function AdminDashboard({
     }
   };
 
-  const handleSubmitBooking = (e: React.FormEvent) => {
+  const handleSubmitBooking = async (e: React.FormEvent) => {
     e.preventDefault();
     const total = Number(formData.totalPriceThb) || 0;
     const paid = Number(formData.paidAmountThb) || 0;
@@ -1549,66 +1486,24 @@ export default function AdminDashboard({
       (formData.hotel ? detectHotelZone(formData.hotel) : 'Patong & Kalim');
 
     if (editingBooking) {
-      const updated = bookings.map((b) =>
-        b.id === editingBooking.id
-          ? ({
-              ...b,
-              ...formData,
-              hotelZone: resolvedZone,
-              tourTitle: primaryTourTitle,
-              tourDate: primaryTourDate,
-              pickupTime: primaryPickupTime,
-              tours: schedule,
-              totalPriceThb: total,
-              costThb: calculatedCost,
-              paidAmountThb: paid,
-              remainingAmountThb: remaining,
-              paymentStatus,
-            } as Booking)
-          : b
-      );
-      const prevBookings = bookings;
-      saveBookings(updated);
-      showToast('Rezervasyon güncellendi!');
+      const fullBooking = {
+        ...editingBooking,
+        ...formData,
+        hotelZone: resolvedZone,
+        tourTitle: primaryTourTitle,
+        tourDate: primaryTourDate,
+        pickupTime: primaryPickupTime,
+        tours: schedule,
+        totalPriceThb: total,
+        costThb: calculatedCost,
+        paidAmountThb: paid,
+        remainingAmountThb: remaining,
+        paymentStatus,
+      } as Booking;
 
-      // Bulut yazımı /api/bookings üzerinden (oturum cookie'si ile).
-      const target = updated.find((b) => b.id === editingBooking.id);
-      if (target) {
-        void fetch('/api/bookings', {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(target),
-        }).then(
-          (res) => {
-            if (!res.ok) {
-              if (res.status >= 400 && res.status < 500) {
-                setBookings(prevBookings);
-                localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-                showToast('⚠️ Bulut kayıt hatası: Sunucu isteği reddetti, geri alındı.');
-              } else {
-                void enqueueMutation({
-                  type: 'PUT_BOOKING',
-                  url: '/api/bookings',
-                  method: 'PUT',
-                  body: target,
-                  description: `${target.customerName} güncelleme`,
-                }).then(() => setPendingSyncCount((c) => c + 1));
-                showToast('📶 Çevrimdışı kaydedildi: Sunucu geçici yanıt veremedi, sıraya alındı.');
-              }
-            }
-          },
-          () => {
-            void enqueueMutation({
-              type: 'PUT_BOOKING',
-              url: '/api/bookings',
-              method: 'PUT',
-              body: target,
-              description: `${target.customerName} güncelleme`,
-            }).then(() => setPendingSyncCount((c) => c + 1));
-            showToast('📶 Çevrimdışı kaydedildi: Değişiklik internet gelince buluta aktarılacak.');
-          }
-        );
-      }
+      await handleUpdateSingleBooking(fullBooking, 'Rezervasyon güncellendi!');
+      setIsModalOpen(false);
+      return;
     } else {
       const newBooking: Booking = {
         id: `BK-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -1725,47 +1620,7 @@ export default function AdminDashboard({
       full.status = 'completed';
     }
 
-    const prevBookings = bookings;
-    const updated = bookings.map((b) => (b.id === bookingId ? full : b));
-    saveBookings(updated);
-
-    // Bulut yazımı /api/bookings üzerinden.
-    try {
-      const res = await fetch('/api/bookings', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(full),
-      });
-      if (!res.ok) {
-        if (res.status >= 400 && res.status < 500) {
-          setBookings(prevBookings);
-          localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-          showToast('⚠️ Bulut atama senkron hatası: Sunucu isteği reddetti, geri alındı.');
-          return null;
-        } else {
-          await enqueueMutation({
-            type: 'PUT_BOOKING',
-            url: '/api/bookings',
-            method: 'PUT',
-            body: full,
-            description: `${full.customerName} atama/durum güncellemesi`,
-          });
-          setPendingSyncCount((c) => c + 1);
-          showToast('📶 Çevrimdışı kaydedildi: Sunucu geçici yanıt veremedi, sıraya alındı.');
-        }
-      }
-    } catch {
-      await enqueueMutation({
-        type: 'PUT_BOOKING',
-        url: '/api/bookings',
-        method: 'PUT',
-        body: full,
-        description: `${full.customerName} atama/durum güncellemesi`,
-      });
-      setPendingSyncCount((c) => c + 1);
-      showToast('📶 Çevrimdışı kaydedildi: Atama internet gelince buluta aktarılacak.');
-    }
-
+    await handleUpdateSingleBooking(full);
     return full;
   };
 
@@ -3470,6 +3325,17 @@ export default function AdminDashboard({
           showToast={showToast}
         />
       )}
+
+      {/* ==================================================== */}
+      {/* MODAL 30: EŞZAMANLI DEĞİŞİKLİK & ÇAKIŞMA YÖNETİMİ (ITEM 6) */}
+      {/* ==================================================== */}
+      <ConflictResolutionModal
+        isOpen={Boolean(conflictBooking)}
+        conflict={conflictBooking}
+        onAcceptServer={handleAcceptServerConflict}
+        onForceOverwrite={handleForceOverwriteConflict}
+        onClose={() => setConflictBooking(null)}
+      />
 
       {/* ==================================================== */}
       {/* TOAST FEEDBACK NOTIFICATION */}

@@ -78,9 +78,9 @@ export const PUT: APIRoute = async (context) => {
   if (!db) return jsonError(503, 'Bulut veritabanı yapılandırılmamış.');
 
   // Eşzamanlı değişiklik denetimi (Optimistic Concurrency Control):
-  // Eğer istemci expectedUpdatedAt gönderdiyse ve veritabanındaki kayıt
-  // bundan daha yeniyse (başka bir kullanıcı araya girdiyse), 409 Conflict döner.
-  if (body.expectedUpdatedAt) {
+  // Eğer istemci expectedUpdatedAt gönderdiyse ve kullanıcı zorla yazmadıysa (force != true),
+  // veritabanındaki kayıt daha yeniyse 409 Conflict döner.
+  if ((body as any).expectedUpdatedAt && !(body as any).force) {
     const { data: existing } = await db
       .from('bookings')
       .select('updated_at')
@@ -89,7 +89,7 @@ export const PUT: APIRoute = async (context) => {
 
     if (
       existing?.updated_at &&
-      new Date(existing.updated_at).getTime() > new Date(body.expectedUpdatedAt).getTime() + 1000
+      new Date(existing.updated_at).getTime() > new Date((body as any).expectedUpdatedAt).getTime() + 1000
     ) {
       return jsonError(
         409,
@@ -98,11 +98,13 @@ export const PUT: APIRoute = async (context) => {
     }
   }
 
-  const { error } = await db.from('bookings').upsert(bookingToRow(body));
+  const now = new Date().toISOString();
+  const row = { ...bookingToRow(body), updated_at: now };
+  const { error } = await db.from('bookings').upsert(row);
   if (error) return jsonError(502, 'Veritabanı yazma hatası: ' + error.message);
 
   await broadcastBookingsChanged('admin');
-  return jsonOk({ ok: true });
+  return jsonOk({ ok: true, updatedAt: now });
 };
 
 export const POST: APIRoute = async (context) => {

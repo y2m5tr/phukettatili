@@ -11,6 +11,7 @@ import {
 } from '../../../data/adminInitialData';
 import { calculateFinancialBreakdown } from '../../../lib/profitability';
 import { type VaultAccountId, type VirmanRecord, VAULT_ACCOUNTS } from './vaultTypes';
+import { readLocalCollection, saveCmsCollection } from '../../../lib/cmsSync';
 
 interface UseFinanceTabParams {
   bookings: Booking[];
@@ -51,23 +52,20 @@ export function useFinanceTab({
   const [collectNote, setCollectNote] = useState<string>('');
 
   // Çoklu Kasa & Virman State'i
-  const STORAGE_KEY_VIRMANS = 'phuket_tatili_crm_virmans_v1';
   const [virmans, setVirmans] = useState<VirmanRecord[]>(() => {
-    try {
-      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_VIRMANS) : null;
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return [
-      {
-        id: 'VRM-101',
-        sourceAccount: 'office_cash',
-        targetAccount: 'kbank',
-        amountThb: 35000,
-        date: '2026-10-15',
-        transferredBy: 'Murat Gençer',
-        note: 'Haftalık şoför nakit tahsilatlarının K-Bank ATM hesabına yatırılması',
-      },
-    ];
+    return (
+      readLocalCollection<VirmanRecord[]>('virmans', [
+        {
+          id: 'VRM-101',
+          sourceAccount: 'office_cash',
+          targetAccount: 'kbank',
+          amountThb: 35000,
+          date: '2026-10-15',
+          transferredBy: 'Murat Gençer',
+          note: 'Haftalık şoför nakit tahsilatlarının K-Bank ATM hesabına yatırılması',
+        },
+      ]) || []
+    );
   });
 
   const [isVirmanModalOpen, setIsVirmanModalOpen] = useState(false);
@@ -79,24 +77,16 @@ export function useFinanceTab({
   const [virmanNote, setVirmanNote] = useState<string>('');
 
   // Operasyonel Giderler State'i
-  const STORAGE_KEY_EXPENSES = 'phuket_tatili_crm_expenses_v1';
   const [expenses, setExpenses] = useState<ExpenseRecord[]>(() => {
-    try {
-      const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY_EXPENSES) : null;
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return initialExpenses;
+    return readLocalCollection<ExpenseRecord[]>('expenses', initialExpenses) || initialExpenses;
   });
 
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
 
-
   const handleDeleteExpense = (id: string) => {
     const updated = expenses.filter((e) => e.id !== id);
     setExpenses(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY_EXPENSES, JSON.stringify(updated));
-    } catch {}
+    void saveCmsCollection('expenses', updated, (err) => showToast(`⚠️ ${err}`));
     showToast('Gider kaydı silindi.');
   };
 
@@ -232,20 +222,16 @@ export function useFinanceTab({
 
     const nextVirmans = [newVirman, ...virmans];
     setVirmans(nextVirmans);
-    try {
-      localStorage.setItem(STORAGE_KEY_VIRMANS, JSON.stringify(nextVirmans));
-    } catch {}
+    void saveCmsCollection('virmans', nextVirmans, (err) => showToast(`⚠️ ${err}`));
 
     setIsVirmanModalOpen(false);
-    showToast(`✓ ${virmanAmount.toLocaleString()} THB virman transferi başarıyla kaydedildi! 🔄`);
+    showToast(`✓ ${virmanAmount.toLocaleString()} THB virman transferi kaydedildi ve buluta aktarıldı! 🔄`);
   };
 
   const handleDeleteVirman = (id: string) => {
     const nextVirmans = virmans.filter((v) => v.id !== id);
     setVirmans(nextVirmans);
-    try {
-      localStorage.setItem(STORAGE_KEY_VIRMANS, JSON.stringify(nextVirmans));
-    } catch {}
+    void saveCmsCollection('virmans', nextVirmans, (err) => showToast(`⚠️ ${err}`));
     showToast('Virman transfer kaydı silindi.');
   };
 
@@ -428,9 +414,7 @@ export function useFinanceTab({
   const persistExpense = (newExp: ExpenseRecord) => {
     const updated = [newExp, ...expenses];
     setExpenses(updated);
-    try {
-      localStorage.setItem(STORAGE_KEY_EXPENSES, JSON.stringify(updated));
-    } catch {}
+    void saveCmsCollection('expenses', updated, (err) => showToast(`⚠️ ${err}`));
     setIsExpenseModalOpen(false);
   };
 

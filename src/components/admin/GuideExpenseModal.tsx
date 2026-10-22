@@ -25,6 +25,7 @@ import {
   getGuideExpenseWhatsAppUrl,
 } from '../../lib/guideExpenses';
 import type { DriverItem } from '../../data/adminInitialData';
+import { readLocalCollection, saveCmsCollection } from '../../lib/cmsSync';
 
 interface GuideExpenseModalProps {
   isOpen: boolean;
@@ -42,13 +43,7 @@ export default function GuideExpenseModal({
   showToast,
 }: GuideExpenseModalProps) {
   const [expenses, setExpenses] = useState<GuideExpenseItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) return JSON.parse(saved);
-      } catch {}
-    }
-    return INITIAL_GUIDE_EXPENSES;
+    return readLocalCollection<GuideExpenseItem[]>('guide-expenses', INITIAL_GUIDE_EXPENSES) || INITIAL_GUIDE_EXPENSES;
   });
 
   // Filter staff to guides or both
@@ -85,14 +80,6 @@ export default function GuideExpenseModal({
   const [description, setDescription] = useState<string>('');
   const [receiptNo, setReceiptNo] = useState<string>('');
   const [copied, setCopied] = useState<boolean>(false);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(expenses));
-      } catch {}
-    }
-  }, [expenses]);
 
   const activeGuide = useMemo<DriverItem>(() => {
     return (
@@ -135,7 +122,9 @@ export default function GuideExpenseModal({
       recordedAt: new Date().toISOString(),
     };
 
-    setExpenses((prev) => [newExp, ...prev]);
+    const next = [newExp, ...expenses];
+    setExpenses(next);
+    void saveCmsCollection('guide-expenses', next, (err) => showToast(`⚠️ ${err}`));
     showToast(`✅ ${amount.toLocaleString()} THB ${GUIDE_EXPENSE_CATEGORIES[category].shortLabel} fişi eklendi!`);
 
     setDescription('');
@@ -143,7 +132,9 @@ export default function GuideExpenseModal({
   };
 
   const handleDeleteExpense = (id: string) => {
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
+    const next = expenses.filter((e) => e.id !== id);
+    setExpenses(next);
+    void saveCmsCollection('guide-expenses', next, (err) => showToast(`⚠️ ${err}`));
     showToast('🗑️ Masraf fişi silindi.');
   };
 

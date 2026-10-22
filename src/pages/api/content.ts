@@ -61,6 +61,22 @@ const CONTENT_KEYS: ReadonlySet<string> = new Set([
   'suppliers',
   'tour-costs',
   'tour-views',
+  // Ortak iş ve saha operasyon kayıtları (Madde 5)
+  'expenses',
+  'virmans',
+  'driver-expenses',
+  'guide-expenses',
+  'proposals',
+  'lost-found',
+  'luggage',
+]);
+
+/** Saha personeli (şoför/rehber) tarafından doğrudan yazılabilen uçlar */
+const FIELD_WRITABLE_KEYS: ReadonlySet<string> = new Set([
+  'driver-expenses',
+  'guide-expenses',
+  'lost-found',
+  'luggage',
 ]);
 
 /** Tek bir koleksiyonun JSONB boyutu için üst sınır (bayt, yaklaşık). */
@@ -100,9 +116,6 @@ export const GET: APIRoute = async (context) => {
 };
 
 export const PUT: APIRoute = async (context) => {
-  const guard = guardApi(context, 'manager');
-  if (!guard.allowed) return guard.response!;
-
   let body: Record<string, unknown>;
   try {
     body = (await context.request.json()) as Record<string, unknown>;
@@ -112,6 +125,12 @@ export const PUT: APIRoute = async (context) => {
 
   const key = body.key;
   if (!validKey(key)) return jsonError(400, 'Geçersiz koleksiyon anahtarı.');
+
+  // Saha operasyon masrafları ve kayıtları tüm personele açıktır;
+  // CMS ve genel şirket ayarları ise 'manager' seviyesi gerektirir.
+  const requiredRole = FIELD_WRITABLE_KEYS.has(key) ? undefined : 'manager';
+  const guard = guardApi(context, requiredRole);
+  if (!guard.allowed) return guard.response!;
 
   const payload = JSON.stringify(body.data ?? null);
   if (payload.length > MAX_CONTENT_BYTES) {
@@ -124,9 +143,29 @@ export const PUT: APIRoute = async (context) => {
   const db = getSupabaseAdmin();
   if (!db) return jsonError(503, 'Bulut veritabanı istemcisi oluşturulamadı.');
 
+  // Eşzamanlı değişiklik denetimi (Optimistic Concurrency Control):
+  if (body.expectedUpdatedAt && !body.force) {
+    const { data: existing } = await db
+      .from('content_store')
+      .select('updated_at')
+      .eq('key', key)
+      .maybeSingle();
+
+    if (
+      existing?.updated_at &&
+      new Date(existing.updated_at).getTime() > new Date(body.expectedUpdatedAt as string).getTime() + 1000
+    ) {
+      return jsonError(
+        409,
+        `"${key}" koleksiyonu başka bir kullanıcı tarafından daha yeni bir tarihte güncellendi. Lütfen en güncel veriyi kontrol ediniz.`
+      );
+    }
+  }
+
+  const now = new Date().toISOString();
   const { error } = await db
     .from('content_store')
-    .upsert({ key, data: body.data ?? null, updated_at: new Date().toISOString() }, { onConflict: 'key' });
+    .upsert({ key, data: body.data ?? null, updated_at: now }, { onConflict: 'key' });
 
   if (error) return jsonError(502, 'Veritabanı yazma hatası: ' + error.message);
 
@@ -135,7 +174,7 @@ export const PUT: APIRoute = async (context) => {
   // Site statik sayfalari build'den geldigi icin yeniden insa tetikle
   // (VERCEL_DEPLOY_HOOK tanimliysa ~1-2 dk icinde canliya yansir).
   void triggerSiteRebuild();
-  return jsonOk({ ok: true, key });
+  return jsonOk({ ok: true, key, updatedAt: now });
 };
 
 export const DELETE: APIRoute = async (context) => {

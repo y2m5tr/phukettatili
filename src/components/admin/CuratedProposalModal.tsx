@@ -53,6 +53,7 @@ import {
   type CurrencyCode,
   type CatalogTourPreset,
 } from '../../lib/curatedProposal';
+import { readLocalCollection, saveCmsCollection } from '../../lib/cmsSync';
 import type { TravelStyle, PackageDuration } from '../../lib/holidayPlanner';
 import ProposalSingleTourDoc from './proposal/ProposalSingleTourDoc';
 import ProposalMultiDayDoc from './proposal/ProposalMultiDayDoc';
@@ -174,12 +175,7 @@ export default function CuratedProposalModal({
   // Saved proposals state & modal
   const [showSavedModal, setShowSavedModal] = useState<boolean>(false);
   const [savedProposals, setSavedProposals] = useState<SavedProposalItem[]>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY_PROPOSALS);
-      return raw ? JSON.parse(raw) : [];
-    } catch {
-      return [];
-    }
+    return readLocalCollection<SavedProposalItem[]>('proposals', []) || [];
   });
 
   // PDF Görüntüleme & Paylaşım Modu
@@ -356,12 +352,11 @@ export default function CuratedProposalModal({
         proposalType: proposal.proposalType || 'package_multiday',
         data: proposal,
       };
-      const raw = localStorage.getItem(STORAGE_KEY_PROPOSALS);
-      const existing: SavedProposalItem[] = raw ? JSON.parse(raw) : [];
-      const updated = [item, ...existing.filter((p) => p.id !== item.id)].slice(0, 30);
-      localStorage.setItem(STORAGE_KEY_PROPOSALS, JSON.stringify(updated));
+      const existing: SavedProposalItem[] = savedProposals || [];
+      const updated = [item, ...existing.filter((p) => p.id !== item.id)].slice(0, 50);
       setSavedProposals(updated);
-      showToast(`💾 "${item.title}" teklifi kaydedildi!`);
+      void saveCmsCollection('proposals', updated, (err) => showToast(`⚠️ ${err}`));
+      showToast(`💾 "${item.title}" teklifi kaydedildi ve buluta senkronlandı!`);
     } catch {
       showToast('⚠️ Teklif kaydedilirken bir hata oluştu');
     }
@@ -380,8 +375,8 @@ export default function CuratedProposalModal({
     e.stopPropagation();
     try {
       const updated = savedProposals.filter((p) => p.id !== id);
-      localStorage.setItem(STORAGE_KEY_PROPOSALS, JSON.stringify(updated));
       setSavedProposals(updated);
+      void saveCmsCollection('proposals', updated, (err) => showToast(`⚠️ ${err}`));
       showToast('🗑️ Kayıtlı teklif silindi');
     } catch {
       showToast('⚠️ Silinemedi');

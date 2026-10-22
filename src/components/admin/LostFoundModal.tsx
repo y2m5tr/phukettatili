@@ -24,6 +24,7 @@ import {
   getLostFoundWhatsAppUrl,
   filterLostFoundItems,
 } from '../../lib/lostAndFound';
+import { readLocalCollection, saveCmsCollection } from '../../lib/cmsSync';
 
 interface LostFoundModalProps {
   isOpen: boolean;
@@ -39,15 +40,7 @@ export default function LostFoundModal({
   showToast,
 }: LostFoundModalProps) {
   const [items, setItems] = useState<LostFoundItem[]>(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) return JSON.parse(saved);
-      } catch {
-        // fallback
-      }
-    }
-    return INITIAL_LOST_FOUND_ITEMS;
+    return readLocalCollection<LostFoundItem[]>('lost-found', INITIAL_LOST_FOUND_ITEMS) || INITIAL_LOST_FOUND_ITEMS;
   });
 
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -71,45 +64,20 @@ export default function LostFoundModal({
   // menüsünden güncellenir. Bu yüzden state değil sabit.
   const newStatus: LostFoundStatus = 'found_with_driver';
 
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-      } catch {
-        // storage quota
-      }
-    }
-  }, [items]);
-
-  const filteredItems = useMemo(() => {
-    return filterLostFoundItems(items, statusFilter, searchQuery);
-  }, [items, statusFilter, searchQuery]);
-
-  // Status counters
-  const counters = useMemo(() => {
-    return {
-      all: items.length,
-      driver: items.filter((i) => i.status === 'found_with_driver').length,
-      office: items.filter((i) => i.status === 'at_central_office').length,
-      courier: items.filter((i) => i.status === 'in_transit_to_hotel').length,
-      delivered: items.filter((i) => i.status === 'returned_to_guest').length,
-    };
-  }, [items]);
-
   const handleUpdateStatus = (id: string, nextStatus: LostFoundStatus) => {
-    setItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          let updatedLocation = item.storageLocation;
-          if (nextStatus === 'at_central_office') updatedLocation = 'Patong Merkez Ofis Çelik Kasa';
-          if (nextStatus === 'in_transit_to_hotel') updatedLocation = 'Otele Kurye ile Gönderildi';
-          if (nextStatus === 'returned_to_guest') updatedLocation = 'Misafir / Otel Resepsiyonuna Teslim Edildi';
+    const updated = items.map((item) => {
+      if (item.id === id) {
+        let updatedLocation = item.storageLocation;
+        if (nextStatus === 'at_central_office') updatedLocation = 'Patong Merkez Ofis Çelik Kasa';
+        if (nextStatus === 'in_transit_to_hotel') updatedLocation = 'Otele Kurye ile Gönderildi';
+        if (nextStatus === 'returned_to_guest') updatedLocation = 'Misafir / Otel Resepsiyonuna Teslim Edildi';
 
-          return { ...item, status: nextStatus, storageLocation: updatedLocation };
-        }
-        return item;
-      })
-    );
+        return { ...item, status: nextStatus, storageLocation: updatedLocation };
+      }
+      return item;
+    });
+    setItems(updated);
+    void saveCmsCollection('lost-found', updated, (err) => showToast(`⚠️ ${err}`));
     showToast(`📦 Durum güncellendi: ${STATUS_LABELS[nextStatus].label}`);
   };
 
@@ -137,9 +105,11 @@ export default function LostFoundModal({
       storageLocation: newLocation.trim() || 'Merkez Ofis',
     };
 
-    setItems((prev) => [newItem, ...prev]);
+    const next = [newItem, ...items];
+    setItems(next);
+    void saveCmsCollection('lost-found', next, (err) => showToast(`⚠️ ${err}`));
     setIsAddFormOpen(false);
-    showToast(`✅ ${newItem.title} kayıp eşya envanterine kaydedildi!`);
+    showToast(`✅ ${newItem.title} kayıp eşya envanterine kaydedildi ve buluta senkronlandı!`);
 
     // Reset fields
     setNewTitle('');
