@@ -4,6 +4,8 @@ import {
   CheckCircle2,
   MessageCircle,
   CreditCard,
+  Send,
+  Loader2,
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
 import { generateGuestPickupReminderTurkish } from '../../lib/whatsappEngine';
@@ -31,6 +33,7 @@ export default function BookingWorkflowModal({
 
   const [selectedVehicle, setSelectedVehicle] = useState(booking.assignedVehicle || '');
   const [selectedDriver, setSelectedDriver] = useState(booking.assignedDriver || '');
+  const [isSendingCloudWa, setIsSendingCloudWa] = useState(false);
 
   // Step 1: Confirmed
   const isConfirmed = booking.status === 'confirmed' || booking.status === 'completed';
@@ -68,6 +71,32 @@ export default function BookingWorkflowModal({
       lastWhatsAppNotifiedAt: new Date().toISOString(),
     };
     onUpdateBooking(updated, 'Misafir bilgilendirildi olarak işaretlendi! 📱');
+  };
+
+  const handleSendViaCloudApi = async () => {
+    setIsSendingCloudWa(true);
+    try {
+      const res = await fetch('/api/whatsapp/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 't24_reminder',
+          bookingId: booking.id,
+          booking,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data?.ok) {
+        handleMarkNotified();
+        showToast?.('✅ WhatsApp hatırlatması Cloud API ile otomatik gönderildi!');
+      } else {
+        showToast?.(`⚠️ ${data?.error || 'Gönderilemedi, manuel butonu deneyiniz.'}`);
+      }
+    } catch {
+      showToast?.('⚠️ Bağlantı hatası, manuel butonu deneyiniz.');
+    } finally {
+      setIsSendingCloudWa(false);
+    }
   };
 
   const handleSetPickup = (pickupStatus: 'pending' | 'picked_up' | 'no_show') => {
@@ -249,16 +278,32 @@ export default function BookingWorkflowModal({
                 </div>
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                <button
+                  type="button"
+                  onClick={handleSendViaCloudApi}
+                  disabled={isSendingCloudWa}
+                  className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold flex items-center gap-1.5 transition-all shadow-xs cursor-pointer"
+                  title="Meta WhatsApp Cloud API üzerinden arka planda otomatik gönder"
+                >
+                  {isSendingCloudWa ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Send className="w-3.5 h-3.5" />
+                  )}
+                  <span>{isSendingCloudWa ? 'Gönderiliyor...' : 'Otomatik Gönder (Cloud API)'}</span>
+                </button>
+
                 <a
                   href={waReminderUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={handleMarkNotified}
-                  className="px-3 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold flex items-center gap-1 transition-all shadow-xs"
+                  className="px-2.5 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold flex items-center gap-1 transition-all shadow-xs"
+                  title="WhatsApp Web / Uygulamasını açarak manuel gönder"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />
-                  <span>WhatsApp Gönder</span>
+                  <span className="hidden sm:inline">Manuel Aç</span>
                 </a>
               </div>
             </div>

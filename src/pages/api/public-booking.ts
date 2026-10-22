@@ -27,6 +27,7 @@ import {
 } from '../../data/adminInitialData';
 import { generateTicketCode } from '../../lib/ticketCodes';
 import { buildWhatsAppDeepLink, formatWhatsAppPhone } from '../../lib/whatsappEngine';
+import { sendBookingInquiryConfirmation } from '../../lib/server/whatsappCloudApi';
 import siteSettings from '../../content/settings/site.json';
 
 export const prerender = false;
@@ -142,7 +143,16 @@ export const POST: APIRoute = async (context) => {
     }
   }
 
-  // Misafir için önceden doldurulmuş WhatsApp mesajı
+  // Meta WhatsApp Cloud API ile misafire otomatik teyit & bilet linki ilet
+  let cloudApiSent = false;
+  try {
+    const waResult = await sendBookingInquiryConfirmation(newBooking);
+    cloudApiSent = waResult.success;
+  } catch (waErr) {
+    console.warn('[PublicBooking] WhatsApp Cloud API teyit uyarısı (kritik değil):', waErr);
+  }
+
+  // Misafir için önceden doldurulmuş WhatsApp mesajı (wa.me yedeği)
   const waLines = [
     `🌴 *Merhaba Phuket Tatili, web sitenizden rezervasyon talebi gönderdim:*`,
     ``,
@@ -164,6 +174,7 @@ export const POST: APIRoute = async (context) => {
     ticketCode: newBooking.ticketCode,
     ticketUrl: `/bilet/${newBooking.ticketCode}`,
     whatsAppUrl,
+    cloudApiSent,
     message: 'Rezervasyon talebiniz başarıyla kaydedildi!',
   });
 };

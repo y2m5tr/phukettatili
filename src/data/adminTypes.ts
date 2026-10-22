@@ -21,6 +21,7 @@ export interface BookingTourSchedule {
   pickedUpAt?: string;
   assignedVehicle?: string;
   assignedDriver?: string;
+  driverPhone?: string;
   hotelZone?: string;
   hotel?: string; // Tur bazında özel alınış oteli (farklı otelde konaklama)
   roomNumber?: string; // Tur bazında oda numarası
@@ -116,6 +117,7 @@ export interface Booking {
   pickedUpAt?: string;
   assignedVehicle?: string;
   assignedDriver?: string;
+  driverPhone?: string;
   hotelZone?: string;
   paymentStatus: 'unpaid' | 'partial' | 'paid' | 'refunded';
   specialNotes?: string;

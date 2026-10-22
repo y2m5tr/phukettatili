@@ -2361,6 +2361,7 @@ export default function AdminDashboard({
             onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
             onOpenBulkReschedule={perms.canAssignTransfers ? () => setIsBulkRescheduleOpen(true) : undefined}
             onOpenWorkflow={(b) => setWorkflowBooking(b)}
+            showToast={showToast}
             sync={{
               isOnline,
               isCloudConnected,

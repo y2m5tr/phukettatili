@@ -30,6 +30,7 @@ import {
   ExternalLink,
   MessageCircle,
   ArrowRight,
+  Send,
 } from 'lucide-react';
 import type { AdminTab } from './AdminDashboard';
 import { type Booking, type TourItem, getPhuketSeason } from '../../data/adminInitialData';
@@ -68,6 +69,7 @@ interface OverviewTabProps {
   onOpenPoliceManifest?: () => void;
   onOpenBulkReschedule?: () => void;
   onOpenWorkflow?: (b: Booking) => void;
+  showToast?: (msg: string) => void;
   sync?: {
     isOnline: boolean;
     isCloudConnected: boolean;
@@ -95,6 +97,7 @@ export default function OverviewTab({
   onOpenPoliceManifest,
   onOpenBulkReschedule,
   onOpenWorkflow,
+  showToast,
   sync,
 }: OverviewTabProps) {
   // Bugünün Phuket tarihi (UTC+7)
@@ -261,6 +264,31 @@ export default function OverviewTab({
     });
   }, [todayDispatch.todayItems, todayFilter]);
 
+  const [isDispatchingReminders, setIsDispatchingReminders] = useState(false);
+
+  const handleDispatchT24Reminders = async () => {
+    if (
+      typeof window !== 'undefined' &&
+      !window.confirm('Yarınki turların onaylı misafirlerine WhatsApp lobi alınış hatırlatması (T-24) gönderilsin mi?')
+    ) {
+      return;
+    }
+    setIsDispatchingReminders(true);
+    try {
+      const res = await fetch('/api/whatsapp/dispatch-reminders', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data?.ok) {
+        showToast?.(`✅ ${data.sentCount} misafire T-24 WhatsApp hatırlatması iletildi!`);
+      } else {
+        showToast?.(`⚠️ Hatırlatma gönderilemedi: ${data?.error || 'Bilinmeyen hata'}`);
+      }
+    } catch {
+      showToast?.('⚠️ Bağlantı hatası, hatırlatmalar gönderilemedi.');
+    } finally {
+      setIsDispatchingReminders(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* ==================================================== */}
@@ -334,6 +362,17 @@ export default function OverviewTab({
                   <span>Hava Erteleme</span>
                 </button>
               )}
+
+              <button
+                type="button"
+                onClick={handleDispatchT24Reminders}
+                disabled={isDispatchingReminders}
+                className="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                title="Yarınki turların misafirlerine 20:00 T-24 WhatsApp lobi alınış hatırlatmasını otomatik gönder"
+              >
+                <Send className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{isDispatchingReminders ? 'Gönderiliyor...' : 'T-24 WhatsApp'}</span>
+              </button>
 
               {onOpenCreateBooking && (
                 <button
