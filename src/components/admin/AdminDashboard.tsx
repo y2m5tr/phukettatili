@@ -36,8 +36,7 @@ import type { CategoryItem } from '../../data/adminTypes';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader, { type AdminHeaderActions } from './AdminHeader';
 import CommandPaletteModal from './CommandPaletteModal';
-import BulkRescheduleModal from './BulkRescheduleModal';
-import BoardingPassModal from '../shared/BoardingPassModal';
+import AdminConfirmModal from './shared/AdminConfirmModal';
 import OverviewTab from './OverviewTab';
 import BookingsTab from './BookingsTab';
 import TransfersTab from './TransfersTab';
@@ -59,33 +58,38 @@ const ToursTab = React.lazy(() => import('./ToursTab'));
 const HomeEditorTab = React.lazy(() => import('./HomeEditorTab'));
 const PartnersTab = React.lazy(() => import('./PartnersTab'));
 const SuppliersTab = React.lazy(() => import('./SuppliersTab'));
-import BookingModal from './BookingModal';
-import TourModal from './TourModal';
-import CategoryModal from './CategoryModal';
-import TestimonialModal from './TestimonialModal';
-import FaqModal from './FaqModal';
-import ServiceModal from './ServiceModal';
-import BlogModal from './BlogModal';
+
+// Lazy code-split modals to keep initial admin dashboard chunk ultra-fast and lightweight
+const BookingModal = React.lazy(() => import('./BookingModal'));
+const TourModal = React.lazy(() => import('./TourModal'));
+const CategoryModal = React.lazy(() => import('./CategoryModal'));
+const TestimonialModal = React.lazy(() => import('./TestimonialModal'));
+const FaqModal = React.lazy(() => import('./FaqModal'));
+const ServiceModal = React.lazy(() => import('./ServiceModal'));
+const BlogModal = React.lazy(() => import('./BlogModal'));
+const BulkRescheduleModal = React.lazy(() => import('./BulkRescheduleModal'));
+const BoardingPassModal = React.lazy(() => import('../shared/BoardingPassModal'));
+const WhatsAppTemplatesModal = React.lazy(() => import('../shared/WhatsAppTemplatesModal'));
+const MarinePoliceManifestModal = React.lazy(() => import('../shared/MarinePoliceManifestModal'));
+const QrScannerModal = React.lazy(() => import('../shared/QrScannerModal'));
+const LostFoundModal = React.lazy(() => import('./LostFoundModal'));
+const DietaryManifestModal = React.lazy(() => import('./DietaryManifestModal'));
+const FieldCashierModal = React.lazy(() => import('./FieldCashierModal'));
+const FlightRadarModal = React.lazy(() => import('./FlightRadarModal'));
+const DriverExpenseModal = React.lazy(() => import('./DriverExpenseModal'));
+const GuideExpenseModal = React.lazy(() => import('./GuideExpenseModal'));
+const WelcomeBoardModal = React.lazy(() => import('./WelcomeBoardModal'));
+const TourMediaModal = React.lazy(() => import('./TourMediaModal'));
+const LuggageExpressModal = React.lazy(() => import('./LuggageExpressModal'));
+const PierManifestModal = React.lazy(() => import('./PierManifestModal'));
+const SupplierDispatchModal = React.lazy(() => import('./SupplierDispatchModal'));
+const CuratedProposalModal = React.lazy(() => import('./CuratedProposalModal'));
+const CaptainOfflineDrawer = React.lazy(() => import('./CaptainOfflineDrawer'));
+const BookingWorkflowModal = React.lazy(() => import('./BookingWorkflowModal'));
+const ConflictResolutionModal = React.lazy(() => import('./ConflictResolutionModal'));
+const PromptPayQrModal = React.lazy(() => import('../shared/PromptPayQrModal'));
 import { AddMediaModal, MediaLightboxModal } from './MediaModals';
-import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
-import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
-import QrScannerModal from '../shared/QrScannerModal';
-import LostFoundModal from './LostFoundModal';
-import DietaryManifestModal from './DietaryManifestModal';
-import FieldCashierModal from './FieldCashierModal';
-import FlightRadarModal from './FlightRadarModal';
-import DriverExpenseModal from './DriverExpenseModal';
-import GuideExpenseModal from './GuideExpenseModal';
-import WelcomeBoardModal from './WelcomeBoardModal';
-import TourMediaModal from './TourMediaModal';
-import LuggageExpressModal from './LuggageExpressModal';
-import PierManifestModal from './PierManifestModal';
-import SupplierDispatchModal from './SupplierDispatchModal';
-import CuratedProposalModal from './CuratedProposalModal';
-import CaptainOfflineDrawer from './CaptainOfflineDrawer';
-import BookingWorkflowModal from './BookingWorkflowModal';
-import ConflictResolutionModal, { type ConflictData } from './ConflictResolutionModal';
-import PromptPayQrModal from '../shared/PromptPayQrModal';
+import type { ConflictData } from './ConflictResolutionModal';
 import AdminErrorBoundary from './AdminErrorBoundary';
 import {
   loadCmsCollections,
@@ -459,6 +463,26 @@ export default function AdminDashboard({
   // Eşzamanlı Düzenleme & Çakışma Yönetimi Modalı (Item 6)
   const [conflictBooking, setConflictBooking] = useState<ConflictData | null>(null);
 
+  // Ortak Onay / Silme Diyaloğu (Item 9)
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    isDestructive?: boolean;
+    onConfirm: () => void;
+  } | null>(null);
+
+  const requestConfirm = useCallback((opts: {
+    title: string;
+    message: string;
+    confirmText?: string;
+    isDestructive?: boolean;
+    onConfirm: () => void;
+  }) => {
+    setConfirmModal({ isOpen: true, ...opts });
+  }, []);
+
   // Çevrimdışı kuyruktaki bekleyen kayıtların ID kümesi (Item 4)
   const [pendingBookingIds, setPendingBookingIds] = useState<Set<string>>(new Set());
 
@@ -806,6 +830,7 @@ export default function AdminDashboard({
     isDriverExpenseOpen ||
     isGuideExpenseOpen ||
     Boolean(conflictBooking) ||
+    Boolean(confirmModal?.isOpen) ||
     isTourModalOpen ||
     isCategoryModalOpen ||
     isAddMediaModalOpen ||
@@ -818,6 +843,40 @@ export default function AdminDashboard({
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
+      // Escape ile açık olan en üst modali kapat (Item 10 Erişilebilirlik & Ergonomi)
+      if (e.key === 'Escape') {
+        if (confirmModal) { setConfirmModal(null); return; }
+        if (conflictBooking) { setConflictBooking(null); return; }
+        if (workflowBooking) { setWorkflowBooking(null); return; }
+        if (isCommandPaletteOpen) { setIsCommandPaletteOpen(false); return; }
+        if (isTourModalOpen) { setIsTourModalOpen(false); return; }
+        if (isCategoryModalOpen) { setIsCategoryModalOpen(false); return; }
+        if (isModalOpen) { setIsModalOpen(false); return; }
+        if (isBlogModalOpen) { setIsBlogModalOpen(false); return; }
+        if (isServiceModalOpen) { setIsServiceModalOpen(false); return; }
+        if (isFaqModalOpen) { setIsFaqModalOpen(false); return; }
+        if (isTestiModalOpen) { setIsTestiModalOpen(false); return; }
+        if (isAddMediaModalOpen) { setIsAddMediaModalOpen(false); return; }
+        if (voucherBooking) { setVoucherBooking(null); return; }
+        if (whatsAppModalBooking) { setWhatsAppModalBooking(null); return; }
+        if (isPoliceManifestOpen) { setIsPoliceManifestOpen(false); return; }
+        if (isQrScannerOpen) { setIsQrScannerOpen(false); return; }
+        if (isBulkRescheduleOpen) { setIsBulkRescheduleOpen(false); return; }
+        if (isLostFoundOpen) { setIsLostFoundOpen(false); return; }
+        if (isDietaryManifestOpen) { setIsDietaryManifestOpen(false); return; }
+        if (isFieldCashierOpen) { setIsFieldCashierOpen(false); return; }
+        if (isFlightRadarOpen) { setIsFlightRadarOpen(false); return; }
+        if (isDriverExpenseOpen) { setIsDriverExpenseOpen(false); return; }
+        if (isGuideExpenseOpen) { setIsGuideExpenseOpen(false); return; }
+        if (isWelcomeBoardOpen) { setIsWelcomeBoardOpen(false); return; }
+        if (isLuggageExpressOpen) { setIsLuggageExpressOpen(false); return; }
+        if (isPierManifestOpen) { setIsPierManifestOpen(false); return; }
+        if (isCaptainDrawerOpen) { setIsCaptainDrawerOpen(false); return; }
+        if (curatedProposalData) { setCuratedProposalData(null); return; }
+        if (isPromptPayQrOpen) { setIsPromptPayQrOpen(false); return; }
+        return;
+      }
+
       if (isAnyModalOpen) return; // Form/modal açıkken sekme değiştirme
       // Kullanıcı bir alana yazıyorken kısayol çalışmasın
       const el = e.target as HTMLElement | null;
@@ -1216,11 +1275,17 @@ export default function AdminDashboard({
   const handleDeleteCategory = (slug: string) => {
     const cat = categories.find((c) => c.slug === slug);
     const title = cat?.label_tr || slug;
-    if (window.confirm(`"${title}" kategorisini silmek istediğinize emin misiniz?`)) {
-      const updated = categories.filter((c) => c.slug !== slug);
-      saveCategories(updated);
-      showToast(`"${title}" kategorisi silindi.`);
-    }
+    requestConfirm({
+      title: 'Kategoriyi Sil',
+      message: `"${title}" kategorisini silmek istediğinize emin misiniz? Bu kategoriye ait turlar silinmez ancak kategori eşleşmesi kalkacaktır.`,
+      confirmText: 'Kategoriyi Sil',
+      isDestructive: true,
+      onConfirm: () => {
+        const updated = categories.filter((c) => c.slug !== slug);
+        saveCategories(updated);
+        showToast(`"${title}" kategorisi silindi.`);
+      },
+    });
   };
   const saveMediaList = (next: MediaItem[]) => {
     setMediaList(next);
@@ -1399,42 +1464,46 @@ export default function AdminDashboard({
       showToast('⚠️ Kalıcı rezervasyon silme yetkisi yalnızca yöneticidedir.');
       return;
     }
-    if (window.confirm(`"${name}" rezervasyonunu silmek istediğinize emin misiniz?`)) {
-      const prevBookings = bookings;
-      saveBookings(bookings.filter((b) => b.id !== id));
-      showToast('Rezervasyon silindi.');
+    requestConfirm({
+      title: 'Rezervasyonu Sil',
+      message: `"${name}" misafirine ait ${id} numaralı rezervasyon kaydını kalıcı olarak silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+      confirmText: 'Rezervasyonu Sil',
+      isDestructive: true,
+      onConfirm: () => {
+        const prevBookings = bookings;
+        saveBookings(bookings.filter((b) => b.id !== id));
+        showToast('Rezervasyon silindi.');
 
-      // Bulut silmesi /api/bookings üzerinden. Silme yalnızca admin
-      // oturumuyla yapılabilir (API tarafında guard 'admin' ister).
-      void fetch(`/api/bookings?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).then(
-        (res) => {
-          if (!res.ok) {
-            if (res.status >= 400 && res.status < 500) {
-              setBookings(prevBookings);
-              localStorage.setItem(STORAGE_KEY_BOOKINGS, JSON.stringify(prevBookings));
-              showToast('⚠️ Bulut silme hatası: Yetki veya sunucu sorunu nedeniyle geri alındı.');
-            } else {
-              void enqueueMutation({
-                type: 'DELETE_BOOKING',
-                url: `/api/bookings?id=${encodeURIComponent(id)}`,
-                method: 'DELETE',
-                description: `${name} rezervasyon silme (${id})`,
-              }).then(() => setPendingSyncCount((c) => c + 1));
-              showToast('📶 Çevrimdışı silindi: Sunucu geçici yanıt vermiyor, sıraya alındı.');
+        void fetch(`/api/bookings?id=${encodeURIComponent(id)}`, { method: 'DELETE' }).then(
+          (res) => {
+            if (!res.ok) {
+              if (res.status >= 400 && res.status < 500) {
+                setBookings(prevBookings);
+                safeSet(STORAGE_KEY_BOOKINGS, prevBookings);
+                showToast('⚠️ Bulut silme hatası: Yetki veya sunucu sorunu nedeniyle geri alındı.');
+              } else {
+                void enqueueMutation({
+                  type: 'DELETE_BOOKING',
+                  url: `/api/bookings?id=${encodeURIComponent(id)}`,
+                  method: 'DELETE',
+                  description: `${name} rezervasyon silme (${id})`,
+                }).then(() => setPendingSyncCount((c) => c + 1));
+                showToast('📶 Çevrimdışı silindi: Sunucu geçici yanıt vermiyor, sıraya alındı.');
+              }
             }
+          },
+          () => {
+            void enqueueMutation({
+              type: 'DELETE_BOOKING',
+              url: `/api/bookings?id=${encodeURIComponent(id)}`,
+              method: 'DELETE',
+              description: `${name} rezervasyon silme (${id})`,
+            }).then(() => setPendingSyncCount((c) => c + 1));
+            showToast('📶 Çevrimdışı silindi: İnternet bağlandığında buluttan silinecektir.');
           }
-        },
-        () => {
-          void enqueueMutation({
-            type: 'DELETE_BOOKING',
-            url: `/api/bookings?id=${encodeURIComponent(id)}`,
-            method: 'DELETE',
-            description: `${name} rezervasyon silme (${id})`,
-          }).then(() => setPendingSyncCount((c) => c + 1));
-          showToast('📶 Çevrimdışı silindi: İnternet bağlandığında buluttan silinecektir.');
-        }
-      );
-    }
+        );
+      },
+    });
   };
 
   const handleSubmitBooking = async (e: React.FormEvent) => {
@@ -1826,10 +1895,16 @@ export default function AdminDashboard({
   };
 
   const handleDeleteTour = (id: string, title: string) => {
-    if (window.confirm(`"${title}" turunu silmek istediğinize emin misiniz?`)) {
-      saveTours(tours.filter((t) => t.id !== id));
-      showToast(`"${title}" turu silindi.`);
-    }
+    requestConfirm({
+      title: 'Turu Sil',
+      message: `"${title}" turunu silmek istediğinize emin misiniz? Bu işlem geri alınamaz.`,
+      confirmText: 'Turu Sil',
+      isDestructive: true,
+      onConfirm: () => {
+        saveTours(tours.filter((t) => t.id !== id));
+        showToast(`"${title}" turu silindi.`);
+      },
+    });
   };
 
   const handleToggleTourFeatured = (id: string) => {
@@ -2783,54 +2858,64 @@ export default function AdminDashboard({
       </div>
 
       {/* ==================================================== */}
-      {/* MODAL 1: BOOKING */}
+      {/* LAZY-LOADED ON-DEMAND MODALS (CODE-SPLIT SUSPENSE BOUNDARY) */}
       {/* ==================================================== */}
-      <BookingModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        editingBooking={editingBooking}
-        formData={formData}
-        setFormData={setFormData}
-        onSubmit={handleSubmitBooking}
-        tours={tours}
-        bookings={bookings}
-        agents={agents}
-        suppliers={suppliers}
-        tourCosts={tourCosts}
-        showToast={showToast}
-      />
+      <React.Suspense fallback={null}>
+        {/* ==================================================== */}
+        {/* MODAL 1: BOOKING */}
+        {/* ==================================================== */}
+        {isModalOpen && (
+          <BookingModal
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            editingBooking={editingBooking}
+            formData={formData}
+            setFormData={setFormData}
+            onSubmit={handleSubmitBooking}
+            tours={tours}
+            bookings={bookings}
+            agents={agents}
+            suppliers={suppliers}
+            tourCosts={tourCosts}
+            showToast={showToast}
+          />
+        )}
 
-      {/* ==================================================== */}
-      {/* MODAL 2: TOUR (DEEP & COMPREHENSIVE EDITOR) */}
-      {/* ==================================================== */}
-      <TourModal
-        isOpen={isTourModalOpen}
-        onClose={() => setIsTourModalOpen(false)}
-        editingTour={editingTour}
-        tourFormData={tourFormData}
-        setTourFormData={setTourFormData}
-        onSubmit={handleSubmitTour}
-        getImageUrl={getImageUrl}
-        handleFileUpload={handleFileUpload}
-        allImageOptions={allImageOptions}
-        mediaList={mediaList}
-        allTours={tours}
-        categories={categories}
-        onOpenCategoryModal={() => setIsCategoryModalOpen(true)}
-      />
+        {/* ==================================================== */}
+        {/* MODAL 2: TOUR (DEEP & COMPREHENSIVE EDITOR) */}
+        {/* ==================================================== */}
+        {isTourModalOpen && (
+          <TourModal
+            isOpen={isTourModalOpen}
+            onClose={() => setIsTourModalOpen(false)}
+            editingTour={editingTour}
+            tourFormData={tourFormData}
+            setTourFormData={setTourFormData}
+            onSubmit={handleSubmitTour}
+            getImageUrl={getImageUrl}
+            handleFileUpload={handleFileUpload}
+            allImageOptions={allImageOptions}
+            mediaList={mediaList}
+            allTours={tours}
+            categories={categories}
+            onOpenCategoryModal={() => setIsCategoryModalOpen(true)}
+          />
+        )}
 
-      {/* ==================================================== */}
-      {/* MODAL 2.1: CATEGORY MANAGER & REORDER */}
-      {/* ==================================================== */}
-      <CategoryModal
-        isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
-        categories={categories}
-        onSaveCategory={handleSaveCategory}
-        onDeleteCategory={handleDeleteCategory}
-        availableImages={availableImages}
-        showToast={showToast}
-      />
+        {/* ==================================================== */}
+        {/* MODAL 2.1: CATEGORY MANAGER & REORDER */}
+        {/* ==================================================== */}
+        {isCategoryModalOpen && (
+          <CategoryModal
+            isOpen={isCategoryModalOpen}
+            onClose={() => setIsCategoryModalOpen(false)}
+            categories={categories}
+            onSaveCategory={handleSaveCategory}
+            onDeleteCategory={handleDeleteCategory}
+            availableImages={availableImages}
+            showToast={showToast}
+          />
+        )}
 
       {/* ==================================================== */}
       {/* MODAL 3: BLOG */}
@@ -3336,6 +3421,20 @@ export default function AdminDashboard({
         onForceOverwrite={handleForceOverwriteConflict}
         onClose={() => setConflictBooking(null)}
       />
+
+      {/* ==================================================== */}
+      {/* MODAL 31: ORTAK SİLME / ONAY DİYALOĞU (ITEM 9) */}
+      {/* ==================================================== */}
+      <AdminConfirmModal
+        isOpen={Boolean(confirmModal?.isOpen)}
+        title={confirmModal?.title || 'İşlemi Onayla'}
+        message={confirmModal?.message || 'Bu işlem kalıcı olabilir.'}
+        confirmText={confirmModal?.confirmText}
+        isDestructive={confirmModal?.isDestructive}
+        onConfirm={() => confirmModal?.onConfirm()}
+        onClose={() => setConfirmModal(null)}
+      />
+      </React.Suspense>
 
       {/* ==================================================== */}
       {/* TOAST FEEDBACK NOTIFICATION */}
