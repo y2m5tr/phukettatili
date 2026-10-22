@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Heart, X, MessageCircle, Trash2, ArrowRight, Sparkles } from 'lucide-react';
 import { resolveAssetUrl } from '../../lib/assets';
+import PublicErrorBoundary from './PublicErrorBoundary';
 
 export interface ShortlistTourItem {
   id: string;
@@ -48,7 +49,7 @@ interface HolidayShortlistProps {
   whatsappNumber?: string;
 }
 
-export default function HolidayShortlist({ whatsappNumber = '66828950665' }: HolidayShortlistProps) {
+function HolidayShortlistInner({ whatsappNumber = '66828950665' }: HolidayShortlistProps) {
   const [items, setItems] = useState<ShortlistTourItem[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [justAdded, setJustAdded] = useState(false);
@@ -309,5 +310,13 @@ export default function HolidayShortlist({ whatsappNumber = '66828950665' }: Hol
         </div>
       )}
     </>
+  );
+}
+
+export default function HolidayShortlist(props: HolidayShortlistProps) {
+  return (
+    <PublicErrorBoundary fallbackTitle="Favori Listesi">
+      <HolidayShortlistInner {...props} />
+    </PublicErrorBoundary>
   );
 }

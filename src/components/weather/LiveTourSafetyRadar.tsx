@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { ShieldCheck, AlertTriangle, Wind, Waves, Compass, Sparkles, MessageCircle } from 'lucide-react';
 import { getLiveTourSafetyRadar, type LiveRadarReport, } from '../../lib/tourSafetyRadar';
+import PublicErrorBoundary from '../ui/PublicErrorBoundary';
 
-export default function LiveTourSafetyRadar() {
+function LiveTourSafetyRadarInner() {
   const [report, setReport] = useState<LiveRadarReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<'all' | 'island_speedboat' | 'protected_bay' | 'inland_adventure' | 'evening_entertainment'>('all');
@@ -202,5 +203,13 @@ export default function LiveTourSafetyRadar() {
         </div>
       </div>
     </section>
+  );
+}
+
+export default function LiveTourSafetyRadar() {
+  return (
+    <PublicErrorBoundary fallbackTitle="Deniz Güvenlik Radarı Hazırlanıyor">
+      <LiveTourSafetyRadarInner />
+    </PublicErrorBoundary>
   );
 }

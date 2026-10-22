@@ -4,6 +4,7 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
+import { useMemo } from 'react';
 import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
@@ -67,11 +68,18 @@ export default function BookingsTab({
   onOpenSupplierDispatch,
   onOpenPromptPayQr,
 }: BookingsTabProps) {
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const tomorrowStr = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return d.toISOString().split('T')[0];
+  }, []);
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-surface-2 p-4 sm:p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex flex-1 items-center gap-3">
-          <div className="relative flex-1 max-w-md">
+        <div className="flex flex-1 items-center gap-2.5 flex-wrap">
+          <div className="relative flex-1 min-w-[200px] max-w-md">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
             <input
               type="text"
@@ -94,23 +102,58 @@ export default function BookingsTab({
             <option value="cancelled">🔴 İptaller</option>
           </select>
 
-          {/* Tarih filtresi — dateFilter state'i eskiden ölüydü (setter'ı
-              hiçbir UI çağırmıyordu). Operasyonda en sık ihtiyaç duyulan
-              filtre: "bugünkü turlar". */}
+          {/* Hızlı Tarih Kısayolları (Chips) */}
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-900/80 p-1 rounded-xl border border-slate-200/60 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={() => setDateFilter('')}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                !dateFilter
+                  ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              Tümü
+            </button>
+            <button
+              type="button"
+              onClick={() => setDateFilter(todayStr)}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
+                dateFilter === todayStr
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <span>⚡ Bugün</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDateFilter(tomorrowStr)}
+              className={`px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1 ${
+                dateFilter === tomorrowStr
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <span>🌅 Yarın</span>
+            </button>
+          </div>
+
+          {/* Tarih Takvim Kutusu */}
           <div className="flex items-center gap-1.5">
             <input
               type="date"
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
               title="Tarih bazlı filtrele (çoklu tur kayıtlarında herhangi bir tur tarihi eşleşirse gösterilir)"
-              className="px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 focus:outline-none"
+              className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 focus:outline-none"
             />
             {dateFilter && (
               <button
                 type="button"
                 onClick={() => setDateFilter('')}
                 title="Tarih filtresini temizle"
-                className="px-2.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 hover:border-red-300 text-xs font-bold transition-colors"
+                className="px-2.5 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-red-500 hover:border-red-300 text-xs font-bold transition-colors"
               >
                 ✕
               </button>

@@ -501,7 +501,15 @@ export default function TransfersTab({
                 d.setDate(d.getDate() + 1);
                 setManifestDate(d.toISOString().split('T')[0]);
               }}
-              className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900"
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                (() => {
+                  const d = new Date();
+                  d.setDate(d.getDate() + 1);
+                  return manifestDate === d.toISOString().split('T')[0];
+                })()
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
             >
               Yarın
             </button>
