@@ -5,7 +5,7 @@
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
 import { useMemo } from 'react';
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, Zap, } from 'lucide-react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, Zap, CheckCircle2, } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 import { getCrossSellWhatsAppUrl } from '../../lib/crossSell';
@@ -40,6 +40,7 @@ interface BookingsTabProps {
   onOpenSupplierDispatch?: (b: Booking) => void;
   onOpenPromptPayQr?: (b: Booking) => void;
   onOpenWorkflow?: (b: Booking) => void;
+  pendingBookingIds?: Set<string>;
 }
 
 export default function BookingsTab({
@@ -69,6 +70,7 @@ export default function BookingsTab({
   onOpenSupplierDispatch,
   onOpenPromptPayQr,
   onOpenWorkflow,
+  pendingBookingIds,
 }: BookingsTabProps) {
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const tomorrowStr = useMemo(() => {
@@ -231,7 +233,20 @@ export default function BookingsTab({
                 filteredBookings.map((b) => (
                   <tr key={b.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-900/30 transition-colors">
                     <td className="py-4 px-5">
-                      <span className="font-mono text-[10px] text-slate-400 block">{b.id}</span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono text-[10px] text-slate-400 block">{b.id}</span>
+                        {pendingBookingIds?.has(b.id) ? (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-700 animate-pulse" title="İşlem cihaza kaydedildi, buluta gönderilmeyi bekliyor">
+                            <span className="w-1 h-1 rounded-full bg-amber-500"></span>
+                            Cihazda
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] text-slate-400 dark:text-slate-500" title="Sunucuyla tam senkronize">
+                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />
+                            Bulut
+                          </span>
+                        )}
+                      </div>
                       <span className="font-bold text-slate-900 dark:text-white block">{b.customerName}</span>
                       <a
                         href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}`}

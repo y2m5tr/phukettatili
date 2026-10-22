@@ -28,6 +28,12 @@ program:
 faq:
   - q: "Bu turda fillere biniliyor mu?"
     a: "Kesinlikle hayır. Programlarımız hayvan refahı etik ilkelerine sıkı sıkıya bağlıdır; sırtına binme, kanca veya zincir kullanılmaz. Yalnızca gözlem, besleme ve bakım aktiviteleri içerir."
+  - q: "Çamur banyosu ve nehirde yıkanma aktivitesine katılmak zorunlu mu?"
+    a: "Hayır, çamur banyosu ve nehir aktivitesine arzu eden misafirlerimiz girer; ıslanmak istemeyen misafirler kuru seyir terasından güvenle fotoğraf ve video çekebilir."
+  - q: "Yanımıza hangi eşyaları almalıyız?"
+    a: "Islanabilecek mayo/tişört, etkinlik sonrası giymek için temiz yedek kıyafet, havlu, organik sinek kovucu sprey ve terlik/sandalet almanız tavsiye edilir. Tesis içinde temiz duş ve soyunma kabinleri bulunmaktadır."
+  - q: "Küçük çocuklar ve bebekler için güvenli mi?"
+    a: "Evet, Kerchor etik barınağındaki filler son derece uysal ve insan varlığına alışıktır. Alanında uzman bakıcılar (mahout) sürekli eşlik eder; 1 yaş ve üzeri tüm çocuklar güvenle katılabilir."
 restrictions:
   - "Yedek kıyafet ve havlu getirilmesi önerilir"
 age_min: "1 yaş"

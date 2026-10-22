@@ -46,6 +46,7 @@ export const prerender = false;
 /** CMS koleksiyon beyaz listesi — localStorage anahtar uzayıyla hizalı. */
 const CONTENT_KEYS: ReadonlySet<string> = new Set([
   'tours',
+  'categories',
   'blogs',
   'services',
   'faqs',

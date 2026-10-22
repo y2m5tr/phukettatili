@@ -4,6 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import FadeIn from '../../components/ui/FadeIn';
 import { resolveAssetUrl } from '../../lib/assets';
 import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
+import { getCloudCategories, applyCategoryOverlay } from '../../lib/server/categoryContent';
 
 // Dinamik SSR: panelde değişen fiyat/başlık/kapak kategori sayfalarında da
 // görünsün (turlar/index ve turlar/[id] ile aynı overlay, aynı cache).
@@ -13,7 +14,9 @@ export const prerender = false;
 Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 
 const { category: categorySlug } = Astro.params;
-const categories = await getCollection('categories');
+const mdCategories = await getCollection('categories');
+const cloudCategories = await getCloudCategories();
+const categories = applyCategoryOverlay(mdCategories, cloudCategories);
 const mdTours: CollectionEntry<'tours'>[] = await getCollection('tours');
 const allTours: CollectionEntry<'tours'>[] = applyTourOverlay(mdTours, await getCloudTours());
 
@@ -49,12 +52,17 @@ if (parent) {
 
 // Bu kategoriye ait turlar (üst kategori: category eşleşmesi; alt kategori:
 // subcategory veya category eşleşmesi — eski getStaticPaths davranışı).
+// Sıralama: `order` alanına göre küçükten büyüğe (1: Phi Phi, 2: James Bond...).
 const isParentCategory = Boolean(parent);
-const tours = isParentCategory
+const matchingTours = isParentCategory
   ? allTours.filter((t) => t.data.category === categorySlug)
   : allTours.filter(
       (t) => t.data.subcategory === categorySlug || t.data.category === categorySlug,
     );
+
+const tours = matchingTours.sort(
+  (a, b) => (Number(a.data.order) || 999) - (Number(b.data.order) || 999),
+);
 
 const site = Astro.site || 'https://phukettatili.com';
 const schemas: Record<string, unknown>[] = [

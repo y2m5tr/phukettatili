@@ -81,9 +81,12 @@ const blogSectionTitle = homeData?.blogSectionTitle;
 const blogSectionSubtitle = homeData?.blogSectionSubtitle;
 const sections = homeData?.sections || {};
 
-const tours: CollectionEntry<'tours'>[] = applyTourOverlay(
+const rawTours: CollectionEntry<'tours'>[] = applyTourOverlay(
   (await getCollection('tours')) as CollectionEntry<'tours'>[],
   await getCloudTours(),
+);
+const tours: CollectionEntry<'tours'>[] = rawTours.sort(
+  (a, b) => (Number(a.data.order) || 999) - (Number(b.data.order) || 999),
 );
 const featuredTours: CollectionEntry<'tours'>[] = tours.filter((tour) => tour.data.featured).slice(0, 3);
 const wizardTours = tours.map((t) => ({
@@ -128,12 +131,20 @@ const schemas: Record<string, unknown>[] = [
     "name": "Phuket Tatili",
     "url": site.toString(),
     "inLanguage": "tr",
-    "description": "Phuket'te Türkçe rehberli turlar, VIP transfer ve yat kiralama rehberi.",
+    "description": "Phuket'te Türkçe rehberli ada turları, VIP havalimanı transferi ve özel yat kiralama hizmetleri.",
     "publisher": {
       "@type": "Organization",
       "name": "Phuket Tatili",
       "url": site.toString(),
       "logo": new URL("/assets/logo-main-transparent.png", site).toString(),
+    },
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": {
+        "@type": "EntryPoint",
+        "urlTemplate": "https://phukettatili.com/turlar?q={search_term_string}",
+      },
+      "query-input": "required name=search_term_string",
     },
   },
   ...(formattedFaqs.length > 0
@@ -150,8 +161,8 @@ const schemas: Record<string, unknown>[] = [
 ---
 
 <Layout
-  title="Ana Sayfa"
-  description="Tayland'ın incisi Phuket'te unutulmaz bir tatil deneyimi."
+  title="Phuket Turları, Türkçe Rehberli Geziler & VIP Transfer"
+  description="Phuket'te Türkçe rehberli ada turları, Phi Phi & James Bond gezileri, VIP havalimanı transferi ve özel lüks yat kiralama. En iyi fiyat ve yerinde Türk destek."
   schemas={schemas}
   preloadImage={heroImage || (heroSliderImages && heroSliderImages[0]) || "/assets/phuket_hero.webp"}
 >

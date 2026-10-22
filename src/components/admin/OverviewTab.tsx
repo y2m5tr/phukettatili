@@ -70,6 +70,7 @@ interface OverviewTabProps {
   onOpenBulkReschedule?: () => void;
   onOpenWorkflow?: (b: Booking) => void;
   showToast?: (msg: string) => void;
+  pendingBookingIds?: Set<string>;
   sync?: {
     isOnline: boolean;
     isCloudConnected: boolean;
@@ -98,6 +99,7 @@ export default function OverviewTab({
   onOpenBulkReschedule,
   onOpenWorkflow,
   showToast,
+  pendingBookingIds,
   sync,
 }: OverviewTabProps) {
   // Bugünün Phuket tarihi (UTC+7)
@@ -593,7 +595,20 @@ export default function OverviewTab({
                             )}
                           </td>
                           <td className="py-3 px-4">
-                            <div className="font-bold text-white">{item.customerName}</div>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-bold text-white">{item.customerName}</span>
+                              {pendingBookingIds?.has(item.bookingId) ? (
+                                <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40 animate-pulse" title="Cihaza kaydedildi, senkron bekliyor">
+                                  <span className="w-1 h-1 rounded-full bg-amber-400"></span>
+                                  Cihazda
+                                </span>
+                              ) : (
+                                <span className="inline-flex items-center gap-0.5 text-[9px] text-slate-400" title="Sunucuyla senkronize">
+                                  <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+                                  Bulut
+                                </span>
+                              )}
+                            </div>
                             <div className="text-[11px] text-slate-300 truncate max-w-xs">{item.tourTitle}</div>
                           </td>
                           <td className="py-3 px-4 whitespace-nowrap">

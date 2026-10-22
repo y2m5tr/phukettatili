@@ -32,6 +32,7 @@ import {
   type TourCostItem,
   detectHotelZone,
 } from '../../data/adminInitialData';
+import type { CategoryItem } from '../../data/adminTypes';
 import AdminSidebar from './AdminSidebar';
 import AdminHeader, { type AdminHeaderActions } from './AdminHeader';
 import CommandPaletteModal from './CommandPaletteModal';
@@ -60,6 +61,7 @@ const PartnersTab = React.lazy(() => import('./PartnersTab'));
 const SuppliersTab = React.lazy(() => import('./SuppliersTab'));
 import BookingModal from './BookingModal';
 import TourModal from './TourModal';
+import CategoryModal from './CategoryModal';
 import TestimonialModal from './TestimonialModal';
 import FaqModal from './FaqModal';
 import ServiceModal from './ServiceModal';
@@ -141,9 +143,11 @@ const STORAGE_KEY_AGENTS = 'phuket_tatili_crm_agents_v1';
 const STORAGE_KEY_SUPPLIERS = 'phuket_tatili_crm_suppliers_v1';
 const STORAGE_KEY_TOUR_COSTS = 'phuket_tatili_crm_tour_costs_v1';
 const STORAGE_KEY_HOME_SETTINGS = 'phuket_tatili_crm_home_settings_v1';
+const STORAGE_KEY_CATEGORIES = 'phuket_tatili_crm_categories_v1';
 
 interface AdminDashboardProps {
   initialTours: TourItem[];
+  initialCategories?: CategoryItem[];
   initialBlogs: BlogItem[];
   initialServices: ServiceItem[];
   initialFaqs: FaqItem[];
@@ -178,6 +182,7 @@ const DEFAULT_AVAILABLE_IMAGES = [
 
 export default function AdminDashboard({
   initialTours,
+  initialCategories = [],
   initialBlogs,
   initialServices,
   initialFaqs,
@@ -449,6 +454,27 @@ export default function AdminDashboard({
 
   // Saha İş Akışı & 5 Adımlı Operasyon Stepper Modalı (Item 2)
   const [workflowBooking, setWorkflowBooking] = useState<Booking | null>(null);
+
+  // Çevrimdışı kuyruktaki bekleyen kayıtların ID kümesi (Item 4)
+  const [pendingBookingIds, setPendingBookingIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    let isMounted = true;
+    getPendingMutations().then((muts) => {
+      if (!isMounted) return;
+      const ids = new Set<string>();
+      for (const m of muts) {
+        if (m.body && typeof m.body === 'object' && 'id' in m.body && (m.body as any).id) {
+          ids.add(String((m.body as any).id));
+        } else if (m.url && m.url.includes('id=')) {
+          const match = m.url.match(/id=([^&]+)/);
+          if (match && match[1]) ids.add(decodeURIComponent(match[1]));
+        }
+      }
+      setPendingBookingIds(ids);
+    }).catch(() => {});
+    return () => { isMounted = false; };
+  }, [pendingSyncCount, isSyncing]);
 
   // Marine Police Manifest Modal
   const [isPoliceManifestOpen, setIsPoliceManifestOpen] = useState<boolean>(false);
@@ -726,11 +752,24 @@ export default function AdminDashboard({
   const [tours, setTours] = useState<TourItem[]>([]);
   const [tourSearchQuery, setTourSearchQuery] = useState<string>('');
   const [tourCategoryFilter, setTourCategoryFilter] = useState<string>('all');
-  /** Kategori filtresi seçenekleri — kayıtlardaki benzersiz kategoriler. */
-  const tourCategoryOptions = useMemo(
-    () => Array.from(new Set(tours.map((t) => t.category).filter(Boolean))).sort(),
-    [tours],
-  );
+  const [categories, setCategories] = useState<CategoryItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const local = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+        if (local) return JSON.parse(local);
+      } catch {}
+    }
+    return initialCategories;
+  });
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState<boolean>(false);
+
+  /** Kategori filtresi seçenekleri — kayıtlardaki ve tanımlı tüm kategoriler. */
+  const tourCategoryOptions = useMemo(() => {
+    const fromTours = tours.map((t) => t.category).filter(Boolean);
+    const fromCats = categories.map((c) => c.slug).filter(Boolean);
+    return Array.from(new Set([...fromTours, ...fromCats])).sort();
+  }, [tours, categories]);
+
   const [isTourModalOpen, setIsTourModalOpen] = useState<boolean>(false);
   const [editingTour, setEditingTour] = useState<TourItem | null>(null);
   const [tourFormData, setTourFormData] = useState<Partial<TourItem>>({});
@@ -839,6 +878,7 @@ export default function AdminDashboard({
     isDriverExpenseOpen ||
     isGuideExpenseOpen ||
     isTourModalOpen ||
+    isCategoryModalOpen ||
     isAddMediaModalOpen ||
     Boolean(assignMediaModal) ||
     Boolean(selectedLightboxMedia) ||
@@ -924,6 +964,15 @@ export default function AdminDashboard({
       const savedTours = localStorage.getItem(STORAGE_KEY_TOURS);
       setTours(savedTours ? JSON.parse(savedTours) : initialTours);
 
+      const savedCategories = localStorage.getItem(STORAGE_KEY_CATEGORIES);
+      if (savedCategories) {
+        try {
+          setCategories(JSON.parse(savedCategories));
+        } catch {}
+      } else if (initialCategories && initialCategories.length > 0) {
+        setCategories(initialCategories);
+      }
+
       // Load Fleet & Crew (araç filosu + şoför/rehber kadrosu)
       const savedVehicles = localStorage.getItem(STORAGE_KEY_VEHICLES);
       setVehicles(savedVehicles ? JSON.parse(savedVehicles) : initialVehicles);
@@ -972,6 +1021,7 @@ export default function AdminDashboard({
     } catch {
       setBookings(initialBookings);
       setTours(initialTours);
+      if (initialCategories) setCategories(initialCategories);
     }
 
     // 2) Çevrimdışı kuyruk dinleyicisi & ağ bağlantı takibi (Aşama 4)
@@ -1043,6 +1093,7 @@ export default function AdminDashboard({
         writeLocalCollection(key, cloud);
       };
       apply('tours', setTours);
+      apply('categories', setCategories);
       apply('blogs', setBlogs);
       apply('services', setServices);
       apply('faqs', setFaqs);
@@ -1202,8 +1253,37 @@ export default function AdminDashboard({
   );
 
   const saveTours = (next: TourItem[]) => {
-    setTours(next);
-    saveCmsCollection('tours', next, showToast);
+    const sorted = [...next].sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
+    setTours(sorted);
+    saveCmsCollection('tours', sorted, showToast);
+  };
+  const saveCategories = (next: CategoryItem[]) => {
+    const sorted = [...next].sort((a, b) => (Number(a.order) || 999) - (Number(b.order) || 999));
+    setCategories(sorted);
+    saveCmsCollection('categories', sorted, showToast);
+  };
+
+  const handleSaveCategory = (cat: CategoryItem) => {
+    const exists = categories.some((c) => c.slug === cat.slug);
+    let updated: CategoryItem[];
+    if (exists) {
+      updated = categories.map((c) => (c.slug === cat.slug ? cat : c));
+      showToast(`"${cat.label_tr}" kategorisi güncellendi.`);
+    } else {
+      updated = [...categories, cat];
+      showToast(`"${cat.label_tr}" kategorisi başarıyla eklendi!`);
+    }
+    saveCategories(updated);
+  };
+
+  const handleDeleteCategory = (slug: string) => {
+    const cat = categories.find((c) => c.slug === slug);
+    const title = cat?.label_tr || slug;
+    if (window.confirm(`"${title}" kategorisini silmek istediğinize emin misiniz?`)) {
+      const updated = categories.filter((c) => c.slug !== slug);
+      saveCategories(updated);
+      showToast(`"${title}" kategorisi silindi.`);
+    }
   };
   const saveMediaList = (next: MediaItem[]) => {
     setMediaList(next);
@@ -1824,8 +1904,9 @@ export default function AdminDashboard({
     setEditingTour(null);
     setTourFormData({
       title: '',
-      category: 'island-tours',
-      categoryLabel: 'Ada Turları',
+      order: tours.length + 1,
+      category: categories[0]?.slug || 'island-tours',
+      categoryLabel: categories[0]?.label_tr || 'Ada Turları',
       priceThb: 3200,
       duration: 'Tam Gün (08:00 - 17:00)',
       featured: false,
@@ -1877,6 +1958,7 @@ export default function AdminDashboard({
     setEditingTour(t);
     setTourFormData({
       ...t,
+      order: t.order ?? 100,
       gallery: t.gallery || [],
       included: t.included || [],
       excluded: t.excluded || [],
@@ -1911,6 +1993,7 @@ export default function AdminDashboard({
             ? ({
                 ...t,
                 ...tourFormData,
+                order: Number(tourFormData.order) || t.order || 999,
                 priceThb: Number(tourFormData.priceThb) || 0,
                 costThb: Number(tourFormData.costThb) || 0,
                 supplier: tourFormData.supplier || '',
@@ -1933,18 +2016,25 @@ export default function AdminDashboard({
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-+|-+$/g, '');
 
+      const matchedCat = categories.find((c) => c.slug === tourFormData.category);
+      const categoryLabel =
+        matchedCat?.label_tr ||
+        (tourFormData.category === 'island-tours'
+          ? 'Ada Turları'
+          : tourFormData.category === 'adventure-tours'
+          ? 'Macera & Doğa'
+          : tourFormData.category === 'entertainment-tours'
+          ? 'Kültür & Şov'
+          : tourFormData.category === 'private-charters'
+          ? 'VIP Yat & Özel'
+          : tourFormData.category || 'Ada Turları');
+
       const newTour: TourItem = {
         id: slug || `tur-${Date.now()}`,
         title: tourFormData.title,
+        order: Number(tourFormData.order) || 1,
         category: tourFormData.category || 'island-tours',
-        categoryLabel:
-          tourFormData.category === 'island-tours'
-            ? 'Ada Turları'
-            : tourFormData.category === 'adventure-tours'
-            ? 'Macera & Doğa'
-            : tourFormData.category === 'entertainment-tours'
-            ? 'Kültür & Şov'
-            : 'VIP Yat & Özel',
+        categoryLabel,
         priceThb: Number(tourFormData.priceThb) || 0,
         costThb: Number(tourFormData.costThb) || 0,
         supplier: tourFormData.supplier || '',
@@ -2361,6 +2451,7 @@ export default function AdminDashboard({
             onOpenPoliceManifest={() => setIsPoliceManifestOpen(true)}
             onOpenBulkReschedule={perms.canAssignTransfers ? () => setIsBulkRescheduleOpen(true) : undefined}
             onOpenWorkflow={(b) => setWorkflowBooking(b)}
+            pendingBookingIds={pendingBookingIds}
             showToast={showToast}
             sync={{
               isOnline,
@@ -2445,6 +2536,7 @@ export default function AdminDashboard({
               setIsPromptPayQrOpen(true);
             }}
             onOpenWorkflow={(b) => setWorkflowBooking(b)}
+            pendingBookingIds={pendingBookingIds}
           />
         )}
 
@@ -2510,6 +2602,8 @@ export default function AdminDashboard({
                   : { customerName: 'Begüm & Canberk Özkan', hotel: 'The Shore at Katathani', zone: 'Kata & Karon' }
               );
             }}
+            onOpenWorkflow={(b) => setWorkflowBooking(b)}
+            pendingBookingIds={pendingBookingIds}
           />
         )}
 
@@ -2596,6 +2690,8 @@ export default function AdminDashboard({
             tourCategoryFilter={tourCategoryFilter}
             setTourCategoryFilter={setTourCategoryFilter}
             tourCategoryOptions={tourCategoryOptions}
+            categories={categories}
+            onOpenCategoryModal={() => setIsCategoryModalOpen(true)}
             getImageUrl={getImageUrl}
             onOpenCreate={handleOpenCreateTour}
             onOpenEdit={handleOpenEditTour}
@@ -2864,6 +2960,21 @@ export default function AdminDashboard({
         allImageOptions={allImageOptions}
         mediaList={mediaList}
         allTours={tours}
+        categories={categories}
+        onOpenCategoryModal={() => setIsCategoryModalOpen(true)}
+      />
+
+      {/* ==================================================== */}
+      {/* MODAL 2.1: CATEGORY MANAGER & REORDER */}
+      {/* ==================================================== */}
+      <CategoryModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)}
+        categories={categories}
+        onSaveCategory={handleSaveCategory}
+        onDeleteCategory={handleDeleteCategory}
+        availableImages={availableImages}
+        showToast={showToast}
       />
 
       {/* ==================================================== */}

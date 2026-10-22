@@ -49,6 +49,12 @@ faq:
     a: "Doğal yaşamı ve mercanları korumak amacıyla Maya Bay'de suya girmek kısıtlıdır; koyda yürüyüş ve fotoğraf molası verilir. Yüzme molaları Pileh Lagoon ve Bamboo Adası'nda gerçekleşir."
   - q: "Hamile misafirler veya bebekler için uygun mu?"
     a: "Deniz güvenliği yönetmelikleri gereği sürat tekneleri hamileler ve 1 yaşından küçük çocuklar için uygun değildir. Bu durumlarda katamaran veya büyük tekneli rotalar önerilir."
+  - q: "Phi Phi milli park giriş ücreti ne kadar ve nasıl ödenir?"
+    a: "Tayland Millî Parklar İdaresi (DNP) tarafından yetişkinler için 400 THB, çocuklar için 200 THB olarak belirlenmiştir. İskelede biniş öncesi nakit olarak tahsil edilip resmi makbuz teslim edilir."
+  - q: "Tur sırasında yanımıza neler almalıyız?"
+    a: "Otel havlusu, yüksek korumalı güneş kremi, deniz ayakkabısı, güneş gözlüğü, şapka, su geçirmez telefon kılıfı ve kişisel harcamalar için bir miktar nakit Tay Bahtı (THB) almanız önerilir."
+  - q: "Deniz tutması yaşayan misafirler için teknede önlem var mı?"
+    a: "İskelede biniş öncesi Türkçe bilgilendirme alanında ücretsiz deniz tutması tableti sunulmaktadır. Ayrıca teknede ön burun yerine sarsıntının en az hissedildiği orta-arka sıralara oturmanız tavsiye edilir."
 restrictions:
   - "Hamile misafirler için güvenlik nedeniyle uygun değildir"
   - "Kalp, omurga rahatsızlığı olan misafirler için kısıtlamalar mevcuttur"

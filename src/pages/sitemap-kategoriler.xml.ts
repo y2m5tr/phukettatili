@@ -17,11 +17,14 @@
  */
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
+import { getCloudCategories, applyCategoryOverlay } from '../lib/server/categoryContent';
 
 export const prerender = false;
 
 export const GET: APIRoute = async () => {
-  const categories = await getCollection('categories');
+  const mdCategories = await getCollection('categories');
+  const cloudCategories = await getCloudCategories();
+  const categories = applyCategoryOverlay(mdCategories, cloudCategories);
   const site = 'https://phukettatili.com';
 
   const slugs: string[] = [];

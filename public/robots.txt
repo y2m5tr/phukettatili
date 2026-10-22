@@ -1,16 +1,23 @@
 User-agent: *
 Allow: /
 
-# Sitemap
+# Sitemaps
 Sitemap: https://phukettatili.com/sitemap-index.xml
 Sitemap: https://phukettatili.com/sitemap-turlar.xml
 Sitemap: https://phukettatili.com/sitemap-blog.xml
 Sitemap: https://phukettatili.com/sitemap-kategoriler.xml
 
-# Block search bots from internal paths
+# Block search bots from internal, operational and private paths
 Disallow: /api/
 Disallow: /.astro/
+Disallow: /admin
 Disallow: /admin/
+Disallow: /ops-login
+Disallow: /ops-login/
+Disallow: /ekip
+Disallow: /ekip/
+Disallow: /bilet
+Disallow: /bilet/
 
 # Crawl delay for polite bots
 Crawl-delay: 1

@@ -197,6 +197,7 @@ export interface TourItem {
   supplier?: string;
   duration: string;
   featured: boolean;
+  order?: number;
   active: boolean;
   image: string;
   maxCapacity?: number;
@@ -209,6 +210,25 @@ export interface TourItem {
   faq?: TourFaq[];
   restrictions?: string[];
   body?: string;
+}
+
+export interface CategoryItem {
+  id?: string;
+  name: string;
+  label_tr: string;
+  slug: string;
+  icon?: string;
+  short_desc?: string;
+  description?: string;
+  hero_image?: string;
+  order?: number;
+  children?: Array<{
+    name: string;
+    label_tr: string;
+    slug: string;
+    description?: string;
+    hero_image?: string;
+  }>;
 }
 
 export interface MediaItem {

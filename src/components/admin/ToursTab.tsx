@@ -13,8 +13,9 @@ import {
   CheckSquare,
   Square,
   Sparkles,
+  FolderPlus,
 } from 'lucide-react';
-import type { TourItem } from '../../data/adminInitialData';
+import type { TourItem, CategoryItem } from '../../data/adminTypes';
 
 interface ToursTabProps {
   tours: TourItem[];
@@ -35,6 +36,8 @@ interface ToursTabProps {
   onOpenQuotePdf?: (t: TourItem) => void;
   onBulkUpdateTours?: (updatedTours: TourItem[]) => void;
   onOpenMultiTourProposal?: (selectedTours: TourItem[]) => void;
+  categories?: CategoryItem[];
+  onOpenCategoryModal?: () => void;
 }
 
 export default function ToursTab({
@@ -53,11 +56,14 @@ export default function ToursTab({
   onOpenQuotePdf,
   onBulkUpdateTours,
   onOpenMultiTourProposal,
+  categories = [],
+  onOpenCategoryModal,
 }: ToursTabProps) {
   const [viewMode, setViewMode] = useState<'cards' | 'grid'>('cards');
   const [selectedTourIds, setSelectedTourIds] = useState<string[]>([]);
   const [editedPrices, setEditedPrices] = useState<Record<string, number>>({});
   const [editedDurations, setEditedDurations] = useState<Record<string, string>>({});
+  const [editedOrders, setEditedOrders] = useState<Record<string, number>>({});
   const [hasUnsavedGridChanges, setHasUnsavedGridChanges] = useState<boolean>(false);
 
   const toggleSelectTour = (id: string) => {
@@ -84,6 +90,11 @@ export default function ToursTab({
     setHasUnsavedGridChanges(true);
   };
 
+  const handleOrderChange = (tourId: string, value: number) => {
+    setEditedOrders((prev) => ({ ...prev, [tourId]: value }));
+    setHasUnsavedGridChanges(true);
+  };
+
   const handleSaveGridChanges = () => {
     if (!onBulkUpdateTours) return;
     const updated = tours.map((t) => {
@@ -94,11 +105,15 @@ export default function ToursTab({
       if (editedDurations[t.id] !== undefined) {
         mod.duration = editedDurations[t.id];
       }
+      if (editedOrders[t.id] !== undefined) {
+        mod.order = editedOrders[t.id];
+      }
       return mod;
     });
     onBulkUpdateTours(updated);
     setEditedPrices({});
     setEditedDurations({});
+    setEditedOrders({});
     setHasUnsavedGridChanges(false);
   };
 
@@ -178,9 +193,21 @@ export default function ToursTab({
             ))}
           </select>
 
+          {onOpenCategoryModal && (
+            <button
+              type="button"
+              onClick={onOpenCategoryModal}
+              className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-bold flex items-center gap-1.5 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+              title="Kategorileri Düzenle / Yeni Kategori Ekle"
+            >
+              <FolderPlus className="w-4 h-4 text-brand-accent" />
+              <span>Kategoriler {categories.length > 0 ? `(${categories.length})` : ''}</span>
+            </button>
+          )}
+
           <button
             onClick={onOpenCreate}
-            className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5"
+            className="px-4 py-2 rounded-xl bg-brand-primary hover:bg-brand-primary/90 text-white text-xs sm:text-sm font-bold shadow-md shadow-brand-primary/20 flex items-center gap-1.5 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Yeni Tur</span>
@@ -279,9 +306,12 @@ export default function ToursTab({
                     )}
                   </button>
 
-                  <div className="absolute top-3 left-12">
+                  <div className="absolute top-3 left-12 flex items-center gap-1.5">
                     <span className="px-3 py-1 rounded-full text-[10px] font-bold bg-black/60 backdrop-blur-md text-white border border-white/20">
                       {t.categoryLabel || t.category}
+                    </span>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-500/90 backdrop-blur-md text-slate-950 font-mono shadow-xs" title="Listeleme Sıra Numarası (Order)">
+                      #{t.order ?? 10}
                     </span>
                   </div>
 
@@ -379,6 +409,7 @@ export default function ToursTab({
                       )}
                     </button>
                   </th>
+                  <th className="py-3 px-4 w-20 text-center">Sıra No</th>
                   <th className="py-3 px-4">Tur Adı & Kategori</th>
                   <th className="py-3 px-4 w-36">Süre / Saat</th>
                   <th className="py-3 px-4 w-44">Yetişkin Fiyatı (THB)</th>
@@ -407,6 +438,22 @@ export default function ToursTab({
                           checked={isSelected}
                           onChange={() => toggleSelectTour(t.id)}
                           className="w-4 h-4 rounded text-brand-accent focus:ring-brand-accent cursor-pointer"
+                        />
+                      </td>
+
+                      {/* Sıra No Düzenleme */}
+                      <td className="py-3 px-4 text-center">
+                        <input
+                          type="number"
+                          min="1"
+                          value={editedOrders[t.id] !== undefined ? editedOrders[t.id] : (t.order ?? 10)}
+                          onChange={(e) => handleOrderChange(t.id, Number(e.target.value))}
+                          className={`w-16 px-2 py-1.5 rounded-lg text-center font-bold text-xs bg-slate-50 dark:bg-slate-900 border ${
+                            editedOrders[t.id] !== undefined
+                              ? 'border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400'
+                              : 'border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200'
+                          } focus:outline-none focus:border-brand-accent`}
+                          title="Listelenme Sıra Numarası (1 en üstte)"
                         />
                       </td>
 

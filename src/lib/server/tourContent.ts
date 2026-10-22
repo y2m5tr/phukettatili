@@ -38,6 +38,7 @@ export interface TourOverlayItem {
   priceThb?: number;
   duration?: string;
   featured?: boolean;
+  order?: number;
   included?: string[];
   excluded?: string[];
   program?: string[];
@@ -160,6 +161,7 @@ function overlayOnto(
   if (typeof cloud.image === 'string' && cloud.image) next.image = cloud.image;
   if (typeof cloud.duration === 'string' && cloud.duration) next.duration = cloud.duration;
   if (typeof cloud.featured === 'boolean') next.featured = cloud.featured;
+  if (typeof cloud.order === 'number' && Number.isFinite(cloud.order)) next.order = cloud.order;
 
   if (typeof cloud.priceThb === 'number' && Number.isFinite(cloud.priceThb)) {
     next.price_thb = cloud.priceThb;

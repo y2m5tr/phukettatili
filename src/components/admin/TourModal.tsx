@@ -12,7 +12,7 @@ import { Edit2,
   Plus,
   Sparkles,
 } from 'lucide-react';
-import type { TourItem, MediaItem } from '../../data/adminInitialData';
+import type { TourItem, MediaItem, CategoryItem } from '../../data/adminTypes';
 import ImagePickerModal from './ImagePickerModal';
 
 const PRESET_INCLUSIONS = [
@@ -101,6 +101,8 @@ interface TourModalProps {
   allImageOptions?: string[];
   mediaList?: MediaItem[];
   allTours?: TourItem[];
+  categories?: CategoryItem[];
+  onOpenCategoryModal?: () => void;
 }
 
 export default function TourModal({
@@ -127,6 +129,8 @@ export default function TourModal({
   allImageOptions = [],
   mediaList = [],
   allTours = [],
+  categories = [],
+  onOpenCategoryModal,
 }: TourModalProps) {
   if (!isOpen) return null;
 
@@ -336,35 +340,77 @@ export default function TourModal({
                     />
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                        Kategori *
-                      </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="sm:col-span-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300">
+                          Kategori *
+                        </label>
+                        {onOpenCategoryModal && (
+                          <button
+                            type="button"
+                            onClick={onOpenCategoryModal}
+                            className="text-[11px] font-bold text-brand-accent hover:underline flex items-center gap-1 cursor-pointer"
+                          >
+                            <span>+ Yeni Kategori Ekle</span>
+                          </button>
+                        )}
+                      </div>
                       <select
-                        value={tourFormData.category || 'island-tours'}
-                        onChange={(e) => setTourFormData({ ...tourFormData, category: e.target.value })}
+                        value={tourFormData.category || (categories[0]?.slug) || 'island-tours'}
+                        onChange={(e) => {
+                          const selected = categories.find((c) => c.slug === e.target.value);
+                          setTourFormData({
+                            ...tourFormData,
+                            category: e.target.value,
+                            categoryLabel: selected?.label_tr || tourFormData.categoryLabel,
+                          });
+                        }}
                         className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
                       >
-                        <option value="island-tours">Ada Turları</option>
-                        <option value="adventure-tours">Macera & Doğa</option>
-                        <option value="entertainment-tours">Kültür & Şovlar</option>
-                        <option value="private-charters">VIP Yat & Özel</option>
+                        {(categories.length > 0 ? categories : [
+                          { slug: 'island-tours', label_tr: 'Ada Turları', icon: '🏝️' },
+                          { slug: 'adventure-tours', label_tr: 'Macera & Doğa', icon: '🧗' },
+                          { slug: 'entertainment-tours', label_tr: 'Kültür & Şovlar', icon: '🎭' },
+                          { slug: 'private-charters', label_tr: 'VIP Yat & Özel', icon: '⛵' },
+                        ]).map((cat) => (
+                          <option key={cat.slug} value={cat.slug}>
+                            {cat.icon ? `${cat.icon} ` : ''}{cat.label_tr}
+                          </option>
+                        ))}
                       </select>
                     </div>
 
                     <div>
                       <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                        Tur Süresi
+                        Sıralama (Sıra No) *
                       </label>
                       <input
-                        type="text"
-                        value={tourFormData.duration || ''}
-                        onChange={(e) => setTourFormData({ ...tourFormData, duration: e.target.value })}
-                        placeholder="Örn: Tam Gün (07:30 - 17:30)"
-                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                        type="number"
+                        min="1"
+                        required
+                        value={tourFormData.order ?? 1}
+                        onChange={(e) => setTourFormData({ ...tourFormData, order: Number(e.target.value) })}
+                        placeholder="Örn: 1, 2, 3..."
+                        className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-bold text-amber-600 dark:text-amber-400 focus:outline-none"
                       />
+                      <span className="text-[10px] text-slate-400 mt-0.5 block">
+                        (1: En üstte / ilk sırada)
+                      </span>
                     </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                      Tur Süresi
+                    </label>
+                    <input
+                      type="text"
+                      value={tourFormData.duration || ''}
+                      onChange={(e) => setTourFormData({ ...tourFormData, duration: e.target.value })}
+                      placeholder="Örn: Tam Gün (07:30 - 17:30)"
+                      className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

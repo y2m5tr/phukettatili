@@ -16,6 +16,8 @@ interface Props {
     publishedTime?: string;
     /** Sayfa başlığı marka son ekini ("| Phuket Tatili") zaten içeriyorsa true */
     noTitleSuffix?: boolean;
+    /** Arama motoru indekslemesini kapatmak için (404 vb.) */
+    noIndex?: boolean;
     /** Sayfaya özel ek JSON-LD şemaları (Article, Product, FAQPage vb.) */
     schemas?: Record<string, unknown>[];
 }
@@ -28,12 +30,18 @@ const {
   ogType = 'website',
   publishedTime,
   noTitleSuffix = false,
+  noIndex = false,
   schemas = [],
 } = Astro.props;
 
-const canonicalURL = new URL(Astro.url.pathname, Astro.site || 'https://phukettatili.com');
+// Canonical URL normalizasyonu: temiz rotaların sitemap ile uyumlu biçimde son slash ile bitmesini sağlar
+const pathname = Astro.url.pathname;
+const normalizedPath = pathname.endsWith('/') || pathname.includes('.')
+  ? pathname
+  : `${pathname}/`;
+const canonicalURL = new URL(normalizedPath, Astro.site || 'https://phukettatili.com');
 const imageURL = new URL(image, Astro.site || 'https://phukettatili.com');
-const fullTitle = noTitleSuffix ? title : `${title} | Phuket Tatili`;
+const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${title} | Phuket Tatili`;
 ---
 
 <!doctype html>
@@ -52,7 +60,15 @@ const fullTitle = noTitleSuffix ? title : `${title} | Phuket Tatili`;
         <!-- SEO & OpenGraph -->
         <title>{fullTitle}</title>
 		<meta name="description" content={description} />
+        {noIndex ? (
+          <meta name="robots" content="noindex, nofollow" />
+        ) : (
+          <meta name="robots" content="index, follow" />
+        )}
         <link rel="canonical" href={canonicalURL} />
+        <link rel="alternate" hreflang="tr" href={canonicalURL} />
+        <link rel="alternate" hreflang="x-default" href={canonicalURL} />
+
         <!-- Google Search Console dogrulama: PUBLIC_GSC_VERIFICATION env degiskeni ile set edilir -->
         {import.meta.env.PUBLIC_GSC_VERIFICATION && (
           <meta name="google-site-verification" content={import.meta.env.PUBLIC_GSC_VERIFICATION} />
@@ -72,20 +88,47 @@ const fullTitle = noTitleSuffix ? title : `${title} | Phuket Tatili`;
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={imageURL} />
 
-        <!-- JSON-LD Structured Data -->
+        <!-- JSON-LD Structured Data: Organization & TravelAgency -->
         <script type="application/ld+json" set:html={JSON.stringify({
           "@context": "https://schema.org",
           "@type": "TravelAgency",
           "name": "Phuket Tatili",
           "url": (Astro.site || 'https://phukettatili.com').toString(),
           "image": new URL("/assets/og-hero.jpg", Astro.site || 'https://phukettatili.com').toString(),
-          "description": "Phuket Tatili - Lüks VIP Turlar ve Yat Kiralama",
+          "logo": new URL("/assets/logo-main-transparent.png", Astro.site || 'https://phukettatili.com').toString(),
+          "description": "Phuket Tatili - Türkçe rehberli ada turları, VIP transfer ve özel lüks yat kiralama hizmetleri.",
           "address": {
             "@type": "PostalAddress",
             "addressLocality": "Phuket",
             "addressCountry": "TH"
           },
-          "telephone": "+66 82 895 0665"
+          "geo": {
+            "@type": "GeoCoordinates",
+            "latitude": 7.8804,
+            "longitude": 98.3923
+          },
+          "telephone": "+66 82 895 0665",
+          "email": "info@phukettatili.com",
+          "sameAs": [
+            "https://instagram.com/phukettatili"
+          ],
+          "priceRange": "$$",
+          "currenciesAccepted": "THB, USD, EUR, TRY",
+          "paymentAccepted": "Cash, Credit Card, Bank Transfer",
+          "areaServed": [
+            {
+              "@type": "Place",
+              "name": "Phuket, Thailand"
+            },
+            {
+              "@type": "Place",
+              "name": "Krabi, Thailand"
+            },
+            {
+              "@type": "Place",
+              "name": "Phang Nga, Thailand"
+            }
+          ]
         })} />
         {schemas.map((schema) => (
           <script type="application/ld+json" set:html={JSON.stringify({ "@context": "https://schema.org", ...schema })} />

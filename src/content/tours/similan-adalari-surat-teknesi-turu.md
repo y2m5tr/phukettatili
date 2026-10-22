@@ -29,6 +29,10 @@ faq:
     a: "Hayır, Similan Adaları millî park koruma takvimi gereği her yıl yalnızca 15 Ekim - 15 Mayıs tarihleri arasında ziyarete açıktır. Muson sezonunda tamamen kapalıdır."
   - q: "Yolculuk ne kadar sürüyor?"
     a: "Phuket'ten Khao Lak iskelesine minibüsle yaklaşık 1.5 - 2 saat, iskeleden adalara sürat teknesiyle yaklaşık 1 saat 15 dakika sürer. Erken çıkış gerektirir ancak suyun berraklığı bu yolculuğa fazlasıyla değer."
+  - q: "Deniz kaplumbağalarını görebilir miyiz?"
+    a: "Evet, Similan suları vahşi deniz kaplumbağalarının doğal yaşam ve beslenme alanıdır. 7 ve 9 numaralı adalardaki şnorkel duraklarında mercan resifleri arasında yüzen deniz kaplumbağalarını yakından gözlemleme şansı çok yüksektir."
+  - q: "Milli park için pasaport bilgisi zorunlu mu?"
+    a: "Evet, Tayland Çevre Bakanlığı Similan Adaları'na giriş yapacak her misafirin kimlik/pasaport bilgilerini önceden talep eder. Rezervasyon esnasında pasaport fotoğraflarınızı güvenle iletmeniz gerekmektedir."
 restrictions:
   - "Milli park kuralları gereği pasaport kopyası zorunludur"
   - "Hamileler ve sırt/boyun rahatsızlığı bulunanlar katılamaz"

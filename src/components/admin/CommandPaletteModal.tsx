@@ -14,6 +14,9 @@ import {
   ShieldAlert,
   Coins,
   Compass,
+  Car,
+  CreditCard,
+  Clock,
 } from 'lucide-react';
 import type { Booking, TourItem } from '../../data/adminInitialData';
 import type { AdminTab, NavItem } from './AdminDashboard';
@@ -249,6 +252,45 @@ export default function CommandPaletteModal({
         handler: wrapHandler('act-field-cashier', () => {
           onClose();
           if (onOpenFieldCashier) onOpenFieldCashier();
+        }),
+      },
+      {
+        id: 'act-today-transfers',
+        type: 'action',
+        title: 'Bugünkü Transferler & Alınış Listesi',
+        subtitle: 'Şoför manifestosu, otel lobisi alınışları ve rota sıralaması',
+        icon: Car,
+        badge: 'Saha Transfer',
+        badgeColor: 'bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/30',
+        handler: wrapHandler('act-today-transfers', () => {
+          onClose();
+          onSelectTab('transfers');
+        }),
+      },
+      {
+        id: 'act-pending-collections',
+        type: 'action',
+        title: 'Geciken & Bekleyen Tahsilatlar',
+        subtitle: 'Turda veya otelde tahsil edilecek kalan nakit bakiyeler',
+        icon: CreditCard,
+        badge: 'Finans',
+        badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
+        handler: wrapHandler('act-pending-collections', () => {
+          onClose();
+          onSelectTab('finance');
+        }),
+      },
+      {
+        id: 'act-lobby-pending',
+        type: 'action',
+        title: 'Lobide Bekleyen Misafirler & Alınış Durumu',
+        subtitle: 'Bugünkü transferlerde henüz binmeyen misafirleri listele',
+        icon: Clock,
+        badge: 'Operasyon Masası',
+        badgeColor: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30',
+        handler: wrapHandler('act-lobby-pending', () => {
+          onClose();
+          onSelectTab('overview');
         }),
       },
     ];

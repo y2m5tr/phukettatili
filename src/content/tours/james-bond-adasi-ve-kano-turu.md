@@ -44,6 +44,12 @@ faq:
     a: "Hayır, deneyimli yerel rehberler kanoyu kullanır; siz mağaraların ve gizli lagünlerin keyfini çıkarıp güvenle fotoğraf çekebilirsiniz."
   - q: "Deniz tutması riski var mı?"
     a: "Phang Nga Körfezi adalarla çevrili kapalı bir körfez olduğundan dalga riski açık denize göre çok daha düşüktür; sakin bir seyir sunar."
+  - q: "Phang Nga & James Bond milli park ücreti ne kadardır?"
+    a: "Yetişkinler için 300 THB, 4-14 yaş çocuklar için 100 THB olan milli park ücreti iskelede resmi park görevlilerine ödenir."
+  - q: "Koh Panyee yüzen Müslüman köyünde ne yapıyoruz?"
+    a: "Koh Panyee yüzen adasında yaklaşık 1 saat mola verilir; geleneksel açık büfe öğle yemeği yenir, ahşap kazıklar üzerine kurulu okul, köy çarşısı ve dünyaca ünlü yüzen futbol sahası ziyaret edilir."
+  - q: "Bebekli ve çocuklu aileler için uygun mu?"
+    a: "Evet, Phang Nga Körfezi dalgasız, korunaklı bir iç deniz olduğu ve kanolarda kürekleri profesyonel ekipler çektiği için bebekli ve çocuklu ailelerin en rahat ettiği ada rotasıdır."
 restrictions:
   - "Tekerlekli sandalye ile binişlerde iskele ve tekne koşullarına göre önceden bilgi verilmelidir"
 age_min: "2 yaş"

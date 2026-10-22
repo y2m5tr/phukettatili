@@ -32,6 +32,7 @@ import {
   FileText,
   UserCheck,
   BellRing,
+  Zap,
 } from 'lucide-react';
 import { generateMultiStopMapUrl, getSingleHotelMapUrl, detectDeparturePier, getZoneOrder } from '../../lib/maps';
 import { buildDailyPickups, type PickupItem } from '../../lib/adminFilters';
@@ -78,6 +79,8 @@ interface TransfersTabProps {
   onOpenLuggageExpress?: () => void;
   onOpenCaptainVault?: () => void;
   onOpenCuratedProposal?: (b?: Booking) => void;
+  onOpenWorkflow?: (b: Booking) => void;
+  pendingBookingIds?: Set<string>;
 }
 
 export function isPickupLobbyReady(p: PickupItem): boolean {
@@ -114,6 +117,8 @@ export default function TransfersTab({
   onOpenLuggageExpress,
   onOpenCaptainVault,
   onOpenCuratedProposal,
+  onOpenWorkflow,
+  pendingBookingIds,
 }: TransfersTabProps) {
   const safeVehicles = Array.isArray(vehicles) ? vehicles : [];
   const safeDrivers = Array.isArray(drivers) ? drivers : [];
@@ -1243,9 +1248,22 @@ export default function TransfersTab({
                     </td>
 
                     <td className="py-4 px-5">
-                      <span className="font-semibold text-slate-900 dark:text-white block">
-                        {p.customerName}
-                      </span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-semibold text-slate-900 dark:text-white block">
+                          {p.customerName}
+                        </span>
+                        {pendingBookingIds?.has(p.bookingId) ? (
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-700 animate-pulse" title="İşlem cihaza kaydedildi, buluta gönderilmeyi bekliyor">
+                            <span className="w-1 h-1 rounded-full bg-amber-500"></span>
+                            Cihazda
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-0.5 text-[9px] text-slate-400 dark:text-slate-500" title="Sunucuyla tam senkronize">
+                            <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />
+                            Bulut
+                          </span>
+                        )}
+                      </div>
                       <a
                         href={`https://wa.me/${p.phone.replace(/[^0-9]/g, '')}`}
                         target="_blank"
@@ -1331,6 +1349,17 @@ export default function TransfersTab({
                           if (!target) return null;
                           return (
                             <>
+                              {onOpenWorkflow && (
+                                <button
+                                  type="button"
+                                  onClick={() => onOpenWorkflow(target)}
+                                  className="px-2.5 py-1.5 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-colors flex items-center gap-1 text-xs font-bold shrink-0 cursor-pointer"
+                                  title="⚡ Saha Görev Adımları (İş Akışı Kılavuzu)"
+                                >
+                                  <Zap className="w-3.5 h-3.5 text-amber-500 fill-amber-500" />
+                                  <span className="hidden lg:inline">Adımlar</span>
+                                </button>
+                              )}
                               <a
                                 href={getConciergeWhatsAppUrl('evening_breakfast', target)}
                                 target="_blank"
@@ -1715,7 +1744,18 @@ export default function TransfersTab({
                               </div>
 
                               <div className="text-xs text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                                <span>{stop.customerName}</span>
+                                <span className="font-semibold text-slate-800 dark:text-slate-200">{stop.customerName}</span>
+                                {pendingBookingIds?.has(stop.bookingId) ? (
+                                  <span className="inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border border-amber-300 dark:border-amber-700 animate-pulse">
+                                    <span className="w-1 h-1 rounded-full bg-amber-500"></span>
+                                    Cihazda
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-0.5 text-[9px] text-slate-400 dark:text-slate-500" title="Sunucuyla senkron">
+                                    <CheckCircle2 className="w-2.5 h-2.5 text-emerald-500" />
+                                    Bulut
+                                  </span>
+                                )}
                                 <span>·</span>
                                 <span>{stop.adultCount || 1} Yetişkin{(stop.childCount || 0) > 0 ? ` + ${stop.childCount} Çocuk` : ''}</span>
                                 {stop.roomNumber && (
@@ -1737,7 +1777,21 @@ export default function TransfersTab({
                                   </span>
                                 )}
 
-                                <div className="flex items-center gap-1.5">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  {onOpenWorkflow && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        const target = bookings.find((b) => b.id === stop.bookingId);
+                                        if (target) onOpenWorkflow(target);
+                                      }}
+                                      className="px-2 py-1 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-600 hover:text-white transition-colors flex items-center gap-1 text-[11px] font-bold cursor-pointer"
+                                      title="⚡ Saha Görev Adımları"
+                                    >
+                                      <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                      <span>Adımlar</span>
+                                    </button>
+                                  )}
                                   <select
                                     value={stop.pickupStatus || 'pending'}
                                     onChange={(e) =>

@@ -33,6 +33,7 @@ const initialTours = tours
     priceThb: tour.data.price_thb || 0,
     duration: tour.data.duration || 'Tam Gün',
     featured: Boolean(tour.data.featured),
+    order: tour.data.order ?? 100,
     active: true,
     image: tour.data.image || 'phuket_hero.webp',
     excerpt: tour.data.excerpt || '',
@@ -46,7 +47,22 @@ const initialTours = tours
     body: tour.body || '',
   }));
 
-// 2. Blog Articles
+// 2. Categories
+const rawCategories: CollectionEntry<'categories'>[] = await getCollection('categories');
+const initialCategories = rawCategories
+  .sort((a, b) => (a.data.order || 0) - (b.data.order || 0))
+  .map((c) => ({
+    id: c.data.slug,
+    name: c.data.name,
+    label_tr: c.data.label_tr,
+    slug: c.data.slug,
+    icon: c.data.icon || '🏝️',
+    description: c.data.description || '',
+    order: c.data.order ?? 100,
+    children: c.data.children || [],
+  }));
+
+// 3. Blog Articles
 const blogs: CollectionEntry<'blog'>[] = await getCollection('blog');
 const initialBlogs = blogs.map((b) => ({
   id: b.id,
@@ -163,6 +179,7 @@ const availableImages: string[] = [
     <AdminDashboard
       client:only="react"
       initialTours={initialTours}
+      initialCategories={initialCategories}
       initialBlogs={initialBlogs}
       initialServices={initialServices}
       initialFaqs={initialFaqs}

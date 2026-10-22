@@ -19,6 +19,7 @@ const API = '/api/content';
 /** Beyaz listedeki koleksiyon anahtarları — API ile hizalı. */
 export const CMS_COLLECTIONS = [
   'tours',
+  'categories',
   'blogs',
   'services',
   'faqs',
