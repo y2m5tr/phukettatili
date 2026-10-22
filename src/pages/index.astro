@@ -149,7 +149,12 @@ const schemas: Record<string, unknown>[] = [
 ];
 ---
 
-<Layout title="Ana Sayfa" description="Tayland'ın incisi Phuket'te unutulmaz bir tatil deneyimi." schemas={schemas}>
+<Layout
+  title="Ana Sayfa"
+  description="Tayland'ın incisi Phuket'te unutulmaz bir tatil deneyimi."
+  schemas={schemas}
+  preloadImage={heroImage || (heroSliderImages && heroSliderImages[0]) || "/assets/phuket_hero.webp"}
+>
   <!-- Hero Section with Dynamic Content & Quick Search -->
   {sections.hero !== false && (
     <section class="relative min-h-[85vh] lg:min-h-[720px] flex flex-col justify-center items-center overflow-hidden pt-28 pb-14">

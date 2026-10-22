@@ -37,24 +37,27 @@ import AdminHeader, { type AdminHeaderActions } from './AdminHeader';
 import CommandPaletteModal from './CommandPaletteModal';
 import BulkRescheduleModal from './BulkRescheduleModal';
 import BoardingPassModal from '../shared/BoardingPassModal';
-import FleetManager from './FleetManager';
-import SupplierSettlementManager from './SupplierSettlementManager';
-import SettingsTab, { type SiteSettingsState } from './SettingsTab';
-import UsersTab from './UsersTab';
-import WhatsAppTab from './WhatsAppTab';
-import TestimonialsTab from './TestimonialsTab';
-import FaqsTab from './FaqsTab';
-import BlogsTab from './BlogsTab';
-import ServicesTab from './ServicesTab';
-import MediaTab from './MediaTab';
-import ToursTab from './ToursTab';
-import HomeEditorTab from './HomeEditorTab';
-import TransfersTab from './TransfersTab';
 import OverviewTab from './OverviewTab';
 import BookingsTab from './BookingsTab';
-import FinanceTab from './FinanceTab';
-import PartnersTab from './PartnersTab';
-import SuppliersTab from './SuppliersTab';
+import TransfersTab from './TransfersTab';
+import type { SiteSettingsState } from './SettingsTab';
+
+// Dynamic code-split tabs (React.lazy) to minimize the initial admin bundle size
+const FinanceTab = React.lazy(() => import('./FinanceTab'));
+const FleetManager = React.lazy(() => import('./FleetManager'));
+const SupplierSettlementManager = React.lazy(() => import('./SupplierSettlementManager'));
+const SettingsTab = React.lazy(() => import('./SettingsTab'));
+const UsersTab = React.lazy(() => import('./UsersTab'));
+const WhatsAppTab = React.lazy(() => import('./WhatsAppTab'));
+const TestimonialsTab = React.lazy(() => import('./TestimonialsTab'));
+const FaqsTab = React.lazy(() => import('./FaqsTab'));
+const BlogsTab = React.lazy(() => import('./BlogsTab'));
+const ServicesTab = React.lazy(() => import('./ServicesTab'));
+const MediaTab = React.lazy(() => import('./MediaTab'));
+const ToursTab = React.lazy(() => import('./ToursTab'));
+const HomeEditorTab = React.lazy(() => import('./HomeEditorTab'));
+const PartnersTab = React.lazy(() => import('./PartnersTab'));
+const SuppliersTab = React.lazy(() => import('./SuppliersTab'));
 import BookingModal from './BookingModal';
 import TourModal from './TourModal';
 import TestimonialModal from './TestimonialModal';
@@ -2325,6 +2328,14 @@ export default function AdminDashboard({
             tabName={activeNavItem?.label}
             onResetToOverview={() => setActiveTab('overview')}
           >
+            <React.Suspense
+              fallback={
+                <div className="flex flex-col items-center justify-center py-24 space-y-3 text-slate-400">
+                  <div className="w-8 h-8 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm font-medium">Bölüm yükleniyor...</span>
+                </div>
+              }
+            >
         
         {/* ==================================================== */}
         {/* TAB 1: OVERVIEW */}
@@ -2725,6 +2736,7 @@ export default function AdminDashboard({
         {activeTab === 'users' && perms.canManageUsers && (
           <UsersTab showToast={showToast} />
         )}
+            </React.Suspense>
           </AdminErrorBoundary>
         </main>
 

@@ -39,10 +39,13 @@ export async function verifyPassword(candidate: string, stored: string): Promise
 
 /**
  * Şifre gücü politikası — kayıt/parola değiştirmede API sınırında uygulanır.
- * En az 10 karakter + harf + rakam. (Env-şifrelerimizden farklı olarak
+ * En az 8 karakter + harf + rakam. (Env-şifrelerimizden farklı olarak
  * kullanıcılar kendi şifresini seçtiği için taban gerekir.)
  */
 export function validatePasswordPolicy(password: string): string | null {
-  if (!password || password.length < 6) return 'Şifre en az 6 karakter olmalı.';
+  if (!password || password.length < 8) return 'Şifre en az 8 karakter olmalı.';
+  if (!/[a-zA-ZçğıöşüÇĞİÖŞÜ]/.test(password) || !/[0-9]/.test(password)) {
+    return 'Şifre en az bir harf ve bir rakam içermeli.';
+  }
   return null; // geçerli
 }

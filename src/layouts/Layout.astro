@@ -11,6 +11,7 @@ interface Props {
 	title: string;
 	description?: string;
     image?: string;
+    preloadImage?: string;
     ogType?: 'website' | 'article';
     publishedTime?: string;
     /** Sayfa başlığı marka son ekini ("| Phuket Tatili") zaten içeriyorsa true */
@@ -23,6 +24,7 @@ const {
   title,
   description = "Phuket Tatili - En özel anılarınız için lüks ve ayrıcalıklı seyahat deneyimleri.",
   image = "/assets/og-hero.jpg",
+  preloadImage,
   ogType = 'website',
   publishedTime,
   noTitleSuffix = false,
@@ -85,23 +87,39 @@ const fullTitle = noTitleSuffix ? title : `${title} | Phuket Tatili`;
         ))}
 
         <!-- Fontlar self-hosted (global.css içinde @fontsource) — dış CDN bağımlılığı yok -->
+        {preloadImage && (
+          <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />
+        )}
 
-        <!-- Performance marker for navigation timing -->
+        <!-- Real Web Vitals LCP Measurement via PerformanceObserver -->
         <script is:inline>
-          // Navigation Timing API - LCP ölçümü için
-          if (typeof performance !== 'undefined') {
-            window.addEventListener('load', () => {
-              setTimeout(() => {
-                const navEntries = performance.getEntriesByType('navigation');
-                if (navEntries && navEntries.length > 0) {
-                  const navigation = navEntries[0];
-                  const lcpEstimate = navigation.loadEventEnd - navigation.fetchStart;
-                  if (typeof window.gtag === 'function') {
-                    window.gtag('event', 'page_lcp', { value: Math.round(lcpEstimate) });
-                  }
+          if (typeof PerformanceObserver !== 'undefined' && PerformanceObserver.supportedEntryTypes?.includes('largest-contentful-paint')) {
+            try {
+              let lcpValue = 0;
+              const po = new PerformanceObserver((entryList) => {
+                const entries = entryList.getEntries();
+                const lastEntry = entries[entries.length - 1];
+                if (lastEntry) {
+                  lcpValue = Math.round(lastEntry.startTime);
                 }
-              }, 0);
-            });
+              });
+              po.observe({ type: 'largest-contentful-paint', buffered: true });
+
+              const sendLCP = () => {
+                if (lcpValue > 0 && typeof window.gtag === 'function') {
+                  window.gtag('event', 'page_lcp', {
+                    value: lcpValue,
+                    metric_rating: lcpValue <= 2500 ? 'good' : lcpValue <= 4000 ? 'needs_improvement' : 'poor',
+                  });
+                }
+              };
+              window.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'hidden') sendLCP();
+              }, { once: true });
+              window.addEventListener('pagehide', sendLCP, { once: true });
+            } catch {
+              // Graceful fallback
+            }
           }
         </script>
         
@@ -144,7 +162,7 @@ const fullTitle = noTitleSuffix ? title : `${title} | Phuket Tatili`;
         <WhatsAppSupportWidget />
 
         <!-- Interactive Holiday Shortlist (Wishlist & Multi-Tour Inquiry) -->
-        <HolidayShortlist client:load />
+        <HolidayShortlist client:idle />
 
         <script>
           document.addEventListener('astro:page-load', () => {
