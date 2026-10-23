@@ -37,6 +37,7 @@ export interface SiteSettingsState {
   heroTitle: string;
   heroSubtitle: string;
   heroImage: string;
+  googleSiteVerification?: string;
 
   // 1. Üst Duyuru Barı & Hızlı Bağlantılar
   topBarEnabled?: boolean;
@@ -879,6 +880,56 @@ export default function SettingsTab({
                 />
                 <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
               </label>
+            </div>
+          </div>
+
+          {/* 6. Arama Motoru & Google Search Console Doğrulaması */}
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>🔍</span>
+                  <span>Google Search Console & SEO Doğrulama</span>
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Google ve Bing arama motorlarında site mülkiyetini doğrulamak ve sitemap indeksini takip etmek için doğrulama anahtarı.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1.5">
+                  Google Site Verification Kodu (HTML Meta veya Kod)
+                </label>
+                <input
+                  type="text"
+                  placeholder="Örn: google-site-verification=abc123xyz veya doğrudan doğrulama kodu"
+                  value={siteSettings.googleSiteVerification || ''}
+                  onChange={(e) => setSiteSettings({ ...siteSettings, googleSiteVerification: e.target.value })}
+                  className="w-full px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
+                />
+                <span className="text-[10px] text-slate-400 mt-1 block">
+                  Search Console panelinden alacağınız HTML meta etiketinin <code>content</code> değerini veya kodunu buraya yapıştırabilirsiniz.
+                </span>
+              </div>
+
+              <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span><strong>Master Sitemap:</strong> <code className="bg-slate-200/60 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[11px]">https://phukettatili.com/sitemap.xml</code></span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText('https://phukettatili.com/sitemap.xml');
+                    alert('Sitemap URL panoya kopyalandı! Search Console panelinde "Sitemap\'ler" sekmesine ekleyebilirsiniz.');
+                  }}
+                  className="px-3 py-1 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] transition-colors self-start sm:self-auto cursor-pointer"
+                >
+                  Sitemap URL Kopyala
+                </button>
+              </div>
             </div>
           </div>
 

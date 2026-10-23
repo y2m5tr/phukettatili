@@ -78,6 +78,25 @@ try {
   <title>{booking ? `${booking.customerName} - Phuket Gezi Ajandası | Phuket Tatili` : 'Gezi Ajandası Bulunamadı'}</title>
   <meta name="description" content="Phuket Tatili gün gün gezi takvimi, lobi alınış saatleri ve tur hazırlık listesi" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .print\:hidden, button, a[href*="wa.me"] {
+        display: none !important;
+      }
+      .bg-slate-900, .bg-slate-950, .bg-slate-800 {
+        background: #ffffff !important;
+        color: #000000 !important;
+        border: 1px solid #d1d5db !important;
+      }
+      .text-white, .text-slate-100, .text-slate-200, .text-slate-300 {
+        color: #111827 !important;
+      }
+    }
+  </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-brand-accent selection:text-slate-950">
   <div class="max-w-2xl mx-auto px-4 py-8 space-y-6">
@@ -93,11 +112,21 @@ try {
         </div>
       </a>
 
-      {booking && (
-        <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-900 border border-slate-800 text-slate-300">
-          {booking.ticketCode || booking.id}
-        </span>
-      )}
+      <div class="flex items-center gap-2">
+        <button
+          type="button"
+          onclick="window.print()"
+          class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 transition-colors cursor-pointer flex items-center gap-1.5 print:hidden"
+          title="Ajandayı Yazdır veya PDF Kaydet"
+        >
+          <span>🖨️ Yazdır / PDF</span>
+        </button>
+        {booking && (
+          <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-slate-900 border border-slate-800 text-slate-300">
+            {booking.ticketCode || booking.id}
+          </span>
+        )}
+      </div>
     </header>
 
     {!itinerary ? (

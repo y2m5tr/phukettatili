@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { getSingleHotelMapUrl, detectDeparturePier } from '../../lib/maps';
 import { DEFAULT_GOOGLE_REVIEW_URL } from '../../lib/reviewBooster';
+import { formatDayMonthYear } from '../../lib/whatsappEngine';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
 
 /**
@@ -544,7 +545,7 @@ export default function GuestTicketPortal({
             <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/80">
               <span className="text-[10px] font-bold uppercase text-slate-500 block">Tur Tarihi</span>
               <div className="text-base font-bold text-white mt-0.5 font-mono">
-                {booking.tourDate}
+                {formatDayMonthYear(booking.tourDate)}
               </div>
               <span className="text-[10px] text-slate-400 mt-1 block">
                 {booking.adultCount} Yetişkin{booking.childCount > 0 ? ` + ${booking.childCount} Çocuk` : ''} ({totalPax} Kişi)
@@ -598,14 +599,25 @@ export default function GuestTicketPortal({
         </div>
 
         {/* DİJİTAL BİNİŞ KARTI (QR BOARDING PASS) */}
-        <div className="rounded-3xl bg-white text-slate-900 overflow-hidden shadow-2xl border border-slate-200">
+        <div id="boarding-pass-print-area" className="rounded-3xl bg-white text-slate-900 overflow-hidden shadow-2xl border border-slate-200">
           <div className="p-4 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 flex items-center justify-between">
             <div className="flex items-center gap-2 font-black text-sm uppercase tracking-wider">
               <span>🎟️ OFFICIAL DIGITAL BOARDING PASS</span>
             </div>
-            <span className="text-[11px] font-mono font-bold bg-slate-950/15 px-2 py-0.5 rounded">
-              TAT: 34/02819
-            </span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="px-2.5 py-1 rounded-lg bg-slate-950 text-white text-[11px] font-bold flex items-center gap-1.5 hover:bg-slate-800 transition-colors cursor-pointer print:hidden shadow-xs"
+                title="Biniş Kartını A4 / PDF Olarak Kaydet"
+              >
+                <Printer className="w-3 h-3" />
+                <span>Yazdır / PDF</span>
+              </button>
+              <span className="text-[11px] font-mono font-bold bg-slate-950/15 px-2 py-0.5 rounded">
+                TAT: 34/02819
+              </span>
+            </div>
           </div>
 
           <div className="p-5 sm:p-6 space-y-4">
@@ -683,7 +695,19 @@ export default function GuestTicketPortal({
             <div className="flex items-center justify-between text-xs pt-1">
               <div>
                 <span className="text-[10px] text-slate-400 block font-bold">KALKIŞ İSKELESİ</span>
-                <span className="font-bold text-slate-900">{departurePier}</span>
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-slate-900">{departurePier}</span>
+                  <a
+                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(departurePier.split(',')[0] + ' Pier Phuket')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[11px] text-sky-600 hover:text-sky-700 font-bold print:hidden"
+                    title="İskele Haritasını Aç"
+                  >
+                    <Compass className="w-3 h-3" />
+                    <span>Harita</span>
+                  </a>
+                </div>
               </div>
               <div className="text-right">
                 <span className="text-[10px] text-slate-400 block font-bold">OPERATÖR</span>
@@ -1142,6 +1166,25 @@ export default function GuestTicketPortal({
           showToast={(msg) => alert(msg)}
         />
       )}
+      {/* Yazdırma / PDF Stilleri: Yalnızca Biniş Kartını Beyaz Zeminle Basar */}
+      <style>{`
+        @media print {
+          body {
+            background: #ffffff !important;
+            color: #000000 !important;
+          }
+          header, footer, nav, .print\\:hidden, button, a[href*="wa.me"], a[href*="tel:"] {
+            display: none !important;
+          }
+          #boarding-pass-print-area {
+            box-shadow: none !important;
+            border: 2px solid #000000 !important;
+            margin: 0 auto !important;
+            max-width: 100% !important;
+            page-break-inside: avoid !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }
