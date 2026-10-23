@@ -72,7 +72,6 @@ export const GET: APIRoute = async (context) => {
       sitemaps: [
         '/sitemap.xml',
         '/sitemap-turlar.xml',
-        '/sitemap-kategoriler.xml',
         '/sitemap-blog.xml',
       ],
       features: {

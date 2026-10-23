@@ -114,7 +114,7 @@ const breadcrumbSchema = {
           "@type": "ListItem",
           "position": 3,
           "name": tour.data.category_label || tour.data.category,
-          "item": new URL(`/tur-kategorisi/${tour.data.category}/`, site).toString(),
+          "item": new URL(`/turlar/?kategori=${tour.data.category}`, site).toString(),
         }]
       : []),
     { "@type": "ListItem", "position": tour.data.category ? 4 : 3, "name": tour.data.title, "item": tourURL },
@@ -499,7 +499,7 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
               {tour.data.category_label || 'Aynı Kategoride'} Turları
             </h2>
           </div>
-          <a href={`/tur-kategorisi/${tour.data.category}`} class="text-sm font-semibold text-brand-accent hover:underline whitespace-nowrap shrink-0">
+          <a href={`/turlar/?kategori=${tour.data.category}`} class="text-sm font-semibold text-brand-accent hover:underline whitespace-nowrap shrink-0">
             Tümünü Gör →
           </a>
         </div>

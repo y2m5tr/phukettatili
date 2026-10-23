@@ -197,7 +197,7 @@ export default function CategoryModal({
                   />
                 </div>
                 <span className="text-[10px] text-slate-400 mt-0.5 block">
-                  Sayfa linki: /tur-kategorisi/{slug || 'ornek-slug'}
+                  Sayfa linki: /turlar/?kategori={slug || 'ornek-slug'}
                 </span>
               </div>
 
@@ -282,7 +282,7 @@ export default function CategoryModal({
                         </td>
                         <td className="py-2.5 px-3">
                           <a
-                            href={`/tur-kategorisi/${cat.slug}`}
+                            href={`/turlar/?kategori=${cat.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="font-mono text-[11px] text-slate-500 hover:text-brand-accent flex items-center gap-1"

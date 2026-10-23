@@ -1,353 +1,53 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
-import Layout from '../../layouts/Layout.astro';
-import FadeIn from '../../components/ui/FadeIn';
-import Accordion from '../../components/ui/Accordion';
-import { resolveAssetUrl } from '../../lib/assets';
-import siteSettings from '../../content/settings/site.json';
-import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
-import { getCloudCategories, applyCategoryOverlay } from '../../lib/server/categoryContent';
-
-// Dinamik SSR: panelde değişen fiyat/başlık/kapak kategori sayfalarında da
-// görünsün (turlar/index ve turlar/[id] ile aynı overlay, aynı cache).
+/**
+ * 301 Kalıcı Yönlendirme (Permanent Redirect):
+ * Eski /tur-kategorisi/[category] linklerini ve Google indekslerini
+ * doğrudan ilgili tura veya /turlar/?kategori= filtresine taşır.
+ * Böylece 404 hatası veya kırık link kalmaz, SEO gücü korunur.
+ */
 export const prerender = false;
 
-// CDN cache: sayfa 60sn Vercel edge'de, 5 dk bayat kabul edilir.
-Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+const rawCategory = (Astro.params.category || '').toLowerCase().replace(/\/+$/, '');
 
-const { category: categorySlug } = Astro.params;
-const mdCategories = await getCollection('categories');
-const cloudCategories = await getCloudCategories();
-const categories = applyCategoryOverlay(mdCategories, cloudCategories);
-const mdTours: CollectionEntry<'tours'>[] = await getCollection('tours');
-const allTours: CollectionEntry<'tours'>[] = applyTourOverlay(mdTours, await getCloudTours());
-
-// Kategoriyi çöz: önce üst kategori, sonra alt kategori (getStaticPaths'in
-// statik ürettiği 27 route'un istek anındaki karşılığı).
-let categoryLabel = '';
-let description: string | undefined;
-let heroImage: string | undefined;
-
-const parent = categories.find((c) => c.data.slug === categorySlug);
-if (parent) {
-  categoryLabel = parent.data.label_tr;
-  description = parent.data.description;
-  heroImage = parent.data.hero_image;
-} else {
-  let matchedChild: { label_tr: string; description?: string; hero_image?: string } | null = null;
-  let parentOfChild: CollectionEntry<'categories'> | null = null;
-  for (const cat of categories) {
-    const child = (cat.data.children || []).find((c) => c.slug === categorySlug);
-    if (child) {
-      matchedChild = child;
-      parentOfChild = cat;
-      break;
-    }
-  }
-  if (!matchedChild) {
-    return Astro.redirect('/turlar', 302);
-  }
-  categoryLabel = matchedChild.label_tr;
-  description = matchedChild.description || parentOfChild?.data.description;
-  heroImage = matchedChild.hero_image || parentOfChild?.data.hero_image;
-}
-
-// Bu kategoriye ait turlar (üst kategori: category eşleşmesi; alt kategori:
-// subcategory veya category eşleşmesi — eski getStaticPaths davranışı).
-// Sıralama: `order` alanına göre küçükten büyüğe (1: Phi Phi, 2: James Bond...).
-const isParentCategory = Boolean(parent);
-const matchingTours = isParentCategory
-  ? allTours.filter((t) => t.data.category === categorySlug)
-  : allTours.filter(
-      (t) => t.data.subcategory === categorySlug || t.data.category === categorySlug,
-    );
-
-const tours = matchingTours.sort(
-  (a, b) => (Number(a.data.order) || 999) - (Number(b.data.order) || 999),
-);
-
-// Kategori navigasyon hapları (pills): üst kategorinin alt destinasyonlarını listele
-const activeParent = parent || parentOfChild;
-const subPills = activeParent?.data?.children || [];
-
-// Kategoriye özel zengin SSS ve AI Özeti
-interface CatFaq {
-  q: string;
-  a: string;
-}
-
-const getCategoryFaqs = (slug: string, label: string): CatFaq[] => {
-  if (slug === 'island-tours' || activeParent?.data?.slug === 'island-tours') {
-    return [
-      {
-        q: `${label} için en ideal ziyaret dönemi ne zamandır?`,
-        a: "Phuket ada turları (özellikle Phi Phi, James Bond ve Similan) için en popüler ve sakin deniz dönemi Kasım ile Mayıs ayları arasındaki yüksek sezondur. Bu dönemde Andaman Denizi berrak, dalga seviyesi minimumdur. Similan Adaları sadece bu sezonda (15 Ekim - 15 Mayıs) ziyarete açıktır.",
-      },
-      {
-        q: "Ada turlarına otel transferi ve öğle yemeği dahil mi?",
-        a: "Evet. Phuket Tatili turlarının tamamında Patong, Kata, Karon, Rawai gibi ana bölgelerden çift yönlü otel transferi, öğle yemeği, şnorkel ekipmanı, can yeleği ve temel kaza sigortası fiyata dahildir.",
-      },
-      {
-        q: "Tayland Millî Park ücreti nasıl ödenir?",
-        a: "Tayland Millî Parklar İdaresi (DNP) kuralları gereği Phi Phi ve Similan gibi doğal koruma bölgelerine giriş harçları (yetişkin 400 THB, çocuk 200 THB) iskelede biniş öncesi resmi makbuz karşılığında tahsil edilmektedir.",
-      },
-      {
-        q: "Sürat teknesi (Speedboat) mi yoksa Katamaran mı tercih edilmeli?",
-        a: "Sürat tekneleri daha hızlı olup adalarda daha uzun süre vakit geçirmenizi sağlar. Katamaran ve yatlar ise geniş güverteleri sayesinde sarsıntıyı hissettirmez; çocuklu aileler ve konfor arayanlar için idealdir.",
-      },
-    ];
-  }
-  if (slug === 'adventure-tours' || activeParent?.data?.slug === 'adventure-tours') {
-    return [
-      {
-        q: "Phuket macera ve safari turları için ne giyilmelidir?",
-        a: "ATV safari, zipline ve doğa turları için spor ayakkabı, rahat pamuklu kıyafetler, güneş kremi ve sinek kovucu sprey önerilir. Değerli eşyalarınız için iskele/üslerde kilitli dolaplar sağlanmaktadır.",
-      },
-      {
-        q: "Fil turlarında etik kurallara uyuluyor mu?",
-        a: "Kesinlikle evet. Phuket Tatili olarak yalnızca fillerin doğal ortamında serbestçe dolaştığı, banyo yaptığı ve beslendiği etik fil koruma alanları (Elephant Sanctuary) ile çalışıyoruz. File binme (riding) etkinlikleri kesinlikle sunulmamaktadır.",
-      },
-      {
-        q: "Çocuklar ve aileler için macera turları uygun mu?",
-        a: "Hanuman World zipline parkurunda çocuklar için özel emniyet kemerli rotalar bulunur. Fil besleme deneyimi ise her yaştan çocuk ve aile için tamamen güvenli ve eğitici bir deneyimdir.",
-      },
-    ];
-  }
-  if (slug === 'private-charters' || activeParent?.data?.slug === 'private-charters') {
-    return [
-      {
-        q: "Özel tekne kiralama ücretine neler dahildir?",
-        a: "Özel katamaran ve yat kiralama hizmetlerimizde lisanslı kaptan, mürettebat, yakıt, şnorkel ekipmanları, meyve ikramları, alkolsüz içecekler ve seçilen rotaya göre otel transferi dahildir.",
-      },
-      {
-        q: "Özel rotayı kendimiz belirleyebilir miyiz?",
-        a: "Evet. Günlük hava ve deniz güvenliği şartlarına uygun olmak kaydıyla kalkış saatinizi, yüzme molası vereceğiniz koyları ve gezi sürenizi tamamen sizin tercihinize göre kişiselleştiriyoruz.",
-      },
-    ];
-  }
-  return [
-    {
-      q: `${label} için rezervasyon nasıl yapılır?`,
-      a: "İncelediğiniz tur için WhatsApp destek hattımız üzerinden tarih ve kişi sayınızı ileterek anında Türkçe danışmanlık alabilir, yerinizi kolayca ayırtabilirsiniz.",
-    },
-    {
-      q: "Ödemeler hangi para birimlerinde yapılabilir?",
-      a: "Ödemelerinizi Tay Bahtı (THB), Türk Lirası (TRY), USD veya EUR olarak havale, nakit veya kredi kartı ile güvenle gerçekleştirebilirsiniz.",
-    },
-  ];
+// Özel doğrudan tura giden alt kategoriler / destinasyonlar
+const TOUR_REDIRECTS: Record<string, string> = {
+  'elephant': '/turlar/fil-besleme-ve-bakim-deneyimi',
+  'phi-phi-islands': '/turlar/phi-phi-maya-ve-bamboo-adasi',
+  'phi-phi': '/turlar/phi-phi-maya-ve-bamboo-adasi',
+  'james-bond-island': '/turlar/james-bond-adasi-ve-kano-turu',
+  'james-bond': '/turlar/james-bond-adasi-ve-kano-turu',
+  'coral-island': '/turlar/coral-adasi-tam-gun-surat-teknesi',
+  'similan-islands': '/turlar/similan-adalari-surat-teknesi-turu',
+  'similan': '/turlar/similan-adalari-surat-teknesi-turu',
+  'hong-by-starlight': '/turlar/hong-by-starlight-gece-kano-ve-plankton-deneyimi',
+  'carnival-magic': '/turlar/carnival-magic-isik-ve-tema-parki',
+  'fantasea-show': '/turlar/phuket-fantasea-kultur-ve-sahne-sovu',
+  'simon-cabaret': '/turlar/simon-cabaret-phuket-gosterisi',
+  'siam-niramit-show': '/turlar/siam-niramit-gosteri-deneyimi',
+  'hanuman-world-zipline': '/turlar/hanuman-world-zipline-deneyimi',
+  'atv-quad-bike': '/turlar/atv-quad-safari-ve-orman-macerasi',
+  'white-water-rafting': '/turlar/khao-sok-ve-cheow-lan-golu-macerasi',
+  'raya-yai-island': '/turlar/?kategori=island-tours',
+  'khai-islands': '/turlar/?kategori=island-tours',
+  'krabi-islands': '/turlar/?kategori=island-tours',
+  'surin-islands': '/turlar/?kategori=island-tours',
 };
 
-const categoryFaqs = getCategoryFaqs(categorySlug || '', categoryLabel);
+// Ana kategori filtre yönlendirmeleri
+const CATEGORY_REDIRECTS: Record<string, string> = {
+  'island-tours': '/turlar/?kategori=island-tours',
+  'adventure-tours': '/turlar/?kategori=adventure-tours',
+  'entertainment-tours': '/turlar/?kategori=entertainment-tours',
+  'private-charters': '/turlar/?kategori=private-charters',
+};
 
-const site = Astro.site || 'https://phukettatili.com';
-const categoryCanonical = new URL(`/tur-kategorisi/${categorySlug}/`, site).toString();
+let destination = '/turlar';
 
-const schemas: Record<string, unknown>[] = [
-  {
-    "@type": "CollectionPage",
-    "name": `${categoryLabel} Turları`,
-    "description": description || `${categoryLabel} turları ve gezi programları`,
-    "url": categoryCanonical,
-  },
-  {
-    "@type": "ItemList",
-    "name": `${categoryLabel} Turları`,
-    "numberOfItems": tours.length,
-    "itemListElement": tours.map((tour, index: number) => ({
-      "@type": "ListItem",
-      "position": index + 1,
-      "url": new URL(`/turlar/${tour.id}/`, site).toString(),
-      "name": tour.data.title,
-    })),
-  },
-  {
-    "@type": "BreadcrumbList",
-    "itemListElement": [
-      { "@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": new URL('/', site).toString() },
-      { "@type": "ListItem", "position": 2, "name": "Turlar", "item": new URL('/turlar/', site).toString() },
-      { "@type": "ListItem", "position": 3, "name": categoryLabel, "item": categoryCanonical },
-    ],
-  },
-  ...(categoryFaqs.length > 0
-    ? [
-        {
-          "@type": "FAQPage",
-          "mainEntity": categoryFaqs.map((faq) => ({
-            "@type": "Question",
-            "name": faq.q,
-            "acceptedAnswer": { "@type": "Answer", "text": faq.a },
-          })),
-        },
-      ]
-    : []),
-];
+if (TOUR_REDIRECTS[rawCategory]) {
+  destination = TOUR_REDIRECTS[rawCategory];
+} else if (CATEGORY_REDIRECTS[rawCategory]) {
+  destination = CATEGORY_REDIRECTS[rawCategory];
+}
+
+return Astro.redirect(destination, 301);
 ---
-
-<Layout title={`${categoryLabel} — Phuket Turları`} description={description} image={heroImage ? `/assets/${heroImage}` : '/assets/phuket_hero.webp'} schemas={schemas}>
-  <!-- Hero Section -->
-  <section class="relative h-[50vh] min-h-[350px] flex items-end pb-12 overflow-hidden bg-brand-primary">
-    <div class="absolute inset-0 z-0">
-      <img
-        src={heroImage ? `/assets/${heroImage}` : '/assets/phuket_hero.webp'}
-        alt={categoryLabel}
-        class="w-full h-full object-cover animate-ken-burns"
-      />
-      <div class="absolute inset-0 bg-gradient-to-t from-surface-1 via-surface-1/60 to-transparent z-10"></div>
-    </div>
-
-    <div class="relative z-20 max-w-6xl mx-auto px-4 w-full">
-      <FadeIn client:load direction="up">
-        <a href="/turlar" class="inline-flex items-center text-brand-accent text-sm font-semibold mb-3 hover:underline">
-          ← Tüm Turlar
-        </a>
-        <h1 class="text-4xl md:text-6xl text-white font-serif font-bold mb-4 drop-shadow-md">
-          {categoryLabel}
-        </h1>
-        {description && (
-          <p class="text-slate-200 text-base md:text-lg max-w-2xl font-light leading-relaxed">
-            {description}
-          </p>
-        )}
-      </FadeIn>
-    </div>
-  </section>
-
-  <!-- Tours List -->
-  <section class="py-16 bg-slate-50 dark:bg-surface-1 px-4 min-h-[500px]">
-    <div class="max-w-6xl mx-auto">
-      {subPills.length > 0 && (
-        <div class="mb-8 flex flex-wrap items-center gap-2 pb-2">
-          <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mr-2">
-            Rotalar:
-          </span>
-          {activeParent && (
-            <a
-              href={`/tur-kategorisi/${activeParent.data.slug}/`}
-              class={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                categorySlug === activeParent.data.slug
-                  ? 'bg-brand-primary text-white shadow-sm'
-                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-brand-accent/50 border border-slate-200 dark:border-slate-700'
-              }`}
-            >
-              Tümü ({activeParent.data.label_tr})
-            </a>
-          )}
-          {subPills.map((sub) => (
-            <a
-              href={`/tur-kategorisi/${sub.slug}/`}
-              class={`px-4 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                categorySlug === sub.slug
-                  ? 'bg-brand-primary text-white shadow-sm'
-                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:border-brand-accent/50 border border-slate-200 dark:border-slate-700'
-              }`}
-            >
-              {sub.label_tr}
-            </a>
-          ))}
-        </div>
-      )}
-
-      <div class="flex justify-between items-center mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
-        <span class="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          Toplam {tours.length} Tur Bulundu
-        </span>
-      </div>
-
-      {tours.length > 0 ? (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {tours.map((tour, index: number) => (
-            <FadeIn client:visible delay={0.1 * (index % 3)} direction="up">
-              <a href={`/turlar/${tour.id}`} class="group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 dark:border-slate-700">
-                <div class="relative h-64 overflow-hidden">
-                  <img 
-                    src={resolveAssetUrl(tour.data.image)}
-                    alt={tour.data.title}
-                    class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div class="absolute inset-0 bg-brand-primary/20 group-hover:bg-transparent transition-colors duration-500"></div>
-                  <!-- Wishlist Heart Button -->
-                  <button
-                    type="button"
-                    class="ptt-wishlist-btn absolute top-4 left-4 z-20 w-9 h-9 rounded-full bg-white/90 dark:bg-slate-900/90 backdrop-blur text-slate-400 hover:text-rose-500 flex items-center justify-center shadow-md border border-white/40 dark:border-slate-700/60 cursor-pointer"
-                    data-tour-id={tour.id}
-                    onclick={`event.preventDefault(); event.stopPropagation(); window.togglePttShortlist && window.togglePttShortlist({ id: '${tour.id}', title: ${JSON.stringify(tour.data.title)}, image: '${tour.data.image || ''}', duration: '${tour.data.duration || 'Tam Gün'}', category: '${tour.data.category_label || categoryLabel || ''}' });`}
-                    title="Tatil Planıma Ekle"
-                    aria-label={`${tour.data.title} turunu tatil planıma ekle`}
-                  >
-                    <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                  </button>
-                  <div class="absolute top-4 right-4 bg-white/90 backdrop-blur text-brand-primary text-xs font-bold px-3 py-1 rounded-full">
-                    {tour.data.category_label || categoryLabel}
-                  </div>
-                </div>
-                <div class="p-6">
-                  <h2 class="text-xl font-bold mb-2 group-hover:text-brand-accent transition-colors text-brand-primary dark:text-white">{tour.data.title}</h2>
-                  <p class="text-slate-600 dark:text-slate-300 text-sm mb-4 line-clamp-2">{tour.data.excerpt}</p>
-                  <div class="flex justify-between items-center border-t border-slate-100 dark:border-slate-700 pt-4 mt-4">
-                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">{tour.data.duration || 'Tam Gün'}</span>
-                    {tour.data.price_thb && tour.data.price_thb > 0 ? (
-                      <span class="text-lg font-bold text-brand-primary dark:text-white">{tour.data.price_thb.toLocaleString()} THB</span>
-                    ) : (
-                      <span class="text-xs font-bold text-brand-accent bg-brand-accent/10 px-2.5 py-1 rounded-full">Fiyat Teklifi Alın</span>
-                    )}
-                  </div>
-                </div>
-              </a>
-            </FadeIn>
-          ))}
-        </div>
-      ) : (
-        <div class="text-center py-20 bg-white dark:bg-slate-800 rounded-3xl p-12 shadow-sm border border-slate-100 dark:border-slate-700">
-          <h3 class="text-2xl font-bold text-slate-400 dark:text-slate-300 mb-2">Tur Bulunamadı</h3>
-          <p class="text-slate-500 dark:text-slate-400">Bu kategoriye ait planlanan yeni turlar yakında eklenecektir.</p>
-        </div>
-      )}
-
-      <!-- SEO Informational & AI Context Section -->
-      <div class="mt-20 border-t border-slate-200 dark:border-slate-800 pt-16">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          <div class="lg:col-span-5">
-            <span class="text-xs font-bold uppercase tracking-wider text-brand-accent">Uzmanından Phuket Rehberi</span>
-            <h2 class="text-2xl md:text-3xl font-serif font-bold text-brand-primary dark:text-white mt-2 mb-4">
-              {categoryLabel} Hakkında Bilmeniz Gerekenler
-            </h2>
-            <div class="prose dark:prose-invert text-slate-600 dark:text-slate-400 text-sm leading-relaxed space-y-3">
-              <p>
-                Phuket çıkışlı {categoryLabel.toLowerCase()} turlarımız; Türkçe destekli operasyon, lisanslı kaptanlar ve otelinizden konforlu çift yönlü transfer ile organize edilir.
-              </p>
-              <p>
-                Tur programlarımızda misafirlerimizin güvenliği, konforu ve koylardaki kalabalıktan uzak özel anlar yakalayabilmesi için hareket saatleri özenle planlanır.
-              </p>
-            </div>
-
-            <div class="mt-8 p-5 bg-brand-primary/5 dark:bg-slate-800/60 rounded-2xl border border-brand-accent/20">
-              <h3 class="font-bold text-sm text-brand-primary dark:text-white mb-2 flex items-center gap-2">
-                <span>🇹🇭</span> Yerinde Türkçe Destek & Danışmanlık
-              </h3>
-              <p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed mb-4">
-                Tarihiniz, kişi sayınız veya özel talepleriniz için yerel ekibimize WhatsApp üzerinden 7/24 ulaşabilirsiniz.
-              </p>
-              <a
-                href={`https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}?text=${encodeURIComponent(`Merhaba, ${categoryLabel} turları hakkında bilgi ve fiyat almak istiyorum.`)}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-4 py-2.5 rounded-full shadow-sm transition-colors"
-              >
-                <span>WhatsApp ile Danışın</span>
-                <span>→</span>
-              </a>
-            </div>
-          </div>
-
-          <!-- FAQ Accordion for Search Bots & Visitors -->
-          <div class="lg:col-span-7">
-            <h3 class="text-xl font-serif font-bold text-brand-primary dark:text-white mb-6">
-              Sıkça Sorulan Sorular
-            </h3>
-            <Accordion client:visible faqs={categoryFaqs} />
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-</Layout>
