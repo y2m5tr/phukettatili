@@ -204,11 +204,17 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
       </button>
     </div>
   </div>
+</header>
 
-  <!-- Mobile Navigation (Modern, Ergonomic, Thumb-Friendly) -->
-  <div id="mobile-menu" class="mobile-menu fixed inset-0 bg-white/95 dark:bg-slate-900/98 backdrop-blur-2xl z-50 hidden flex-col pt-4 pb-8 px-5 overflow-y-auto" aria-hidden="true">
+<!-- Mobile Navigation (Modern, Ergonomic, Thumb-Friendly, Outside Header to Avoid Backdrop-Blur Containing Block Bug) -->
+<div
+  id="mobile-menu"
+  class="mobile-menu fixed inset-0 w-full h-[100dvh] max-h-[100dvh] bg-white/98 dark:bg-slate-900/98 backdrop-blur-2xl z-[100] hidden flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] px-5 overflow-y-auto overscroll-contain"
+  aria-hidden="true"
+>
+  <div class="w-full max-w-lg mx-auto flex flex-col flex-1 min-h-0">
     {/* Üst Bar: Logo + Kapat */}
-    <div class="flex items-center justify-between pb-4 border-b border-slate-200/80 dark:border-slate-800">
+    <div class="flex items-center justify-between pb-4 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
       <a href="/" class="flex items-center gap-2">
         <span class="text-2xl">🌴</span>
         <span class="font-serif font-bold text-brand-primary dark:text-white text-xl tracking-tight">Phuket <span class="text-brand-accent italic">Tatili</span></span>
@@ -219,7 +225,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
     </div>
 
     {/* Ana Ergonomik Liste */}
-    <div class="flex-1 py-4 space-y-2">
+    <div class="flex-1 py-4 space-y-2 overflow-y-auto overscroll-contain">
       {/* 1. Ana Sayfa */}
       <a href="/" class="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 text-slate-900 dark:text-white font-bold text-base hover:bg-brand-accent/10 hover:text-brand-accent transition-colors">
         <span class="flex items-center gap-3">
@@ -338,7 +344,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
       </a>
     </div>
   </div>
-</header>
+</div>
 
 <script>
   document.addEventListener('astro:page-load', () => {
@@ -354,6 +360,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
         menu.setAttribute('aria-hidden', String(!open));
         btn.setAttribute('aria-expanded', String(open));
         document.body.style.overflow = open ? 'hidden' : '';
+        document.documentElement.style.overflow = open ? 'hidden' : '';
         if (open) closeBtn.focus();
       };
 
