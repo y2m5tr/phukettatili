@@ -38,8 +38,94 @@ interface Props {
   showToast?: (msg: string) => void;
 }
 
+const CANNED_RESPONSES = [
+  {
+    id: 'bank_info',
+    title: '🏦 Banka & Havale / PromptPay Bilgileri',
+    category: 'Finans',
+    badge: 'Ödeme',
+    text: `🌴 *PHUKET TATİLİ — BANKA VE ÖDEME BİLGİLERİ* 🌴
+
+Sayın Misafirimiz,
+Rezervasyonunuzu kesinleştirmek için ön ödemenizi aşağıdaki hesaplarımıza iletebilirsiniz:
+
+🇹🇷 *TÜRK LİRASI (TRY) HAVALE / FAST:*
+Banka: Garanti BBVA
+Hesap Sahibi: Phuket Tatili Seyahat
+IBAN: TR33 0006 2000 0001 2345 6789 01
+Açıklama: Adınız Soyadınız - Tur Tarihi
+
+🇹🇭 *TAYLAND BAHTI (THB) PROMPTPAY:*
+PromptPay ID: 0828950665
+Hesap Adı: Phuket Tatili Operations
+
+Ödemenizi tamamladıktan sonra dekontu buradan iletmeniz yeterlidir. Biletiniz ve resmi voucher belgeniz anında düzenlenecektir. Keyifli tatiller dileriz! ✨`,
+  },
+  {
+    id: 'weather_status',
+    title: '🌦️ Canlı Hava Durumu & Deniz Sakinliği',
+    category: 'Operasyon',
+    badge: 'Güvenlik',
+    text: `☀️ *PHUKET TATİLİ — HAVA VE DENİZ GÜVENLİK BİLGİSİ* ☀️
+
+Merhaba! Phuket hava durumu hakkında bilgi vermek isteriz:
+
+Phuket tropikal bir adadır; internet hava durumu uygulamaları tropik iklim gereği çoğu zaman yağmur simgesi gösterse de, yağışlar genellikle akşam saatlerinde 20-30 dakika sürer ve ardından güneş açar.
+
+🛥️ *Deniz Durumu & Tur Güvenliği:*
+Tüm ada turlarımız Tayland Liman Başkanlığı (Marine Department) ve Sahil Güvenlik onaylı radar takibi ile gerçekleştirilir. Denize çıkış bayrağı yeşil olduğu sürece turlarımız planlandığı gibi güvenle yapılmaktadır.
+
+Herhangi bir hava muhalefetinde misafirlerimizin güvenliği 1. önceliğimizdir; böyle bir durumda tur ücretsiz ertelenir veya %100 kesintisiz ücret iadeniz sağlanır. İçiniz rahat olsun! 🌊🇹🇭`,
+  },
+  {
+    id: 'insurance_passport',
+    title: '📄 Zorunlu Deniz Sigortası & Pasaport Kaydı',
+    category: 'Emniyet',
+    badge: 'Yasal',
+    text: `📋 *PHUKET TATİLİ — ZORUNLU DENİZ SİGORTASI KAYDI* 📋
+
+Sayın Misafirimiz,
+Tayland Turizm Bakanlığı (TAT) ve Denizcilik İdaresi mevzuatı gereği, katıldığınız tura ait seyahat ve kaza sigortanız şirketimiz tarafından ÜCRETSİZ olarak karşılanmaktadır.
+
+Kayıt işlemlerinizin limana gitmeden önce tamamlanabilmesi için:
+• Tura katılacak her misafirimizin pasaport fotoğraflı sayfasını bu WhatsApp hattımıza fotoğraf olarak iletmenizi rica ederiz.
+
+Bilgileriniz yalnızca resmi sigorta manifestosu için kullanılır ve üçüncü taraflarla paylaşılmaz. Desteğiniz için teşekkür ederiz! 🛡️🌴`,
+  },
+  {
+    id: 'lobby_delay',
+    title: '⏰ Tur Sabahı Lobi Bekleme / Gecikme Uyarısı',
+    category: 'Acil',
+    badge: 'Lobi Uyarısı',
+    text: `🚐 *PHUKET TATİLİ — LOBİ ACİL BİLGİLENDİRME* 🚐
+
+Sayın Misafirimiz,
+Transfer aracımız şu anda otelinizin ana lobisinde sizi beklemektedir. Diğer misafirlerimizin ve iskeledeki teknemizin kalkış saatini aksatmamak adına lütfen ivedilikle ana lobiye geçiş yapabilir misiniz?
+
+Şoförümüzün elinde isminizin yazılı olduğu pano bulunmaktadır. Lobiye ulaştığınızda bize haber vermenizi rica ederiz: +66 82 895 0665.
+
+İyi turlar dileriz! 🇹🇭✨`,
+  },
+  {
+    id: 'thai_visa_info',
+    title: '🇹🇭 Tayland Vizesi & Giriş Bilgileri',
+    category: 'Genel',
+    badge: 'Vize Rehberi',
+    text: `🌴 *PHUKET TATİLİ — TAYLAND GİRİŞ VE VİZE REHBERİ* 🌴
+
+Merhaba! Tayland seyahatiniz öncesi bilmeniz gereken temel kurallar:
+
+1. *Vize Durumu:* Bordo (Umuma Mahsus), Yeşil ve Gri pasaport sahibi Türk vatandaşları Tayland'a 60 güne kadar VİZESİZ giriş yapabilir.
+2. *Pasaport Süresi:* Pasaportunuzun Tayland'a giriş tarihinizden itibaren en az 6 ay geçerlilik süresi olmalıdır.
+3. *Gerekli Belgeler:* Geliş-dönüş uçak biletiniz ve otel rezervasyon çıktınızın telefonunuzda bulunması tavsiye edilir.
+4. *Döviz Tavsiyesi:* Yanınızda getireceğiniz Dolar veya Euro'yu ada içerisindeki resmi banka döviz bürolarında güvenle Tay Bahtı'na (THB) çevirebilirsiniz. (100$'lık banknotların yeni basım ve yırtıksız olması tavsiye edilir).
+
+Phuket'te harika anılar biriktirmeniz dileğiyle! 🇹🇭✨`,
+  },
+];
+
 export default function WhatsAppTab({ bookings = [], onUpdateBooking, showToast }: Props) {
-  const [activeSubTab, setActiveSubTab] = useState<'triggers' | 'templates'>('triggers');
+  const [activeSubTab, setActiveSubTab] = useState<'triggers' | 'templates' | 'quick_replies'>('triggers');
   const [triggerFilter, setTriggerFilter] = useState<'all' | WhatsAppTriggerType>('all');
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
@@ -152,6 +238,18 @@ export default function WhatsAppTab({ bookings = [], onUpdateBooking, showToast 
           >
             <Copy className="w-3.5 h-3.5 text-blue-500" />
             <span>Şablon Kütüphanesi</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveSubTab('quick_replies')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeSubTab === 'quick_replies'
+                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-sm'
+                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <MessageCircle className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Hızlı Yanıtlar ({CANNED_RESPONSES.length})</span>
           </button>
         </div>
       </div>
@@ -530,6 +628,73 @@ export default function WhatsAppTab({ bookings = [], onUpdateBooking, showToast 
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {activeSubTab === 'quick_replies' && (
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                Saha & Müşteri Temsilcisi Hızlı Yanıt Kütüphanesi
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                WhatsApp'ta misafirlere en sık iletilen bilgileri tek tıkla kopyalayın veya doğrudan WhatsApp'ta açın.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            {CANNED_RESPONSES.map((item) => (
+              <div
+                key={item.id}
+                className="bg-white dark:bg-surface-2 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-bold text-sm text-slate-900 dark:text-white">{item.title}</h4>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                      {item.badge}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => handleCopyText(item.text, item.id)}
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                    >
+                      {copiedId === item.id ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-500" />
+                          <span>Kopyalandı!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Metni Kopyala</span>
+                        </>
+                      )}
+                    </button>
+                    <a
+                      href={`https://wa.me/?text=${encodeURIComponent(item.text)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+                    >
+                      <Send className="w-3.5 h-3.5" />
+                      <span>WhatsApp'a Aktar</span>
+                    </a>
+                  </div>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-[#efeae2] dark:bg-[#0b141a] border border-[#d1d7db] dark:border-[#222e35]">
+                  <pre className="font-sans text-xs text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed select-all">
+                    {item.text}
+                  </pre>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

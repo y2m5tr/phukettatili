@@ -115,6 +115,7 @@ const schemas: Record<string, unknown>[] = [
   image={post.data.cover_image ? `/assets/${post.data.cover_image}` : '/assets/blog-hero-phuket.webp'}
   ogType="article"
   publishedTime={publishedISO}
+  preloadImage={post.data.cover_image ? `/assets/${post.data.cover_image}` : '/assets/blog-hero-phuket.webp'}
   schemas={schemas}
 >
   <!-- Hero Section -->
@@ -163,7 +164,7 @@ const schemas: Record<string, unknown>[] = [
       </article>
 
       {relatedTour && (
-        <BlogRelatedTour tour={relatedTour} badgeText={badgeText} />
+        <BlogRelatedTour tour={relatedTour} badgeText={badgeText} whatsappNumber={whatsappNumber} />
       )}
 
       <div class="mt-16 pt-8 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">

@@ -87,7 +87,27 @@ const schemas: Record<string, unknown>[] = [
 
   <section class="py-16 bg-slate-50 dark:bg-surface-1 px-4">
     <div class="max-w-6xl mx-auto">
-      
+      <!-- Canlı Anlık Tur Arama Çubuğu (Instant Search) -->
+      <div class="max-w-md mx-auto mb-8 relative">
+        <div class="relative">
+          <input
+            type="text"
+            id="tour-search-input"
+            placeholder="Tur adı, ada veya aktivite ara (örn: Phi Phi, Fil, Kano, VIP)..."
+            class="w-full pl-11 pr-10 py-3.5 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm text-slate-800 dark:text-slate-100 shadow-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-accent transition-all placeholder:text-slate-400"
+          />
+          <svg class="w-5 h-5 text-slate-400 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+          <button
+            type="button"
+            id="tour-search-clear"
+            class="hidden absolute right-3.5 top-3.5 w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-400 hover:text-slate-600 dark:hover:text-white flex items-center justify-center text-xs font-bold cursor-pointer"
+            aria-label="Aramayı Temizle"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
       <!-- Filter Categories (SEO-friendly crawlable links with JS instant filtering) -->
       <div class="flex flex-wrap justify-center gap-3 md:gap-4 mb-12">
         <a 
@@ -172,17 +192,44 @@ const schemas: Record<string, unknown>[] = [
     const filterBtns = document.querySelectorAll<HTMLAnchorElement>('.filter-btn');
     const tourCards = document.querySelectorAll<HTMLElement>('.tour-card');
     const noToursMessage = document.getElementById('no-tours-message');
+    const searchInput = document.getElementById('tour-search-input') as HTMLInputElement | null;
+    const searchClearBtn = document.getElementById('tour-search-clear') as HTMLButtonElement | null;
 
-    if (!filterBtns.length || !tourCards.length) return;
+    if (!tourCards.length) return;
 
-    function applyFilter(filterValue: string, updateUrl = true) {
-      // Normalize
-      const targetCategory = filterValue.trim().toLowerCase();
+    let activeCategory = 'all';
+    let activeSearchText = '';
 
-      // Update buttons active visual state
+    function renderFilteredCards() {
+      let visibleCount = 0;
+      const q = activeSearchText.trim().toLowerCase();
+
+      tourCards.forEach(card => {
+        const cardCategory = (card.getAttribute('data-category') || '').toLowerCase();
+        const cardText = (card.textContent || '').toLowerCase();
+
+        const matchCat = activeCategory === 'all' || activeCategory === '' || cardCategory === activeCategory;
+        const matchSearch = q === '' || cardText.includes(q);
+
+        if (matchCat && matchSearch) {
+          card.style.display = 'block';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      if (noToursMessage) {
+        noToursMessage.classList.toggle('hidden', visibleCount > 0);
+      }
+    }
+
+    function applyCategory(catValue: string, updateUrl = true) {
+      activeCategory = catValue.trim().toLowerCase();
+
       filterBtns.forEach(btn => {
         const btnFilter = (btn.getAttribute('data-filter') || '').toLowerCase();
-        const isActive = btnFilter === targetCategory || (targetCategory === '' && btnFilter === 'all');
+        const isActive = btnFilter === activeCategory || (activeCategory === '' && btnFilter === 'all');
         
         if (isActive) {
           btn.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
@@ -193,59 +240,64 @@ const schemas: Record<string, unknown>[] = [
         }
       });
 
-      // Filter cards
-      let visibleCount = 0;
-      tourCards.forEach(card => {
-        const cardCategory = (card.getAttribute('data-category') || '').toLowerCase();
-        if (targetCategory === 'all' || targetCategory === '' || cardCategory === targetCategory) {
-          card.style.display = 'block';
-          visibleCount++;
-        } else {
-          card.style.display = 'none';
-        }
-      });
+      renderFilteredCards();
 
-      // Show/hide empty state
-      if (noToursMessage) {
-        noToursMessage.classList.toggle('hidden', visibleCount > 0);
-      }
-
-      // Update URL with query string for clean indexing and shareability
       if (updateUrl) {
         const url = new URL(window.location.href);
-        if (targetCategory === 'all' || targetCategory === '') {
+        if (activeCategory === 'all' || activeCategory === '') {
           url.searchParams.delete('kategori');
           url.searchParams.delete('category');
         } else {
-          url.searchParams.set('kategori', targetCategory);
+          url.searchParams.set('kategori', activeCategory);
           url.searchParams.delete('category');
         }
         url.hash = '';
-        window.history.pushState({ kategori: targetCategory }, '', url.toString());
+        window.history.pushState({ kategori: activeCategory }, '', url.toString());
       }
     }
 
-    // Attach click events
+    // Attach click events to category buttons
     filterBtns.forEach(btn => {
       btn.addEventListener('click', (e: MouseEvent) => {
         e.preventDefault();
         const filterVal = btn.getAttribute('data-filter') || 'all';
-        applyFilter(filterVal, true);
+        applyCategory(filterVal, true);
       });
     });
+
+    // Attach search input events
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        activeSearchText = searchInput.value;
+        if (searchClearBtn) {
+          searchClearBtn.classList.toggle('hidden', activeSearchText.length === 0);
+        }
+        renderFilteredCards();
+      });
+    }
+
+    if (searchClearBtn && searchInput) {
+      searchClearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        activeSearchText = '';
+        searchClearBtn.classList.add('hidden');
+        searchInput.focus();
+        renderFilteredCards();
+      });
+    }
 
     // Handle browser Back / Forward buttons
     window.addEventListener('popstate', () => {
       const params = new URLSearchParams(window.location.search);
       const queryCat = params.get('kategori') || params.get('category') || window.location.hash.replace('#', '') || 'all';
-      applyFilter(queryCat, false);
+      applyCategory(queryCat, false);
     });
 
     // Read initial category on page load
     const params = new URLSearchParams(window.location.search);
     const initialCategory = params.get('kategori') || params.get('category') || window.location.hash.replace('#', '');
     if (initialCategory) {
-      applyFilter(initialCategory, false);
+      applyCategory(initialCategory, false);
     }
   });
 </script>
