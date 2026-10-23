@@ -4,13 +4,15 @@
  * Filtre state'leri (arama, durum, tarih) parent'ta kalır çünkü
  * filteredBookings useMemo'su orada hesaplanıyor.
  */
-import { useMemo } from 'react';
-import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, Zap, CheckCircle2, } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Search, Download, Plus, Phone, ExternalLink, Ticket, MessageCircle, Edit2, Trash2, Ship, FileText, Star, Gift, ShieldAlert, Coins, Compass, ShieldCheck, Plane, Building, QrCode, Luggage, Zap, CheckCircle2, Send, } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../data/adminInitialData';
 import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 import { getCrossSellWhatsAppUrl } from '../../lib/crossSell';
 import { analyzeBookingDietaryAndMedical, DIETARY_CATEGORIES } from '../../lib/dietaryManifest';
 import { generateDriverPickupJobThai, generateGuestPickupReminderTurkish } from '../../lib/whatsappEngine';
+import BulkDispatchModal from './BulkDispatchModal';
+import { buildDailyPickups } from '../../lib/adminFilters';
 
 interface BookingsTabProps {
   /** Arama + durum + tarih filtresinden geçmiş liste. */
@@ -41,6 +43,8 @@ interface BookingsTabProps {
   onOpenPromptPayQr?: (b: Booking) => void;
   onOpenWorkflow?: (b: Booking) => void;
   pendingBookingIds?: Set<string>;
+  allBookings?: Booking[];
+  showToast?: (msg: string) => void;
 }
 
 export default function BookingsTab({
@@ -71,13 +75,33 @@ export default function BookingsTab({
   onOpenPromptPayQr,
   onOpenWorkflow,
   pendingBookingIds,
+  allBookings,
+  showToast,
 }: BookingsTabProps) {
+  const [isBulkDispatchOpen, setIsBulkDispatchOpen] = useState(false);
+  const [selectedDispatchDate, setSelectedDispatchDate] = useState('');
+
   const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
   const tomorrowStr = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() + 1);
     return d.toISOString().split('T')[0];
   }, []);
+
+  const allBookingsSource = allBookings || filteredBookings;
+  const tomorrowPickups = useMemo(() => {
+    return buildDailyPickups(allBookingsSource, tomorrowStr);
+  }, [allBookingsSource, tomorrowStr]);
+
+  const currentFilterPickups = useMemo(() => {
+    if (!dateFilter) return [];
+    return buildDailyPickups(allBookingsSource, dateFilter);
+  }, [allBookingsSource, dateFilter]);
+
+  const activeDispatchPickups = useMemo(() => {
+    const date = selectedDispatchDate || dateFilter || tomorrowStr;
+    return buildDailyPickups(allBookingsSource, date);
+  }, [allBookingsSource, selectedDispatchDate, dateFilter, tomorrowStr]);
 
   return (
     <div className="space-y-6">
@@ -142,6 +166,38 @@ export default function BookingsTab({
               <span>🌅 Yarın</span>
             </button>
           </div>
+
+          {/* Yarınki Toplu WhatsApp Butonu */}
+          {tomorrowPickups.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDispatchDate(tomorrowStr);
+                setIsBulkDispatchOpen(true);
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title="Yarınki turların lobi hazır WhatsApp mesajlarını tek ekrandan gönder"
+            >
+              <Send className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Yarınki WhatsApp ({tomorrowPickups.length})</span>
+            </button>
+          )}
+
+          {/* Seçili Farklı Tarih Varsa Toplu WhatsApp Butonu */}
+          {dateFilter && dateFilter !== tomorrowStr && currentFilterPickups.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedDispatchDate(dateFilter);
+                setIsBulkDispatchOpen(true);
+              }}
+              className="px-2.5 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
+              title={`${dateFilter} tarihindeki misafirlerin WhatsApp lobi mesajlarını hazırla`}
+            >
+              <Send className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span>Tarih WhatsApp ({currentFilterPickups.length})</span>
+            </button>
+          )}
 
           {/* Tarih Takvim Kutusu */}
           <div className="flex items-center gap-1.5">
@@ -642,6 +698,15 @@ export default function BookingsTab({
           </table>
         </div>
       </div>
+
+      {isBulkDispatchOpen && (
+        <BulkDispatchModal
+          pickups={activeDispatchPickups}
+          manifestDate={selectedDispatchDate || dateFilter || tomorrowStr}
+          onClose={() => setIsBulkDispatchOpen(false)}
+          showToast={showToast || ((m: string) => alert(m))}
+        />
+      )}
     </div>
   );
 }

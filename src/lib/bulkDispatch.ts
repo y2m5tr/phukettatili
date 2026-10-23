@@ -1,5 +1,6 @@
 import type { PickupItem } from './adminFilters';
 import { fmtMoney } from './moneyFormat';
+import { formatDayMonthYear } from './whatsappEngine';
 
 export type DispatchMessageType = 'pre_tour_reminder' | 'driver_arrived' | 'balance_reminder';
 
@@ -60,7 +61,7 @@ Sayın *${item.customerName}*, iyi akşamlar!
 
 Yarın katılacağınız *${item.tourTitle}* turumuz için otel transfer detaylarınız aşağıdadır:
 
-📅 *Tarih:* ${item.tourDate}
+📅 *Tarih:* ${formatDayMonthYear(item.tourDate || '')}
 ⏰ *Otel Lobi Alınış Saati:* ${pickupTime}
 📍 *Alınış Noktası:* ${item.hotel}${roomStr}
 🚐 *Tahsis Edilen Hat:* ${item.assignedVehicle && item.assignedVehicle !== 'Atanmadı' ? item.assignedVehicle : 'VIP Minibüs Transferi'}

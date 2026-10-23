@@ -4,6 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import Accordion from '../../components/ui/Accordion';
 import siteSettings from '../../content/settings/site.json';
 import TourQuickBookingDrawer from '../../components/tour/TourQuickBookingDrawer';
+import TourSmartBundle from '../../components/tour/TourSmartBundle';
 import { getCloudTours, applyTourOverlay, applyTourOverlayToEntry } from '../../lib/server/tourContent';
 import { resolveAssetUrl, resolveOgImageUrl } from '../../lib/assets';
 
@@ -125,16 +126,40 @@ const schemas: Record<string, unknown>[] = [touristTripSchema, productSchema, br
 // Sosyal Kanıt: haftalık gerçekçi inceleme sayısı
 const weeklyViewCount = 18 + ((tour.id.charCodeAt(0) * 7 + (tour.id.charCodeAt(1) || 3)) % 19);
 
-if (tour.data.faq && tour.data.faq.length > 0) {
-  schemas.push({
-    "@type": "FAQPage",
-    "mainEntity": tour.data.faq.map((item) => ({
-      "@type": "Question",
-      "name": item.q,
-      "acceptedAnswer": { "@type": "Answer", "text": item.a },
-    })),
-  });
-}
+// Zengin Sıkça Sorulan Sorular (Google FAQPage Rich Snippet Destekli)
+const defaultTourFaqs = [
+  {
+    q: "Otel transferi fiyata dahil mi ve lobi saatim ne zaman kesinleşir?",
+    a: "Evet, Patong, Kata, Karon ve belirlenen ana turizm bölgelerindeki otellerden gidiş-dönüş lobi transferi tur paketine dahildir. Kesin alınış saatiniz turdan bir önceki akşam 18:00 - 20:00 arasında WhatsApp üzerinden iletilir.",
+  },
+  {
+    q: "Milli park giriş ücretleri fiyata dahil mi?",
+    a: "Dahil olan turlarda programda açıkça belirtilmektedir. Ayrı tutulan turlarda ise iskelede veya adada milli park gişesine nakit Tayland Bahtı (THB) olarak ödenir; Türkçe operasyon ekibimiz ve rehberlerimiz tüm bilet işlemlerinizde yanınızdadır.",
+  },
+  {
+    q: "Hava şartları veya fırtına nedeniyle tur iptal olursa ne olur?",
+    a: "Misafirlerimizin can güvenliği en temel önceliğimizdir. Tayland Deniz Liman İdaresi (Marine Department) denize çıkış izni vermediğinde turunuz ücretsiz olarak uygun bir sonraki güne ertelenir veya dilediğiniz takdirde %100 kesintisiz ücret iadeniz anında yapılır.",
+  },
+  {
+    q: "Tur gününde yanımıza ne almalıyız?",
+    a: "Güneş kremi, güneş gözlüğü, plaj havlusu, mayo veya yedek kıyafet, su geçirmez telefon kılıfı, adadaki küçük harcamalarınız için nakit Baht ve cep telefonunuzda pasaportunuzun fotoğraflı sayfasının bulunması yeterlidir.",
+  },
+  {
+    q: "Hamile misafirler veya küçük çocuklar turlara katılabilir mi?",
+    a: "Tayland denizcilik emniyet kuralları uyarınca hamile misafirlerimizin sürat teknesi (speedboat) turlarına katılmasına izin verilmemektedir; hamile misafirlerimiz için sakin katamaran yatlarımızı veya özel araçlı ada kültür turlarımızı öneriyoruz. 1 yaş ve üzeri çocuklar aileleriyle birlikte güvenle katılabilir.",
+  },
+];
+
+const tourFaqs = tour.data.faq && tour.data.faq.length > 0 ? tour.data.faq : defaultTourFaqs;
+
+schemas.push({
+  "@type": "FAQPage",
+  "mainEntity": tourFaqs.map((item) => ({
+    "@type": "Question",
+    "name": item.q,
+    "acceptedAnswer": { "@type": "Answer", "text": item.a },
+  })),
+});
 
 // Initial WhatsApp message template
 const initialMessage = `Merhaba, ${tour.data.title} turu için 2 Kişilik uygunluk durumu ve fiyat teklifi almak istiyorum.`;
@@ -311,10 +336,26 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
           </div>
         )}
 
-        {tour.data.faq && tour.data.faq.length > 0 && (
+        <!-- Akıllı Paket Önerisi (Cross-Sell Bundle) -->
+        <TourSmartBundle
+          client:load
+          currentTourTitle={tour.data.title}
+          currentTourPrice={tour.data.price_thb || 0}
+          whatsappNumber={whatsappNumber}
+        />
+
+        <!-- Sıkça Sorulan Sorular (Google FAQPage Rich Snippet Destekli) -->
+        {tourFaqs && tourFaqs.length > 0 && (
           <div class="mt-16">
-            <h3 class="text-3xl border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">Sıkça Sorulan Sorular</h3>
-            <Accordion client:load faqs={tour.data.faq} />
+            <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
+              <h3 class="text-2xl sm:text-3xl font-serif font-bold text-brand-primary dark:text-white">
+                Sıkça Sorulan Sorular
+              </h3>
+              <span class="text-xs font-semibold px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent">
+                {tourFaqs.length} Soru & Cevap
+              </span>
+            </div>
+            <Accordion client:load faqs={tourFaqs} />
           </div>
         )}
       </div>

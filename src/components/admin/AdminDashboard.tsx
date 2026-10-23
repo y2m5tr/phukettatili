@@ -2467,6 +2467,8 @@ export default function AdminDashboard({
             }}
             onOpenWorkflow={(b) => setWorkflowBooking(b)}
             pendingBookingIds={pendingBookingIds}
+            allBookings={bookings}
+            showToast={showToast}
           />
         )}
 
