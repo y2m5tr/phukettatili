@@ -17,48 +17,48 @@ const { className = '', badges: customBadges } = Astro.props;
 
 const defaultBadges: BadgeItem[] = [
   {
-    icon: '🇹🇷',
-    title: '%100 Türkçe Rehberlik',
-    desc: 'Dil engeli olmadan, yerel Türk operasyon ekibiyle güvenle gezin',
-    highlight: 'Yerinde Rehber',
+    icon: '⭐',
+    title: '148+ Doğrulanmış Yorum',
+    desc: '4.9/5 Google ve sosyal medya puanı, gerçek misafir değerlendirmeleri',
+    highlight: 'Kanıtlanmış Memnuniyet',
   },
   {
-    icon: '⭐',
-    title: '4.9/5 Misafir Puanı',
-    desc: '140+ doğrulanmış Google & sosyal medya misafir değerlendirmesi',
-    highlight: 'Doğrulanmış Memnuniyet',
+    icon: '🇹🇷',
+    title: 'Phuket Merkezli Yerel Ekip',
+    desc: 'Yerinde Türk operasyon ekibi ve dil engelsiz Türkçe rehberlik desteği',
+    highlight: 'Yerinde Türk Ekip',
+  },
+  {
+    icon: '🚐',
+    title: 'Otelinizden Klimalı Alım',
+    desc: 'Tüm turlarda otelinizden iskeleye çift yönlü konforlu VIP transfer',
+    highlight: 'Kapıdan Kapıya',
   },
   {
     icon: '🛡️',
-    title: 'Resmi TAT Lisanslı',
-    desc: 'Tayland Turizm Otoritesi (TAT) onaylı lisanslı güvenli seyahat',
+    title: 'Esnek İptal & TAT Lisansı',
+    desc: 'Resmi Tayland turizm lisansı (TAT) ve hava durumuna göre esnek erteleme',
     highlight: 'Yasal Güvence',
-  },
-  {
-    icon: '💬',
-    title: '7/24 Canlı Destek',
-    desc: 'Otelinizden dönüş anınıza kadar WhatsApp üzerinden anlık takip',
-    highlight: 'Her An Yanınızda',
   },
 ];
 
 const badges = customBadges && customBadges.length > 0 ? customBadges : defaultBadges;
 ---
 
-<section class={`py-8 bg-slate-900/40 border-y border-slate-200/20 dark:border-slate-800/60 ${className}`}>
+<section class={`py-7 bg-white dark:bg-surface-2 border-y border-slate-200/80 dark:border-slate-800/80 ${className}`}>
   <div class="max-w-7xl mx-auto px-4 sm:px-6">
-    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+    <div class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-slate-200/80 dark:divide-slate-700/70">
       {badges.map((badge, idx) => (
         <FadeIn client:visible delay={0.1 * idx} direction="up">
-          <div class="flex items-start gap-3 p-3.5 sm:p-4 rounded-2xl bg-white/50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 hover:border-brand-accent/40 transition-all duration-300 hover:shadow-md">
-            <span class="text-2xl sm:text-3xl shrink-0 p-2 rounded-xl bg-amber-500/10 dark:bg-amber-400/10" aria-hidden="true">
+          <div class="flex items-start gap-2.5 px-3 py-2 sm:px-5 sm:py-1.5 first:pl-0 last:pr-0 group">
+            <span class="text-xl sm:text-2xl shrink-0 opacity-80 transition-transform duration-300 group-hover:scale-105" aria-hidden="true">
               {badge.icon}
             </span>
             <div class="min-w-0">
-              <span class="block text-[10px] font-bold uppercase tracking-wider text-brand-accent dark:text-amber-400">
+              <span class="block text-[10px] font-bold uppercase tracking-[0.14em] text-brand-accent dark:text-amber-400">
                 {badge.highlight}
               </span>
-              <h3 class="font-bold text-xs sm:text-sm text-brand-primary dark:text-white truncate">
+              <h3 class="font-bold text-xs sm:text-sm text-brand-primary dark:text-white truncate mt-0.5">
                 {badge.title}
               </h3>
               <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed font-light">
