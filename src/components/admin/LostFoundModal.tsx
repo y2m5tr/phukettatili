@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   X,
   Search,
@@ -32,8 +32,6 @@ interface LostFoundModalProps {
   showToast: (msg: string) => void;
 }
 
-const STORAGE_KEY = 'phuket_tatili_lost_found_v1';
-
 export default function LostFoundModal({
   isOpen,
   onClose,
@@ -63,6 +61,22 @@ export default function LostFoundModal({
   // seçici bilinçli olarak yoktur — kayıt sonrası liste satırındaki durum
   // menüsünden güncellenir. Bu yüzden state değil sabit.
   const newStatus: LostFoundStatus = 'found_with_driver';
+
+  const counters = useMemo(() => {
+    const base = { all: items.length, driver: 0, office: 0, courier: 0, delivered: 0 };
+    items.forEach((item) => {
+      if (item.status === 'found_with_driver') base.driver++;
+      else if (item.status === 'at_central_office') base.office++;
+      else if (item.status === 'in_transit_to_hotel') base.courier++;
+      else if (item.status === 'returned_to_guest') base.delivered++;
+    });
+    return base;
+  }, [items]);
+
+  const filteredItems = useMemo(
+    () => filterLostFoundItems(items, statusFilter, searchQuery),
+    [items, statusFilter, searchQuery]
+  );
 
   const handleUpdateStatus = (id: string, nextStatus: LostFoundStatus) => {
     const updated = items.map((item) => {
