@@ -62,7 +62,10 @@ export default defineConfig({
     },
   },
   vite: {
-    plugins: [tailwindcss()]
+    plugins: [tailwindcss()],
+    build: {
+      chunkSizeWarningLimit: 1200,
+    },
   },
   integrations: [
     react(),

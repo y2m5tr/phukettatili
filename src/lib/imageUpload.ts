@@ -59,7 +59,6 @@ export function processImageFile(
       ctx.fillRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
       // Once PNG dene — bazi tarayicilar webp encode'u desteklemez
-      let _blob: Blob | null = null;
       const tryBlob = (type: string, quality: number, cb: (b: Blob) => void) => {
         canvas.toBlob((b) => {
           if (b && b.size > 0) cb(b);
@@ -68,7 +67,6 @@ export function processImageFile(
         }, type, quality);
       };
       tryBlob('image/webp', 0.85, (b) => {
-        _blob = b;
         const reader = new FileReader();
         reader.onload = (ev) => {
           URL.revokeObjectURL(objectUrl);
