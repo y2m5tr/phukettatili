@@ -31,6 +31,11 @@
   ],
   "redirects": [
     {
+      "source": "/hakkimizda",
+      "destination": "/iletisim",
+      "permanent": true
+    },
+    {
       "source": "/tur-kategorisi/elephant",
       "destination": "/turlar/fil-besleme-ve-bakim-deneyimi",
       "permanent": true
