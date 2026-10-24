@@ -29,6 +29,83 @@
       ]
     }
   ],
+  "redirects": [
+    {
+      "source": "/tur-kategorisi/elephant",
+      "destination": "/turlar/fil-besleme-ve-bakim-deneyimi",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/phi-phi-islands",
+      "destination": "/turlar/phi-phi-maya-ve-bamboo-adasi",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/james-bond-island",
+      "destination": "/turlar/james-bond-adasi-ve-kano-turu",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/similan-islands",
+      "destination": "/turlar/similan-adalari-surat-teknesi-turu",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/coral-island",
+      "destination": "/turlar/coral-adasi-tam-gun-surat-teknesi",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/carnival-magic",
+      "destination": "/turlar/carnival-magic-isik-ve-tema-parki",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/fantasea-show",
+      "destination": "/turlar/phuket-fantasea-kultur-ve-sahne-sovu",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/simon-cabaret",
+      "destination": "/turlar/simon-cabaret-phuket-gosterisi",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/siam-niramit-show",
+      "destination": "/turlar/siam-niramit-gosteri-deneyimi",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/island-tours",
+      "destination": "/turlar/?kategori=island-tours",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/adventure-tours",
+      "destination": "/turlar/?kategori=adventure-tours",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/entertainment-tours",
+      "destination": "/turlar/?kategori=entertainment-tours",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/private-charters",
+      "destination": "/turlar/?kategori=private-charters",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi",
+      "destination": "/turlar",
+      "permanent": true
+    },
+    {
+      "source": "/tur-kategorisi/:path*",
+      "destination": "/turlar",
+      "permanent": true
+    }
+  ],
   "images": {
     "sizes": [640, 750, 828, 1080, 1200, 1920],
     "domains": ["xiyuozntwoqibvwivkms.supabase.co"]

@@ -206,13 +206,13 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
   </div>
 </header>
 
-<!-- Mobile Navigation (Modern, Ergonomic, Thumb-Friendly, Outside Header to Avoid Backdrop-Blur Containing Block Bug) -->
+<!-- Mobile Navigation (Modern, Ergonomic, Full-Height Responsive Overlay) -->
 <div
   id="mobile-menu"
-  class="mobile-menu fixed inset-0 w-full h-[100dvh] max-h-[100dvh] bg-white/98 dark:bg-slate-900/98 backdrop-blur-2xl z-[100] hidden flex-col pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] px-5 overflow-y-auto overscroll-contain"
+  class="mobile-menu fixed inset-0 w-full h-full bg-white/98 dark:bg-slate-900/98 backdrop-blur-2xl z-[100] hidden overflow-y-auto overscroll-contain"
   aria-hidden="true"
 >
-  <div class="w-full max-w-lg mx-auto flex flex-col flex-1 min-h-0">
+  <div class="w-full max-w-lg mx-auto min-h-full flex flex-col justify-between p-5 pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-[calc(2.5rem+env(safe-area-inset-bottom,0px))]">
     {/* Üst Bar: Logo + Kapat */}
     <div class="flex items-center justify-between pb-4 border-b border-slate-200/80 dark:border-slate-800 shrink-0">
       <a href="/" class="flex items-center gap-2">
@@ -225,7 +225,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
     </div>
 
     {/* Ana Ergonomik Liste */}
-    <div class="flex-1 py-4 space-y-2 overflow-y-auto overscroll-contain">
+    <div class="py-4 space-y-2.5 flex-1">
       {/* 1. Ana Sayfa */}
       <a href="/" class="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 text-slate-900 dark:text-white font-bold text-base hover:bg-brand-accent/10 hover:text-brand-accent transition-colors">
         <span class="flex items-center gap-3">
@@ -355,7 +355,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
     if (btn && menu && closeBtn) {
       const setMenuState = (open: boolean) => {
         menu.classList.toggle('hidden', !open);
-        menu.classList.toggle('flex', open);
+        menu.classList.toggle('block', open);
         menu.classList.toggle('is-open', open);
         menu.setAttribute('aria-hidden', String(!open));
         btn.setAttribute('aria-expanded', String(open));

@@ -212,12 +212,12 @@
 }
 
 .mobile-menu.is-open {
-  animation: mobile-menu-in .3s cubic-bezier(.22, .61, .36, 1) both;
+  animation: mobile-menu-fade .25s ease-out both;
 }
 
-@keyframes mobile-menu-in {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
+@keyframes mobile-menu-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Premium micro-interactions */

@@ -1,0 +1,8 @@
+---
+/**
+ * 301 Kalıcı Yönlendirme (Permanent Redirect):
+ * /tur-kategorisi veya /tur-kategorisi/ isteklerini doğrudan /turlar sayfasına yönlendirir.
+ */
+export const prerender = false;
+return Astro.redirect('/turlar', 301);
+---
