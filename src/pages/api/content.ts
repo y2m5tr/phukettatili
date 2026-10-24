@@ -69,6 +69,8 @@ const CONTENT_KEYS: ReadonlySet<string> = new Set([
   'proposals',
   'lost-found',
   'luggage',
+  // Tur düzenleyicide yeniden kullanılabilen dahil/hariç seçenek havuzu
+  'inclusion-library',
 ]);
 
 /** Saha personeli (şoför/rehber) tarafından doğrudan yazılabilen uçlar */

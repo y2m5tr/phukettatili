@@ -43,6 +43,8 @@ export const CMS_COLLECTIONS = [
   'proposals',
   'lost-found',
   'luggage',
+  // Tur düzenleyicide yeniden kullanılabilen dahil/hariç seçenek havuzu
+  'inclusion-library',
 ] as const;
 
 export type CmsCollectionKey = (typeof CMS_COLLECTIONS)[number];

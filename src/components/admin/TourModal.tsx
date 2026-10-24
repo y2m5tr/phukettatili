@@ -14,6 +14,11 @@ import { Edit2,
 } from 'lucide-react';
 import type { TourItem, MediaItem, CategoryItem } from '../../data/adminTypes';
 import ImagePickerModal from './ImagePickerModal';
+import {
+  mergeOptionSources,
+  EMPTY_OPTION_LIBRARY,
+  type OptionLibrary,
+} from '../../lib/inclusionLibrary';
 
 const PRESET_INCLUSIONS = [
   '🚐 Otel Gidiş-Dönüş Klimalı Transfer',
@@ -89,6 +94,9 @@ const TOUR_TEMPLATES = [
   },
 ];
 
+/** Paylaşılan havuzun tipi tek yerde (lib) yaşar. */
+export type InclusionLibrary = OptionLibrary;
+
 interface TourModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -103,6 +111,9 @@ interface TourModalProps {
   allTours?: TourItem[];
   categories?: CategoryItem[];
   onOpenCategoryModal?: () => void;
+  inclusionLibrary?: InclusionLibrary;
+  onRememberOption?: (kind: 'included' | 'excluded', item: string) => void;
+  onForgetOption?: (kind: 'included' | 'excluded', item: string) => void;
 }
 
 export default function TourModal({
@@ -131,6 +142,9 @@ export default function TourModal({
   allTours = [],
   categories = [],
   onOpenCategoryModal,
+  inclusionLibrary,
+  onRememberOption,
+  onForgetOption,
 }: TourModalProps) {
   if (!isOpen) return null;
 
@@ -171,26 +185,16 @@ export default function TourModal({
   const [tempFaqA, setTempFaqA] = useState<string>('');
   const [tempRestrictionItem, setTempRestrictionItem] = useState<string>('');
 
-  // Yeniden kullanılabilir Dahil/Hariç havuzu (Mevcut turlardan ve şablonlardan derlenir)
-  const availableInclusions = useMemo(() => {
-    const set = new Set<string>(PRESET_INCLUSIONS);
-    (allTours || []).forEach((t) => {
-      (t.included || []).forEach((item) => {
-        if (item && item.trim()) set.add(item.trim());
-      });
-    });
-    return Array.from(set);
-  }, [allTours]);
+  // Yeniden kullanılabilir Dahil/Hariç havuzu (kalıcı kütüphane + şablonlar + mevcut turlar)
+  const availableInclusions = useMemo(
+    () => mergeOptionSources(inclusionLibrary ?? EMPTY_OPTION_LIBRARY, 'included', PRESET_INCLUSIONS, allTours || []),
+    [allTours, inclusionLibrary]
+  );
 
-  const availableExclusions = useMemo(() => {
-    const set = new Set<string>(PRESET_EXCLUSIONS);
-    (allTours || []).forEach((t) => {
-      (t.excluded || []).forEach((item) => {
-        if (item && item.trim()) set.add(item.trim());
-      });
-    });
-    return Array.from(set);
-  }, [allTours]);
+  const availableExclusions = useMemo(
+    () => mergeOptionSources(inclusionLibrary ?? EMPTY_OPTION_LIBRARY, 'excluded', PRESET_EXCLUSIONS, allTours || []),
+    [allTours, inclusionLibrary]
+  );
 
   const toggleInclusion = (item: string) => {
     const current = tourFormData.included || [];
@@ -198,6 +202,7 @@ export default function TourModal({
       setTourFormData({ ...tourFormData, included: current.filter((x) => x !== item) });
     } else {
       setTourFormData({ ...tourFormData, included: [...current, item] });
+      onRememberOption?.('included', item);
     }
   };
 
@@ -207,6 +212,7 @@ export default function TourModal({
       setTourFormData({ ...tourFormData, excluded: current.filter((x) => x !== item) });
     } else {
       setTourFormData({ ...tourFormData, excluded: [...current, item] });
+      onRememberOption?.('excluded', item);
     }
   };
 
@@ -220,6 +226,19 @@ export default function TourModal({
       included: Array.from(incSet),
       excluded: Array.from(excSet),
     });
+    tpl.included.forEach((item) => onRememberOption?.('included', item));
+    tpl.excluded.forEach((item) => onRememberOption?.('excluded', item));
+  };
+
+  /** Elle yazılan maddeyi tura ekler ve kalıcı kütüphaneye de kaydeder. */
+  const addManualOption = (kind: 'included' | 'excluded', raw: string) => {
+    const value = raw.trim();
+    if (!value) return;
+    const current = tourFormData[kind] || [];
+    if (!current.includes(value)) {
+      setTourFormData({ ...tourFormData, [kind]: [...current, value] });
+    }
+    onRememberOption?.(kind, value);
   };
 
   return (
@@ -1202,10 +1221,7 @@ export default function TourModal({
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && tempIncludedItem.trim()) {
                               e.preventDefault();
-                              setTourFormData({
-                                ...tourFormData,
-                                included: [...(tourFormData.included || []), tempIncludedItem.trim()],
-                              });
+                              addManualOption('included', tempIncludedItem);
                               setTempIncludedItem('');
                             }
                           }}
@@ -1216,10 +1232,7 @@ export default function TourModal({
                           type="button"
                           onClick={() => {
                             if (tempIncludedItem.trim()) {
-                              setTourFormData({
-                                ...tourFormData,
-                                included: [...(tourFormData.included || []), tempIncludedItem.trim()],
-                              });
+                              addManualOption('included', tempIncludedItem);
                               setTempIncludedItem('');
                             }
                           }}
@@ -1237,20 +1250,40 @@ export default function TourModal({
                         <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
                           {availableInclusions.map((chip) => {
                             const isSelected = (tourFormData.included || []).includes(chip);
+                            const isLibraryCustom = (inclusionLibrary?.included || []).includes(chip);
                             return (
-                              <button
+                              <span
                                 key={`inc-chip-${chip}`}
-                                type="button"
-                                onClick={() => toggleInclusion(chip)}
-                                className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1 text-left ${
+                                className={`inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-medium transition-all gap-1 text-left ${
                                   isSelected
                                     ? 'bg-emerald-600 text-white shadow-xs'
                                     : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-emerald-200/80 dark:border-emerald-900/60 hover:bg-emerald-100 dark:hover:bg-emerald-950/60'
                                 }`}
                               >
-                                <span>{isSelected ? '✓' : '+'}</span>
-                                <span>{chip}</span>
-                              </button>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleInclusion(chip)}
+                                  className="cursor-pointer flex items-center gap-1"
+                                >
+                                  <span>{isSelected ? '✓' : '+'}</span>
+                                  <span>{chip}</span>
+                                </button>
+                                {isLibraryCustom && onForgetOption && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (confirm(`"${chip}" maddesini havuzdan silmek istediğinize emin misiniz?`)) {
+                                        onForgetOption('included', chip);
+                                      }
+                                    }}
+                                    className="ml-1 text-[10px] opacity-60 hover:opacity-100 hover:text-red-400 cursor-pointer font-bold px-0.5"
+                                    title="Havuzdan sil"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </span>
                             );
                           })}
                         </div>
@@ -1313,10 +1346,7 @@ export default function TourModal({
                           onKeyDown={(e) => {
                             if (e.key === 'Enter' && tempExcludedItem.trim()) {
                               e.preventDefault();
-                              setTourFormData({
-                                ...tourFormData,
-                                excluded: [...(tourFormData.excluded || []), tempExcludedItem.trim()],
-                              });
+                              addManualOption('excluded', tempExcludedItem);
                               setTempExcludedItem('');
                             }
                           }}
@@ -1327,10 +1357,7 @@ export default function TourModal({
                           type="button"
                           onClick={() => {
                             if (tempExcludedItem.trim()) {
-                              setTourFormData({
-                                ...tourFormData,
-                                excluded: [...(tourFormData.excluded || []), tempExcludedItem.trim()],
-                              });
+                              addManualOption('excluded', tempExcludedItem);
                               setTempExcludedItem('');
                             }
                           }}
@@ -1348,20 +1375,40 @@ export default function TourModal({
                         <div className="flex flex-wrap gap-1.5 max-h-36 overflow-y-auto pr-1">
                           {availableExclusions.map((chip) => {
                             const isSelected = (tourFormData.excluded || []).includes(chip);
+                            const isLibraryCustom = (inclusionLibrary?.excluded || []).includes(chip);
                             return (
-                              <button
+                              <span
                                 key={`exc-chip-${chip}`}
-                                type="button"
-                                onClick={() => toggleExclusion(chip)}
-                                className={`px-2 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1 text-left ${
+                                className={`inline-flex items-center px-2 py-1 rounded-lg text-[11px] font-medium transition-all gap-1 text-left ${
                                   isSelected
                                     ? 'bg-red-600 text-white shadow-xs'
                                     : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-red-200/80 dark:border-red-900/60 hover:bg-red-100 dark:hover:bg-red-950/60'
                                 }`}
                               >
-                                <span>{isSelected ? '✓' : '+'}</span>
-                                <span>{chip}</span>
-                              </button>
+                                <button
+                                  type="button"
+                                  onClick={() => toggleExclusion(chip)}
+                                  className="cursor-pointer flex items-center gap-1"
+                                >
+                                  <span>{isSelected ? '✓' : '+'}</span>
+                                  <span>{chip}</span>
+                                </button>
+                                {isLibraryCustom && onForgetOption && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (confirm(`"${chip}" maddesini havuzdan silmek istediğinize emin misiniz?`)) {
+                                        onForgetOption('excluded', chip);
+                                      }
+                                    }}
+                                    className="ml-1 text-[10px] opacity-60 hover:opacity-100 hover:text-red-400 cursor-pointer font-bold px-0.5"
+                                    title="Havuzdan sil"
+                                  >
+                                    ✕
+                                  </button>
+                                )}
+                              </span>
                             );
                           })}
                         </div>

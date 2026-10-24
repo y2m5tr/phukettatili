@@ -95,8 +95,16 @@ import {
   loadCmsCollections,
   saveCmsCollection,
   writeLocalCollection,
+  readLocalCollection,
   type CmsCollectionKey,
 } from '../../lib/cmsSync';
+import {
+  normalizeOptionLibrary,
+  rememberOption as rememberOptionInLibrary,
+  forgetOption as forgetOptionInLibrary,
+  type OptionLibrary,
+  type OptionKind,
+} from '../../lib/inclusionLibrary';
 import { filterBookings, filterTours, buildDailyPickups } from '../../lib/adminFilters';
 import {
   isSupabaseConfigured,
@@ -726,6 +734,36 @@ export default function AdminDashboard({
   const [editingTour, setEditingTour] = useState<TourItem | null>(null);
   const [tourFormData, setTourFormData] = useState<Partial<TourItem>>({});
 
+  // Yeniden kullanılabilir dahil/hariç havuzu — turlardan bağımsız kalıcı kütüphane.
+  const [inclusionLibrary, setInclusionLibrary] = useState<OptionLibrary>(() =>
+    normalizeOptionLibrary(readLocalCollection<OptionLibrary>('inclusion-library', null))
+  );
+
+  /** Havuzda yoksa ekler; ikinci kez eklenmez ve turdan çıkarmak burayı silmez. */
+  const rememberLibraryOption = useCallback((kind: OptionKind, item: string) => {
+    setInclusionLibrary((prev) => {
+      const next = rememberOptionInLibrary(prev, kind, item);
+      if (next === prev) return prev;
+      saveCmsCollection('inclusion-library', next, () =>
+        showToast('⚠️ Dahil/hariç havuzu buluta kaydedilemedi.')
+      );
+      return next;
+    });
+  }, [showToast]);
+
+  /** Havuzdan özel seçeneği siler. */
+  const forgetLibraryOption = useCallback((kind: OptionKind, item: string) => {
+    setInclusionLibrary((prev) => {
+      const next = forgetOptionInLibrary(prev, kind, item);
+      if (next === prev) return prev;
+      saveCmsCollection('inclusion-library', next, () =>
+        showToast('⚠️ Dahil/hariç havuzu güncellenemedi.')
+      );
+      showToast(`🗑️ "${item}" havuzdan kaldırıldı.`);
+      return next;
+    });
+  }, [showToast]);
+
   // 3. Media & Photos State
   const [mediaList, setMediaList] = useState<MediaItem[]>([]);
   const [mediaSearchQuery, setMediaSearchQuery] = useState<string>('');
@@ -1067,6 +1105,11 @@ export default function AdminDashboard({
       apply('agents', setAgents);
       apply('suppliers', setSuppliers);
       apply('tour-costs', setTourCosts);
+      apply('inclusion-library', (val) => {
+        const normalized = normalizeOptionLibrary(val);
+        setInclusionLibrary(normalized);
+        writeLocalCollection('inclusion-library', normalized);
+      });
       // Ortak iş ve saha operasyon kayıtlarını yerel depolama cache'ine senkronla (Madde 5)
       apply('expenses', (val) => writeLocalCollection('expenses', val));
       apply('virmans', (val) => writeLocalCollection('virmans', val));
@@ -2901,6 +2944,9 @@ export default function AdminDashboard({
             allTours={tours}
             categories={categories}
             onOpenCategoryModal={() => setIsCategoryModalOpen(true)}
+            inclusionLibrary={inclusionLibrary}
+            onRememberOption={rememberLibraryOption}
+            onForgetOption={forgetLibraryOption}
           />
         )}
 
