@@ -1,22 +1,5 @@
 import React from 'react';
-import type {
-  Booking,
-  TourItem,
-  VehicleItem,
-  DriverItem,
-  PartnerAgent,
-  SupplierItem,
-  TourCostItem,
-  PaymentRecord,
-  BlogItem,
-  ServiceItem,
-  FaqItem,
-  TestimonialItem,
-  MediaItem,
-} from '../../../data/adminInitialData';
-import type { CategoryItem } from '../../../data/adminTypes';
-import type { AdminTab } from '../adminNav';
-import type { SiteSettingsState } from '../SettingsTab';
+import type { DashboardTabsRendererProps } from './dashboardTabProps';
 import OverviewTab from '../OverviewTab';
 import BookingsTab from '../BookingsTab';
 import TransfersTab from '../TransfersTab';
@@ -39,111 +22,6 @@ const PartnersTab = React.lazy(() => import('../PartnersTab'));
 const SuppliersTab = React.lazy(() => import('../SuppliersTab'));
 const CuratedProposalModal = React.lazy(() => import('../CuratedProposalModal'));
 
-export interface DashboardTabsRendererProps {
-  activeTab: AdminTab;
-  setActiveTab: (tab: AdminTab) => void;
-  stats: any;
-  bookings: Booking[];
-  filteredBookings: Booking[];
-  searchQuery: string;
-  setSearchQuery: (q: string) => void;
-  statusFilter: string;
-  setStatusFilter: (s: string) => void;
-  dateFilter: string;
-  setDateFilter: (d: string) => void;
-  tours: TourItem[];
-  services: ServiceItem[];
-  blogs: BlogItem[];
-  faqs: FaqItem[];
-  testimonials: TestimonialItem[];
-  mediaList: MediaItem[];
-  vehicles: VehicleItem[];
-  drivers: DriverItem[];
-  agents: PartnerAgent[];
-  suppliers: SupplierItem[];
-  tourCosts: TourCostItem[];
-  payments: PaymentRecord[];
-  categories: CategoryItem[];
-  tourCategoryOptions: string[];
-  tourSearchQuery: string;
-  setTourSearchQuery: (q: string) => void;
-  tourCategoryFilter: string;
-  setTourCategoryFilter: (c: string) => void;
-  siteSettings: SiteSettingsState;
-  homeSettings: any;
-  setHomeSettings: (val: any) => void;
-  perms: any;
-  pendingBookingIds: Set<string>;
-  showToast: (msg: string) => void;
-  sync: {
-    isOnline: boolean;
-    isCloudConnected: boolean;
-    isSyncing: boolean;
-    pendingSyncCount: number;
-    failedSyncItems: any[];
-    lastSyncedAt: Date | null;
-  };
-  onOpenCreateBooking?: () => void;
-  onOpenEditBooking: (b: Booking) => void;
-  onDeleteBooking: (id: string, name: string) => void;
-  onOpenQrScanner: () => void;
-  onOpenPoliceManifest: () => void;
-  onOpenBulkReschedule?: () => void;
-  onOpenWorkflow: (b: Booking) => void;
-  onOpenVoucher: (b: Booking) => void;
-  onOpenWhatsApp: (b: Booking) => void;
-  onOpenCuratedProposal: (data: any) => void;
-  onOpenFieldCashierBooking: (b: Booking) => void;
-  onOpenWelcomeBoardBooking: (b: Booking) => void;
-  onOpenPromptPayBooking: (b: Booking) => void;
-  onOpenTourMediaBooking: (b: Booking) => void;
-  onOpenSupplierDispatchBooking: (b: Booking) => void;
-  onUpdatePickupStatus: (bookingId: string, tourIndex: number, status: any) => void;
-  onAssignVehicle: (bookingId: string, tourIndex: number, vehicle: string) => void;
-  onAssignDriver: (bookingId: string, tourIndex: number, driverId: string) => void;
-  onUpdatePickupTime: (bookingId: string, tourIndex: number, newTime: string) => void;
-  onExportCSV: () => void;
-  onExportSiteData: () => void;
-  onOpenCreateTour: () => void;
-  onOpenEditTour: (t: TourItem) => void;
-  onDeleteTour: (id: string, title: string) => void;
-  onToggleTourFeatured: (id: string) => void;
-  onOpenCreateCategory: () => void;
-  onOpenEditCategory: (c: CategoryItem) => void;
-  onDeleteCategory: (id: string, name: string) => void;
-  onOpenCreateBlog: () => void;
-  onOpenEditBlog: (b: BlogItem) => void;
-  onDeleteBlog: (id: string, title: string) => void;
-  onOpenEditService: (s: ServiceItem) => void;
-  onOpenCreateFaq: () => void;
-  onOpenEditFaq: (f: FaqItem) => void;
-  onDeleteFaq: (id: string) => void;
-  onOpenCreateTesti: () => void;
-  onOpenEditTesti: (t: TestimonialItem) => void;
-  onDeleteTesti: (id: string, name: string) => void;
-  onOpenAddMedia: () => void;
-  onSelectLightboxMedia: (m: MediaItem) => void;
-  onAssignMedia: (m: MediaItem) => void;
-  onDeleteMedia: (id: string, title: string) => void;
-  onFileUpload: (file: File) => void;
-  mediaSearchQuery: string;
-  setMediaSearchQuery: (q: string) => void;
-  mediaTypeFilter: any;
-  setMediaTypeFilter: (t: any) => void;
-  saveVehicles: (v: VehicleItem[]) => void;
-  saveDrivers: (d: DriverItem[]) => void;
-  saveAgents: (a: PartnerAgent[]) => void;
-  saveSuppliers: (s: SupplierItem[]) => void;
-  saveTourCosts: (tc: TourCostItem[]) => void;
-  savePayments: (p: PaymentRecord[]) => void;
-  setSiteSettings: (s: SiteSettingsState) => void;
-  onSaveSiteSettings: (e: React.FormEvent) => void;
-  settingsSaved: boolean;
-  onSaveHomeSettings: (e: React.FormEvent) => void;
-  onConvertProposalToBooking: (bookingData: any) => void;
-  viewerRole?: any;
-}
-
 export function DashboardTabsRenderer({
   activeTab,
   setActiveTab,
@@ -156,12 +34,16 @@ export function DashboardTabsRenderer({
   setStatusFilter,
   dateFilter,
   setDateFilter,
+  manifestDate,
+  setManifestDate,
   tours,
+  filteredTours,
   services,
   blogs,
   faqs,
   testimonials,
   mediaList,
+  filteredMedia,
   vehicles,
   drivers,
   agents,
@@ -196,19 +78,27 @@ export function DashboardTabsRenderer({
   onOpenPromptPayBooking,
   onOpenTourMediaBooking,
   onOpenSupplierDispatchBooking,
+  onOpenFlightRadar,
+  onOpenDietaryManifest,
+  onOpenLostFound,
+  onOpenDriverExpense,
+  onOpenGuideExpense,
+  onOpenLuggageExpress,
+  onOpenCaptainVault,
   onUpdatePickupStatus,
   onAssignVehicle,
   onAssignDriver,
   onUpdatePickupTime,
+  onUpdateSingleBooking,
   onExportCSV,
   onExportSiteData,
   onOpenCreateTour,
   onOpenEditTour,
   onDeleteTour,
   onToggleTourFeatured,
-  onOpenCreateCategory,
-  onOpenEditCategory,
-  onDeleteCategory,
+  onBulkUpdateTours,
+  onOpenMultiTourProposal,
+  onOpenCategoryModal,
   onOpenCreateBlog,
   onOpenEditBlog,
   onDeleteBlog,
@@ -223,7 +113,11 @@ export function DashboardTabsRenderer({
   onSelectLightboxMedia,
   onAssignMedia,
   onDeleteMedia,
+  onCopyMediaUrl,
+  onUpdateMedia,
   onFileUpload,
+  getImageUrl,
+  allImageOptions,
   mediaSearchQuery,
   setMediaSearchQuery,
   mediaTypeFilter,
@@ -233,7 +127,7 @@ export function DashboardTabsRenderer({
   saveAgents,
   saveSuppliers,
   saveTourCosts,
-  savePayments,
+  onAddPayment,
   setSiteSettings,
   onSaveSiteSettings,
   settingsSaved,
@@ -276,60 +170,81 @@ export function DashboardTabsRenderer({
           setStatusFilter={setStatusFilter}
           dateFilter={dateFilter}
           setDateFilter={setDateFilter}
-          canCreateBookings={perms.canCreateBookings}
-          canDeleteBookings={perms.canDeleteBookings}
-          canViewFinancialMargins={perms.canViewFinancialMargins}
+          canDelete={perms.canDeleteBookings}
           pendingBookingIds={pendingBookingIds}
-          onOpenCreateBooking={onOpenCreateBooking || (() => {})}
-          onOpenEditBooking={onOpenEditBooking}
-          onDeleteBooking={onDeleteBooking}
-          onOpenVoucher={onOpenVoucher}
-          onOpenWhatsApp={onOpenWhatsApp}
-          onOpenCuratedProposal={onOpenCuratedProposal}
-          onOpenFieldCashierBooking={onOpenFieldCashierBooking}
-          onOpenWelcomeBoardBooking={onOpenWelcomeBoardBooking}
-          onOpenPromptPayBooking={onOpenPromptPayBooking}
-          onOpenTourMediaBooking={onOpenTourMediaBooking}
-          onOpenSupplierDispatchBooking={onOpenSupplierDispatchBooking}
-          onExportCSV={onExportCSV}
+          allBookings={bookings}
+          showToast={showToast}
+          googleReviewUrl={siteSettings.googleReviewUrl}
+          onOpenCreate={onOpenCreateBooking || (() => {})}
+          onOpenEdit={onOpenEditBooking}
+          onDelete={onDeleteBooking}
+          setVoucherBooking={onOpenVoucher}
+          setWhatsAppModalBooking={onOpenWhatsApp}
+          onQuickCollect={(_b) => setActiveTab('finance')}
+          onOpenQuotePdf={onOpenCuratedProposal}
+          onOpenDietaryManifest={onOpenDietaryManifest}
+          onOpenFieldCashier={onOpenFieldCashierBooking}
+          onOpenFlightRadar={onOpenFlightRadar}
+          onOpenWelcomeBoard={onOpenWelcomeBoardBooking}
+          onOpenTourMedia={onOpenTourMediaBooking}
+          onOpenSupplierDispatch={onOpenSupplierDispatchBooking}
+          onOpenPromptPayQr={onOpenPromptPayBooking}
           onOpenWorkflow={onOpenWorkflow}
+          onExportCSV={onExportCSV}
+          onUpdateStatus={(b, nextStatus) => {
+            onUpdateSingleBooking({ ...b, status: nextStatus }, `Durum güncellendi: ${nextStatus}`);
+          }}
         />
       )}
 
       {activeTab === 'transfers' && (
         <TransfersTab
           bookings={bookings}
+          manifestDate={manifestDate || new Date().toISOString().split('T')[0]}
+          setManifestDate={setManifestDate || (() => {})}
           vehicles={vehicles}
           drivers={drivers}
-          onUpdatePickupStatus={onUpdatePickupStatus}
-          onAssignVehicle={onAssignVehicle}
-          onAssignDriver={onAssignDriver}
-          onUpdatePickupTime={onUpdatePickupTime}
+          googleReviewUrl={siteSettings.googleReviewUrl}
           showToast={showToast}
+          handleAssignVehicleToBooking={onAssignVehicle}
+          handleAssignDriverToBooking={onAssignDriver}
+          handleUpdatePickupStatus={onUpdatePickupStatus}
+          handleUpdatePickupTime={onUpdatePickupTime}
+          setWhatsAppModalBooking={onOpenWhatsApp}
+          setVoucherBooking={onOpenVoucher}
+          onOpenPoliceManifest={onOpenPoliceManifest}
+          onOpenQrScanner={onOpenQrScanner}
+          onOpenLostFound={onOpenLostFound}
+          onOpenDietaryManifest={onOpenDietaryManifest}
+          onOpenFieldCashier={onOpenFieldCashierBooking ? () => onOpenFieldCashierBooking() : undefined}
+          onOpenFlightRadar={onOpenFlightRadar ? () => onOpenFlightRadar() : undefined}
+          onOpenDriverExpense={onOpenDriverExpense}
+          onOpenGuideExpense={onOpenGuideExpense}
+          onOpenWelcomeBoard={onOpenWelcomeBoardBooking}
+          onOpenLuggageExpress={onOpenLuggageExpress}
+          onOpenCaptainVault={onOpenCaptainVault}
+          onOpenCuratedProposal={onOpenCuratedProposal}
+          onOpenWorkflow={onOpenWorkflow}
+          pendingBookingIds={pendingBookingIds}
+        />
+      )}
+
+      {activeTab === 'settlements' && perms.canViewFinancialMargins && (
+        <SupplierSettlementManager
+          bookings={bookings}
+          onUpdateBooking={onUpdateSingleBooking}
           managerPhone={siteSettings.whatsappNumber}
         />
       )}
 
-      {activeTab === 'settlements' && (
-        <SupplierSettlementManager
-          bookings={bookings}
-          suppliers={suppliers}
-          tourCosts={tourCosts}
-          showToast={showToast}
-        />
-      )}
-
-      {activeTab === 'finance' && (
+      {activeTab === 'finance' && perms.allowedTabs.includes('finance') && (
         <FinanceTab
           bookings={bookings}
           payments={payments}
-          savePayments={savePayments}
-          tours={tours}
-          suppliers={suppliers}
-          tourCosts={tourCosts}
-          agents={agents}
-          canViewFinancialMargins={perms.canViewFinancialMargins}
+          onAddPayment={onAddPayment}
+          onUpdateBooking={onUpdateSingleBooking}
           showToast={showToast}
+          setVoucherBooking={onOpenVoucher}
         />
       )}
 
@@ -337,9 +252,8 @@ export function DashboardTabsRenderer({
         <FleetManager
           vehicles={vehicles}
           drivers={drivers}
-          bookings={bookings}
-          saveVehicles={saveVehicles}
-          saveDrivers={saveDrivers}
+          onSaveVehicles={saveVehicles}
+          onSaveDrivers={saveDrivers}
           showToast={showToast}
         />
       )}
@@ -347,20 +261,20 @@ export function DashboardTabsRenderer({
       {activeTab === 'partners' && (
         <PartnersTab
           agents={agents}
-          saveAgents={saveAgents}
           bookings={bookings}
+          onSaveAgents={saveAgents}
           showToast={showToast}
+          managerPhone={siteSettings.whatsappNumber}
         />
       )}
 
       {activeTab === 'suppliers' && (
         <SuppliersTab
           suppliers={suppliers}
-          saveSuppliers={saveSuppliers}
           tourCosts={tourCosts}
-          saveTourCosts={saveTourCosts}
           tours={tours}
-          bookings={bookings}
+          onSaveSuppliers={saveSuppliers}
+          onSaveTourCosts={saveTourCosts}
           showToast={showToast}
         />
       )}
@@ -368,29 +282,33 @@ export function DashboardTabsRenderer({
       {activeTab === 'tours' && (
         <ToursTab
           tours={tours}
-          categories={categories}
-          categoryOptions={tourCategoryOptions}
+          filteredTours={filteredTours}
           tourSearchQuery={tourSearchQuery}
           setTourSearchQuery={setTourSearchQuery}
           tourCategoryFilter={tourCategoryFilter}
           setTourCategoryFilter={setTourCategoryFilter}
-          onOpenCreateTour={onOpenCreateTour}
-          onOpenEditTour={onOpenEditTour}
-          onDeleteTour={onDeleteTour}
-          onToggleTourFeatured={onToggleTourFeatured}
-          onOpenCreateCategory={onOpenCreateCategory}
-          onOpenEditCategory={onOpenEditCategory}
-          onDeleteCategory={onDeleteCategory}
+          tourCategoryOptions={tourCategoryOptions}
+          categories={categories}
+          onOpenCategoryModal={onOpenCategoryModal}
+          getImageUrl={getImageUrl}
+          onOpenCreate={onOpenCreateTour}
+          onOpenEdit={onOpenEditTour}
+          onToggleFeatured={onToggleTourFeatured}
+          onDelete={onDeleteTour}
+          onBulkUpdateTours={onBulkUpdateTours}
+          onOpenMultiTourProposal={onOpenMultiTourProposal}
         />
       )}
 
-      {activeTab === 'home' && (
+      {activeTab === 'homepage' && (
         <HomeEditorTab
           homeSettings={homeSettings}
           setHomeSettings={setHomeSettings}
           onSave={onSaveHomeSettings}
-          onFileUpload={onFileUpload}
-          availableImages={mediaList.map((m) => m.url)}
+          getImageUrl={getImageUrl}
+          handleFileUpload={onFileUpload}
+          allImageOptions={allImageOptions}
+          mediaList={mediaList}
           showToast={showToast}
         />
       )}
@@ -398,84 +316,96 @@ export function DashboardTabsRenderer({
       {activeTab === 'blogs' && (
         <BlogsTab
           blogs={blogs}
-          onOpenCreateBlog={onOpenCreateBlog}
-          onOpenEditBlog={onOpenEditBlog}
-          onDeleteBlog={onDeleteBlog}
+          onOpenCreate={onOpenCreateBlog}
+          onOpenEdit={onOpenEditBlog}
+          onDelete={onDeleteBlog}
         />
       )}
 
       {activeTab === 'services' && (
         <ServicesTab
           services={services}
-          onOpenEditService={onOpenEditService}
+          onOpenEdit={onOpenEditService}
         />
       )}
 
       {activeTab === 'faqs' && (
         <FaqsTab
           faqs={faqs}
-          onOpenCreateFaq={onOpenCreateFaq}
-          onOpenEditFaq={onOpenEditFaq}
-          onDeleteFaq={onDeleteFaq}
+          onOpenCreate={onOpenCreateFaq}
+          onOpenEdit={onOpenEditFaq}
+          onDelete={onDeleteFaq}
         />
       )}
 
       {activeTab === 'testimonials' && (
         <TestimonialsTab
           testimonials={testimonials}
-          onOpenCreateTesti={onOpenCreateTesti}
-          onOpenEditTesti={onOpenEditTesti}
-          onDeleteTesti={onDeleteTesti}
+          onOpenCreate={onOpenCreateTesti}
+          onOpenEdit={onOpenEditTesti}
+          onDelete={onDeleteTesti}
         />
       )}
 
       {activeTab === 'media' && (
         <MediaTab
-          mediaList={mediaList}
-          searchQuery={mediaSearchQuery}
-          setSearchQuery={setMediaSearchQuery}
-          typeFilter={mediaTypeFilter}
-          setTypeFilter={setMediaTypeFilter}
-          onOpenAddModal={onOpenAddMedia}
-          onOpenLightbox={onSelectLightboxMedia}
-          onOpenAssignModal={onAssignMedia}
-          onDeleteMedia={onDeleteMedia}
-          onFileUpload={onFileUpload}
+          mediaSearchQuery={mediaSearchQuery}
+          setMediaSearchQuery={setMediaSearchQuery}
+          mediaTypeFilter={mediaTypeFilter}
+          setMediaTypeFilter={setMediaTypeFilter}
+          filteredMedia={filteredMedia}
+          getImageUrl={getImageUrl}
+          handleFileUpload={onFileUpload}
+          onOpenUrlModal={onOpenAddMedia}
+          setSelectedLightboxMedia={onSelectLightboxMedia}
+          setAssignMediaModal={onAssignMedia}
+          handleCopyMediaUrl={onCopyMediaUrl}
+          handleDeleteMedia={onDeleteMedia}
+          onUpdateMedia={onUpdateMedia}
         />
       )}
 
       {activeTab === 'whatsapp' && (
         <WhatsAppTab
-          siteSettings={siteSettings}
-          setSiteSettings={setSiteSettings}
-          onSaveSettings={onSaveSiteSettings}
-          settingsSaved={settingsSaved}
+          bookings={bookings}
+          onUpdateBooking={onUpdateSingleBooking}
+          showToast={showToast}
         />
       )}
 
-      {activeTab === 'settings' && (
+      {activeTab === 'settings' && perms.canManageSettings && (
         <SettingsTab
           siteSettings={siteSettings}
           setSiteSettings={setSiteSettings}
-          onSaveSettings={onSaveSiteSettings}
           settingsSaved={settingsSaved}
-          onExportData={onExportSiteData}
-          onFileUpload={onFileUpload}
+          onSave={onSaveSiteSettings}
+          getImageUrl={getImageUrl}
+          handleFileUpload={onFileUpload}
+          allImageOptions={allImageOptions}
+          mediaList={mediaList}
           viewerRole={viewerRole}
           showToast={showToast}
+          onExportSiteData={onExportSiteData}
         />
       )}
 
-      {activeTab === 'users' && <UsersTab />}
+      {activeTab === 'users' && perms.canManageUsers && <UsersTab showToast={showToast} />}
 
       {activeTab === 'proposals' && (
-        <CuratedProposalModal
-          isOpen={true}
-          onClose={() => setActiveTab('bookings')}
-          showToast={showToast}
-          onConvertToBooking={onConvertProposalToBooking}
-        />
+        <div className="w-full">
+          <CuratedProposalModal
+            isOpen={true}
+            isEmbedded={true}
+            onClose={() => setActiveTab('transfers')}
+            showToast={showToast}
+            initialCustomerName="Begüm & Canberk Özkan"
+            initialHotel="The Shore at Katathani"
+            initialZone="Kata & Karon"
+            onConvertToBooking={onConvertProposalToBooking}
+          />
+        </div>
       )}
     </>
   );
 }
+export type { DashboardTabsRendererProps } from './dashboardTabProps';

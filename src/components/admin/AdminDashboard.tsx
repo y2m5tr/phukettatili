@@ -13,7 +13,6 @@ import {
   enqueueMutation,
 } from '../../lib/offlineQueue';
 import { safeSet } from '../../lib/safeStorage';
-import type { AdminTab } from './adminNav';
 import {
   DEFAULT_AVAILABLE_IMAGES,
   STORAGE_KEY_BOOKINGS,
@@ -263,7 +262,7 @@ export default function AdminDashboard({
     });
   };
 
-  const handleSubmitBooking = async (e: React.FormEvent) => {
+  const handleSubmitBooking = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     const fallbackTitle = coll.tours[0]?.title || 'Phuket Turu';
     const submitted = buildSubmittedBooking(modals.formData, modals.editingBooking, fallbackTitle);
@@ -340,7 +339,7 @@ export default function AdminDashboard({
     });
   };
 
-  const handleSubmitTour = (e: React.FormEvent) => {
+  const handleSubmitTour = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!modals.tourFormData.title) return;
     const submitted = buildSubmittedTour(modals.tourFormData, modals.editingTour, coll.categories);

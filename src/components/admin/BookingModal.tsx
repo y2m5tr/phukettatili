@@ -25,7 +25,7 @@ export interface BookingModalProps {
   editingBooking: Booking | null;
   formData: Partial<Booking>;
   setFormData: React.Dispatch<React.SetStateAction<Partial<Booking>>>;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
   tours: TourItem[];
   bookings: Booking[];
   agents: PartnerAgent[];

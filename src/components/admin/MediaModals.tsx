@@ -20,7 +20,7 @@ interface AddMediaModalProps {
   setNewMediaTitle: (t: string) => void;
   newMediaUrl: string;
   setNewMediaUrl: (u: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
   onClose: () => void;
   /** Görsel URL çözümleyici — AdminDashboard ile aynı davranış. */
   getImageUrl: (img?: string) => string;

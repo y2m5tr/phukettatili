@@ -57,10 +57,10 @@ export interface DashboardModalsHostProps {
   tours: TourItem[];
   onSelectTour: (t: TourItem) => void;
   onOpenWorkflow: (b: Booking) => void;
-  onSetNavMode: (mode: 'operations' | 'content') => void;
+  onSetNavMode: (mode: 'operations' | 'cms') => void;
   isBulkRescheduleOpen: boolean;
   setIsBulkRescheduleOpen: (v: boolean) => void;
-  onBulkReschedule: (ids: string[], date: string, reason: string) => void;
+  onBulkReschedule: (ids: string[], date: string, reason: string) => Promise<void>;
   isLostFoundOpen: boolean;
   setIsLostFoundOpen: (v: boolean) => void;
   showToast: (msg: string) => void;
@@ -111,7 +111,7 @@ export interface DashboardModalsHostProps {
   onUpdateSingleBooking: (b: Booking) => Promise<boolean>;
   conflictBooking: ConflictData | null;
   setConflictBooking: (c: ConflictData | null) => void;
-  onAcceptServerConflict: (b: Booking) => void;
+  onAcceptServerConflict: () => void;
   onForceOverwriteConflict: (b: Booking) => void;
   confirmModal: {
     isOpen: boolean;

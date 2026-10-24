@@ -101,7 +101,7 @@ export default function GuideExpenseModal({
     if (def) setAmount(def);
   };
 
-  const handleAddExpense = (e: React.FormEvent) => {
+  const handleAddExpense = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (amount <= 0) {
       showToast('⚠️ Geçerli bir masraf tutarı giriniz.');

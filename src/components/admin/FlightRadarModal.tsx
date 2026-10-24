@@ -332,6 +332,7 @@ export default function FlightRadarModal({
               href={driverWhatsAppUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => showToast?.('🇹🇭 Şoför WhatsApp mesajı açılıyor...')}
               className="px-3.5 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-800 dark:text-amber-300 border border-amber-500/30 text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
               title="Şoföre Tayca ve İngilizce rötar bildirimini WhatsApp ile gönder"
             >
@@ -344,6 +345,7 @@ export default function FlightRadarModal({
               href={guestWhatsAppUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => showToast?.('Misafir karşılama WhatsApp mesajı açılıyor...')}
               className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm"
               title="Misafire havaalanı iniş kapısı ve karşılama tabelasını WhatsApp ile bildir"
             >

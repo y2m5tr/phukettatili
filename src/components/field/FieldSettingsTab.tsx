@@ -12,7 +12,7 @@ export interface FieldSettingsTabProps {
   newPassword: string;
   setNewPassword: (val: string) => void;
   isChangingPassword: boolean;
-  onChangeOwnPassword: (e: React.FormEvent) => void;
+  onChangeOwnPassword: (e: React.SyntheticEvent) => void;
   onLogout: () => void;
 }
 

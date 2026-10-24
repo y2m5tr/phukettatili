@@ -7,7 +7,7 @@ interface FaqModalProps {
   editingFaq: { id: string } | null;
   faqFormData: Record<string, unknown>;
   setFaqFormData: (next: Record<string, unknown>) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
   onClose: () => void;
 }
 

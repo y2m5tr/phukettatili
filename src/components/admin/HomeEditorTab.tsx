@@ -71,7 +71,7 @@ export default function HomeEditorTab({
     });
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = (e: React.SyntheticEvent) => {
     e.preventDefault();
     onSave(homeSettings);
     setSavedSuccess(true);

@@ -5,7 +5,7 @@ export interface UseAdminShortcutsArgs {
   activeTab: AdminTab;
   setActiveTab: (t: AdminTab) => void;
   visibleNavItems: { id: AdminTab }[];
-  allowedTabs: AdminTab[];
+  allowedTabs: readonly AdminTab[];
   modals: any;
   showToast: (msg: string) => void;
 }

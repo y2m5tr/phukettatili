@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Compass, PlusCircle, CreditCard, ShieldCheck } from 'lucide-react';
 
 export interface FieldBottomNavProps {

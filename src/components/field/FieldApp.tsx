@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Sparkles } from 'lucide-react';
 import type { FieldAppProps } from './fieldTypes';
 import { useFieldAppState } from './useFieldAppState';

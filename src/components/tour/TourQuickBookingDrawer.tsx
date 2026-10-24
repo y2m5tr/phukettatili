@@ -74,7 +74,7 @@ export default function TourQuickBookingDrawer({
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
   };
 
-  const handleSubmitBooking = async (e: React.FormEvent) => {
+  const handleSubmitBooking = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setErrorMessage('');
 

@@ -3,9 +3,7 @@ import React from 'react';
 import { renderToString } from 'react-dom/server';
 import { BookingModalHeader } from '../src/components/admin/booking/BookingModalHeader';
 import { BookingCustomerPassengers } from '../src/components/admin/booking/BookingCustomerPassengers';
-import { BookingToursList } from '../src/components/admin/booking/BookingToursList';
 import { BookingFinanceTab } from '../src/components/admin/booking/BookingFinanceTab';
-import { BookingSupplierTab } from '../src/components/admin/booking/BookingSupplierTab';
 import { BookingModalFooter } from '../src/components/admin/booking/BookingModalFooter';
 import { parsePickupRange, addMinutesToTime } from '../src/components/admin/booking/bookingHelpers';
 

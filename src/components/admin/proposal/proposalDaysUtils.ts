@@ -1,5 +1,4 @@
 import type {
-  CuratedProposalData,
   CuratedProposalDay,
   CatalogTourPreset,
 } from '../../../lib/curatedProposal';

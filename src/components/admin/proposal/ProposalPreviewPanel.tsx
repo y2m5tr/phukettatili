@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { ExternalLink, Printer, Send, Minimize2 } from 'lucide-react';
 import type {
   CuratedProposalData,

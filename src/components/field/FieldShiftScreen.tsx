@@ -6,7 +6,7 @@ export interface FieldShiftScreenProps {
   setCrewName: (name: string) => void;
   identityError: string;
   setIdentityError: (err: string) => void;
-  onStartShift: (e: React.FormEvent) => void;
+  onStartShift: (e: React.SyntheticEvent) => void;
   onLogout: () => void;
 }
 

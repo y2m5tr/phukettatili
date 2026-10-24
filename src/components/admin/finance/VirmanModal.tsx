@@ -21,7 +21,7 @@ interface VirmanModalProps {
   setVirmanBy: (v: string) => void;
   virmanNote: string;
   setVirmanNote: (v: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
   onClose: () => void;
 }
 

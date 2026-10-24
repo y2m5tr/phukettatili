@@ -159,7 +159,7 @@ export function useFieldAppState({
     return unsubscribe;
   }, [fetchBookingsFromServer]);
 
-  const handleStartShift = (e: React.FormEvent) => {
+  const handleStartShift = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const name = crewName.trim();
     if (name.length < 2) {
@@ -388,7 +388,7 @@ export function useFieldAppState({
     sendDayEndReportHelper(managerPhone, selectedDate, crewName, scheduleItems, stats);
   };
 
-  const handleChangeOwnPassword = async (e: React.FormEvent) => {
+  const handleChangeOwnPassword = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!currentPassword || !newPassword) return;
     setIsChangingPassword(true);

@@ -9,6 +9,9 @@ import type {
   Booking,
   VehicleItem,
   DriverItem,
+  PartnerAgent,
+  SupplierItem,
+  TourCostItem,
 } from '../../../data/adminInitialData';
 import type { CategoryItem } from '../../../data/adminTypes';
 import type { OptionLibrary, OptionKind } from '../../../lib/inclusionLibrary';
@@ -27,53 +30,65 @@ export interface DashboardCmsModalsHostProps {
   setIsModalOpen: (v: boolean) => void;
   editingBooking: Booking | null;
   formData: Partial<Booking>;
-  setFormData: (data: Partial<Booking>) => void;
-  onSubmitBooking: (e: React.FormEvent) => void;
+  setFormData: React.Dispatch<React.SetStateAction<Partial<Booking>>>;
+  onSubmitBooking: (e: React.SyntheticEvent) => void;
   tours: TourItem[];
+  bookings?: Booking[];
+  agents?: PartnerAgent[];
+  suppliers?: SupplierItem[];
+  tourCosts?: TourCostItem[];
   vehicles: VehicleItem[];
   drivers: DriverItem[];
   onOpenCreateTour: () => void;
+  showToast?: (msg: string) => void;
+
   isTourModalOpen: boolean;
   setIsTourModalOpen: (v: boolean) => void;
   editingTour: TourItem | null;
   tourFormData: Partial<TourItem>;
-  setTourFormData: (data: Partial<TourItem>) => void;
-  onSubmitTour: (e: React.FormEvent) => void;
+  setTourFormData: React.Dispatch<React.SetStateAction<Partial<TourItem>>>;
+  onSubmitTour: (e: React.SyntheticEvent) => void;
   categories: CategoryItem[];
   inclusionLibrary: OptionLibrary;
   onRememberOption: (kind: OptionKind, item: string) => void;
   onForgetOption: (kind: OptionKind, item: string) => void;
   availableImages: string[];
+  mediaList?: MediaItem[];
+  getImageUrl?: (url?: string) => string;
+  handleFileUpload?: (file: File, callback?: (url: string) => void) => void;
+
   isCategoryModalOpen: boolean;
   setIsCategoryModalOpen: (v: boolean) => void;
-  editingCategory: CategoryItem | null;
-  categoryFormData: Partial<CategoryItem>;
-  setCategoryFormData: (data: Partial<CategoryItem>) => void;
-  onSubmitCategory: (e: React.FormEvent) => void;
+  onSaveCategory: (category: CategoryItem) => void;
+  onDeleteCategory?: (slug: string) => void;
+
   isBlogModalOpen: boolean;
   setIsBlogModalOpen: (v: boolean) => void;
   editingBlog: BlogItem | null;
   blogFormData: Partial<BlogItem>;
-  setBlogFormData: (data: Partial<BlogItem>) => void;
-  onSubmitBlog: (e: React.FormEvent) => void;
+  setBlogFormData: React.Dispatch<React.SetStateAction<Partial<BlogItem>>>;
+  onSubmitBlog: (e: React.SyntheticEvent) => void;
+
   isServiceModalOpen: boolean;
   setIsServiceModalOpen: (v: boolean) => void;
-  editingService: ServiceItem | null;
   serviceFormData: Partial<ServiceItem>;
-  setServiceFormData: (data: Partial<ServiceItem>) => void;
-  onSubmitService: (e: React.FormEvent) => void;
+  setServiceFormData: React.Dispatch<React.SetStateAction<Partial<ServiceItem>>>;
+  onSubmitService: (e: React.SyntheticEvent) => void;
+
   isFaqModalOpen: boolean;
   setIsFaqModalOpen: (v: boolean) => void;
   editingFaq: FaqItem | null;
   faqFormData: Partial<FaqItem>;
-  setFaqFormData: (data: Partial<FaqItem>) => void;
-  onSubmitFaq: (e: React.FormEvent) => void;
+  setFaqFormData: React.Dispatch<React.SetStateAction<Partial<FaqItem>>>;
+  onSubmitFaq: (e: React.SyntheticEvent) => void;
+
   isTestiModalOpen: boolean;
   setIsTestiModalOpen: (v: boolean) => void;
   editingTesti: TestimonialItem | null;
   testiFormData: Partial<TestimonialItem>;
-  setTestiFormData: (data: Partial<TestimonialItem>) => void;
-  onSubmitTesti: (e: React.FormEvent) => void;
+  setTestiFormData: React.Dispatch<React.SetStateAction<Partial<TestimonialItem>>>;
+  onSubmitTesti: (e: React.SyntheticEvent) => void;
+
   isAddMediaModalOpen: boolean;
   setIsAddMediaModalOpen: (v: boolean) => void;
   mediaUploadMode: 'file' | 'url';
@@ -82,11 +97,11 @@ export interface DashboardCmsModalsHostProps {
   setNewMediaTitle: (t: string) => void;
   newMediaUrl: string;
   setNewMediaUrl: (u: string) => void;
-  onAddMediaSubmit: (e: React.FormEvent) => void;
-  onFileUpload: (file: File) => void;
+  onAddMediaSubmit: (e: React.SyntheticEvent) => void;
   selectedLightboxMedia: MediaItem | null;
   setSelectedLightboxMedia: (m: MediaItem | null) => void;
   onCopyMediaUrl: (url: string) => void;
+
   assignMediaModal: MediaItem | null;
   setAssignMediaModal: (m: MediaItem | null) => void;
   onAddMediaToTourGallery: (url: string, tourId: string) => void;
@@ -101,9 +116,14 @@ export function DashboardCmsModalsHost({
   setFormData,
   onSubmitBooking,
   tours,
+  bookings,
+  agents,
+  suppliers,
+  tourCosts,
   vehicles,
   drivers,
   onOpenCreateTour,
+  showToast,
   isTourModalOpen,
   setIsTourModalOpen,
   editingTour,
@@ -115,12 +135,13 @@ export function DashboardCmsModalsHost({
   onRememberOption,
   onForgetOption,
   availableImages,
+  mediaList,
+  getImageUrl,
+  handleFileUpload,
   isCategoryModalOpen,
   setIsCategoryModalOpen,
-  editingCategory,
-  categoryFormData,
-  setCategoryFormData,
-  onSubmitCategory,
+  onSaveCategory,
+  onDeleteCategory,
   isBlogModalOpen,
   setIsBlogModalOpen,
   editingBlog,
@@ -129,7 +150,6 @@ export function DashboardCmsModalsHost({
   onSubmitBlog,
   isServiceModalOpen,
   setIsServiceModalOpen,
-  editingService,
   serviceFormData,
   setServiceFormData,
   onSubmitService,
@@ -154,7 +174,6 @@ export function DashboardCmsModalsHost({
   newMediaUrl,
   setNewMediaUrl,
   onAddMediaSubmit,
-  onFileUpload,
   selectedLightboxMedia,
   setSelectedLightboxMedia,
   onCopyMediaUrl,
@@ -175,9 +194,11 @@ export function DashboardCmsModalsHost({
           onClose={() => setIsModalOpen(false)}
           onSubmit={onSubmitBooking}
           tours={tours}
-          vehicles={vehicles}
-          drivers={drivers}
-          onOpenCreateTour={onOpenCreateTour}
+          bookings={bookings || []}
+          agents={agents || []}
+          suppliers={suppliers || []}
+          tourCosts={tourCosts || []}
+          showToast={showToast || (() => {})}
         />
       )}
 
@@ -186,15 +207,20 @@ export function DashboardCmsModalsHost({
         <TourModal
           isOpen={isTourModalOpen}
           editingTour={editingTour}
-          formData={tourFormData}
-          setFormData={setTourFormData}
+          tourFormData={tourFormData}
+          setTourFormData={setTourFormData}
           onClose={() => setIsTourModalOpen(false)}
           onSubmit={onSubmitTour}
+          getImageUrl={getImageUrl}
+          handleFileUpload={handleFileUpload}
+          allImageOptions={availableImages}
+          mediaList={mediaList}
+          allTours={tours}
           categories={categories}
+          onOpenCategoryModal={() => setIsCategoryModalOpen(true)}
           inclusionLibrary={inclusionLibrary}
           onRememberOption={onRememberOption}
           onForgetOption={onForgetOption}
-          availableImages={availableImages}
         />
       )}
 
@@ -202,34 +228,32 @@ export function DashboardCmsModalsHost({
       {isCategoryModalOpen && (
         <CategoryModal
           isOpen={isCategoryModalOpen}
-          editingCategory={editingCategory}
-          formData={categoryFormData}
-          setFormData={setCategoryFormData}
+          categories={categories}
+          onSaveCategory={onSaveCategory}
+          onDeleteCategory={onDeleteCategory}
+          availableImages={availableImages}
+          showToast={showToast}
           onClose={() => setIsCategoryModalOpen(false)}
-          onSubmit={onSubmitCategory}
         />
       )}
 
       {/* TESTIMONIAL MODAL */}
       {isTestiModalOpen && (
         <TestimonialModal
-          isOpen={isTestiModalOpen}
-          editingTestimonial={editingTesti}
-          formData={testiFormData}
-          setFormData={setTestiFormData}
+          editingTesti={editingTesti}
+          testiFormData={testiFormData}
+          setTestiFormData={setTestiFormData}
           onClose={() => setIsTestiModalOpen(false)}
           onSubmit={onSubmitTesti}
-          tours={tours}
         />
       )}
 
       {/* FAQ MODAL */}
       {isFaqModalOpen && (
         <FaqModal
-          isOpen={isFaqModalOpen}
           editingFaq={editingFaq}
-          formData={faqFormData}
-          setFormData={setFaqFormData}
+          faqFormData={faqFormData}
+          setFaqFormData={setFaqFormData}
           onClose={() => setIsFaqModalOpen(false)}
           onSubmit={onSubmitFaq}
         />
@@ -238,33 +262,35 @@ export function DashboardCmsModalsHost({
       {/* SERVICE MODAL */}
       {isServiceModalOpen && (
         <ServiceModal
-          isOpen={isServiceModalOpen}
-          editingService={editingService}
-          formData={serviceFormData}
-          setFormData={setServiceFormData}
+          serviceFormData={serviceFormData}
+          setServiceFormData={setServiceFormData}
           onClose={() => setIsServiceModalOpen(false)}
           onSubmit={onSubmitService}
+          getImageUrl={getImageUrl || ((img) => img || '')}
+          handleFileUpload={handleFileUpload || (() => {})}
+          allImageOptions={availableImages}
+          mediaList={mediaList}
         />
       )}
 
       {/* BLOG MODAL */}
       {isBlogModalOpen && (
         <BlogModal
-          isOpen={isBlogModalOpen}
           editingBlog={editingBlog}
-          formData={blogFormData}
-          setFormData={setBlogFormData}
+          blogFormData={blogFormData}
+          setBlogFormData={setBlogFormData}
           onClose={() => setIsBlogModalOpen(false)}
           onSubmit={onSubmitBlog}
-          availableImages={availableImages}
+          getImageUrl={getImageUrl || ((img) => img || '')}
+          handleFileUpload={handleFileUpload || (() => {})}
+          allImageOptions={availableImages}
+          mediaList={mediaList}
         />
       )}
 
       {/* ADD MEDIA MODAL */}
       {isAddMediaModalOpen && (
         <AddMediaModal
-          isOpen={isAddMediaModalOpen}
-          onClose={() => setIsAddMediaModalOpen(false)}
           mediaUploadMode={mediaUploadMode}
           setMediaUploadMode={setMediaUploadMode}
           newMediaTitle={newMediaTitle}
@@ -272,7 +298,8 @@ export function DashboardCmsModalsHost({
           newMediaUrl={newMediaUrl}
           setNewMediaUrl={setNewMediaUrl}
           onSubmit={onAddMediaSubmit}
-          onFileUpload={onFileUpload}
+          onClose={() => setIsAddMediaModalOpen(false)}
+          getImageUrl={getImageUrl || ((img) => img || '')}
         />
       )}
 
@@ -282,6 +309,11 @@ export function DashboardCmsModalsHost({
           media={selectedLightboxMedia}
           onClose={() => setSelectedLightboxMedia(null)}
           onCopyUrl={onCopyMediaUrl}
+          onAssignToTour={() => {
+            setAssignMediaModal(selectedLightboxMedia);
+            setSelectedLightboxMedia(null);
+          }}
+          getImageUrl={getImageUrl || ((img) => img || '')}
         />
       )}
 
@@ -289,28 +321,23 @@ export function DashboardCmsModalsHost({
       {assignMediaModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-              Fotoğrafı Tura Ata
+            <h3 className="font-bold text-base text-slate-900 dark:text-white">
+              Görseli Tura Bağla
             </h3>
             <p className="text-xs text-slate-500">
-              "{assignMediaModal.title}" görselini hangi tur ile ilişkilendirmek istersiniz?
+              "{assignMediaModal.title}" görselini hangi tura bağlamak istersiniz?
             </p>
-            <div className="space-y-2">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                Hedef Turu Seçin:
-              </label>
-              <select
-                id="assignTourSelect"
-                className="w-full px-3 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-xs font-medium focus:outline-none focus:border-brand-primary"
-              >
-                {tours.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="flex gap-2 pt-2">
+            <select
+              id="assignTourSelect"
+              className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-medium cursor-pointer"
+            >
+              {tours.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.title}
+                </option>
+              ))}
+            </select>
+            <div className="flex items-center gap-2 pt-2">
               <button
                 type="button"
                 onClick={() => setAssignMediaModal(null)}

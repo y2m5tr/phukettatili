@@ -1,4 +1,4 @@
-import type React from 'react';
+
 import type { CuratedProposalData, ProposalType } from '../../../lib/curatedProposal';
 import { saveCmsCollection } from '../../../lib/cmsSync';
 

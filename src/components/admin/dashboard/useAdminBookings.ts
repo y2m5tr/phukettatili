@@ -4,7 +4,7 @@ import { initialBookings } from '../../../data/adminInitialData';
 import { STORAGE_KEY_BOOKINGS } from './dashboardTypes';
 import { safeGet, safeSet } from '../../../lib/safeStorage';
 import { filterBookings } from '../../../lib/adminFilters';
-import { enqueueMutation, submitMutation } from '../../../lib/offlineQueue';
+import { submitMutation } from '../../../lib/offlineQueue';
 import { sendTransferPushNotification } from '../../../lib/pwaNotifications';
 import { fmtMoney } from '../../../lib/moneyFormat';
 import type { ConflictData } from '../ConflictResolutionModal';
@@ -89,22 +89,21 @@ export function useAdminBookings({
         description: `${fullBooking.customerName} rezervasyon güncelleme`,
       });
 
-      if (result.status === 'success') {
+      if (result.status === 'saved') {
         return true;
       }
 
-      if (result.status === 'conflict') {
-        const serverVersion = result.serverData as Booking;
-        setConflictBooking({
-          clientBooking: fullBooking,
-          serverBooking: serverVersion,
-          lastSavedAt: new Date(),
-        });
-        showToast('⚠️ Bu rezervasyon başka bir kullanıcı tarafından güncellenmiş!');
-        return false;
-      }
+      if (result.status === 'rejected') {
+        if (result.statusCode === 409) {
+          setConflictBooking({
+            local: fullBooking,
+            server: prevBookings.find((b) => b.id === fullBooking.id) || null,
+            message: result.error,
+          });
+          showToast(`⚠️ Çakışma: ${result.error}`);
+          return false;
+        }
 
-      if (result.status === 'failed') {
         setBookings(prevBookings);
         safeSet(STORAGE_KEY_BOOKINGS, prevBookings);
         showToast(`⚠️ Kayıt geri alındı: ${result.error || 'Bilinmeyen hata'}`);

@@ -158,7 +158,7 @@ export default function ImagePickerModal({
     e.target.value = '';
   };
 
-  const handleManualUrlSubmit = (e: React.FormEvent) => {
+  const handleManualUrlSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (manualUrl.trim()) {
       handleSelectImage(manualUrl.trim());

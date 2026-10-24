@@ -30,7 +30,7 @@ interface CollectPaymentModalProps {
   setCollectedBy: (name: string) => void;
   collectNote: string;
   setCollectNote: (note: string) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
   onClose: () => void;
   showToast: (msg: string) => void;
 }

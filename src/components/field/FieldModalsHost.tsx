@@ -1,4 +1,4 @@
-import React from 'react';
+
 import type { Booking, PassengerItem } from '../../data/adminInitialData';
 import QrScannerModal from './QrScannerModal';
 import BoardingPassModal from '../shared/BoardingPassModal';

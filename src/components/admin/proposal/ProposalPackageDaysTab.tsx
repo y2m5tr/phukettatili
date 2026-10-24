@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Plus, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import {
   PROPOSAL_CATALOG_TOURS,

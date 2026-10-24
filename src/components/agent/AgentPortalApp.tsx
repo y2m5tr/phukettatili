@@ -121,7 +121,7 @@ export default function AgentPortalApp({
     0
   );
 
-  const handleSubmitBooking = async (e: React.FormEvent) => {
+  const handleSubmitBooking = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setErrorMsg('');
 

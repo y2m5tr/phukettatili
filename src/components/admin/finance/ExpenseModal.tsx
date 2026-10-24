@@ -29,7 +29,7 @@ export default function ExpenseModal({ onSave, onClose, showToast }: ExpenseModa
   const [expenseNote, setExpenseNote] = useState<string>('');
   const [expenseDate, setExpenseDate] = useState<string>(new Date().toISOString().split('T')[0]);
 
-  const handleSaveExpense = (e: React.FormEvent) => {
+  const handleSaveExpense = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (expenseAmount <= 0) {
       showToast('⚠️ Geçerli bir gider tutarı giriniz.');

@@ -84,7 +84,7 @@ export default function DriverExpenseModal({
     if (def) setAmount(def);
   };
 
-  const handleAddExpense = (e: React.FormEvent) => {
+  const handleAddExpense = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (amount <= 0) {
       showToast('⚠️ Geçerli bir masraf tutarı giriniz.');
@@ -96,7 +96,7 @@ export default function DriverExpenseModal({
       date: selectedDate,
       driverId: activeDriver.id,
       driverName: (activeDriver as any).fullName || (activeDriver as any).name || 'Şoför',
-      vehiclePlate: (activeDriver as any).assignedVehicle || 'Van 35-1249',
+      vehiclePlate: vehicles.find((v) => v.id === activeDriver.vehicleId)?.plateNo || (activeDriver as any).assignedVehicle || 'Van 35-1249',
       category,
       amountThb: amount,
       description: description.trim() || DRIVER_EXPENSE_CATEGORIES[category].label,

@@ -11,7 +11,7 @@ interface BlogModalProps {
   editingBlog: { id: string } | null;
   blogFormData: Record<string, unknown>;
   setBlogFormData: (next: Record<string, unknown>) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
   onClose: () => void;
   /** Görsel URL çözümleyici ve Base64 yükleme — AdminDashboard'tan geçer. */
   getImageUrl: (img?: string) => string;

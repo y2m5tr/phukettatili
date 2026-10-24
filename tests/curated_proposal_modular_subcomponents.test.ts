@@ -44,7 +44,8 @@ describe('CuratedProposalModal modular subcomponents (500-line refactor)', () =>
         handleCopyWhatsApp: vi.fn(),
         handleDirectWhatsAppSend: vi.fn(),
         handleEmailSend: vi.fn(),
-        handleCreateBooking: vi.fn(),
+        handleNativeShare: vi.fn(),
+        onConvertToBooking: vi.fn(),
         onClose: vi.fn(),
       })
     );
@@ -58,7 +59,6 @@ describe('CuratedProposalModal modular subcomponents (500-line refactor)', () =>
     const html = renderToString(
       React.createElement(ProposalFinancialsTab, {
         proposal: dummyProposal,
-        financials,
         setProposal: vi.fn(),
       })
     );

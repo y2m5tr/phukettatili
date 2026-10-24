@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Clock, ChevronUp, ChevronDown, Trash2 } from 'lucide-react';
 import type { CuratedProposalData, ProposalTimelineStep } from '../../../lib/curatedProposal';
 

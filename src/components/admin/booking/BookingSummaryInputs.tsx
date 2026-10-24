@@ -102,8 +102,8 @@ export function BookingSummaryInputs({ formData, setFormData }: BookingSummaryIn
         <textarea
           rows={2}
           placeholder="Vejetaryen yemek tercihi, çocuk koltuğu, lobi bekleme özel talimatı vb."
-          value={formData.specialRequests || ''}
-          onChange={(e) => setFormData({ ...formData, specialRequests: e.target.value })}
+          value={formData.specialNotes || ''}
+          onChange={(e) => setFormData({ ...formData, specialNotes: e.target.value })}
           className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none"
         />
       </div>

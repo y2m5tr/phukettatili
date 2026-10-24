@@ -138,7 +138,7 @@ export default function PartnersTab({
   }, [agents, searchQuery, statusFilter]);
 
   // Acenta Ekle / Düzenle Kaydet
-  const handleSaveAgent = (e: React.FormEvent) => {
+  const handleSaveAgent = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!agentForm.name || !agentForm.code) {
       showToast('⚠️ Acenta adı ve acenta kodu zorunludur.');
@@ -186,7 +186,7 @@ export default function PartnersTab({
   };
 
   // Komisyon Ödemesi Kaydet
-  const handleConfirmPayout = (e: React.FormEvent) => {
+  const handleConfirmPayout = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!payoutAgent || payoutAmount <= 0) return;
 

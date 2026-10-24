@@ -4,9 +4,8 @@ import type {
   TestimonialItem,
   ServiceItem,
   BlogItem,
-  Booking,
-} from '../../data/adminInitialData';
-import type { CategoryItem } from '../../data/adminTypes';
+} from '../../../data/adminInitialData';
+import type { CategoryItem } from '../../../data/adminTypes';
 import type { SiteSettingsState } from '../SettingsTab';
 
 export const STORAGE_KEY_BOOKINGS = 'phuket_tatili_crm_bookings_v2';

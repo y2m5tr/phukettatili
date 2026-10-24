@@ -14,8 +14,6 @@ import type {
   TourCostItem,
 } from '../../../data/adminInitialData';
 import {
-  initialVehicles,
-  initialDrivers,
   initialPayments,
   initialAgents,
   initialSuppliers,
@@ -25,14 +23,6 @@ import type { CategoryItem } from '../../../data/adminTypes';
 import type { SiteSettingsState } from '../SettingsTab';
 import {
   STORAGE_KEY_TOURS,
-  STORAGE_KEY_BLOGS,
-  STORAGE_KEY_SERVICES,
-  STORAGE_KEY_FAQS,
-  STORAGE_KEY_TESTIMONIALS,
-  STORAGE_KEY_SITE,
-  STORAGE_KEY_MEDIA,
-  STORAGE_KEY_VEHICLES,
-  STORAGE_KEY_DRIVERS,
   STORAGE_KEY_PAYMENTS,
   STORAGE_KEY_AGENTS,
   STORAGE_KEY_SUPPLIERS,
@@ -55,7 +45,7 @@ import {
   type OptionLibrary,
   type OptionKind,
 } from '../../../lib/inclusionLibrary';
-import { safeGet, safeSet } from '../../../lib/safeStorage';
+import { safeGet, } from '../../../lib/safeStorage';
 import {
   UPLOAD_MAX_MB,
   slugifyFileName,
@@ -89,7 +79,9 @@ export function useAdminCollections({
   showToast,
 }: UseAdminCollectionsArgs) {
   // 1. Tours & Categories
-  const [tours, setTours] = useState<TourItem[]>([]);
+  const [tours, setTours] = useState<TourItem[]>(() =>
+    safeGet<TourItem[]>(STORAGE_KEY_TOURS, initialTours)
+  );
   const [tourSearchQuery, setTourSearchQuery] = useState<string>('');
   const [tourCategoryFilter, setTourCategoryFilter] = useState<string>('all');
   const [categories, setCategories] = useState<CategoryItem[]>(() =>
@@ -301,7 +293,7 @@ export function useAdminCollections({
   });
 
   const handleSaveSettings = useCallback(
-    (e: React.FormEvent) => {
+    (e: React.SyntheticEvent) => {
       e.preventDefault();
       saveCmsCollection('site-settings', siteSettings, showToast);
       setSettingsSaved(true);

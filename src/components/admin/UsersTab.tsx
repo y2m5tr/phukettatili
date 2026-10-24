@@ -94,7 +94,7 @@ export default function UsersTab({ showToast }: UsersTabProps) {
     setMode('reset-password');
   };
 
-  const submitCreate = async (e: React.FormEvent) => {
+  const submitCreate = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
@@ -118,7 +118,7 @@ export default function UsersTab({ showToast }: UsersTabProps) {
     }
   };
 
-  const submitRoleChange = async (e: React.FormEvent) => {
+  const submitRoleChange = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!editingUser) return;
     setIsSubmitting(true);
@@ -143,7 +143,7 @@ export default function UsersTab({ showToast }: UsersTabProps) {
     }
   };
 
-  const submitResetPassword = async (e: React.FormEvent) => {
+  const submitResetPassword = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!editingUser) return;
     setIsSubmitting(true);

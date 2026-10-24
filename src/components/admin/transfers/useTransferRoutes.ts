@@ -23,7 +23,7 @@ export function useTransferRoutes({
   const [customStopOrder, setCustomStopOrder] = useState<Record<string, string[]>>({});
 
   const routeVehicles = useMemo(() => {
-    return Array.from(new Set(dailyPickups.map((p) => p.assignedVehicle).filter(Boolean)));
+    return Array.from(new Set(dailyPickups.map((p) => p.assignedVehicle).filter((v): v is string => Boolean(v))));
   }, [dailyPickups]);
 
   const vehicleRoutes: RouteData[] = useMemo(() => {

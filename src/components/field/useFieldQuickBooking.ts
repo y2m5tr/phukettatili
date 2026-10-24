@@ -47,7 +47,7 @@ export function useFieldQuickBooking({
     }
   }, [newTourId, newAdultCount, newChildCount, initialTours]);
 
-  const handleCreateQuickBooking = async (e: React.FormEvent) => {
+  const handleCreateQuickBooking = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!newCustName.trim() || !newCustPhone.trim() || !newCustHotel.trim()) {
       alert('Lütfen Misafir Adı, Telefon ve Otel alanlarını doldurunuz.');

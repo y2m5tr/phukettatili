@@ -200,7 +200,7 @@ export function useFinanceTab({
     };
   }, [methodTotals, virmans, expenses]);
 
-  const handleSaveVirman = (e: React.FormEvent) => {
+  const handleSaveVirman = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (virmanSource === virmanTarget) {
       showToast('Kaynak ve hedef kasa aynı olamaz! Lütfen farklı bir hesap seçin.');
@@ -321,7 +321,7 @@ export function useFinanceTab({
   };
 
   // Tahsilat Modal Formunu Gönder
-  const handleSubmitCollect = (e: React.FormEvent) => {
+  const handleSubmitCollect = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!selectedBookingId || collectAmount <= 0) {
       showToast('⚠️ Lütfen geçerli bir tutar ve rezervasyon giriniz.');

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import type { Booking } from '../../../data/adminInitialData';
 import { fmtMoney } from '../../../lib/moneyFormat';
 

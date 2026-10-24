@@ -43,7 +43,7 @@ interface NewBookingTabProps {
   newNotes: string;
   setNewNotes: (v: string) => void;
   isSubmittingBooking: boolean;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
   tours: TourItem[];
 }
 

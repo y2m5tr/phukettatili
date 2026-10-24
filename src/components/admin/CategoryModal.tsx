@@ -77,7 +77,7 @@ export default function CategoryModal({
     setHeroImage('phuket_hero.webp');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     const cleanSlug = slug.trim() || slugify(labelTr);
     if (!cleanSlug || !labelTr.trim()) {
@@ -231,6 +231,25 @@ export default function CategoryModal({
                 className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-accent"
               />
             </div>
+
+            {availableImages.length > 0 && (
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
+                  Kategori Kapak Görseli
+                </label>
+                <select
+                  value={heroImage}
+                  onChange={(e) => setHeroImage(e.target.value)}
+                  className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-brand-accent cursor-pointer"
+                >
+                  {availableImages.map((img) => (
+                    <option key={img} value={img}>
+                      {img}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
               <button

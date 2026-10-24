@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Compass, Camera, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { formatDateDisplay } from './fieldTypes';
 

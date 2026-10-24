@@ -10,7 +10,7 @@ interface TestimonialModalProps {
   editingTesti: { id: string; name: string } | null;
   testiFormData: Record<string, unknown>;
   setTestiFormData: (next: Record<string, unknown>) => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: React.SyntheticEvent) => void;
   onClose: () => void;
 }
 

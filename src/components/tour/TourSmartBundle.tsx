@@ -80,9 +80,11 @@ export default function TourSmartBundle({
   // WhatsApp mesajı oluştur
   const constructWhatsAppUrl = () => {
     const selectedNames = selectedAddons.map((a) => a.title).join(' + ');
+    const grandTotal = currentTourPrice + addonsBundleTotal;
+    const priceText = currentTourPrice > 0 ? ` (Tahmini Paket Toplamı: ~${fmtMoney(grandTotal)} THB)` : '';
     const message =
       selectedAddons.length > 0
-        ? `Merhaba! ${currentTourTitle} turunun yanına avantajlı paket olarak [ ${selectedNames} ] ekleyip paket rezervasyon teklifi almak istiyorum.`
+        ? `Merhaba! ${currentTourTitle} turunun yanına avantajlı paket olarak [ ${selectedNames} ] ekleyip paket rezervasyon teklifi almak istiyorum.${priceText}`
         : `Merhaba, ${currentTourTitle} turu için uygunluk durumu ve fiyat teklifi almak istiyorum.`;
 
     const cleanPhone = whatsappNumber.replace(/[^0-9]/g, '');

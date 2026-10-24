@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { DollarSign, X, Check } from 'lucide-react';
 import type { FieldScheduleItem } from './fieldTypes';
 

@@ -76,7 +76,7 @@ export default function LuggageExpressModal({
     showToast('Bagaj transfer kaydı silindi.');
   };
 
-  const handleCreateRecord = (e: React.FormEvent) => {
+  const handleCreateRecord = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!formGuestName || !formPickupHotel || !formDeliveryHotel) {
       showToast('Lütfen misafir adı, çıkış ve varış otellerini girin.');

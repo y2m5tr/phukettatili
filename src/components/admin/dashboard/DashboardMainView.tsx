@@ -1,5 +1,4 @@
 import React from 'react';
-import type { CategoryItem } from '../../../data/adminTypes';
 import type { BlogItem, ServiceItem, FaqItem, TestimonialItem } from '../../../data/adminInitialData';
 import { saveCmsCollection } from '../../../lib/cmsSync';
 import { DashboardTabsRenderer } from './DashboardTabsRenderer';
@@ -17,11 +16,11 @@ export interface DashboardMainViewProps {
   onOpenCreateBooking: () => void;
   onOpenEditBooking: (b: any) => void;
   onDeleteBooking: (id: string, name: string) => void;
-  onSubmitBooking: (e: React.FormEvent) => void;
+  onSubmitBooking: (e: React.SyntheticEvent) => void;
   onOpenCreateTour: () => void;
   onOpenEditTour: (t: any) => void;
   onDeleteTour: (id: string, title: string) => void;
-  onSubmitTour: (e: React.FormEvent) => void;
+  onSubmitTour: (e: React.SyntheticEvent) => void;
   onExportCSV: () => void;
   onExportSiteData: () => void;
 }
@@ -59,12 +58,16 @@ export function DashboardMainView({
         setStatusFilter={bk.setStatusFilter}
         dateFilter={bk.dateFilter}
         setDateFilter={bk.setDateFilter}
+        manifestDate={bk.manifestDate}
+        setManifestDate={bk.setManifestDate}
         tours={coll.tours}
+        filteredTours={coll.filteredTours}
         services={coll.services}
         blogs={coll.blogs}
         faqs={coll.faqs}
         testimonials={coll.testimonials}
         mediaList={coll.mediaList}
+        filteredMedia={coll.filteredMedia}
         vehicles={coll.vehicles}
         drivers={coll.drivers}
         agents={coll.agents}
@@ -102,11 +105,11 @@ export function DashboardMainView({
         onOpenWhatsApp={(b) => modals.setWhatsAppModalBooking(b)}
         onOpenCuratedProposal={(d) => modals.setCuratedProposalData(d)}
         onOpenFieldCashierBooking={(b) => {
-          modals.setCashierBooking(b);
+          modals.setCashierBooking(b || null);
           modals.setIsFieldCashierOpen(true);
         }}
         onOpenWelcomeBoardBooking={(b) => {
-          modals.setWelcomeBoardBooking(b);
+          modals.setWelcomeBoardBooking(b || null);
           modals.setIsWelcomeBoardOpen(true);
         }}
         onOpenPromptPayBooking={(b) => {
@@ -121,10 +124,22 @@ export function DashboardMainView({
           modals.setSupplierDispatchBooking(b);
           modals.setIsSupplierDispatchOpen(true);
         }}
+        onOpenFlightRadar={(flight, guest) => {
+          modals.setFlightRadarFlight(flight || 'TK 172');
+          modals.setFlightRadarGuest(guest || '');
+          modals.setIsFlightRadarOpen(true);
+        }}
+        onOpenDietaryManifest={() => modals.setIsDietaryManifestOpen(true)}
+        onOpenLostFound={() => modals.setIsLostFoundOpen(true)}
+        onOpenDriverExpense={() => modals.setIsDriverExpenseOpen(true)}
+        onOpenGuideExpense={() => modals.setIsGuideExpenseOpen(true)}
+        onOpenLuggageExpress={() => modals.setIsLuggageExpressOpen(true)}
+        onOpenCaptainVault={() => modals.setIsCaptainDrawerOpen(true)}
         onUpdatePickupStatus={bk.handleUpdatePickupStatus}
         onAssignVehicle={bk.handleAssignVehicleToBooking}
         onAssignDriver={bk.handleAssignDriverToBooking}
         onUpdatePickupTime={bk.handleUpdatePickupTime}
+        onUpdateSingleBooking={bk.handleUpdateSingleBooking}
         onExportCSV={onExportCSV}
         onExportSiteData={onExportSiteData}
         onOpenCreateTour={onOpenCreateTour}
@@ -133,19 +148,20 @@ export function DashboardMainView({
         onToggleTourFeatured={(id) => {
           coll.saveTours(coll.tours.map((t: any) => (t.id === id ? { ...t, featured: !t.featured } : t)));
         }}
-        onOpenCreateCategory={() => {
-          modals.setEditingCategory(null);
-          modals.setCategoryFormData({ label_tr: '', slug: '', active: true });
-          modals.setIsCategoryModalOpen(true);
+        onBulkUpdateTours={(updatedTours) => {
+          coll.saveTours(updatedTours);
+          showToast('Tüm fiyat ve süre değişiklikleri kaydedildi! ⚡');
         }}
-        onOpenEditCategory={(c) => {
-          modals.setEditingCategory(c);
-          modals.setCategoryFormData(c);
-          modals.setIsCategoryModalOpen(true);
+        onOpenMultiTourProposal={(selectedTours) => {
+          modals.setCuratedProposalData({
+            customerName: 'Sayın Misafirimiz',
+            proposalType: selectedTours.length === 1 ? 'single_tour' : 'package_multiday',
+            tourTitle: selectedTours[0]?.title || 'Özel Phuket Tur Paketi',
+            adultCount: 2,
+            childCount: 0,
+          });
         }}
-        onDeleteCategory={(id) => {
-          coll.saveCategories(coll.categories.filter((c: any) => c.id !== id));
-        }}
+        onOpenCategoryModal={() => modals.setIsCategoryModalOpen(true)}
         onOpenCreateBlog={() => {
           modals.setEditingBlog(null);
           modals.setBlogFormData({ title: '', excerpt: '', date: new Date().toISOString().split('T')[0] });
@@ -188,7 +204,15 @@ export function DashboardMainView({
         onSelectLightboxMedia={(m) => modals.setSelectedLightboxMedia(m)}
         onAssignMedia={(m) => modals.setAssignMediaModal(m)}
         onDeleteMedia={(id) => coll.saveMediaList(coll.mediaList.filter((m: any) => m.id !== id))}
+        onCopyMediaUrl={coll.handleCopyMediaUrl}
+        onUpdateMedia={(id, patch) => {
+          const next = coll.mediaList.map((m: any) => (m.id === id ? { ...m, ...patch } : m));
+          coll.saveMediaList(next);
+          showToast('Görsel güncellendi.');
+        }}
         onFileUpload={coll.handleFileUpload}
+        getImageUrl={coll.getImageUrl}
+        allImageOptions={availableImages}
         mediaSearchQuery={coll.mediaSearchQuery}
         setMediaSearchQuery={coll.setMediaSearchQuery}
         mediaTypeFilter={coll.mediaTypeFilter}
@@ -198,13 +222,12 @@ export function DashboardMainView({
         saveAgents={coll.saveAgents}
         saveSuppliers={coll.saveSuppliers}
         saveTourCosts={coll.saveTourCosts}
-        savePayments={coll.savePayments}
+        onAddPayment={coll.handleAddPayment}
         setSiteSettings={coll.setSiteSettings}
         onSaveSiteSettings={coll.handleSaveSettings}
         settingsSaved={coll.settingsSaved}
-        onSaveHomeSettings={(e) => {
-          e.preventDefault();
-          saveCmsCollection('home-settings', coll.homeSettings, showToast);
+        onSaveHomeSettings={(settings) => {
+          saveCmsCollection('home-settings', settings, showToast);
         }}
         onConvertProposalToBooking={(bookingData) => {
           modals.setCuratedProposalData(null);
@@ -224,9 +247,14 @@ export function DashboardMainView({
         setFormData={modals.setFormData}
         onSubmitBooking={onSubmitBooking}
         tours={coll.tours}
+        bookings={bk.bookings}
+        agents={coll.agents}
+        suppliers={coll.suppliers}
+        tourCosts={coll.tourCosts}
         vehicles={coll.vehicles}
         drivers={coll.drivers}
         onOpenCreateTour={onOpenCreateTour}
+        showToast={showToast}
         isTourModalOpen={modals.isTourModalOpen}
         setIsTourModalOpen={modals.setIsTourModalOpen}
         editingTour={modals.editingTour}
@@ -238,25 +266,19 @@ export function DashboardMainView({
         onRememberOption={coll.rememberLibraryOption}
         onForgetOption={coll.forgetLibraryOption}
         availableImages={availableImages}
+        mediaList={coll.mediaList}
+        getImageUrl={coll.getImageUrl}
+        handleFileUpload={coll.handleFileUpload}
         isCategoryModalOpen={modals.isCategoryModalOpen}
         setIsCategoryModalOpen={modals.setIsCategoryModalOpen}
-        editingCategory={modals.editingCategory}
-        categoryFormData={modals.categoryFormData}
-        setCategoryFormData={modals.setCategoryFormData}
-        onSubmitCategory={(e) => {
-          e.preventDefault();
-          if (!modals.categoryFormData.label_tr) return;
-          if (modals.editingCategory) {
-            coll.saveCategories(
-              coll.categories.map((c: any) =>
-                c.id === modals.editingCategory?.id ? ({ ...c, ...modals.categoryFormData } as CategoryItem) : c
-              )
-            );
-          } else {
-            const slug = modals.categoryFormData.slug || modals.categoryFormData.label_tr.toLowerCase().replace(/[^a-z0-9]+/g, '-');
-            coll.saveCategories([...coll.categories, { id: slug, slug, label_tr: modals.categoryFormData.label_tr, active: true }]);
-          }
+        onSaveCategory={(cat) => {
+          coll.saveCategories([...coll.categories.filter((c: any) => c.slug !== cat.slug), cat]);
           modals.setIsCategoryModalOpen(false);
+          showToast(`Kategori "${cat.label_tr}" kaydedildi.`);
+        }}
+        onDeleteCategory={(slug) => {
+          coll.saveCategories(coll.categories.filter((c: any) => c.slug !== slug));
+          showToast('Kategori silindi.');
         }}
         isBlogModalOpen={modals.isBlogModalOpen}
         setIsBlogModalOpen={modals.setIsBlogModalOpen}
@@ -276,7 +298,6 @@ export function DashboardMainView({
         }}
         isServiceModalOpen={modals.isServiceModalOpen}
         setIsServiceModalOpen={modals.setIsServiceModalOpen}
-        editingService={modals.editingService}
         serviceFormData={modals.serviceFormData}
         setServiceFormData={modals.setServiceFormData}
         onSubmitService={(e) => {
@@ -324,7 +345,6 @@ export function DashboardMainView({
         newMediaUrl=""
         setNewMediaUrl={() => {}}
         onAddMediaSubmit={() => {}}
-        onFileUpload={coll.handleFileUpload}
         selectedLightboxMedia={modals.lightboxMedia}
         setSelectedLightboxMedia={modals.setLightboxMedia}
         onCopyMediaUrl={(url) => {
@@ -407,9 +427,9 @@ export function DashboardMainView({
         vehicles={coll.vehicles}
         isGuideExpenseOpen={modals.isGuideExpenseOpen}
         setIsGuideExpenseOpen={modals.setIsGuideExpenseOpen}
+        welcomeBoardBooking={modals.welcomeBoardBooking}
         isWelcomeBoardOpen={modals.isWelcomeBoardOpen}
         setIsWelcomeBoardOpen={modals.setIsWelcomeBoardOpen}
-        welcomeBoardBooking={modals.welcomeBoardBooking}
         isTourMediaOpen={modals.isTourMediaOpen}
         setIsTourMediaOpen={modals.setIsTourMediaOpen}
         tourMediaBooking={modals.tourMediaBooking}

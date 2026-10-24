@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Share2 } from 'lucide-react';
 import { fmtMoney } from '../../lib/moneyFormat';
 import { formatDateDisplay, type FieldScheduleItem } from './fieldTypes';

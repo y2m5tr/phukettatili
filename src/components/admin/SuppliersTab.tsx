@@ -90,7 +90,7 @@ export default function SuppliersTab({
   }, [suppliers, searchQuery, categoryFilter]);
 
   // Tedarikçi Kaydet
-  const handleSaveSupplier = (e: React.FormEvent) => {
+  const handleSaveSupplier = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!supplierForm.name || !supplierForm.pierOrLocation) {
       showToast('⚠️ Firma adı ve iskele/konum zorunludur.');
@@ -136,7 +136,7 @@ export default function SuppliersTab({
   };
 
   // Tur Net Maliyeti Kaydet
-  const handleSaveCost = (e: React.FormEvent) => {
+  const handleSaveCost = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!costForm.tourTitle || !costForm.supplierName || !costForm.netCostAdultThb) {
       showToast('⚠️ Tur, tedarikçi ve yetişkin net alış fiyatı zorunludur.');

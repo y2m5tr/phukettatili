@@ -95,7 +95,7 @@ export default function LostFoundModal({
     showToast(`📦 Durum güncellendi: ${STATUS_LABELS[nextStatus].label}`);
   };
 
-  const handleCreateItem = (e: React.FormEvent) => {
+  const handleCreateItem = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) {
       showToast('⚠️ Lütfen eşya adını yazın.');

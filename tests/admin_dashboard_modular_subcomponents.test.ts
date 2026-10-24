@@ -87,10 +87,8 @@ describe('AdminDashboard modular subcomponents (500-line refactor)', () => {
         availableImages: [],
         isCategoryModalOpen: false,
         setIsCategoryModalOpen: vi.fn(),
-        editingCategory: null,
-        categoryFormData: {},
-        setCategoryFormData: vi.fn(),
-        onSubmitCategory: vi.fn(),
+        onSaveCategory: vi.fn(),
+        onDeleteCategory: vi.fn(),
         isBlogModalOpen: false,
         setIsBlogModalOpen: vi.fn(),
         editingBlog: null,
@@ -99,7 +97,6 @@ describe('AdminDashboard modular subcomponents (500-line refactor)', () => {
         onSubmitBlog: vi.fn(),
         isServiceModalOpen: false,
         setIsServiceModalOpen: vi.fn(),
-        editingService: null,
         serviceFormData: {},
         setServiceFormData: vi.fn(),
         onSubmitService: vi.fn(),
@@ -124,7 +121,6 @@ describe('AdminDashboard modular subcomponents (500-line refactor)', () => {
         newMediaUrl: '',
         setNewMediaUrl: vi.fn(),
         onAddMediaSubmit: vi.fn(),
-        onFileUpload: vi.fn(),
         selectedLightboxMedia: null,
         setSelectedLightboxMedia: vi.fn(),
         onCopyMediaUrl: vi.fn(),
@@ -135,7 +131,7 @@ describe('AdminDashboard modular subcomponents (500-line refactor)', () => {
       })
     );
 
-    expect(html).toContain('Fotoğrafı Tura Ata');
+    expect(html).toContain('Görseli Tura Bağla');
     expect(html).toContain('Test Görsel');
     expect(html).toContain('Kapak Yap');
   });

@@ -207,7 +207,7 @@ export default function QrScannerModal({ isOpen, onClose, onScanResult }: Props)
   };
 
   // Manuel Kod Girişi
-  const handleManualSubmit = (e: React.FormEvent) => {
+  const handleManualSubmit = (e: React.SyntheticEvent) => {
     e.preventDefault();
     if (!manualCode.trim()) return;
     handleParsedQr(manualCode.trim());
