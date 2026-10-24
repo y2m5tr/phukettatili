@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { resolveAssetUrl } from '../../lib/assets';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface TourSlide {
   id: string;
@@ -60,7 +61,7 @@ export default function TourShowcase({ tours }: { tours: TourSlide[] }) {
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <a href={`/turlar/${current.id}`} className="inline-flex items-center gap-3 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Turu keşfet <span aria-hidden="true">↗</span></a>
             {current.data.duration && <span className="rounded-full border border-white/25 bg-white/10 px-4 py-3 text-xs text-white/90 backdrop-blur-md">◷ &nbsp;{current.data.duration}</span>}
-            {current.data.price_thb != null && current.data.price_thb > 0 && <span className="text-sm font-medium text-white">{current.data.price_thb.toLocaleString()} THB</span>}
+            {current.data.price_thb != null && current.data.price_thb > 0 && <span className="text-sm font-medium text-white">{fmtMoney(current.data.price_thb)} THB</span>}
           </div>
         </div>
 

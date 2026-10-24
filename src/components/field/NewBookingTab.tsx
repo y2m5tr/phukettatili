@@ -11,6 +11,7 @@ import {
   detectHotelZone,
   getRecommendedPickupTime,
 } from '../../data/adminInitialData';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface NewBookingTabProps {
   newCustName: string;
@@ -186,7 +187,7 @@ export default function NewBookingTab({
           >
             {tours.map((t) => (
               <option key={t.id} value={t.id}>
-                {t.title} ({t.priceThb ? `${t.priceThb.toLocaleString()} THB` : 'Özel Fiyat'})
+                {t.title} ({t.priceThb ? `${fmtMoney(t.priceThb)} THB` : 'Özel Fiyat'})
               </option>
             ))}
           </select>

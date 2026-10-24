@@ -36,6 +36,7 @@ import type { AdminTab } from './AdminDashboard';
 import { type Booking, type TourItem, getPhuketSeason } from '../../data/adminInitialData';
 import { calculateTourOccupancy, getTourCapacity } from '../../lib/allotment';
 import { generateGuestPickupReminderTurkish } from '../../lib/whatsappEngine';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 /** AdminDashboard'taki stats useMemo çıktısı — alan isimleri birebir. */
 export interface OverviewStats {
@@ -476,7 +477,7 @@ export default function OverviewTab({
                 Sahada Toplanacak Nakit
               </span>
               <div className="text-2xl sm:text-3xl font-extrabold text-amber-300 font-mono mt-1">
-                {todayDispatch.cashToCollectThb.toLocaleString()} <span className="text-xs font-semibold text-white">THB</span>
+                {fmtMoney(todayDispatch.cashToCollectThb)} <span className="text-xs font-semibold text-white">THB</span>
               </div>
               <p className="text-[11px] text-slate-400 mt-1">
                 Şoför & rehberlerin lobilerden alacağı bakiye
@@ -629,7 +630,7 @@ export default function OverviewTab({
                           <td className="py-3 px-4 whitespace-nowrap">
                             {Number(item.remainingAmountThb) > 0 ? (
                               <span className="text-amber-300 font-mono font-bold text-xs bg-amber-500/15 px-2 py-0.5 rounded-md border border-amber-500/30">
-                                💰 {item.remainingAmountThb.toLocaleString()} THB
+                                💰 {fmtMoney(item.remainingAmountThb)} THB
                               </span>
                             ) : (
                               <span className="text-emerald-400 font-semibold text-xs">
@@ -727,7 +728,7 @@ export default function OverviewTab({
                     {overdueBookings.length} Geciken Tahsilat Kaydı
                   </div>
                   <p className="text-[11px] text-rose-700/80 dark:text-rose-400/80 mt-0.5 font-mono">
-                    Toplam {overdueAmountThb.toLocaleString()} THB tahsil edilmedi
+                    Toplam {fmtMoney(overdueAmountThb)} THB tahsil edilmedi
                   </p>
                 </div>
               </div>
@@ -815,7 +816,7 @@ export default function OverviewTab({
             </div>
           </div>
           <div className="text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">
-            {stats.totalRevenueThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
+            {fmtMoney(stats.totalRevenueThb)} <span className="text-xs font-semibold">THB</span>
           </div>
           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Toplam satış cirosu</p>
         </div>
@@ -830,7 +831,7 @@ export default function OverviewTab({
                 </div>
               </div>
               <div className="text-2xl font-extrabold text-rose-600 dark:text-rose-400">
-                {stats.totalCostThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
+                {fmtMoney(stats.totalCostThb)} <span className="text-xs font-semibold">THB</span>
               </div>
               <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Tekne & acente gideri</p>
             </div>
@@ -843,7 +844,7 @@ export default function OverviewTab({
                 </div>
               </div>
               <div className="text-2xl font-extrabold text-emerald-700 dark:text-emerald-300">
-                {stats.netProfitThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
+                {fmtMoney(stats.netProfitThb)} <span className="text-xs font-semibold">THB</span>
               </div>
               <p className="mt-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
                 %{stats.profitMarginPercent} Kâr Marjı
@@ -888,7 +889,7 @@ export default function OverviewTab({
             </div>
           </div>
           <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
-            {stats.collectedRevenueThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
+            {fmtMoney(stats.collectedRevenueThb)} <span className="text-xs font-semibold">THB</span>
           </div>
           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Kasadaki peşinat</p>
         </div>
@@ -901,7 +902,7 @@ export default function OverviewTab({
             </div>
           </div>
           <div className="text-2xl font-extrabold text-amber-600 dark:text-amber-400">
-            {stats.pendingCollectionThb.toLocaleString()} <span className="text-xs font-semibold">THB</span>
+            {fmtMoney(stats.pendingCollectionThb)} <span className="text-xs font-semibold">THB</span>
           </div>
           <p className="mt-1 text-[11px] text-slate-500 dark:text-slate-400">Otelde tahsil edilecek</p>
         </div>
@@ -1060,7 +1061,7 @@ export default function OverviewTab({
 
               <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  {t.priceThb && t.priceThb > 0 ? `${t.priceThb.toLocaleString()} THB` : 'Teklif Alın'}
+                  {t.priceThb && t.priceThb > 0 ? `${fmtMoney(t.priceThb)} THB` : 'Teklif Alın'}
                 </span>
                 <a
                   href={`/turlar/${t.id}`}

@@ -4,6 +4,7 @@ import {
   PAYMENT_METHOD_LABELS,
   COLLECTION_LOCATION_LABELS,
 } from '../../../data/adminInitialData';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 export type LedgerDateFilter = 'all' | 'today' | 'this_week' | 'this_month';
 
@@ -143,7 +144,7 @@ export default function LedgerPanel({
 
                       <td className="py-3.5 px-4 text-right">
                         <span className="text-sm font-black text-emerald-600 dark:text-emerald-400 block font-mono">
-                          +{p.amountThb.toLocaleString()} THB
+                          +{fmtMoney(p.amountThb)} THB
                         </span>
                         <span className="text-[10px] text-emerald-700 dark:text-emerald-300 font-bold uppercase tracking-wider">
                           ✓ Kasaya Girdi

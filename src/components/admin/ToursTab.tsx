@@ -16,6 +16,7 @@ import {
   FolderPlus,
 } from 'lucide-react';
 import type { TourItem, CategoryItem } from '../../data/adminTypes';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface ToursTabProps {
   tours: TourItem[];
@@ -341,7 +342,7 @@ export default function ToursTab({
                     <div>
                       <span className="text-slate-400 block text-[10px]">Kişi Başı Ücret:</span>
                       <span className="font-extrabold text-base text-brand-primary dark:text-white">
-                        {t.priceThb > 0 ? `${t.priceThb.toLocaleString()} THB` : 'Teklif Alın'}
+                        {t.priceThb > 0 ? `${fmtMoney(t.priceThb)} THB` : 'Teklif Alın'}
                       </span>
                     </div>
 

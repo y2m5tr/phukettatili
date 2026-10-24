@@ -6,6 +6,7 @@ import {
   EXPENSE_CATEGORY_LABELS,
 } from '../../../data/adminInitialData';
 import { VAULT_ACCOUNTS, type VaultAccountId } from './vaultTypes';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 interface ExpenseModalProps {
   onSave: (expense: ExpenseRecord) => void;
@@ -54,7 +55,7 @@ export default function ExpenseModal({ onSave, onClose, showToast }: ExpenseModa
     };
 
     onSave(newExp);
-    showToast(`✓ ${expenseAmount.toLocaleString()} THB tutarındaki gider kaydedildi! ⛽`);
+    showToast(`✓ ${fmtMoney(expenseAmount)} THB tutarındaki gider kaydedildi! ⛽`);
   };
 
   return (
@@ -160,7 +161,7 @@ export default function ExpenseModal({ onSave, onClose, showToast }: ExpenseModa
                   onClick={() => setExpenseAmount(amt)}
                   className="px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-[10px] font-mono font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                 >
-                  {amt.toLocaleString()}
+                  {fmtMoney(amt)}
                 </button>
               ))}
             </div>

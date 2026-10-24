@@ -18,6 +18,7 @@ import {
   type WizardRecommendation,
 } from '../../lib/tourWizard';
 import { formatDisplayPrice, type DisplayCurrency } from '../../lib/siteCurrency';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface HomeHolidayAssistantProps {
   tours?: TourCandidate[];
@@ -235,13 +236,13 @@ export default function HomeHolidayAssistant({
                 {/* Fiyatlama Kutusu */}
                 <div className="text-left sm:text-right shrink-0 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
                   <div className="text-xs text-slate-400 line-through">
-                    Ayrı Ayrı: {packagePlan.totalIndividualPriceThb.toLocaleString()} ฿
+                    Ayrı Ayrı: {fmtMoney(packagePlan.totalIndividualPriceThb)} ฿
                   </div>
                   <div className="text-2xl font-black text-brand-primary dark:text-amber-400 font-mono">
-                    {packagePlan.finalPackagePriceThb.toLocaleString()} ฿
+                    {fmtMoney(packagePlan.finalPackagePriceThb)} ฿
                   </div>
                   <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    Kişi Başı {packagePlan.discountAmountThb.toLocaleString()} ฿ Tasarruf!
+                    Kişi Başı {fmtMoney(packagePlan.discountAmountThb)} ฿ Tasarruf!
                   </div>
                 </div>
               </div>

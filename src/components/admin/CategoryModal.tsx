@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, FolderPlus, Trash2, CheckCircle2, Sparkles, ExternalLink } from 'lucide-react';
+import { X, Trash2, CheckCircle2, ExternalLink } from 'lucide-react';
 import type { CategoryItem } from '../../data/adminTypes';
 
 interface CategoryModalProps {

@@ -16,6 +16,7 @@ import {
   Receipt,
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface Props {
   bookings: Booking[];
@@ -322,11 +323,11 @@ export default function SupplierSettlementManager({
     statementItems.forEach((it, idx) => {
       text += `${idx + 1}. [${it.tourDate}] *${it.customerName}* (${it.totalPax} PAX)\n`;
       text += `   🏝️ Tour: ${it.tourTitle}\n`;
-      text += `   💵 Cost Due: *${it.costThb.toLocaleString()} THB*\n\n`;
+      text += `   💵 Cost Due: *${fmtMoney(it.costThb)} THB*\n\n`;
     });
 
     text += `───────────────────────────────\n`;
-    text += `💰 *TOTAL PAYOUT AMOUNT:* *${statementTotalCost.toLocaleString()} THB*\n`;
+    text += `💰 *TOTAL PAYOUT AMOUNT:* *${fmtMoney(statementTotalCost)} THB*\n`;
     text += `📄 Ref No: PT-SETTLE-${new Date().getTime().toString().slice(-6)}\n`;
     text += `Operated by: Phuket Tatili Co., Ltd. (TAT License: 34/02819)\n`;
     text += `Hotline: +${managerPhone.replace(/[^0-9]/g, '')}\n`;
@@ -436,7 +437,7 @@ export default function SupplierSettlementManager({
             <DollarSign className="w-4 h-4 text-sky-500" />
           </div>
           <div className="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white">
-            {totals.totalRev.toLocaleString()} <span className="text-xs font-sans font-bold text-slate-400">THB</span>
+            {fmtMoney(totals.totalRev)} <span className="text-xs font-sans font-bold text-slate-400">THB</span>
           </div>
           <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">
             {totals.itemCount} Tur / Rezervasyon
@@ -450,7 +451,7 @@ export default function SupplierSettlementManager({
             <Building className="w-4 h-4 text-rose-500" />
           </div>
           <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400">
-            {totals.totalCost.toLocaleString()} <span className="text-xs font-sans font-bold text-slate-400">THB</span>
+            {fmtMoney(totals.totalCost)} <span className="text-xs font-sans font-bold text-slate-400">THB</span>
           </div>
           <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">
             Ödenecek Toplam Hakediş
@@ -464,7 +465,7 @@ export default function SupplierSettlementManager({
             <TrendingUp className="w-4 h-4" />
           </div>
           <div className="text-xl sm:text-2xl font-black font-mono text-emerald-700 dark:text-emerald-300">
-            {totals.totalNetProfit.toLocaleString()} <span className="text-xs font-sans font-bold text-emerald-600/70">THB</span>
+            {fmtMoney(totals.totalNetProfit)} <span className="text-xs font-sans font-bold text-emerald-600/70">THB</span>
           </div>
           <div className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 mt-1">
             <ArrowUpRight className="w-3.5 h-3.5" />
@@ -493,7 +494,7 @@ export default function SupplierSettlementManager({
             <Receipt className="w-4 h-4 text-indigo-500" />
           </div>
           <div className="text-xl sm:text-2xl font-black font-mono text-indigo-600 dark:text-indigo-400">
-            {totals.avgProfitPerPax.toLocaleString()} <span className="text-xs font-sans font-bold text-slate-400">THB</span>
+            {fmtMoney(totals.avgProfitPerPax)} <span className="text-xs font-sans font-bold text-slate-400">THB</span>
           </div>
           <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-1 block">
             Kişi Başı Ortalama Net Getiri
@@ -528,13 +529,13 @@ export default function SupplierSettlementManager({
                   <div>
                     <span className="text-[10px] text-slate-400 block font-sans">Ödenecek Borç</span>
                     <span className="font-bold text-rose-600 dark:text-rose-400 text-base">
-                      {g.totalCost.toLocaleString()} THB
+                      {fmtMoney(g.totalCost)} THB
                     </span>
                   </div>
                   <div>
                     <span className="text-[10px] text-slate-400 block font-sans">Acenta Kârı</span>
                     <span className="font-bold text-emerald-600 dark:text-emerald-400 text-base">
-                      {g.netProfit.toLocaleString()} THB
+                      {fmtMoney(g.netProfit)} THB
                     </span>
                   </div>
                 </div>
@@ -637,7 +638,7 @@ export default function SupplierSettlementManager({
                       {item.totalPax}
                     </td>
                     <td className="py-3 px-4 text-right whitespace-nowrap font-mono font-bold text-slate-900 dark:text-white">
-                      {item.revenueThb.toLocaleString()} ฿
+                      {fmtMoney(item.revenueThb)} ฿
                     </td>
                     <td className="py-3 px-4 text-right whitespace-nowrap font-mono font-bold text-rose-600 dark:text-rose-400">
                       {editingItem && editingItem.bookingId === item.bookingId && editingItem.tourIndex === item.tourIndex ? (
@@ -662,7 +663,7 @@ export default function SupplierSettlementManager({
                         </div>
                       ) : (
                         <div className="flex items-center justify-end gap-1.5 group">
-                          <span>{item.costThb.toLocaleString()} ฿</span>
+                          <span>{fmtMoney(item.costThb)} ฿</span>
                           <button
                             type="button"
                             onClick={() =>
@@ -681,7 +682,7 @@ export default function SupplierSettlementManager({
                       )}
                     </td>
                     <td className="py-3 px-4 text-right whitespace-nowrap font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                      +{item.profitThb.toLocaleString()} ฿
+                      +{fmtMoney(item.profitThb)} ฿
                       <span className="text-[10px] text-slate-400 ml-1 font-sans">
                         (%{item.marginPercent})
                       </span>
@@ -798,7 +799,7 @@ export default function SupplierSettlementManager({
                 <div>
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Toplam Ödenecek</span>
                   <span className="font-black text-rose-700 block text-sm font-mono">
-                    {statementTotalCost.toLocaleString()} THB
+                    {fmtMoney(statementTotalCost)} THB
                   </span>
                 </div>
               </div>
@@ -826,10 +827,10 @@ export default function SupplierSettlementManager({
                         <td className="py-2 px-3 text-slate-700">{item.tourTitle}</td>
                         <td className="py-2 px-3 text-center font-bold font-mono">{item.totalPax}</td>
                         <td className="py-2 px-3 text-right font-mono text-slate-600">
-                          {item.totalPax > 0 ? Math.round(item.costThb / item.totalPax).toLocaleString() : item.costThb} ฿
+                          {item.totalPax > 0 ?fmtMoney( Math.round(item.costThb / item.totalPax)) : item.costThb} ฿
                         </td>
                         <td className="py-2 px-3 text-right font-mono font-black text-slate-900">
-                          {item.costThb.toLocaleString()} ฿
+                          {fmtMoney(item.costThb)} ฿
                         </td>
                       </tr>
                     ))}
@@ -844,7 +845,7 @@ export default function SupplierSettlementManager({
                       </td>
                       <td></td>
                       <td className="py-3 px-3 text-right font-mono font-black text-base text-rose-700">
-                        {statementTotalCost.toLocaleString()} THB
+                        {fmtMoney(statementTotalCost)} THB
                       </td>
                     </tr>
                   </tfoot>

@@ -58,6 +58,7 @@ import type { TravelStyle, PackageDuration } from '../../lib/holidayPlanner';
 import ProposalSingleTourDoc from './proposal/ProposalSingleTourDoc';
 import ProposalMultiDayDoc from './proposal/ProposalMultiDayDoc';
 import { HOTEL_ZONES, detectHotelZone } from '../../data/adminInitialData';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 export interface SavedProposalItem {
   id: string;
@@ -67,8 +68,6 @@ export interface SavedProposalItem {
   proposalType: ProposalType;
   data: CuratedProposalData;
 }
-
-const STORAGE_KEY_PROPOSALS = 'ptt_saved_curated_proposals_v1';
 
 /**
  * Antette basılan marka logosu. Header/Footer ile aynı dosya — şeffaf zeminli
@@ -1069,7 +1068,7 @@ export default function CuratedProposalModal({
                           {getCategoryIcon(preset.category)} {preset.tourTitle}
                         </span>
                         <span className="text-[10px] text-slate-500 block">
-                          {preset.priceThb.toLocaleString()} THB · {preset.tourDuration}
+                          {fmtMoney(preset.priceThb)} THB · {preset.tourDuration}
                         </span>
                       </button>
                     ))}
@@ -1847,7 +1846,7 @@ export default function CuratedProposalModal({
                     </option>
                     {PROPOSAL_CATALOG_TOURS.map((t) => (
                       <option key={t.id} value={t.id}>
-                        {getCategoryIcon(t.category)} {t.tourTitle} ({t.priceThb.toLocaleString()} ฿)
+                        {getCategoryIcon(t.category)} {t.tourTitle} ({fmtMoney(t.priceThb)} ฿)
                       </option>
                     ))}
                   </select>
@@ -1883,7 +1882,7 @@ export default function CuratedProposalModal({
 
                           <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                             <span className="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mr-1">
-                              {day.priceThb.toLocaleString()}฿
+                              {fmtMoney(day.priceThb)}฿
                             </span>
 
                             <button
@@ -2301,7 +2300,7 @@ export default function CuratedProposalModal({
                               <span>{addon.title}</span>
                             </span>
                             <span className="font-mono font-bold text-xs text-amber-600 dark:text-amber-400 shrink-0">
-                              +{addon.priceThb.toLocaleString()} THB
+                              +{fmtMoney(addon.priceThb)} THB
                             </span>
                           </div>
                           {addon.description && (
@@ -2573,7 +2572,7 @@ export default function CuratedProposalModal({
                   </span>
                 </div>
                 <span className="text-sm font-black font-mono text-emerald-600 dark:text-emerald-400">
-                  {financials.totalThb.toLocaleString()} THB
+                  {fmtMoney(financials.totalThb)} THB
                 </span>
               </div>
 

@@ -5,6 +5,7 @@ import {
   PAYMENT_METHOD_LABELS,
 } from '../../../data/adminInitialData';
 import { VAULT_ACCOUNTS, type VaultAccountId, type VirmanRecord } from './vaultTypes';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 export interface VaultBalances {
   balances: Record<VaultAccountId, number>;
@@ -52,7 +53,7 @@ export default function VaultPanel({
           <div className="bg-slate-50 dark:bg-slate-900/80 px-4 py-2 rounded-2xl border border-slate-200 dark:border-slate-800 text-right">
             <span className="text-[10px] uppercase font-bold text-slate-400 block">Konsolide Likit Varlık</span>
             <span className="text-lg font-black text-emerald-600 dark:text-emerald-400 font-serif">
-              {vaultBalances.totalLiquid.toLocaleString()} THB
+              {fmtMoney(vaultBalances.totalLiquid)} THB
             </span>
           </div>
 
@@ -100,7 +101,7 @@ export default function VaultPanel({
                 <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Kasa Bakiyesi</span>
                   <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-serif mt-0.5">
-                    {balance.toLocaleString()}{' '}
+                    {fmtMoney(balance)}{' '}
                     <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
                   </div>
 
@@ -197,7 +198,7 @@ export default function VaultPanel({
                       </td>
                       <td className="py-3 px-4">
                         <span className="font-mono font-black text-slate-900 dark:text-white">
-                          {v.amountThb.toLocaleString()} THB
+                          {fmtMoney(v.amountThb)} THB
                         </span>
                       </td>
                       <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
@@ -252,7 +253,7 @@ export default function VaultPanel({
                   </div>
                 </div>
                 <span className="text-sm font-bold font-mono text-slate-900 dark:text-white">
-                  {amount.toLocaleString()} THB
+                  {fmtMoney(amount)} THB
                 </span>
               </div>
             );

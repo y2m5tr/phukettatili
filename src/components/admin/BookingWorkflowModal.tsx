@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
 import { generateGuestPickupReminderTurkish } from '../../lib/whatsappEngine';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface BookingWorkflowModalProps {
   isOpen: boolean;
@@ -372,7 +373,7 @@ export default function BookingWorkflowModal({
                     5. Ödeme & Kalan Tahsilat
                   </h4>
                   <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Toplam: {booking.totalPriceThb.toLocaleString()} THB · Ödenen: {booking.paidAmountThb.toLocaleString()} THB · Kalan: <span className="font-bold text-amber-600">{Number(booking.remainingAmountThb).toLocaleString()} THB</span>
+                    Toplam: {fmtMoney(booking.totalPriceThb)} THB · Ödenen: {fmtMoney(booking.paidAmountThb)} THB · Kalan: <span className="font-bold text-amber-600">{fmtMoney(Number(booking.remainingAmountThb))} THB</span>
                   </p>
                 </div>
               </div>

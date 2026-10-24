@@ -1,5 +1,6 @@
 ---
 import { resolveAssetUrl } from '../lib/assets';
+import { fmtMoney } from '../lib/moneyFormat';
 interface Props {
   tour: {
     id: string;
@@ -63,7 +64,7 @@ const cleanPhone = whatsappNumber.replace(/[^0-9]/g, '');
           )}
           {tour.data.price_thb != null && tour.data.price_thb > 0 ? (
             <span class="font-bold text-white text-sm">
-              {tour.data.price_thb.toLocaleString()} THB
+              {fmtMoney(tour.data.price_thb)} THB
             </span>
           ) : (
             <span class="rounded-full bg-white/10 px-2.5 py-0.5 text-xs font-semibold text-amber-300 border border-white/10">

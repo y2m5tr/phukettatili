@@ -5,6 +5,7 @@ import FadeIn from '../../components/ui/FadeIn';
 import TourShowcase from '../../components/ui/TourShowcase';
 import { resolveAssetUrl } from '../../lib/assets';
 import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 // Dinamik SSR: panelde değişen fiyat/başlık/kapak listede de görünsün. Eskiden
 // bu sayfa prerender=true iken tur DETAY sayfası content_store okuyordu;
@@ -164,7 +165,7 @@ const schemas: Record<string, unknown>[] = [
                   <div class="flex justify-between items-center border-t border-slate-100 dark:border-slate-700 pt-4 mt-4">
                     <span class="text-sm font-medium text-slate-500 dark:text-slate-400">{tour.data.duration || 'Tam Gün'}</span>
                     {tour.data.price_thb && tour.data.price_thb > 0 ? (
-                      <span class="text-lg font-bold text-brand-primary dark:text-white">{tour.data.price_thb.toLocaleString()} THB</span>
+                      <span class="text-lg font-bold text-brand-primary dark:text-white">{fmtMoney(tour.data.price_thb)} THB</span>
                     ) : (
                       <span class="text-xs font-bold text-brand-accent bg-brand-accent/10 px-2.5 py-1 rounded-full">Fiyat Teklifi Alın</span>
                     )}

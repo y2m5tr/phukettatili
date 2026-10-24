@@ -26,6 +26,7 @@ import {
   type SupportedCurrency,
 } from '../../lib/exchangeRates';
 import { formatDayMonthYear } from '../../lib/whatsappEngine';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface AgentPortalAppProps {
   agent: PartnerAgent;
@@ -196,8 +197,8 @@ export default function AgentPortalApp({
       `⏰ *Otelden Alınış Saati:* ${booking.pickupTime || '07:30'}\n` +
       `🏨 *Alınış Yeri:* ${booking.hotel} ${booking.roomNumber ? `(Oda: ${booking.roomNumber})` : ''}\n` +
       `👥 *Kişi Sayısı:* ${booking.adultCount} Yetişkin${booking.childCount > 0 ? ` + ${booking.childCount} Çocuk` : ''}\n` +
-      `💰 *Toplam Tutar:* ${booking.totalPriceThb.toLocaleString()} THB\n` +
-      `💵 *Kalan Ödeme:* ${booking.remainingAmountThb > 0 ? `${booking.remainingAmountThb.toLocaleString()} THB (Sabah lobide şoföre nakit)` : '✓ Ödendi'}\n` +
+      `💰 *Toplam Tutar:* ${fmtMoney(booking.totalPriceThb)} THB\n` +
+      `💵 *Kalan Ödeme:* ${booking.remainingAmountThb > 0 ? `${fmtMoney(booking.remainingAmountThb)} THB (Sabah lobide şoföre nakit)` : '✓ Ödendi'}\n` +
       `───────────────────────────────\n` +
       `🎫 *Canlı Bilet & Biniş Kartı Takip Linkiniz:*\n` +
       `${window.location.origin}/bilet/${booking.id}\n\n` +
@@ -362,7 +363,7 @@ export default function AgentPortalApp({
                   <div>
                     <span className="text-slate-400 block text-[10px] uppercase font-bold">Acente Komisyonunuz</span>
                     <strong className="text-amber-400 text-sm font-mono">
-                      +{confirmedBooking.commission.amountThb.toLocaleString()} THB
+                      +{fmtMoney(confirmedBooking.commission.amountThb)} THB
                     </strong>
                     <p className="text-slate-400">Cari hesabınıza alacak işlendi</p>
                   </div>
@@ -427,7 +428,7 @@ export default function AgentPortalApp({
                         <div className="mt-2 flex items-center justify-between text-xs">
                           <span className="text-[11px] text-slate-400">{t.duration || 'Tam Gün'}</span>
                           <span className="font-bold text-white font-mono">
-                            {t.priceThb > 0 ? `${t.priceThb.toLocaleString()} THB` : '2,800 THB'}
+                            {t.priceThb > 0 ? `${fmtMoney(t.priceThb)} THB` : '2,800 THB'}
                           </span>
                         </div>
                       </div>
@@ -461,7 +462,7 @@ export default function AgentPortalApp({
 
                     <div>
                       <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
-                        Yetişkin ({pricePerAdult.toLocaleString()} THB) *
+                        Yetişkin ({fmtMoney(pricePerAdult)} THB) *
                       </label>
                       <div className="flex items-center">
                         <button
@@ -491,7 +492,7 @@ export default function AgentPortalApp({
 
                     <div>
                       <label className="block text-[11px] font-bold uppercase text-slate-400 mb-1">
-                        Çocuk 4-11 Yaş ({pricePerChild.toLocaleString()} THB)
+                        Çocuk 4-11 Yaş ({fmtMoney(pricePerChild)} THB)
                       </label>
                       <div className="flex items-center">
                         <button
@@ -698,24 +699,24 @@ export default function AgentPortalApp({
 
                   <div className="space-y-3 text-xs border-y border-slate-800 py-4">
                     <div className="flex justify-between items-center text-slate-400">
-                      <span>Yetişkin ({adultCount} x {pricePerAdult.toLocaleString()} THB)</span>
-                      <span className="text-white font-mono font-semibold">{(adultCount * pricePerAdult).toLocaleString()} THB</span>
+                      <span>Yetişkin ({adultCount} x {fmtMoney(pricePerAdult)} THB)</span>
+                      <span className="text-white font-mono font-semibold">{fmtMoney((adultCount * pricePerAdult))} THB</span>
                     </div>
 
                     {childCount > 0 && (
                       <div className="flex justify-between items-center text-slate-400">
-                        <span>Çocuk ({childCount} x {pricePerChild.toLocaleString()} THB)</span>
-                        <span className="text-white font-mono font-semibold">{(childCount * pricePerChild).toLocaleString()} THB</span>
+                        <span>Çocuk ({childCount} x {fmtMoney(pricePerChild)} THB)</span>
+                        <span className="text-white font-mono font-semibold">{fmtMoney((childCount * pricePerChild))} THB</span>
                       </div>
                     )}
 
                     <div className="flex justify-between items-center text-slate-300 font-bold pt-2 border-t border-slate-800/60">
                       <span>Toplam Satış Bedeli</span>
                       <div className="text-right">
-                        <span className="text-white font-mono text-sm block">{totalPriceThb.toLocaleString()} THB</span>
+                        <span className="text-white font-mono text-sm block">{fmtMoney(totalPriceThb)} THB</span>
                         {displayCurrency !== 'THB' && (
                           <span className="text-[11px] text-amber-400 font-mono font-semibold">
-                            ≈ {convertThbToForeign(totalPriceThb, displayCurrency, exchangeRates).toLocaleString()} {displayCurrency}
+                            ≈ {fmtMoney(convertThbToForeign(totalPriceThb, displayCurrency, exchangeRates))} {displayCurrency}
                           </span>
                         )}
                       </div>
@@ -731,11 +732,11 @@ export default function AgentPortalApp({
                       </div>
                       <div className="text-right">
                         <span className="text-base font-black font-mono block">
-                          +{myCommissionThb.toLocaleString()} THB
+                          +{fmtMoney(myCommissionThb)} THB
                         </span>
                         {displayCurrency !== 'THB' && (
                           <span className="text-[10px] text-amber-400/90 font-mono font-semibold">
-                            ≈ {convertThbToForeign(myCommissionThb, displayCurrency, exchangeRates).toLocaleString()} {displayCurrency}
+                            ≈ {fmtMoney(convertThbToForeign(myCommissionThb, displayCurrency, exchangeRates))} {displayCurrency}
                           </span>
                         )}
                       </div>
@@ -744,10 +745,10 @@ export default function AgentPortalApp({
                     <div className="flex justify-between items-center text-slate-400 pt-1">
                       <span>Phuket Tatili Net Hakediş:</span>
                       <div className="text-right">
-                        <span className="text-slate-200 font-mono font-semibold block">{netPayableThb.toLocaleString()} THB</span>
+                        <span className="text-slate-200 font-mono font-semibold block">{fmtMoney(netPayableThb)} THB</span>
                         {displayCurrency !== 'THB' && (
                           <span className="text-[10px] text-slate-400 font-mono">
-                            ≈ {convertThbToForeign(netPayableThb, displayCurrency, exchangeRates).toLocaleString()} {displayCurrency}
+                            ≈ {fmtMoney(convertThbToForeign(netPayableThb, displayCurrency, exchangeRates))} {displayCurrency}
                           </span>
                         )}
                       </div>
@@ -775,7 +776,7 @@ export default function AgentPortalApp({
                       />
                       <div>
                         <span className="font-bold block">Rehber Otelde Nakit Alsın</span>
-                        <span className="text-[11px] text-slate-400">Şoför lobide {totalPriceThb.toLocaleString()} THB nakit toplar; komisyonunuz cari hesabınıza yazılır.</span>
+                        <span className="text-[11px] text-slate-400">Şoför lobide {fmtMoney(totalPriceThb)} THB nakit toplar; komisyonunuz cari hesabınıza yazılır.</span>
                       </div>
                     </label>
 
@@ -794,7 +795,7 @@ export default function AgentPortalApp({
                       />
                       <div>
                         <span className="font-bold block">Tahsilatı Ben Yaptım (Ödendi)</span>
-                        <span className="text-[11px] text-slate-400">Misafirden tahsilatı siz aldınız; Phuket Tatili'ne net {netPayableThb.toLocaleString()} THB havale edeceksiniz.</span>
+                        <span className="text-[11px] text-slate-400">Misafirden tahsilatı siz aldınız; Phuket Tatili'ne net {fmtMoney(netPayableThb)} THB havale edeceksiniz.</span>
                       </div>
                     </label>
                   </div>
@@ -846,7 +847,7 @@ export default function AgentPortalApp({
                   Toplam Satış Hacmi
                 </span>
                 <span className="text-2xl font-black text-sky-400 font-mono mt-1 block">
-                  {totalAgentRevenue.toLocaleString()} <span className="text-xs font-normal text-slate-400">THB</span>
+                  {fmtMoney(totalAgentRevenue)} <span className="text-xs font-normal text-slate-400">THB</span>
                 </span>
                 <span className="text-xs text-slate-500 mt-1 block">Acenteniz üzerinden üretilen ciro</span>
               </div>
@@ -856,7 +857,7 @@ export default function AgentPortalApp({
                   Toplam Acenta Komisyonunuz
                 </span>
                 <span className="text-2xl font-black text-amber-400 font-mono mt-1 block">
-                  {totalAgentCommission.toLocaleString()} <span className="text-xs font-normal text-slate-400">THB</span>
+                  {fmtMoney(totalAgentCommission)} <span className="text-xs font-normal text-slate-400">THB</span>
                 </span>
                 <span className="text-xs text-slate-500 mt-1 block">Mutabakat dönemi sonunda ödenir</span>
               </div>
@@ -915,10 +916,10 @@ export default function AgentPortalApp({
 
                           <td className="py-3.5 px-4">
                             <span className="font-bold text-white block font-mono">
-                              {b.totalPriceThb.toLocaleString()} THB
+                              {fmtMoney(b.totalPriceThb)} THB
                             </span>
                             <span className="text-[11px] font-bold text-amber-400 font-mono block">
-                              Komisyon: +{(b.agentCommissionThb || 0).toLocaleString()} THB
+                              Komisyon: +{fmtMoney((b.agentCommissionThb || 0))} THB
                             </span>
                           </td>
 

@@ -14,6 +14,7 @@ import {
   DEFAULT_EXCHANGE_RATES,
 } from '../../../data/adminInitialData';
 import { getLiveExchangeRates, type SupportedCurrency } from '../../../lib/exchangeRates';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 interface CollectPaymentModalProps {
   bookings: Booking[];
@@ -150,7 +151,7 @@ export default function CollectPaymentModal({
               <option value="">— Rezervasyon Seçin —</option>
               {bookings.map((b) => (
                 <option key={b.id} value={b.id}>
-                  {b.customerName} · {b.tourTitle} (Kalan: {(b.remainingAmountThb || 0).toLocaleString()} THB)
+                  {b.customerName} · {b.tourTitle} (Kalan: {fmtMoney((b.remainingAmountThb || 0))} THB)
                 </option>
               ))}
             </select>
@@ -239,7 +240,7 @@ export default function CollectPaymentModal({
                   <div className="text-xs text-slate-600 dark:text-slate-400">
                     Karşılığı:{' '}
                     <span className="font-extrabold text-emerald-600 dark:text-emerald-400 font-mono text-sm">
-                      {convertToThb(foreignAmount, foreignCurrency, exchangeRates).toLocaleString()} THB
+                      {fmtMoney(convertToThb(foreignAmount, foreignCurrency, exchangeRates))} THB
                     </span>
                   </div>
                   <button
@@ -248,9 +249,9 @@ export default function CollectPaymentModal({
                       const converted = convertToThb(foreignAmount, foreignCurrency, exchangeRates);
                       setCollectAmount(converted);
                       setCollectNote(
-                        `${foreignAmount.toLocaleString()} ${foreignCurrency} nakit/havale alındı (Canlı Kur: ${exchangeRates[foreignCurrency]})`
+                        `${fmtMoney(foreignAmount)} ${foreignCurrency} nakit/havale alındı (Canlı Kur: ${exchangeRates[foreignCurrency]})`
                       );
-                      showToast(`💱 ${converted.toLocaleString()} THB olarak tahsilat kutusuna aktarıldı!`);
+                      showToast(`💱 ${fmtMoney(converted)} THB olarak tahsilat kutusuna aktarıldı!`);
                     }}
                     disabled={foreignAmount <= 0}
                     className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-all disabled:opacity-40 cursor-pointer flex items-center gap-1 shadow-sm"

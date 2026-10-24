@@ -136,6 +136,7 @@ import {
   uploadToStorage,
 } from '../../lib/imageUpload';
 import { sendTransferPushNotification } from '../../lib/pwaNotifications';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 // Geriye dönük uyumluluk: CommandPaletteModal ve OverviewTab bu tipleri
 // AdminDashboard üzerinden import ediyor.
@@ -1776,7 +1777,7 @@ export default function AdminDashboard({
     });
     setIsQrScannerOpen(false);
     if (found.remainingAmountThb > 0) {
-      showToast(`✅ ${found.customerName} bindi! ⚠️ Kalan Alınacak: ${found.remainingAmountThb.toLocaleString()} THB`);
+      showToast(`✅ ${found.customerName} bindi! ⚠️ Kalan Alınacak: ${fmtMoney(found.remainingAmountThb)} THB`);
     } else {
       showToast(`✅ ${found.customerName} bilet doğrulandı ve araca bindi olarak kaydedildi.`);
     }
@@ -3404,7 +3405,7 @@ export default function AdminDashboard({
               collectedBy: 'PromptPay QR (Online/Saha)',
               note: `PromptPay ile tahsil edildi (${promptPayQrBooking.customerName})`,
             });
-            showToast(`✅ ${amt.toLocaleString()} THB PromptPay tahsilatı işlendi!`);
+            showToast(`✅ ${fmtMoney(amt)} THB PromptPay tahsilatı işlendi!`);
           }}
           showToast={showToast}
         />

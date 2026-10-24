@@ -21,6 +21,7 @@ import type {
   CuratedProposalFinancials,
   CuratedProposalDay,
 } from '../../../lib/curatedProposal';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 interface ProposalSingleTourDocProps {
   proposal: CuratedProposalData;
@@ -245,13 +246,13 @@ export default function ProposalSingleTourDoc({
       <div className="p-5 rounded-3xl bg-slate-950 text-white space-y-3.5 shadow-lg break-inside-avoid" style={{ breakInside: 'avoid', pageBreakInside: 'avoid' }}>
         <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-800 text-slate-400">
           <span>Tur Liste Fiyatı:</span>
-          <span className="font-mono">{financials.subtotalThb.toLocaleString()} THB</span>
+          <span className="font-mono">{fmtMoney(financials.subtotalThb)} THB</span>
         </div>
 
         {proposal.discountPercent > 0 && (
           <div className="flex items-center justify-between text-xs text-amber-400 font-bold">
             <span>Özel İndirim (%{proposal.discountPercent}):</span>
-            <span className="font-mono">-{financials.discountThb.toLocaleString()} THB</span>
+            <span className="font-mono">-{fmtMoney(financials.discountThb)} THB</span>
           </div>
         )}
 
@@ -259,15 +260,15 @@ export default function ProposalSingleTourDoc({
           <div>
             <span className="text-base font-black text-white block">Net Tur Bedeli:</span>
             <span className="text-[11px] text-slate-400">
-              (~{financials.totalTry.toLocaleString()} TL · ~{financials.totalUsd.toLocaleString()} USD · ~{financials.totalEur.toLocaleString()} EUR)
+              (~{fmtMoney(financials.totalTry)} TL · ~{fmtMoney(financials.totalUsd)} USD · ~{fmtMoney(financials.totalEur)} EUR)
             </span>
           </div>
           <div className="text-right">
             <span className="text-2xl sm:text-3xl font-black text-amber-400 font-mono tracking-tight">
-              {financials.totalThb.toLocaleString()} <span className="text-sm font-normal">THB</span>
+              {fmtMoney(financials.totalThb)} <span className="text-sm font-normal">THB</span>
             </span>
             <span className="text-[11px] text-slate-400 block mt-0.5">
-              (Kişi başı: {financials.perPersonThb.toLocaleString()} THB)
+              (Kişi başı: {fmtMoney(financials.perPersonThb)} THB)
             </span>
           </div>
         </div>
@@ -278,7 +279,7 @@ export default function ProposalSingleTourDoc({
               Rezervasyon Kapora Bedeli (%{proposal.depositPercent}):
             </span>
             <span className="font-black text-emerald-400 font-mono text-sm sm:text-base mt-0.5 block">
-              {financials.depositThb.toLocaleString()} THB
+              {fmtMoney(financials.depositThb)} THB
             </span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
               Türkiye IBAN / Kredi Kartı / PromptPay
@@ -290,7 +291,7 @@ export default function ProposalSingleTourDoc({
               Tur Günü Kalan Bakiye:
             </span>
             <span className="font-black text-amber-300 font-mono text-sm sm:text-base mt-0.5 block">
-              {financials.remainingThb.toLocaleString()} THB
+              {fmtMoney(financials.remainingThb)} THB
             </span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
               Sabah transferde / marinada nakit Baht

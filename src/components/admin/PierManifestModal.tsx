@@ -18,6 +18,7 @@ import {
   generatePierManifestWhatsApp,
   printPierManifestA4,
 } from '../../lib/pierManifest';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface PierManifestModalProps {
   isOpen: boolean;
@@ -205,7 +206,7 @@ export default function PierManifestModal({
             </span>
             {manifest.totalRemainingThb > 0 && (
               <span className="px-2.5 py-1 rounded-lg bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 font-bold border border-rose-100 dark:border-rose-900/40">
-                💵 İskelede Tahsil Edilecek: {manifest.totalRemainingThb.toLocaleString()} THB
+                💵 İskelede Tahsil Edilecek: {fmtMoney(manifest.totalRemainingThb)} THB
               </span>
             )}
             {Object.keys(manifest.dietaryCounts).length > 0 && (
@@ -313,7 +314,7 @@ export default function PierManifestModal({
                         <td className="py-3 px-3">
                           {item.remainingAmountThb > 0 ? (
                             <span className="text-rose-600 dark:text-rose-400 font-bold block">
-                              💵 {item.remainingAmountThb.toLocaleString()} THB Kalan
+                              💵 {fmtMoney(item.remainingAmountThb)} THB Kalan
                             </span>
                           ) : (
                             <span className="text-emerald-600 dark:text-emerald-400 font-semibold block">

@@ -24,6 +24,7 @@ import { getSingleHotelMapUrl, detectDeparturePier } from '../../lib/maps';
 import { DEFAULT_GOOGLE_REVIEW_URL } from '../../lib/reviewBooster';
 import { formatDayMonthYear } from '../../lib/whatsappEngine';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 /**
  * Misafir portalının ÇİZECEĞİ asgari rezervasyon görünümü.
@@ -739,7 +740,7 @@ export default function GuestTicketPortal({
               <div className="flex items-baseline justify-between">
                 <span className="text-xs text-amber-200">Tur Sabahı Ödenecek Kalan:</span>
                 <span className="text-xl font-black font-mono text-amber-400">
-                  {booking.remainingAmountThb.toLocaleString()} THB
+                  {fmtMoney(booking.remainingAmountThb)} THB
                 </span>
               </div>
               <p className="text-[11px] text-slate-400 leading-relaxed">
@@ -751,7 +752,7 @@ export default function GuestTicketPortal({
                 className="w-full py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-blue-600/20 transition-all cursor-pointer"
               >
                 <QrCode className="w-4 h-4" />
-                <span>PromptPay QR Kodu ile Hemen Öde ({booking.remainingAmountThb.toLocaleString()} THB)</span>
+                <span>PromptPay QR Kodu ile Hemen Öde ({fmtMoney(booking.remainingAmountThb)} THB)</span>
               </button>
             </div>
           ) : (

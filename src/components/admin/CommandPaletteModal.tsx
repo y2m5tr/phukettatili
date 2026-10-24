@@ -21,6 +21,7 @@ import {
 import type { Booking, TourItem } from '../../data/adminInitialData';
 import type { AdminTab, NavItem } from './AdminDashboard';
 import { safeGet, safeSet } from '../../lib/safeStorage';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface CommandPaletteModalProps {
   isOpen: boolean;
@@ -344,7 +345,7 @@ export default function CommandPaletteModal({
           type: 'booking',
           title: `${b.customerName} (${b.id})`,
           subtitle: `${b.tourTitle} · ${b.hotel} ${b.roomNumber ? 'Oda ' + b.roomNumber : ''}`,
-          badge: remaining > 0 ? `Kalan: ${remaining.toLocaleString()} THB` : 'Ödendi',
+          badge: remaining > 0 ? `Kalan: ${fmtMoney(remaining)} THB` : 'Ödendi',
           badgeColor: remaining > 0 ? 'bg-amber-500/10 text-amber-600 border-amber-500/30' : 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30',
           icon: Users,
           handler: wrapHandler(`book-${b.id}`, () => {
@@ -373,7 +374,7 @@ export default function CommandPaletteModal({
           id: `tour-${t.id}`,
           type: 'action',
           title: t.title,
-          subtitle: `${t.categoryLabel || t.category} · ${t.duration || 'Tam Gün'} ${t.priceThb ? `· ${t.priceThb.toLocaleString()} THB` : ''}`,
+          subtitle: `${t.categoryLabel || t.category} · ${t.duration || 'Tam Gün'} ${t.priceThb ? `· ${fmtMoney(t.priceThb)} THB` : ''}`,
           badge: 'Tur Kataloğu',
           badgeColor: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/30',
           icon: Compass,

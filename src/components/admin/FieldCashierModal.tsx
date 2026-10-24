@@ -21,6 +21,7 @@ import {
 } from '../../lib/exchangeRates';
 import { DEFAULT_EXCHANGE_RATES } from '../../data/adminInitialData';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface FieldCashierModalProps {
   isOpen: boolean;
@@ -261,7 +262,7 @@ export default function FieldCashierModal({
                 <option value="">-- Serbest Tahsilat (Elle Giriş) --</option>
                 {bookings.map((b) => (
                   <option key={b.id} value={b.id}>
-                    {b.customerName} - {b.tourTitle} (Kalan: {b.remainingAmountThb.toLocaleString()} THB)
+                    {b.customerName} - {b.tourTitle} (Kalan: {fmtMoney(b.remainingAmountThb)} THB)
                   </option>
                 ))}
               </select>
@@ -396,7 +397,7 @@ export default function FieldCashierModal({
                       onClick={() => setPaidAmount(amt)}
                       className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold hover:bg-slate-100 cursor-pointer"
                     >
-                      {amt.toLocaleString()}฿
+                      {fmtMoney(amt)}฿
                     </button>
                   ))}
                 </>
@@ -442,7 +443,7 @@ export default function FieldCashierModal({
                   Alınan Döviz Karşılığı:
                 </span>
                 <div className="text-xl font-mono font-black text-white">
-                  {calculation.paidInThb.toLocaleString()} THB
+                  {fmtMoney(calculation.paidInThb)} THB
                 </div>
               </div>
 
@@ -455,7 +456,7 @@ export default function FieldCashierModal({
                       <span>Verilecek Para Üstü:</span>
                     </span>
                     <div className="text-2xl font-mono font-black text-emerald-400">
-                      +{calculation.changeDueThb.toLocaleString()} THB
+                      +{fmtMoney(calculation.changeDueThb)} THB
                     </div>
                   </div>
                 ) : calculation.remainingDebtThb > 0 ? (
@@ -465,7 +466,7 @@ export default function FieldCashierModal({
                       <span>Kalan Eksik Bakiye:</span>
                     </span>
                     <div className="text-2xl font-mono font-black text-red-400">
-                      -{calculation.remainingDebtThb.toLocaleString()} THB
+                      -{fmtMoney(calculation.remainingDebtThb)} THB
                     </div>
                   </div>
                 ) : (
@@ -595,7 +596,7 @@ export default function FieldCashierModal({
                 method: 'promptpay',
                 note: `PromptPay QR Tahsilatı (${guestName || 'Misafir'} - ${collectorName})`,
               });
-              showToast(`✅ ${amt.toLocaleString()} THB PromptPay tahsilatı kasaya kaydedildi!`);
+              showToast(`✅ ${fmtMoney(amt)} THB PromptPay tahsilatı kasaya kaydedildi!`);
             }
           }}
           showToast={showToast}

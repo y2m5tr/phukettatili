@@ -13,6 +13,7 @@ import { analyzeBookingDietaryAndMedical, DIETARY_CATEGORIES } from '../../lib/d
 import { generateDriverPickupJobThai, generateGuestPickupReminderTurkish } from '../../lib/whatsappEngine';
 import BulkDispatchModal from './BulkDispatchModal';
 import { buildDailyPickups } from '../../lib/adminFilters';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface BookingsTabProps {
   /** Arama + durum + tarih filtresinden geçmiş liste. */
@@ -365,7 +366,7 @@ export default function BookingsTab({
                                 {idx + 1}. {t.tourTitle}
                               </span>
                               <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
-                                📅 {t.tourDate} {t.pickupTime ? `· ⏰ ${t.pickupTime}` : ''} {t.priceThb ? `· ${t.priceThb.toLocaleString()} THB` : ''}
+                                📅 {t.tourDate} {t.pickupTime ? `· ⏰ ${t.pickupTime}` : ''} {t.priceThb ? `· ${fmtMoney(t.priceThb)} THB` : ''}
                               </span>
                             </div>
                           ))}
@@ -425,7 +426,7 @@ export default function BookingsTab({
 
                     <td className="py-4 px-5">
                       <div className="font-bold text-slate-900 dark:text-white">
-                        {b.totalPriceThb.toLocaleString()} THB
+                        {fmtMoney(b.totalPriceThb)} THB
                       </div>
                       <div className="text-xs mt-0.5">
                         {b.remainingAmountThb === 0 ? (
@@ -433,7 +434,7 @@ export default function BookingsTab({
                         ) : (
                           <div className="flex flex-col items-start gap-1">
                             <span className="text-amber-600 font-semibold">
-                              Kalan: {b.remainingAmountThb.toLocaleString()} THB
+                              Kalan: {fmtMoney(b.remainingAmountThb)} THB
                             </span>
                             <div className="flex items-center gap-1.5 flex-wrap">
                               {onQuickCollect && (

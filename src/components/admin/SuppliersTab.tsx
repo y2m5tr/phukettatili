@@ -17,6 +17,7 @@ import {
   type TourItem,
   type SupplierCategory,
 } from '../../data/adminInitialData';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface SuppliersTabProps {
   suppliers: SupplierItem[];
@@ -236,9 +237,9 @@ export default function SuppliersTab({
           </div>
           <div className="text-2xl font-black text-sky-600 dark:text-sky-400 font-serif">
             {tourCosts.length > 0
-              ? Math.round(
+              ?fmtMoney( Math.round(
                   tourCosts.reduce((acc, c) => acc + c.netCostAdultThb, 0) / tourCosts.length
-                ).toLocaleString()
+                ))
               : 0}{' '}
             <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
           </div>
@@ -413,22 +414,22 @@ export default function SuppliersTab({
                           </td>
 
                           <td className="py-3.5 px-4 font-mono font-bold text-rose-600 dark:text-rose-400">
-                            {c.netCostAdultThb.toLocaleString()} THB
+                            {fmtMoney(c.netCostAdultThb)} THB
                           </td>
 
                           <td className="py-3.5 px-4 font-mono text-slate-600 dark:text-slate-400">
-                            {c.netCostChildThb.toLocaleString()} THB
+                            {fmtMoney(c.netCostChildThb)} THB
                           </td>
 
                           <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
-                            {salePrice > 0 ? `${salePrice.toLocaleString()} THB` : '—'}
+                            {salePrice > 0 ? `${fmtMoney(salePrice)} THB` : '—'}
                           </td>
 
                           <td className="py-3.5 px-4">
                             {salePrice > 0 ? (
                               <div>
                                 <span className="font-bold text-emerald-600 dark:text-emerald-400 block font-mono">
-                                  +{profitPerAdult.toLocaleString()} THB
+                                  +{fmtMoney(profitPerAdult)} THB
                                 </span>
                                 <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">
                                   %{marginPercent} Kâr Marjı
@@ -825,7 +826,7 @@ export default function SuppliersTab({
                   <option value="">— Tur Seçin —</option>
                   {tours.map((t) => (
                     <option key={t.id} value={t.title}>
-                      {t.title} ({t.priceThb?.toLocaleString()} ฿ Satış)
+                      {t.title} ({t.priceThb != null ? `${fmtMoney(t.priceThb)} ฿ Satış` : '— Satış'})
                     </option>
                   ))}
                 </select>

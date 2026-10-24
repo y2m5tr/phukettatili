@@ -5,6 +5,7 @@ import {
 } from '../../../data/adminInitialData';
 import type { FinancialBreakdown } from '../../../lib/profitability';
 import { VAULT_ACCOUNTS } from './vaultTypes';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 interface ExpensesPanelProps {
   financialBreakdown: FinancialBreakdown;
@@ -53,7 +54,7 @@ export default function ExpensesPanel({
             Toplam Tur Satış Hacmi
           </span>
           <span className="text-2xl font-black text-slate-900 dark:text-white font-mono block">
-            {financialBreakdown.totalRevenueThb.toLocaleString()} THB
+            {fmtMoney(financialBreakdown.totalRevenueThb)} THB
           </span>
           <span className="text-xs text-slate-500 mt-1 block">Tüm onaylı tur cirosu</span>
         </div>
@@ -64,10 +65,10 @@ export default function ExpensesPanel({
             Tedarikçi & Komisyonlar
           </span>
           <span className="text-2xl font-black text-amber-600 dark:text-amber-400 font-mono block">
-            -{(financialBreakdown.totalSupplierCostThb + financialBreakdown.totalCommissionThb).toLocaleString()} THB
+            -{fmtMoney((financialBreakdown.totalSupplierCostThb + financialBreakdown.totalCommissionThb))} THB
           </span>
           <span className="text-xs text-slate-500 mt-1 block">
-            Tekne alış: {financialBreakdown.totalSupplierCostThb.toLocaleString()} + Acente kom: {financialBreakdown.totalCommissionThb.toLocaleString()}
+            Tekne alış: {fmtMoney(financialBreakdown.totalSupplierCostThb)} + Acente kom: {fmtMoney(financialBreakdown.totalCommissionThb)}
           </span>
         </div>
 
@@ -77,7 +78,7 @@ export default function ExpensesPanel({
             Saha & Araç Harcamaları
           </span>
           <span className="text-2xl font-black text-rose-600 dark:text-rose-400 font-mono block">
-            -{financialBreakdown.totalOperatingExpensesThb.toLocaleString()} THB
+            -{fmtMoney(financialBreakdown.totalOperatingExpensesThb)} THB
           </span>
           <span className="text-xs text-slate-500 mt-1 block">
             Yakıt, yevmiye ve liman harçları
@@ -95,7 +96,7 @@ export default function ExpensesPanel({
             </span>
           </div>
           <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono block">
-            +{financialBreakdown.netOperatingProfitThb.toLocaleString()} THB
+            +{fmtMoney(financialBreakdown.netOperatingProfitThb)} THB
           </span>
           <span className="text-xs text-slate-500 mt-1 block">
             Tüm maliyetler sonrası net nakit kâr
@@ -110,7 +111,7 @@ export default function ExpensesPanel({
             Kaydedilen Harcama Fişleri ({expenses.length})
           </h4>
           <span className="text-xs text-slate-400 font-mono">
-            Toplam Gider: {financialBreakdown.totalOperatingExpensesThb.toLocaleString()} THB
+            Toplam Gider: {fmtMoney(financialBreakdown.totalOperatingExpensesThb)} THB
           </span>
         </div>
 
@@ -174,7 +175,7 @@ export default function ExpensesPanel({
                         </span>
                       </td>
                       <td className="py-3.5 px-4 font-mono font-black text-rose-600 dark:text-rose-400">
-                        -{exp.amountThb.toLocaleString()} THB
+                        -{fmtMoney(exp.amountThb)} THB
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         <button

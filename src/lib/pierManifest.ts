@@ -12,6 +12,7 @@
  */
 
 import type { Booking } from '../data/adminInitialData';
+import { fmtMoney } from './moneyFormat';
 
 export interface PhuketPier {
   id: string;
@@ -292,7 +293,7 @@ export function printPierManifestA4(report: PierManifestReport): void {
   const rows = report.items
     .map((item, idx) => {
       const parkStatus = item.nationalParkFeeIncluded ? '<span style="color:#059669;font-weight:bold;">Dahil</span>' : '<span style="color:#dc2626;font-weight:bold;">Ödenecek</span>';
-      const balance = item.remainingAmountThb > 0 ? `<strong>${item.remainingAmountThb.toLocaleString()} THB</strong>` : '<span style="color:#059669;">Ödendi</span>';
+      const balance = item.remainingAmountThb > 0 ? `<strong>${fmtMoney(item.remainingAmountThb)} THB</strong>` : '<span style="color:#059669;">Ödendi</span>';
       const notes = [
         item.specialNotes || '',
         item.passengersList.filter(p => p.dietaryPreference && p.dietaryPreference !== 'standard').map(p => `${p.name}: ${p.dietaryPreference}`).join(', ')
@@ -460,7 +461,7 @@ export function printPierManifestA4(report: PierManifestReport): void {
   <div class="summary-bar">
     <span>📋 Toplam Rezervasyon: ${report.totalBookings} Kayıt</span>
     <span>👥 Toplam Misafir: ${report.totalPax} Kişi</span>
-    <span>💵 Limanda Tahsil Edilecek Toplam: ${report.totalRemainingThb.toLocaleString()} THB</span>
+    <span>💵 Limanda Tahsil Edilecek Toplam: ${fmtMoney(report.totalRemainingThb)} THB</span>
     <span>📞 7/24 Saha Destek: +66 82 895 0665</span>
   </div>
 

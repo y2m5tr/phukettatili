@@ -1,5 +1,6 @@
 import { ArrowRightLeft, X } from 'lucide-react';
 import { VAULT_ACCOUNTS, type VaultAccountId } from './vaultTypes';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 /**
  * Hesaplar arası virman / para transferi modalı (presentational).
@@ -134,7 +135,7 @@ export default function VirmanModal({
                   onClick={() => setVirmanAmount(amt)}
                   className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-brand-primary/10 hover:text-brand-primary text-slate-600 dark:text-slate-300 transition-colors"
                 >
-                  +{amt.toLocaleString()} THB
+                  +{fmtMoney(amt)} THB
                 </button>
               ))}
             </div>

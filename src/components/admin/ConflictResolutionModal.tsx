@@ -1,5 +1,4 @@
-import React from 'react';
-import { AlertTriangle, RefreshCw, CheckCircle2, X, ArrowRight, ShieldAlert } from 'lucide-react';
+import { RefreshCw, X, ShieldAlert } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
 
 export interface ConflictData {

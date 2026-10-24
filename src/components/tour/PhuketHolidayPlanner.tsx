@@ -11,6 +11,7 @@ import {
 // edilirse Vite onu ana sayfanın client bundle'ına koyar — auth'suz statik
 // asset olarak herkese açık servis edilir.
 import { HOTEL_ZONES } from '../../lib/publicRefs';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 export default function PhuketHolidayPlanner() {
   const [duration, setDuration] = useState<PackageDuration>(5);
@@ -151,13 +152,13 @@ export default function PhuketHolidayPlanner() {
             {/* Fiyatlama Kutusu */}
             <div className="text-left sm:text-right shrink-0 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
               <div className="text-xs text-slate-400 line-through">
-                Ayrı Ayrı: {plan.totalIndividualPriceThb.toLocaleString()} ฿
+                Ayrı Ayrı: {fmtMoney(plan.totalIndividualPriceThb)} ฿
               </div>
               <div className="text-2xl font-black text-brand-primary dark:text-amber-400 font-mono">
-                {plan.finalPackagePriceThb.toLocaleString()} ฿
+                {fmtMoney(plan.finalPackagePriceThb)} ฿
               </div>
               <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                Kişi Başı {plan.discountAmountThb.toLocaleString()} ฿ Tasarruf!
+                Kişi Başı {fmtMoney(plan.discountAmountThb)} ฿ Tasarruf!
               </div>
             </div>
           </div>

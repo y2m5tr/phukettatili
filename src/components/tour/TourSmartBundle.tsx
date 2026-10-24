@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Sparkles, Check, Plus, MessageCircle, ShieldCheck, Car, Compass } from 'lucide-react';
+import { Sparkles, Check, MessageCircle, Car, Compass } from 'lucide-react';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface BundleAddon {
   id: string;
@@ -72,12 +73,9 @@ export default function TourSmartBundle({
   };
 
   const selectedAddons = addons.filter((a) => selectedAddonIds.includes(a.id));
-  const basePrice = currentTourPrice > 0 ? currentTourPrice : 0;
   const addonsRegularTotal = selectedAddons.reduce((sum, a) => sum + a.regularPrice, 0);
   const addonsBundleTotal = selectedAddons.reduce((sum, a) => sum + a.bundlePrice, 0);
   const totalSavings = addonsRegularTotal - addonsBundleTotal;
-
-  const totalBundlePrice = basePrice + addonsBundleTotal;
 
   // WhatsApp mesajı oluştur
   const constructWhatsAppUrl = () => {
@@ -104,7 +102,7 @@ export default function TourSmartBundle({
           </div>
           {totalSavings > 0 && (
             <span className="text-xs font-black px-2.5 py-1 rounded-lg bg-emerald-500 text-slate-950 shadow-xs">
-              🎉 {totalSavings.toLocaleString()} THB Paket Tasarrufu
+              🎉 {fmtMoney(totalSavings)} THB Paket Tasarrufu
             </span>
           )}
         </div>
@@ -158,10 +156,10 @@ export default function TourSmartBundle({
 
                 <div className="text-right shrink-0">
                   <div className="text-sm sm:text-base font-black text-amber-300 font-mono">
-                    +{addon.bundlePrice.toLocaleString()} THB
+                    +{fmtMoney(addon.bundlePrice)} THB
                   </div>
                   <div className="text-[11px] text-slate-500 line-through font-mono">
-                    {addon.regularPrice.toLocaleString()} THB
+                    {fmtMoney(addon.regularPrice)} THB
                   </div>
                 </div>
               </div>

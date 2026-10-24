@@ -39,6 +39,7 @@ import {
   generateDriverPickupJobThai,
   generateGuestPickupReminderTurkish,
 } from '../../lib/whatsappEngine';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -526,7 +527,7 @@ export default function BookingModal({
               <span>💰 2. Kasa & Tahsilat</span>
               {remainingBalance > 0 && (
                 <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-amber-500/20 text-amber-600 dark:text-amber-400 font-mono">
-                  {remainingBalance.toLocaleString()} ฿
+                  {fmtMoney(remainingBalance)} ฿
                 </span>
               )}
             </button>
@@ -1672,14 +1673,14 @@ export default function BookingModal({
                 <div>
                   <div className="text-xs text-slate-500 font-semibold uppercase">Tahsilat Durumu</div>
                   <div className="text-sm font-bold text-slate-900 dark:text-white mt-0.5">
-                    Toplam: {(Number(formData.totalPriceThb) || 0).toLocaleString()} THB · Kapora:{' '}
-                    {(Number(formData.paidAmountThb) || 0).toLocaleString()} THB
+                    Toplam: {fmtMoney((Number(formData.totalPriceThb) || 0))} THB · Kapora:{' '}
+                    {fmtMoney((Number(formData.paidAmountThb) || 0))} THB
                   </div>
                 </div>
                 <div className="text-right">
                   <span className="text-xs font-bold text-amber-600 uppercase">Kalan Tahsilat:</span>
                   <div className="text-lg font-black font-mono text-amber-600 dark:text-amber-400">
-                    {remainingBalance.toLocaleString()} THB
+                    {fmtMoney(remainingBalance)} THB
                   </div>
                 </div>
               </div>
@@ -1754,7 +1755,7 @@ export default function BookingModal({
                   </span>
                   {formData.agentId && (Number(formData.agentCommissionThb) || 0) > 0 && (
                     <span className="text-xs font-extrabold text-indigo-700 dark:text-indigo-300 bg-indigo-100 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md">
-                      Komisyon: {(Number(formData.agentCommissionThb) || 0).toLocaleString()} THB
+                      Komisyon: {fmtMoney((Number(formData.agentCommissionThb) || 0))} THB
                     </span>
                   )}
                 </div>
@@ -1851,12 +1852,12 @@ export default function BookingModal({
                   {Number(formData.totalPriceThb || 0) > 0 && (
                     <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">
                       Net Kâr:{' '}
-                      {Math.max(
+                      {fmtMoney(Math.max(
                         0,
                         Number(formData.totalPriceThb || 0) -
                           Number(formData.costThb || 0) -
                           (Number(formData.agentCommissionThb) || 0)
-                      ).toLocaleString()}{' '}
+                      ))}{' '}
                       THB
                     </span>
                   )}
@@ -1916,7 +1917,7 @@ export default function BookingModal({
                               const calc =
                                 match.netCostAdultThb * aCount + match.netCostChildThb * cCount;
                               setFormData({ ...formData, costThb: calc });
-                              showToast(`Matris uygulandı: ${calc.toLocaleString()} THB`);
+                              showToast(`Matris uygulandı: ${fmtMoney(calc)} THB`);
                             }}
                             className="text-[10px] text-rose-600 hover:underline font-bold cursor-pointer"
                           >
@@ -1993,11 +1994,11 @@ export default function BookingModal({
           {/* ========================================================================= */}
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-              <span>Toplam: <strong className="text-slate-900 dark:text-white font-mono">{(Number(formData.totalPriceThb) || 0).toLocaleString()} ฿</strong></span>
+              <span>Toplam: <strong className="text-slate-900 dark:text-white font-mono">{fmtMoney((Number(formData.totalPriceThb) || 0))} ฿</strong></span>
               <span>·</span>
-              <span>Kapora: <strong className="text-emerald-600 font-mono">{(Number(formData.paidAmountThb) || 0).toLocaleString()} ฿</strong></span>
+              <span>Kapora: <strong className="text-emerald-600 font-mono">{fmtMoney((Number(formData.paidAmountThb) || 0))} ฿</strong></span>
               <span>·</span>
-              <span>Kalan: <strong className="text-amber-600 font-mono">{remainingBalance.toLocaleString()} ฿</strong></span>
+              <span>Kalan: <strong className="text-amber-600 font-mono">{fmtMoney(remainingBalance)} ฿</strong></span>
             </div>
 
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">

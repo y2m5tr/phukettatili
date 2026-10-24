@@ -11,6 +11,7 @@ import {
   generatePromptPayPayload,
   getPromptPayQrImageUrl,
 } from '../../lib/promptpay';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface PromptPayQrModalProps {
   isOpen: boolean;
@@ -124,7 +125,7 @@ export default function PromptPayQrModal({
                 Ödenecek Tutar
               </span>
               <span className="text-2xl font-black text-slate-900 font-mono">
-                {amountThb.toLocaleString()} THB
+                {fmtMoney(amountThb)} THB
               </span>
             </div>
           </div>

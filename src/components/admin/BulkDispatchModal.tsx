@@ -13,6 +13,7 @@ import {
   generateGuestReminderMessage,
   getGuestReminderWhatsAppUrl,
 } from '../../lib/bulkDispatch';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface BulkDispatchModalProps {
   pickups: PickupItem[];
@@ -260,7 +261,7 @@ export default function BulkDispatchModal({
                   </div>
                   <div className="flex justify-between">
                     <span>Kalan Nakit Tahsilat:</span>
-                    <span className="font-bold text-amber-400 font-mono">{selectedPickup.remainingAmountThb.toLocaleString()} THB</span>
+                    <span className="font-bold text-amber-400 font-mono">{fmtMoney(selectedPickup.remainingAmountThb)} THB</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Bilet Kodu:</span>

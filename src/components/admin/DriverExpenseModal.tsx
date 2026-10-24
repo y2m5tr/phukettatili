@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   X,
   Fuel,
@@ -21,6 +21,7 @@ import {
 } from '../../lib/driverExpenses';
 import type { DriverItem, VehicleItem } from '../../data/adminInitialData';
 import { readLocalCollection, saveCmsCollection } from '../../lib/cmsSync';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface DriverExpenseModalProps {
   isOpen: boolean;
@@ -35,8 +36,6 @@ interface DriverExpenseModalProps {
     date: string;
   }) => void;
 }
-
-const STORAGE_KEY = 'phuket_driver_expenses_v1';
 
 export default function DriverExpenseModal({
   isOpen,
@@ -109,7 +108,7 @@ export default function DriverExpenseModal({
     const next = [newExp, ...expenses];
     setExpenses(next);
     void saveCmsCollection('driver-expenses', next, (err) => showToast(`⚠️ ${err}`));
-    showToast(`✅ ${amount.toLocaleString()} THB ${DRIVER_EXPENSE_CATEGORIES[category].shortLabel} fişi eklendi!`);
+    showToast(`✅ ${fmtMoney(amount)} THB ${DRIVER_EXPENSE_CATEGORIES[category].shortLabel} fişi eklendi!`);
 
     setDescription('');
     setReceiptNo('');
@@ -167,7 +166,7 @@ export default function DriverExpenseModal({
         });
       }
     }
-    showToast(`✅ ${settlement.netHandoverToOfficeThb.toLocaleString()} THB şoför nakit teslimi onaylandı ve kasaya işlendi!`);
+    showToast(`✅ ${fmtMoney(settlement.netHandoverToOfficeThb)} THB şoför nakit teslimi onaylandı ve kasaya işlendi!`);
   };
 
   const handleSyncToFinance = () => {
@@ -374,19 +373,19 @@ export default function DriverExpenseModal({
                 <div className="p-2 rounded-xl bg-slate-800/60">
                   <span className="text-[10px] text-slate-400 block uppercase font-bold">Toplanan Nakit</span>
                   <span className="text-sm font-mono font-bold text-white">
-                    {settlement.collectedCashThb.toLocaleString()}฿
+                    {fmtMoney(settlement.collectedCashThb)}฿
                   </span>
                 </div>
                 <div className="p-2 rounded-xl bg-slate-800/60">
                   <span className="text-[10px] text-rose-400 block uppercase font-bold">Düşülen Masraf</span>
                   <span className="text-sm font-mono font-bold text-rose-400">
-                    -{settlement.totalExpensesThb.toLocaleString()}฿
+                    -{fmtMoney(settlement.totalExpensesThb)}฿
                   </span>
                 </div>
                 <div className="p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/30">
                   <span className="text-[10px] text-emerald-300 block uppercase font-bold">Ofise Teslim (Net)</span>
                   <span className="text-base font-mono font-black text-emerald-400">
-                    {settlement.netHandoverToOfficeThb.toLocaleString()}฿
+                    {fmtMoney(settlement.netHandoverToOfficeThb)}฿
                   </span>
                 </div>
               </div>
@@ -424,7 +423,7 @@ export default function DriverExpenseModal({
 
                         <div className="flex items-center gap-3">
                           <span className="font-mono font-black text-rose-600 dark:text-rose-400">
-                            -{exp.amountThb.toLocaleString()} THB
+                            -{fmtMoney(exp.amountThb)} THB
                           </span>
                           <button
                             type="button"
@@ -460,7 +459,7 @@ export default function DriverExpenseModal({
             {isHandoverVerified ? (
               <span className="px-3.5 py-2 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold text-xs flex items-center gap-1.5 border border-emerald-300 dark:border-emerald-800">
                 <Check className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>✓ Kasaya Teslim Alındı ({settlement.netHandoverToOfficeThb.toLocaleString()} THB)</span>
+                <span>✓ Kasaya Teslim Alındı ({fmtMoney(settlement.netHandoverToOfficeThb)} THB)</span>
               </span>
             ) : (
               <button
@@ -470,7 +469,7 @@ export default function DriverExpenseModal({
                 title="Şoförün getirdiği nakit Baht'ı ofis kasasına teslim al ve mühürle"
               >
                 <Check className="w-3.5 h-3.5" />
-                <span>🤝 Nakit Teslim Alındı ({settlement.netHandoverToOfficeThb.toLocaleString()} THB)</span>
+                <span>🤝 Nakit Teslim Alındı ({fmtMoney(settlement.netHandoverToOfficeThb)} THB)</span>
               </button>
             )}
 

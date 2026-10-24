@@ -47,6 +47,7 @@ import { type RouteSortMode } from '../../lib/routeSequencer';
 import { getConciergeWhatsAppUrl } from '../../lib/guestConcierge';
 import { getGoogleReviewWhatsAppUrl } from '../../lib/reviewBooster';
 import { sendTransferPushNotification, playLobbyReadyChime } from '../../lib/pwaNotifications';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface TransfersTabProps {
   bookings?: Booking[];
@@ -359,7 +360,7 @@ export default function TransfersTab({
       ...route.stops.map((s, idx) => {
         const pax = `${s.adultCount || 1} Yetişkin${(s.childCount || 0) > 0 ? ` + ${s.childCount} Çocuk` : ''}`;
         const remaining = Number(s.remainingAmountThb) || 0;
-        const cash = remaining > 0 ? `\n   💵 *ALINACAK NAKİT:* ${remaining.toLocaleString()} THB` : ' \n   ✅ *Ödeme Alındı*';
+        const cash = remaining > 0 ? `\n   💵 *ALINACAK NAKİT:* ${fmtMoney(remaining)} THB` : ' \n   ✅ *Ödeme Alındı*';
         const room = s.roomNumber ? ` (Oda: ${s.roomNumber})` : '';
         const singleMap = getSingleHotelMapUrl(s.hotel);
         return `${idx + 1}️⃣ [⏰ *${s.pickupTime || '07:30'}*] *${s.hotel}*${room}\n   👤 ${s.customerName} (${pax}) · 📞 ${s.phone}${cash}\n   📍 Harita: ${singleMap}`;
@@ -398,7 +399,7 @@ export default function TransfersTab({
       ...route.stops.map((s, idx) => {
         const pax = `${s.adultCount || 1} Yetişkin${(s.childCount || 0) > 0 ? ` + ${s.childCount} Çocuk` : ''}`;
         const remaining = Number(s.remainingAmountThb) || 0;
-        const cash = remaining > 0 ? ` ⚠️ ALINACAK NAKİT: *${remaining.toLocaleString()} THB*` : ' ✓ Ödendi';
+        const cash = remaining > 0 ? ` ⚠️ ALINACAK NAKİT: *${fmtMoney(remaining)} THB*` : ' ✓ Ödendi';
         const room = s.roomNumber ? ` (Oda: ${s.roomNumber})` : '';
         return `${idx + 1}. [${s.pickupTime || '07:30'}] ${s.hotel}${room}\n   👤 ${s.customerName} (${pax}) · 📞 ${s.phone}\n  ${cash}`;
       }),
@@ -431,7 +432,7 @@ export default function TransfersTab({
         const remaining = Number(p.remainingAmountThb) || 0;
         const remainingText =
           remaining > 0
-            ? ` ⚠️ Tahsil Edilecek: *${remaining.toLocaleString()} THB*`
+            ? ` ⚠️ Tahsil Edilecek: *${fmtMoney(remaining)} THB*`
             : ` ✅ Ödendi`;
         const pickupStateText =
           p.pickupStatus === 'picked_up'
@@ -961,9 +962,9 @@ export default function TransfersTab({
         <div className="bg-white dark:bg-surface-2 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800">
           <span className="text-[11px] font-bold uppercase text-slate-400 block">Sahada Kalan Tahsilat</span>
           <span className="text-base font-bold text-amber-600 mt-0.5 block">
-            {dailyPickups
+            {fmtMoney(dailyPickups
               .reduce((acc, p) => acc + (Number(p.remainingAmountThb) || 0), 0)
-              .toLocaleString()}{' '}
+              )}{' '}
             THB
           </span>
         </div>
@@ -1297,7 +1298,7 @@ export default function TransfersTab({
                     <td className="py-4 px-5">
                       {(Number(p.remainingAmountThb) || 0) > 0 ? (
                         <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800 inline-block">
-                          Alınacak: {(Number(p.remainingAmountThb) || 0).toLocaleString()} THB
+                          Alınacak: {fmtMoney((Number(p.remainingAmountThb) || 0))} THB
                         </span>
                       ) : (
                         <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 inline-block">
@@ -1541,7 +1542,7 @@ export default function TransfersTab({
                         </div>
                         {totalCashToCollect > 0 ? (
                           <span className="px-2.5 py-0.5 rounded-lg font-bold bg-amber-50 text-amber-800 border border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800">
-                            💰 Alınacak Nakit: {totalCashToCollect.toLocaleString()} THB
+                            💰 Alınacak Nakit: {fmtMoney(totalCashToCollect)} THB
                           </span>
                         ) : (
                           <span className="px-2.5 py-0.5 rounded-lg font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-950/60 dark:text-emerald-300">
@@ -1769,7 +1770,7 @@ export default function TransfersTab({
                               <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                                 {(Number(stop.remainingAmountThb) || 0) > 0 ? (
                                   <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded">
-                                    Nakit: {(Number(stop.remainingAmountThb) || 0).toLocaleString()} THB
+                                    Nakit: {fmtMoney((Number(stop.remainingAmountThb) || 0))} THB
                                   </span>
                                 ) : (
                                   <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400">

@@ -13,6 +13,7 @@ import {
 } from '../../lib/guestConcierge';
 import { generate1830ReviewInviteMessage } from '../../lib/reviewBooster';
 import { formatDayMonthYear } from '../../lib/whatsappEngine';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 export type TemplateId =
   | 'concierge_evening_breakfast'
@@ -71,7 +72,7 @@ Yarın katılacağınız *${booking.tourTitle}* turumuz için transfer detaylar�
 📍 *Alınış Noktası:* ${booking.hotel}${booking.roomNumber ? ` (Oda: ${booking.roomNumber})` : ''}
 🚐 *Tahsis Edilen Hat:* ${booking.assignedVehicle || 'VIP Minibüs'}
 👥 *Kişi Sayısı:* ${paxStr}
-${booking.remainingAmountThb > 0 ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${booking.remainingAmountThb.toLocaleString()} THB (Nakit Baht)` : '✓ *Ödeme Durumu:* Tamamı Ödenmiştir'}
+${booking.remainingAmountThb > 0 ? `💵 *Tur Sabahı Ödenecek Kalan Bakiye:* ${fmtMoney(booking.remainingAmountThb)} THB (Nakit Baht)` : '✓ *Ödeme Durumu:* Tamamı Ödenmiştir'}
 🎫 *Canlı Biletiniz & Alınış Takibi:* https://phukettatili.com/bilet/${booking.id}
 
 ⚠️ *Önemli Hatırlatmalar:*
@@ -100,7 +101,7 @@ Keyifli turlar dileriz! 🌴🌊`;
 Sayın *${booking.customerName}*,
 
 *${booking.tourTitle}* turunuz için kalan ödemeniz:
-💵 *Kalan Tutar:* ${booking.remainingAmountThb.toLocaleString()} THB
+💵 *Kalan Tutar:* ${fmtMoney(booking.remainingAmountThb)} THB
 
 Lütfen bu tutarı tur sabahı şoförümüze veya limandaki Türkçe rehberimize *nakit Baht (THB)* olarak teslim ediniz.
 

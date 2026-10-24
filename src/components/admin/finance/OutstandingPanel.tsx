@@ -1,5 +1,6 @@
 import { AlertCircle, Ticket, Phone, CheckCircle2 } from 'lucide-react';
 import type { Booking } from '../../../data/adminInitialData';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 interface OutstandingPanelProps {
   outstandingBookings: Booking[];
@@ -35,7 +36,7 @@ export default function OutstandingPanel({
             Toplam Tahsil Edilecek
           </span>
           <span className="text-lg font-black text-amber-900 dark:text-amber-100 font-serif">
-            {totalOutstanding.toLocaleString()} THB
+            {fmtMoney(totalOutstanding)} THB
           </span>
         </div>
       </div>
@@ -92,7 +93,7 @@ export default function OutstandingPanel({
                       </div>
                       <a
                         href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(
-                          `Merhaba Sayın ${b.customerName}, Phuket Tatili turunuz için kalan bakiyeniz: ${b.remainingAmountThb.toLocaleString()} THB. Sabah otel lobisinde şoförümüze nakit olarak ödeyebilirsiniz.`
+                          `Merhaba Sayın ${b.customerName}, Phuket Tatili turunuz için kalan bakiyeniz: ${fmtMoney(b.remainingAmountThb)} THB. Sabah otel lobisinde şoförümüze nakit olarak ödeyebilirsiniz.`
                         )}`}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -124,16 +125,16 @@ export default function OutstandingPanel({
 
                     <td className="py-3.5 px-4">
                       <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                        Toplam: {b.totalPriceThb.toLocaleString()} THB
+                        Toplam: {fmtMoney(b.totalPriceThb)} THB
                       </span>
                       <span className="text-xs text-emerald-600 block">
-                        Alınan: {(b.paidAmountThb || 0).toLocaleString()} THB
+                        Alınan: {fmtMoney((b.paidAmountThb || 0))} THB
                       </span>
                     </td>
 
                     <td className="py-3.5 px-4">
                       <span className="text-sm font-black text-amber-600 dark:text-amber-400 block font-mono">
-                        {b.remainingAmountThb.toLocaleString()} THB
+                        {fmtMoney(b.remainingAmountThb)} THB
                       </span>
                       <span className="text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/60 px-2 py-0.5 rounded">
                         Otel Lobisinde Nakit

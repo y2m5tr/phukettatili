@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';
 import { detectHotelZone, COLLECTION_LOCATION_LABELS } from '../../data/adminInitialData';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface Props {
   booking: Booking | null;
@@ -162,12 +163,12 @@ export default function BoardingPassModal({
     <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 mb-6 flex items-center justify-between text-xs">
       <div>
         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Finansal Durum</span>
-        <p class="text-sm font-bold text-slate-900">Toplam Tur Tutarı: ${booking.totalPriceThb.toLocaleString()} THB</p>
+        <p class="text-sm font-bold text-slate-900">Toplam Tur Tutarı: ${fmtMoney(booking.totalPriceThb)} THB</p>
       </div>
       <div class="text-right">
         <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">Kalan Tahsilat (Rehbere)</span>
         <p class="text-sm font-bold ${booking.remainingAmountThb > 0 ? 'text-amber-700' : 'text-emerald-600'}">
-          ${booking.remainingAmountThb > 0 ? `${booking.remainingAmountThb.toLocaleString()} THB` : 'ÖDENDİ (0 THB)'}
+          ${booking.remainingAmountThb > 0 ? `${fmtMoney(booking.remainingAmountThb)} THB` : 'ÖDENDİ (0 THB)'}
         </p>
       </div>
     </div>
@@ -227,8 +228,8 @@ export default function BoardingPassModal({
       `⏰ Otelden Alınış Saati: *${activeTour.pickupTime}*\n` +
       `🏨 Otel: *${booking.hotel}* ${booking.roomNumber ? `(Oda: ${booking.roomNumber})` : ''}\n` +
       `🚐 Transfer Hattı: *${vehicle}*\n\n` +
-      `💰 Toplam Tutar: *${booking.totalPriceThb.toLocaleString()} THB*\n` +
-      `💵 Kalan Ödeme: *${booking.remainingAmountThb > 0 ? `${booking.remainingAmountThb.toLocaleString()} THB (Rehbere nakit teslim edilebilir)` : 'Ödendi (0 THB)'}*\n` +
+      `💰 Toplam Tutar: *${fmtMoney(booking.totalPriceThb)} THB*\n` +
+      `💵 Kalan Ödeme: *${booking.remainingAmountThb > 0 ? `${fmtMoney(booking.remainingAmountThb)} THB (Rehbere nakit teslim edilebilir)` : 'Ödendi (0 THB)'}*\n` +
       nationalParkWarning +
       `\n\n📌 *Lütfen Belirtilen Saatte Otelinizin Ana Lobisinde Hazır Bulununuz.* Şoförümüz lobide sizi karşılayacaktır. Harika bir tur dileriz! 🌴🇹🇭`;
 
@@ -404,20 +405,20 @@ export default function BoardingPassModal({
                 <div className="flex justify-between">
                   <span className="text-slate-500">Toplam Tutar:</span>
                   <span className="font-bold text-slate-900 dark:text-white">
-                    {booking.totalPriceThb.toLocaleString()} THB
+                    {fmtMoney(booking.totalPriceThb)} THB
                   </span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Ödenen Kapora:</span>
                   <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                    {booking.paidAmountThb.toLocaleString()} THB
+                    {fmtMoney(booking.paidAmountThb)} THB
                   </span>
                 </div>
                 <div className="flex justify-between pt-1.5 border-t border-slate-200 dark:border-slate-700 font-bold">
                   <span className="text-slate-700 dark:text-slate-300">Kalan Bakiye:</span>
                   <span className={booking.remainingAmountThb > 0 ? 'text-rose-500' : 'text-emerald-500'}>
                     {booking.remainingAmountThb > 0
-                      ? `${booking.remainingAmountThb.toLocaleString()} THB`
+                      ? `${fmtMoney(booking.remainingAmountThb)} THB`
                       : '0 THB (Ödendi)'}
                   </span>
                 </div>

@@ -38,6 +38,7 @@ import NewBookingTab from './NewBookingTab';
 import BoardingPassModal from '../shared/BoardingPassModal';
 import WhatsAppTemplatesModal from '../shared/WhatsAppTemplatesModal';
 import MarinePoliceManifestModal from '../shared/MarinePoliceManifestModal';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 const CREW_NAME_STORAGE_KEY = 'phuket_field_crew_name';
 const LOCAL_BOOKINGS_KEY = 'phuket_bookings_cache_v1';
@@ -660,7 +661,7 @@ export default function FieldApp({
     full.paymentStatus = newRemaining === 0 ? 'paid' : 'partial';
 
     await updateBookingRecord(full);
-    showToast(`💰 ${amount.toLocaleString()} THB tahsilat kaydedildi!`);
+    showToast(`💰 ${fmtMoney(amount)} THB tahsilat kaydedildi!`);
     setCashModalItem(null);
     setCollectedAmountInput('');
   };
@@ -767,8 +768,8 @@ export default function FieldApp({
       `👤 Görevli: *${crewName}*\n` +
       `--------------------------------\n` +
       `👥 Toplam Yolcu: *${stats.totalPax} Kişi* (${stats.pickedUpCount}/${stats.totalTransfers} Alındı)\n` +
-      `💰 Toplam Kasa/Tahsilat: *${totalCollectedToday.toLocaleString()} THB*\n` +
-      `⚠️ Kalan Tahsil Edilmemiş: *${stats.totalCashToCollect.toLocaleString()} THB*\n\n` +
+      `💰 Toplam Kasa/Tahsilat: *${fmtMoney(totalCollectedToday)} THB*\n` +
+      `⚠️ Kalan Tahsil Edilmemiş: *${fmtMoney(stats.totalCashToCollect)} THB*\n\n` +
       `*Yolcu Listesi & Durum:*\n` +
       scheduleItems
         .map(
@@ -776,7 +777,7 @@ export default function FieldApp({
             `${idx + 1}. *${item.customerName}* (${item.adultCount} Yetişkin) - ${item.pickupTime}\n` +
             `   🏨 ${item.hotel}\n` +
             `   Durum: ${item.pickupStatus === 'picked_up' ? '✅ Alındı' : item.pickupStatus === 'no_show' ? '❌ No-Show' : '⏳ Bekliyor'}\n` +
-            `   Ödeme: ${item.remainingAmountThb === 0 ? 'Ödendi' : `Kalan: ${item.remainingAmountThb.toLocaleString()} THB`}`
+            `   Ödeme: ${item.remainingAmountThb === 0 ? 'Ödendi' : `Kalan: ${fmtMoney(item.remainingAmountThb)} THB`}`
         )
         .join('\n\n') +
       `\n\nOperasyon başarıyla tamamlanmıştır. 🇹🇭`;
@@ -1013,7 +1014,7 @@ export default function FieldApp({
             <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-3">
               <span className="text-[10px] text-slate-400 uppercase font-semibold">Tahsil Edilecek</span>
               <div className="text-sm font-bold text-amber-400 mt-1 truncate">
-                {stats.totalCashToCollect > 0 ? `${stats.totalCashToCollect.toLocaleString()} ฿` : '0 ฿ (Tam)'}
+                {stats.totalCashToCollect > 0 ? `${fmtMoney(stats.totalCashToCollect)} ฿` : '0 ฿ (Tam)'}
               </div>
               <span className="text-[10px] text-slate-500">kalan bakiye</span>
             </div>
@@ -1277,16 +1278,16 @@ export default function FieldApp({
                           <div className="flex items-center gap-1.5">
                             <span className="text-rose-400 font-bold flex items-center gap-1">
                               <DollarSign className="w-3.5 h-3.5" />
-                              Kalan: {item.remainingAmountThb.toLocaleString()} THB
+                              Kalan: {fmtMoney(item.remainingAmountThb)} THB
                             </span>
                             <span className="text-[10px] text-slate-500">
-                              ({item.paidAmountThb > 0 ? `${item.paidAmountThb.toLocaleString()} ฿ ödendi` : 'kapora yok'})
+                              ({item.paidAmountThb > 0 ? `${fmtMoney(item.paidAmountThb)} ฿ ödendi` : 'kapora yok'})
                             </span>
                           </div>
                         ) : (
                           <span className="text-emerald-400 font-semibold flex items-center gap-1">
                             <Check className="w-3.5 h-3.5" />
-                            Tamamı Ödendi ({item.totalPriceThb.toLocaleString()} THB)
+                            Tamamı Ödendi ({fmtMoney(item.totalPriceThb)} THB)
                           </span>
                         )}
                       </div>
@@ -1446,7 +1447,7 @@ export default function FieldApp({
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-5 shadow-xl text-center">
             <span className="text-xs text-slate-400 uppercase font-semibold">Günün Kasa Durumu</span>
             <div className="text-3xl font-extrabold text-amber-400 font-mono mt-1">
-              {scheduleItems.reduce((acc, i) => acc + (i.paidAmountThb || 0), 0).toLocaleString()} ฿
+              {fmtMoney(scheduleItems.reduce((acc, i) => acc + (i.paidAmountThb || 0), 0))} ฿
             </div>
             <p className="text-xs text-slate-400 mt-1">
               {formatDateDisplay(selectedDate)} · Kayıtlı Tahsilat
@@ -1462,7 +1463,7 @@ export default function FieldApp({
               <div>
                 <span className="text-[10px] text-slate-500 uppercase">Bekleyen Bakiye</span>
                 <p className="text-sm font-bold text-rose-400">
-                  {stats.totalCashToCollect.toLocaleString()} ฿
+                  {fmtMoney(stats.totalCashToCollect)} ฿
                 </p>
               </div>
             </div>
@@ -1493,11 +1494,11 @@ export default function FieldApp({
                   </div>
                   <div className="text-right">
                     <div className="text-xs font-bold text-emerald-400 font-mono">
-                      {item.paidAmountThb.toLocaleString()} ฿ Alındı
+                      {fmtMoney(item.paidAmountThb)} ฿ Alındı
                     </div>
                     {item.remainingAmountThb > 0 ? (
                       <span className="text-[10px] font-bold text-rose-400">
-                        Kalan: {item.remainingAmountThb.toLocaleString()} ฿
+                        Kalan: {fmtMoney(item.remainingAmountThb)} ฿
                       </span>
                     ) : (
                       <span className="text-[10px] font-semibold text-slate-500">Kalan Yok</span>

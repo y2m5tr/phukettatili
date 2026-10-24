@@ -23,6 +23,7 @@ import type {
   CuratedProposalFinancials,
   CuratedProposalHotelStay,
 } from '../../../lib/curatedProposal';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 interface ProposalMultiDayDocProps {
   proposal: CuratedProposalData;
@@ -189,7 +190,7 @@ export default function ProposalMultiDayDoc({
                       </p>
                     </div>
                     <span className="text-xs font-mono font-black text-slate-900 shrink-0">
-                      {day.priceThb.toLocaleString()} THB
+                      {fmtMoney(day.priceThb)} THB
                     </span>
                   </div>
 
@@ -315,10 +316,10 @@ export default function ProposalMultiDayDoc({
               <span>Teklife Dahil Edilen Ekstra VIP Hizmetler:</span>
             </span>
             <span className="font-mono text-[11px] font-bold">
-              +{(proposal.addons || [])
+              +{fmtMoney((proposal.addons || [])
                 .filter((a) => a.selected)
                 .reduce((acc, a) => acc + (a.priceThb || 0), 0)
-                .toLocaleString()}{' '}
+                )}{' '}
               THB
             </span>
           </div>
@@ -335,7 +336,7 @@ export default function ProposalMultiDayDoc({
                     <span>{addon.title}</span>
                   </span>
                   <span className="font-mono font-bold text-amber-800 text-[10px]">
-                    +{addon.priceThb.toLocaleString()} ฿
+                    +{fmtMoney(addon.priceThb)} ฿
                   </span>
                 </div>
               ))}
@@ -350,13 +351,13 @@ export default function ProposalMultiDayDoc({
       >
         <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-800 text-slate-400">
           <span>Turlar Liste Fiyatı Toplamı:</span>
-          <span className="font-mono">{financials.subtotalThb.toLocaleString()} THB</span>
+          <span className="font-mono">{fmtMoney(financials.subtotalThb)} THB</span>
         </div>
 
         {proposal.discountPercent > 0 && (
           <div className="flex items-center justify-between text-xs text-amber-400 font-bold">
             <span>Özel Paket İndirimi (%{proposal.discountPercent}):</span>
-            <span className="font-mono">-{financials.discountThb.toLocaleString()} THB</span>
+            <span className="font-mono">-{fmtMoney(financials.discountThb)} THB</span>
           </div>
         )}
 
@@ -364,15 +365,15 @@ export default function ProposalMultiDayDoc({
           <div>
             <span className="text-base font-black text-white block">Net Paket Bedeli:</span>
             <span className="text-[11px] text-slate-400">
-              (~{financials.totalTry.toLocaleString()} TL · ~{financials.totalUsd.toLocaleString()} USD · ~{financials.totalEur.toLocaleString()} EUR)
+              (~{fmtMoney(financials.totalTry)} TL · ~{fmtMoney(financials.totalUsd)} USD · ~{fmtMoney(financials.totalEur)} EUR)
             </span>
           </div>
           <div className="text-right">
             <span className="text-2xl sm:text-3xl font-black text-amber-400 font-mono tracking-tight">
-              {financials.totalThb.toLocaleString()} <span className="text-sm font-normal">THB</span>
+              {fmtMoney(financials.totalThb)} <span className="text-sm font-normal">THB</span>
             </span>
             <span className="text-[11px] text-slate-400 block mt-0.5">
-              (Kişi başı yaklaşık {financials.perPersonThb.toLocaleString()} THB)
+              (Kişi başı yaklaşık {fmtMoney(financials.perPersonThb)} THB)
             </span>
           </div>
         </div>
@@ -383,7 +384,7 @@ export default function ProposalMultiDayDoc({
               Rezervasyon Kapora Bedeli (%{proposal.depositPercent}):
             </span>
             <span className="font-black text-emerald-400 font-mono text-sm sm:text-base mt-0.5 block">
-              {financials.depositThb.toLocaleString()} THB
+              {fmtMoney(financials.depositThb)} THB
             </span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
               Türkiye IBAN / Kredi Kartı / PromptPay
@@ -395,7 +396,7 @@ export default function ProposalMultiDayDoc({
               Tur Günü Teslim Edilecek Kalan:
             </span>
             <span className="font-black text-amber-300 font-mono text-sm sm:text-base mt-0.5 block">
-              {financials.remainingThb.toLocaleString()} THB
+              {fmtMoney(financials.remainingThb)} THB
             </span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
               Sabah lobi transferinde şoföre nakit Baht

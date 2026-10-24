@@ -22,6 +22,7 @@ import {
   type AgentCommissionType,
   calculateAgentCommission,
 } from '../../data/adminInitialData';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface PartnersTabProps {
   agents: PartnerAgent[];
@@ -199,7 +200,7 @@ export default function PartnersTab({
     );
 
     onSaveAgents(updated);
-    showToast(`💰 ${payoutAgent.name} acentasına ${payoutAmount.toLocaleString()} THB komisyon ödemesi işlendi.`);
+    showToast(`💰 ${payoutAgent.name} acentasına ${fmtMoney(payoutAmount)} THB komisyon ödemesi işlendi.`);
     setPayoutAgent(null);
     setPayoutAmount(0);
   };
@@ -222,15 +223,15 @@ export default function PartnersTab({
       `📅 *Rapor Tarihi:* ${new Date().toLocaleDateString('tr-TR')}`,
       `───────────────────────────────`,
       `👥 *Toplam Misafir:* ${s.paxCount} Kişi (${s.bookingCount} Rezervasyon)`,
-      `💵 *Toplam Satış Cirosu:* ${s.totalRevenueThb.toLocaleString()} THB`,
-      `📈 *Hak Edilen Toplam Komisyon:* ${s.earnedCommissionThb.toLocaleString()} THB`,
-      `✅ *Daha Önce Ödenen:* ${(agent.totalPaidCommissionThb || 0).toLocaleString()} THB`,
-      `⚠️ *Kalan Ödenecek Bakiye:* *${balance.toLocaleString()} THB*`,
+      `💵 *Toplam Satış Cirosu:* ${fmtMoney(s.totalRevenueThb)} THB`,
+      `📈 *Hak Edilen Toplam Komisyon:* ${fmtMoney(s.earnedCommissionThb)} THB`,
+      `✅ *Daha Önce Ödenen:* ${fmtMoney((agent.totalPaidCommissionThb || 0))} THB`,
+      `⚠️ *Kalan Ödenecek Bakiye:* *${fmtMoney(balance)} THB*`,
       `───────────────────────────────`,
       `📋 *Rezervasyon Detayları:*`,
       ...s.bookingList.map(
         (b, idx) =>
-          `${idx + 1}. ${b.tourDate} · ${b.customerName} · ${b.tourTitle} (${b.adultCount}Y) · Ciro: ${b.totalPriceThb.toLocaleString()} ฿`
+          `${idx + 1}. ${b.tourDate} · ${b.customerName} · ${b.tourTitle} (${b.adultCount}Y) · Ciro: ${fmtMoney(b.totalPriceThb)} ฿`
       ),
       `───────────────────────────────`,
       `📞 Sorularınız ve ödeme dekontları için: +${managerPhone}`,
@@ -321,7 +322,7 @@ export default function PartnersTab({
             </div>
           </div>
           <div className="text-2xl font-black text-slate-900 dark:text-white font-serif">
-            {totalPartnerRevenue.toLocaleString()}{' '}
+            {fmtMoney(totalPartnerRevenue)}{' '}
             <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
           </div>
           <div className="mt-2 text-xs text-slate-500">
@@ -340,11 +341,11 @@ export default function PartnersTab({
             </div>
           </div>
           <div className="text-2xl font-black text-sky-600 dark:text-sky-400 font-serif">
-            {totalEarnedCommission.toLocaleString()}{' '}
+            {fmtMoney(totalEarnedCommission)}{' '}
             <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
           </div>
           <div className="mt-2 text-xs text-slate-500">
-            Ödenen: {totalPaidCommission.toLocaleString()} THB
+            Ödenen: {fmtMoney(totalPaidCommission)} THB
           </div>
         </div>
 
@@ -359,7 +360,7 @@ export default function PartnersTab({
             </div>
           </div>
           <div className="text-2xl font-black text-amber-600 dark:text-amber-400 font-serif">
-            {totalOutstandingCommission.toLocaleString()}{' '}
+            {fmtMoney(totalOutstandingCommission)}{' '}
             <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
           </div>
           <div className="mt-2 text-xs text-slate-500">
@@ -496,13 +497,13 @@ export default function PartnersTab({
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800">
                           {a.commissionType === 'percentage'
                             ? `%${a.commissionRate} Ciro`
-                            : `${a.commissionRate.toLocaleString()} ฿ / Kişi`}
+                            : `${fmtMoney(a.commissionRate)} ฿ / Kişi`}
                         </span>
                       </td>
 
                       <td className="py-3.5 px-4">
                         <span className="font-bold text-slate-900 dark:text-white block">
-                          {s.totalRevenueThb.toLocaleString()} THB
+                          {fmtMoney(s.totalRevenueThb)} THB
                         </span>
                         <span className="text-xs text-slate-500 block">
                           {s.bookingCount} Rezervasyon ({s.paxCount} Pax)
@@ -511,10 +512,10 @@ export default function PartnersTab({
 
                       <td className="py-3.5 px-4">
                         <span className="font-bold text-sky-600 dark:text-sky-400 block">
-                          {s.earnedCommissionThb.toLocaleString()} THB
+                          {fmtMoney(s.earnedCommissionThb)} THB
                         </span>
                         <span className="text-xs text-slate-400 block">
-                          Ödenen: {(a.totalPaidCommissionThb || 0).toLocaleString()} THB
+                          Ödenen: {fmtMoney((a.totalPaidCommissionThb || 0))} THB
                         </span>
                       </td>
 
@@ -524,7 +525,7 @@ export default function PartnersTab({
                             balance > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-emerald-600'
                           }`}
                         >
-                          {balance.toLocaleString()} THB
+                          {fmtMoney(balance)} THB
                         </span>
                         <span
                           className={`text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded ${

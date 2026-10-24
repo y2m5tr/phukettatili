@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   X,
   UserCheck,
@@ -26,6 +26,7 @@ import {
 } from '../../lib/guideExpenses';
 import type { DriverItem } from '../../data/adminInitialData';
 import { readLocalCollection, saveCmsCollection } from '../../lib/cmsSync';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface GuideExpenseModalProps {
   isOpen: boolean;
@@ -33,8 +34,6 @@ interface GuideExpenseModalProps {
   drivers?: DriverItem[];
   showToast: (msg: string) => void;
 }
-
-const STORAGE_KEY = 'phuket_guide_expenses_v1';
 
 export default function GuideExpenseModal({
   isOpen,
@@ -125,7 +124,7 @@ export default function GuideExpenseModal({
     const next = [newExp, ...expenses];
     setExpenses(next);
     void saveCmsCollection('guide-expenses', next, (err) => showToast(`⚠️ ${err}`));
-    showToast(`✅ ${amount.toLocaleString()} THB ${GUIDE_EXPENSE_CATEGORIES[category].shortLabel} fişi eklendi!`);
+    showToast(`✅ ${fmtMoney(amount)} THB ${GUIDE_EXPENSE_CATEGORIES[category].shortLabel} fişi eklendi!`);
 
     setDescription('');
     setReceiptNo('');
@@ -271,7 +270,7 @@ export default function GuideExpenseModal({
                 <span>Toplanan Nakit</span>
               </p>
               <p className="text-xl sm:text-2xl font-black mt-1 text-emerald-700 dark:text-emerald-300">
-                {settlement.collectedCashThb.toLocaleString()} <span className="text-xs font-normal">THB</span>
+                {fmtMoney(settlement.collectedCashThb)} <span className="text-xs font-normal">THB</span>
               </p>
               <p className="text-[10px] text-emerald-600/80 dark:text-emerald-400/80 mt-0.5">Misafirlerden tahsil edilen</p>
             </div>
@@ -282,7 +281,7 @@ export default function GuideExpenseModal({
                 <span>Toplam Rehber Masrafı</span>
               </p>
               <p className="text-xl sm:text-2xl font-black mt-1 text-rose-700 dark:text-rose-300">
-                - {settlement.totalExpensesThb.toLocaleString()} <span className="text-xs font-normal">THB</span>
+                - {fmtMoney(settlement.totalExpensesThb)} <span className="text-xs font-normal">THB</span>
               </p>
               <p className="text-[10px] text-rose-600/80 dark:text-rose-400/80 mt-0.5">{settlement.guideExpenses.length} adet fiş/harcama</p>
             </div>
@@ -302,8 +301,8 @@ export default function GuideExpenseModal({
                   : 'text-teal-700 dark:text-teal-300'
               }`}>
                 {settlement.reimbursementDueThb > 0
-                  ? `+ ${settlement.reimbursementDueThb.toLocaleString()}`
-                  : settlement.netHandoverToOfficeThb.toLocaleString()}{' '}
+                  ? `+ ${fmtMoney(settlement.reimbursementDueThb)}`
+                  :fmtMoney( settlement.netHandoverToOfficeThb)}{' '}
                 <span className="text-xs font-normal">THB</span>
               </p>
               <p className="text-[10px] opacity-80 mt-0.5">
@@ -466,7 +465,7 @@ export default function GuideExpenseModal({
                             )}
                           </td>
                           <td className="p-3 text-right font-black text-rose-600 dark:text-rose-400">
-                            - {exp.amountThb.toLocaleString()} THB
+                            - {fmtMoney(exp.amountThb)} THB
                           </td>
                           <td className="p-3 text-center">
                             <button

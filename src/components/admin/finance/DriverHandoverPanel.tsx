@@ -1,5 +1,6 @@
 import { Car, CheckCircle2, Clock, Wallet, ShieldCheck } from 'lucide-react';
 import type { PaymentRecord } from '../../../data/adminInitialData';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 export interface DriverCashGroup {
   driverName: string;
@@ -91,7 +92,7 @@ export default function DriverHandoverPanel({
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-slate-500">Toplanan Nakit Tutar:</span>
                     <span className="font-extrabold text-base font-mono text-emerald-600 dark:text-emerald-400">
-                      {g.totalAmountThb.toLocaleString()} THB
+                      {fmtMoney(g.totalAmountThb)} THB
                     </span>
                   </div>
                   <div className="flex items-center justify-between text-xs text-slate-500">
@@ -119,12 +120,12 @@ export default function DriverHandoverPanel({
                         receiptNo,
                       });
                       setSettledDrivers((prev) => [...prev, g.driverName]);
-                      showToast(`✅ ${g.driverName} gün sonu nakit teslimatı (${g.totalAmountThb.toLocaleString()} THB) ana kasaya aktarıldı ve kapatıldı!`);
+                      showToast(`✅ ${g.driverName} gün sonu nakit teslimatı (${fmtMoney(g.totalAmountThb)} THB) ana kasaya aktarıldı ve kapatıldı!`);
                     }}
                     className="w-full py-2.5 px-4 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer"
                   >
                     <Wallet className="w-3.5 h-3.5" />
-                    <span>💰 Kasaya Teslim Al & Kapat ({g.totalAmountThb.toLocaleString()} THB)</span>
+                    <span>💰 Kasaya Teslim Al & Kapat ({fmtMoney(g.totalAmountThb)} THB)</span>
                   </button>
                 ) : (
                   <div className="text-center py-2 text-xs text-slate-400 flex items-center justify-center gap-1">

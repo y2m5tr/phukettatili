@@ -1,4 +1,5 @@
 import { DollarSign, TrendingUp, AlertCircle, Wallet } from 'lucide-react';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 interface FinanceKpiCardsProps {
   totalRevenue: number;
@@ -41,14 +42,14 @@ export default function FinanceKpiCards({
           </div>
         </div>
         <div className="text-2xl font-black text-slate-900 dark:text-white font-serif">
-          {totalRevenue.toLocaleString()}{' '}
+          {fmtMoney(totalRevenue)}{' '}
           <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
         </div>
 
         <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
           <span className="text-slate-500 font-medium">Tahsil Edilen:</span>
           <span className="font-extrabold text-emerald-600 dark:text-emerald-400">
-            {totalCollected.toLocaleString()} THB (%{collectionRate})
+            {fmtMoney(totalCollected)} THB (%{collectionRate})
           </span>
         </div>
         {/* Progress bar */}
@@ -74,7 +75,7 @@ export default function FinanceKpiCards({
           </div>
         </div>
         <div className="text-2xl font-black text-amber-600 dark:text-amber-400 font-serif">
-          {totalOutstanding.toLocaleString()}{' '}
+          {fmtMoney(totalOutstanding)}{' '}
           <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
         </div>
 
@@ -97,14 +98,14 @@ export default function FinanceKpiCards({
           </div>
         </div>
         <div className="text-2xl font-black text-slate-900 dark:text-white font-serif">
-          {cashThb.toLocaleString()}{' '}
+          {fmtMoney(cashThb)}{' '}
           <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
         </div>
 
         <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
           <span className="text-slate-500 font-medium">PromptPay QR:</span>
           <span className="font-extrabold text-sky-600 dark:text-sky-400">
-            {promptpayThb.toLocaleString()} THB
+            {fmtMoney(promptpayThb)} THB
           </span>
         </div>
       </div>
@@ -120,14 +121,14 @@ export default function FinanceKpiCards({
           </div>
         </div>
         <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400 font-serif">
-          {netProfit.toLocaleString()}{' '}
+          {fmtMoney(netProfit)}{' '}
           <span className="text-xs font-sans text-slate-400 font-semibold">THB</span>
         </div>
 
         <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
           <span className="text-slate-500 font-medium">Net Kâr Marjı:</span>
           <span className="font-extrabold text-slate-800 dark:text-slate-200">
-            %{profitMargin} (Maliyet: {totalCost.toLocaleString()} THB)
+            %{profitMargin} (Maliyet: {fmtMoney(totalCost)} THB)
           </span>
         </div>
       </div>

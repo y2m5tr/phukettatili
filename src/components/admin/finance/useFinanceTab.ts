@@ -12,6 +12,7 @@ import {
 import { calculateFinancialBreakdown } from '../../../lib/profitability';
 import { type VaultAccountId, type VirmanRecord, VAULT_ACCOUNTS } from './vaultTypes';
 import { readLocalCollection, saveCmsCollection } from '../../../lib/cmsSync';
+import { fmtMoney } from '../../../lib/moneyFormat';
 
 interface UseFinanceTabParams {
   bookings: Booking[];
@@ -225,7 +226,7 @@ export function useFinanceTab({
     void saveCmsCollection('virmans', nextVirmans, (err) => showToast(`⚠️ ${err}`));
 
     setIsVirmanModalOpen(false);
-    showToast(`✓ ${virmanAmount.toLocaleString()} THB virman transferi kaydedildi ve buluta aktarıldı! 🔄`);
+    showToast(`✓ ${fmtMoney(virmanAmount)} THB virman transferi kaydedildi ve buluta aktarıldı! 🔄`);
   };
 
   const handleDeleteVirman = (id: string) => {
@@ -363,7 +364,7 @@ export function useFinanceTab({
 
     onUpdateBooking(updatedBooking);
     setIsCollectModalOpen(false);
-    showToast(`✅ ${collectAmount.toLocaleString()} THB tahsilat makbuzu (${receiptNo}) oluşturuldu!`);
+    showToast(`✅ ${fmtMoney(collectAmount)} THB tahsilat makbuzu (${receiptNo}) oluşturuldu!`);
   };
 
   // CSV Dışa Aktarma

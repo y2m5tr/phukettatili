@@ -25,8 +25,6 @@ interface LuggageExpressModalProps {
   showToast: (msg: string) => void;
 }
 
-const STORAGE_KEY = 'phuket_tatili_luggage_records_v1';
-
 export default function LuggageExpressModal({
   isOpen,
   onClose,

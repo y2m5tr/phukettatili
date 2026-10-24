@@ -19,6 +19,7 @@ import {
   type CachedOfflineSnapshot,
 } from '../../lib/offlineCaptainVault';
 import type { PickupItem } from '../../lib/adminFilters';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface Props {
   isOpen: boolean;
@@ -249,7 +250,7 @@ export default function CaptainOfflineDrawer({
                         <div>
                           {p.remainingAmountThb > 0 ? (
                             <span className="font-bold font-mono text-amber-600 dark:text-amber-400">
-                              Alınacak: {p.remainingAmountThb.toLocaleString()} ฿
+                              Alınacak: {fmtMoney(p.remainingAmountThb)} ฿
                             </span>
                           ) : (
                             <span className="text-emerald-600 dark:text-emerald-400 font-bold">
