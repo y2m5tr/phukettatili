@@ -300,7 +300,7 @@ export default function BookingWorkflowModal({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={handleMarkNotified}
-                  className="px-2.5 py-1.5 rounded-lg bg-[#25D366] hover:bg-[#20ba59] text-white text-xs font-bold flex items-center gap-1 transition-all shadow-xs"
+                  className="px-2.5 py-1.5 rounded-lg bg-whatsapp hover:bg-whatsapp-dark text-white text-xs font-bold flex items-center gap-1 transition-all shadow-xs"
                   title="WhatsApp Web / Uygulamasını açarak manuel gönder"
                 >
                   <MessageCircle className="w-3.5 h-3.5" />

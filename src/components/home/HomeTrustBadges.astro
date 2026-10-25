@@ -1,5 +1,6 @@
 ---
 import FadeIn from '../ui/FadeIn';
+import siteSettingsJson from '../../content/settings/site.json';
 
 interface BadgeItem {
   icon: string;
@@ -11,15 +12,24 @@ interface BadgeItem {
 interface Props {
   className?: string;
   badges?: BadgeItem[];
+  /** Panel ayarlarıyla merge edilmiş değerler (index.astro'dan gelir). */
+  googleRating?: string;
+  googleReviewCount?: number;
 }
 
-const { className = '', badges: customBadges } = Astro.props;
+const { className = '', badges: customBadges, googleRating: ratingProp, googleReviewCount: countProp } = Astro.props;
+
+// Yorum sayısı/puanı TEK KAYNAK: önce prop (panel merge'li siteSettings),
+// o yoksa statik site.json. Dört ayrı dosyada elle yazılı "148+", "150+",
+// "4.9" değerleri birbirinden kopuktu — artık buradan besleniyor.
+const googleRating = ratingProp || (siteSettingsJson as Record<string, unknown>)?.googleRating || '4.9';
+const googleReviewCount = countProp || Number((siteSettingsJson as Record<string, unknown>)?.googleReviewCount) || 148;
 
 const defaultBadges: BadgeItem[] = [
   {
     icon: '⭐',
-    title: '148+ Doğrulanmış Yorum',
-    desc: '4.9/5 Google ve sosyal medya puanı, gerçek misafir değerlendirmeleri',
+    title: `${googleReviewCount}+ Doğrulanmış Yorum`,
+    desc: `${googleRating}/5 Google ve sosyal medya puanı, gerçek misafir değerlendirmeleri`,
     highlight: 'Kanıtlanmış Memnuniyet',
   },
   {
@@ -49,7 +59,7 @@ const badges = customBadges && customBadges.length > 0 ? customBadges : defaultB
   <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <div class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-slate-200/80 dark:divide-slate-700/70">
       {badges.map((badge, idx) => (
-        <FadeIn client:visible delay={0.1 * idx} direction="up">
+        <FadeIn delay={0.1 * idx} direction="up">
           <div class="flex items-start gap-2.5 px-3 py-2 sm:px-5 sm:py-1.5 first:pl-0 last:pr-0 group">
             <span class="text-xl sm:text-2xl shrink-0 opacity-80 transition-transform duration-300 group-hover:scale-105" aria-hidden="true">
               {badge.icon}

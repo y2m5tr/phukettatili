@@ -1,0 +1,73 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { resolveAssetUrl } from '../../../lib/assets';
+import { fmtMoney } from '../../../lib/moneyFormat';
+
+interface Props {
+  tour: CollectionEntry<'tours'>;
+  weeklyViewCount: number;
+}
+const { tour, weeklyViewCount } = Astro.props;
+---
+
+<!-- Hero Section for Tour -->
+<section class="relative h-[60vh] min-h-[400px] flex items-end pb-12">
+  <div class="absolute inset-0 z-0">
+    <img
+      src={resolveAssetUrl(tour.data.image)}
+      alt={tour.data.title}
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+      class="w-full h-full object-cover animate-ken-burns"
+    />
+    <div class="absolute inset-0 bg-gradient-to-t from-surface-1 via-surface-1/50 to-transparent z-10"></div>
+  </div>
+
+  <div class="relative z-20 max-w-6xl mx-auto px-4 w-full">
+    <div class="flex flex-wrap items-center gap-3 mb-4">
+      <span class="inline-block bg-brand-accent text-white px-3.5 py-1 rounded-full text-sm font-bold tracking-wide uppercase shadow-lg">
+        {tour.data.category_label || tour.data.category}
+      </span>
+      <!-- Sosyal Kanıt & Canlı İlgi Rozeti -->
+      <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-500/20 backdrop-blur-md border border-amber-400/30 text-amber-200 text-xs font-semibold">
+        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>🔥 Bu hafta {weeklyViewCount} gezgin inceledi &bull; Son rezervasyon Patong</span>
+      </div>
+    </div>
+
+    <h1 class="text-4xl md:text-6xl text-white mb-4 drop-shadow-md">
+      {tour.data.title}
+    </h1>
+    <div class="flex flex-wrap items-center gap-4 sm:gap-6 text-slate-200">
+      {tour.data.duration && (
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-brand-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span class="font-medium">{tour.data.duration}</span>
+        </div>
+      )}
+      {tour.data.price_thb && tour.data.price_thb > 0 ? (
+        <div class="flex items-center gap-2 font-bold text-2xl text-white">
+          <span>{fmtMoney(tour.data.price_thb)} THB</span>
+        </div>
+      ) : (
+        <div class="flex items-center gap-2 font-semibold text-base text-brand-accent bg-white/10 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/20">
+          <span>Fiyat Teklifi Alın</span>
+        </div>
+      )}
+
+      <!-- Tatil Planıma / Favorilere Ekle Butonu -->
+      <button
+        type="button"
+        class="ptt-wishlist-btn inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur text-white font-bold text-xs border border-white/25 cursor-pointer shadow-sm transition-all"
+        data-tour-id={tour.id}
+        onclick={`event.preventDefault(); window.togglePttShortlist && window.togglePttShortlist({ id: '${tour.id}', title: ${JSON.stringify(tour.data.title)}, image: '${tour.data.image || ''}', duration: '${tour.data.duration || 'Tam Gün'}', category: '${tour.data.category_label || tour.data.category || ''}' });`}
+        title="Tatil Planıma Ekle"
+        aria-label="Bu turu tatil planıma ekle"
+      >
+        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+        <span>Tatil Planıma Ekle</span>
+      </button>
+    </div>
+  </div>
+</section>

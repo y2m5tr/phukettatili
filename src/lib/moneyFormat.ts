@@ -11,5 +11,11 @@
  * kasıtlı olarak `tr-TR` kullanır ve bu helper'ın kapsamı DIŞINDADIR.
  */
 export function fmtMoney(amount: number): string {
-  return amount.toLocaleString('en-US');
+  // SAVUNMA: çağıran taraf sözleşmeyi kaçırırsa (ör. stats alanında undefined)
+  // `undefined.toLocaleString()` TypeError fırlatıp tüm sekmeyi ErrorBoundary'ye
+  // düşürüyordu ("Genel Bakış Sekmesinde Bir Sorun Oluştu"). Sayı olmayan girdi
+  // sessizce 0 render edilir — panel çökmez, veri kaybı da olmaz.
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return '0';
+  return n.toLocaleString('en-US');
 }

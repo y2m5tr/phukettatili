@@ -9,26 +9,13 @@
  */
 import { useState, useEffect } from 'react';
 import {
-  Bell,
-  BellRing,
-  Camera,
-  ChevronDown,
   CloudUpload,
-  Coins,
-  FileText,
   Fuel,
   LogOut,
-  Luggage,
   Menu,
-  Package,
-  Plane,
   Plus,
   RefreshCw,
   Search,
-  ShieldAlert,
-  Ship,
-  Smartphone,
-  Trash2,
   UserCheck,
   WifiOff,
 } from 'lucide-react';
@@ -44,6 +31,8 @@ import {
   sendTransferPushNotification,
   type CrewNotificationItem,
 } from '../../lib/pwaNotifications';
+import { QuickToolsDropdown } from './header/QuickToolsDropdown';
+import { NotificationCenterMenu } from './header/NotificationCenterMenu';
 
 /** Hızlı araçlar menüsünün açtığı tüm masalar — parent'taki modal setter'ları. */
 export interface AdminHeaderActions {
@@ -243,220 +232,12 @@ export default function AdminHeader({
           </button>
         </div>
 
-        {/* ⚡ Hızlı Operasyon Araçları Açılır Menüsü (Tüm ekran boyutlarında modüler 4 masa) */}
-        <div className="relative">
-          <button
-            type="button"
-            onClick={() => setIsQuickToolsDropdownOpen((v) => !v)}
-            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-800 text-xs font-extrabold transition-all flex items-center gap-1.5 cursor-pointer shadow-2xs"
-            title="Tüm Hızlı Saha & Operasyon Araçları"
-          >
-            <span className="text-amber-500">⚡</span>
-            <span className="hidden sm:inline">Hızlı Araçlar</span>
-            <span className="sm:hidden">Araçlar</span>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-          </button>
-
-          {isQuickToolsDropdownOpen && (
-            <>
-              <div
-                className="fixed inset-0 z-40"
-                onClick={() => setIsQuickToolsDropdownOpen(false)}
-              />
-              <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white dark:bg-surface-2 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-800 p-2.5 z-50 divide-y divide-slate-100 dark:divide-slate-800 max-h-[85vh] overflow-y-auto">
-                {/* 1. Saha & Check-in */}
-                <div className="p-1 space-y-1">
-                  <div className="text-[10px] font-black text-purple-600 dark:text-purple-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
-                    <span>🚀</span>
-                    <span>Sevk & Check-in</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openQrScanner();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-purple-500/10 hover:text-purple-600 transition-colors text-left cursor-pointer"
-                  >
-                    <Camera className="w-3.5 h-3.5 text-purple-600" />
-                    <span>Bilet QR Oku / Check-in</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openWelcomeBoard();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-left cursor-pointer"
-                  >
-                    <span className="text-xs">🪧</span>
-                    <span>VIP Karşılama İsimlik Stüdyosu</span>
-                  </button>
-                </div>
-
-                {/* 2. Kasa & Masraflar */}
-                <div className="p-1 pt-2 space-y-1">
-                  <div className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
-                    <span>💵</span>
-                    <span>Kasa & Masraflar</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openDriverExpense();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-left cursor-pointer"
-                  >
-                    <Fuel className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Şoför Yakıt & Harç Masrafı</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openGuideExpense();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-teal-500/10 hover:text-teal-600 transition-colors text-left cursor-pointer"
-                  >
-                    <UserCheck className="w-3.5 h-3.5 text-teal-600" />
-                    <span>Rehber Masrafı (Taksi, Yemek, Saha)</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openFieldCashier();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-emerald-500/10 hover:text-emerald-600 transition-colors text-left cursor-pointer"
-                  >
-                    <Coins className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>Saha Çoklu Döviz Kasa Hesaplayıcı</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openPromptPayQr();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-600 transition-colors text-left cursor-pointer"
-                  >
-                    <Smartphone className="w-3.5 h-3.5 text-sky-600" />
-                    <span>PromptPay QR Kod Üretici</span>
-                  </button>
-                </div>
-
-                {/* 3. Lojistik & Uçuş */}
-                <div className="p-1 pt-2 space-y-1">
-                  <div className="text-[10px] font-black text-sky-600 dark:text-sky-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
-                    <span>✈️</span>
-                    <span>Lojistik & Havalimanı</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openFlightRadar();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-600 transition-colors text-left cursor-pointer"
-                  >
-                    <Plane className="w-3.5 h-3.5 text-sky-600" />
-                    <span>Canlı Uçuş Radarı & Rötar Kalkanı</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openLuggageExpress();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-indigo-500/10 hover:text-indigo-600 transition-colors text-left cursor-pointer"
-                  >
-                    <Luggage className="w-3.5 h-3.5 text-indigo-600" />
-                    <span>Oteller Arası Bagaj Transfer Masası</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openLostFound();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-600 transition-colors text-left cursor-pointer"
-                  >
-                    <Package className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Kayıp Eşya Takip Masası</span>
-                  </button>
-                </div>
-
-                {/* 4. Emniyet & Manifestolar */}
-                <div className="p-1 pt-2 space-y-1">
-                  <div className="text-[10px] font-black text-rose-600 dark:text-rose-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
-                    <span>🛡️</span>
-                    <span>Emniyet & Manifestolar</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openPoliceManifest();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-rose-500/10 hover:text-rose-600 transition-colors text-left cursor-pointer"
-                  >
-                    <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
-                    <span>Deniz Polisi Güvenlik Manifestosu</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openPierManifest();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-600 transition-colors text-left cursor-pointer"
-                  >
-                    <Ship className="w-3.5 h-3.5 text-sky-600" />
-                    <span>İskele & Kaptan Manifestosu</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openDietaryManifest();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-rose-500/10 hover:text-rose-600 transition-colors text-left cursor-pointer"
-                  >
-                    <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
-                    <span>Diyet & Medikal Emniyet Manifestosu</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openCaptainDrawer();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-cyan-500/10 hover:text-cyan-600 transition-colors text-left cursor-pointer"
-                  >
-                    <span className="text-xs">📶</span>
-                    <span>Kaptan Kasası (Çevrimdışı PWA)</span>
-                  </button>
-                </div>
-
-                {/* 5. Teklifler */}
-                <div className="p-1 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      actions.openProposals();
-                      setIsQuickToolsDropdownOpen(false);
-                    }}
-                    className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-xl text-xs font-bold bg-amber-500/15 text-amber-900 dark:text-amber-300 hover:bg-amber-500/25 transition-colors text-left cursor-pointer"
-                  >
-                    <FileText className="w-4 h-4 text-amber-600" />
-                    <span>📄 Teklifler (Çok Günlü & Tekli Tur)</span>
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+        {/* ⚡ Hızlı Operasyon Araçları Açılır Menüsü */}
+        <QuickToolsDropdown
+          isOpen={isQuickToolsDropdownOpen}
+          setIsOpen={setIsQuickToolsDropdownOpen}
+          actions={actions}
+        />
 
         {/* Sağ Blok: Arama, Bildirimler, Bulut, Yeni Rezervasyon, Çıkış */}
         <div className="flex items-center gap-1.5">
@@ -475,124 +256,17 @@ export default function AdminHeader({
           </button>
 
           {/* PWA Bildirim Merkezi (Şoför & Ekip Push Bildirimleri) */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={handleToggleNotifications}
-              className="relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200/60 dark:border-slate-800 transition-all cursor-pointer"
-              title="Şoför & Saha PWA Push Bildirim Merkezi"
-            >
-              {unreadCount > 0 ? (
-                <BellRing className="w-4 h-4 text-amber-500 animate-bounce" />
-              ) : (
-                <Bell className="w-4 h-4 text-slate-400 hover:text-slate-200" />
-              )}
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-600 text-white text-[10px] font-black min-w-[17px] text-center shadow-xs">
-                  {unreadCount}
-                </span>
-              )}
-            </button>
-
-            {/* Bildirim Paneli Açılır Menüsü */}
-            {isNotificationMenuOpen && (
-              <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsNotificationMenuOpen(false)}
-                />
-                <div className="absolute right-0 top-full mt-2 w-80 sm:w-96 rounded-2xl bg-white dark:bg-surface-1 border border-slate-200 dark:border-slate-800 shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
-                  {/* Başlık */}
-                  <div className="p-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-900/50">
-                    <div className="flex items-center gap-2">
-                      <span className="text-base">🔔</span>
-                      <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
-                        Saha & Şoför Bildirimleri
-                      </h4>
-                    </div>
-                    {notifications.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={clearNotificationHistory}
-                        className="text-[11px] text-slate-400 hover:text-rose-500 transition-colors cursor-pointer flex items-center gap-1"
-                      >
-                        <Trash2 className="w-3 h-3" />
-                        <span>Temizle</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* İzin Durumu Banner'ı */}
-                  <div className="p-3 bg-slate-50 dark:bg-slate-900/80 border-b border-slate-100 dark:border-slate-800/80">
-                    {permissionStatus === 'granted' ? (
-                      <div className="flex items-center justify-between gap-2 text-xs">
-                        <span className="text-emerald-700 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
-                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                          Push Bildirimleri Aktif
-                        </span>
-                        <button
-                          type="button"
-                          onClick={handleSendTestPush}
-                          className="px-2 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 text-[10px] font-bold transition cursor-pointer"
-                        >
-                          Test Gönder
-                        </button>
-                      </div>
-                    ) : permissionStatus === 'denied' ? (
-                      <div className="text-[11px] text-rose-600 dark:text-rose-400">
-                        ⚠️ Bildirimler tarayıcıda engellenmiş. Adres çubuğundaki kilit simgesinden izin verebilirsiniz.
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={handleRequestPermission}
-                        className="w-full py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                      >
-                        <BellRing className="w-3.5 h-3.5" />
-                        <span>Telefon Bildirimlerini Etkinleştir</span>
-                      </button>
-                    )}
-                  </div>
-
-                  {/* Bildirim Listesi */}
-                  <div className="max-h-72 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800/60">
-                    {notifications.length === 0 ? (
-                      <div className="p-8 text-center text-slate-400 space-y-1">
-                        <p className="text-xs font-semibold">Henüz bildirim yok</p>
-                        <p className="text-[10px] text-slate-500">
-                          Transfer saati veya araç atamaları güncellendiğinde şoför ve ekibe burada anlık liste gösterilir.
-                        </p>
-                      </div>
-                    ) : (
-                      notifications.map((notif) => (
-                        <div
-                          key={notif.id}
-                          className={`p-3 text-xs transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40 ${
-                            !notif.read ? 'bg-amber-500/5' : ''
-                          }`}
-                        >
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-bold text-slate-900 dark:text-white truncate">
-                              {notif.title}
-                            </span>
-                            <span className="text-[10px] text-slate-400 font-mono shrink-0">
-                              {new Date(notif.timestamp).toLocaleTimeString('tr-TR', {
-                                hour: '2-digit',
-                                minute: '2-digit',
-                              })}
-                            </span>
-                          </div>
-                          <p className="text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed whitespace-pre-line">
-                            {notif.body}
-                          </p>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+          <NotificationCenterMenu
+            isOpen={isNotificationMenuOpen}
+            setIsOpen={setIsNotificationMenuOpen}
+            unreadCount={unreadCount}
+            notifications={notifications}
+            permissionStatus={permissionStatus}
+            onClearHistory={clearNotificationHistory}
+            onRequestPermission={handleRequestPermission}
+            onSendTestPush={handleSendTestPush}
+            onToggle={handleToggleNotifications}
+          />
 
           {/* Çevrimdışı Durum Göstergesi (Aşama 4) */}
           {!isOnline ? (

@@ -22,6 +22,8 @@ import {
 import { DEFAULT_EXCHANGE_RATES } from '../../data/adminInitialData';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
 import { fmtMoney } from '../../lib/moneyFormat';
+import { FieldCashierResultsBoard } from './fieldCashier/FieldCashierResultsBoard';
+import { FieldCashierInputs } from './fieldCashier/FieldCashierInputs';
 
 interface FieldCashierModalProps {
   isOpen: boolean;
@@ -269,260 +271,27 @@ export default function FieldCashierModal({
             </div>
           )}
 
-          {/* Guest and Service Info Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Misafir Adı</label>
-              <input
-                type="text"
-                value={guestName}
-                onChange={(e) => setGuestName(e.target.value)}
-                placeholder="Örn: Ahmet Yılmaz"
-                className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Misafir Tel (WhatsApp)</label>
-              <input
-                type="tel"
-                value={guestPhone}
-                onChange={(e) => setGuestPhone(e.target.value)}
-                placeholder="+90 532..."
-                className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
-              />
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Tahsil Eden Şoför / Personel</label>
-              <input
-                type="text"
-                value={collectorName}
-                onChange={(e) => setCollectorName(e.target.value)}
-                placeholder="Şoför Somchai / Merkez"
-                className="w-full px-3 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-semibold"
-              />
-            </div>
-          </div>
-
-          {/* Calculator Section */}
-          <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Left: Due Amount in THB */}
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  1. Hizmet / Tur Bedeli (THB) *
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="1"
-                    value={dueAmountThb || ''}
-                    onChange={(e) => setDueAmountThb(Number(e.target.value) || 0)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-base font-black text-slate-900 dark:text-white focus:outline-none"
-                  />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 font-bold text-xs text-slate-400">
-                    THB (฿)
-                  </span>
-                </div>
-              </div>
-
-              {/* Right: Paid Currency & Amount */}
-              <div>
-                <label className="block text-xs font-bold uppercase text-slate-700 dark:text-slate-300 mb-1">
-                  2. Alınan Para Birimi & Tutar *
-                </label>
-                <div className="flex gap-2">
-                  <select
-                    value={paidCurrency}
-                    onChange={(e) => {
-                      setPaidCurrency(e.target.value as any);
-                      setCustomRate(0);
-                    }}
-                    className="w-1/3 px-2 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:outline-none"
-                  >
-                    <option value="USD">🇺🇸 USD ($)</option>
-                    <option value="EUR">🇪🇺 EUR (€)</option>
-                    <option value="TRY">🇹🇷 TRY (₺)</option>
-                    <option value="GBP">🇬🇧 GBP (£)</option>
-                    <option value="THB">🇹🇭 THB (฿)</option>
-                  </select>
-
-                  <input
-                    type="number"
-                    min="1"
-                    value={paidAmount || ''}
-                    onChange={(e) => setPaidAmount(Number(e.target.value) || 0)}
-                    className="w-2/3 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-base font-black text-emerald-600 dark:text-emerald-400 focus:outline-none"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Denomination Chips */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] uppercase font-bold text-slate-400">Hızlı Tutar Seçimi:</span>
-              {paidCurrency === 'USD' && (
-                <>
-                  {[20, 50, 100, 200].map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setPaidAmount(amt)}
-                      className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold hover:bg-slate-100 cursor-pointer"
-                    >
-                      ${amt}
-                    </button>
-                  ))}
-                </>
-              )}
-              {paidCurrency === 'EUR' && (
-                <>
-                  {[20, 50, 100, 200].map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setPaidAmount(amt)}
-                      className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold hover:bg-slate-100 cursor-pointer"
-                    >
-                      €{amt}
-                    </button>
-                  ))}
-                </>
-              )}
-              {paidCurrency === 'THB' && (
-                <>
-                  {[1000, 1500, 2000, 3000, 5000].map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setPaidAmount(amt)}
-                      className="px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold hover:bg-slate-100 cursor-pointer"
-                    >
-                      {fmtMoney(amt)}฿
-                    </button>
-                  ))}
-                </>
-              )}
-            </div>
-
-            {/* Exchange Rate Adjustment (Optional override) */}
-            {paidCurrency !== 'THB' && (
-              <div className="flex items-center justify-between text-xs pt-1 border-t border-slate-200/60 dark:border-slate-800/60">
-                <span className="text-slate-500">
-                  Uygulanan Kur: <strong>1 {paidCurrency} = {calculation.effectiveRate} THB</strong>
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <label htmlFor="custom-fx-rate-input" className="text-[10px] text-slate-400">Özel Kur Girişi:</label>
-                  <input
-                    id="custom-fx-rate-input"
-                    type="number"
-                    step="0.05"
-                    placeholder={String(activeRate)}
-                    value={customRate || ''}
-                    onChange={(e) => setCustomRate(Number(e.target.value) || 0)}
-                    className="w-20 px-2 py-0.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-mono font-bold"
-                  />
-                  {customRate > 0 && (
-                    <button
-                      type="button"
-                      onClick={() => setCustomRate(0)}
-                      className="text-[10px] text-red-500 hover:underline cursor-pointer"
-                    >
-                      Sıfırla
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          <FieldCashierInputs
+            guestName={guestName}
+            setGuestName={setGuestName}
+            guestPhone={guestPhone}
+            setGuestPhone={setGuestPhone}
+            collectorName={collectorName}
+            setCollectorName={setCollectorName}
+            dueAmountThb={dueAmountThb}
+            setDueAmountThb={setDueAmountThb}
+            paidCurrency={paidCurrency}
+            setPaidCurrency={setPaidCurrency}
+            paidAmount={paidAmount}
+            setPaidAmount={setPaidAmount}
+            customRate={customRate}
+            setCustomRate={setCustomRate}
+            activeRate={activeRate}
+            calculation={calculation}
+          />
 
           {/* Results Display Board */}
-          <div className="p-4 rounded-2xl bg-slate-900 text-white space-y-3 shadow-md">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                  Alınan Döviz Karşılığı:
-                </span>
-                <div className="text-xl font-mono font-black text-white">
-                  {fmtMoney(calculation.paidInThb)} THB
-                </div>
-              </div>
-
-              {/* Status & Change Result */}
-              <div>
-                {calculation.changeDueThb > 0 ? (
-                  <div className="sm:text-right">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1 sm:justify-end">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>Verilecek Para Üstü:</span>
-                    </span>
-                    <div className="text-2xl font-mono font-black text-emerald-400">
-                      +{fmtMoney(calculation.changeDueThb)} THB
-                    </div>
-                  </div>
-                ) : calculation.remainingDebtThb > 0 ? (
-                  <div className="sm:text-right">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-red-400 flex items-center gap-1 sm:justify-end">
-                      <AlertCircle className="w-3.5 h-3.5" />
-                      <span>Kalan Eksik Bakiye:</span>
-                    </span>
-                    <div className="text-2xl font-mono font-black text-red-400">
-                      -{fmtMoney(calculation.remainingDebtThb)} THB
-                    </div>
-                  </div>
-                ) : (
-                  <div className="sm:text-right">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-sky-400">
-                      Durum:
-                    </span>
-                    <div className="text-xl font-bold text-sky-400">
-                      ✅ Tam Tutar Alındı
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Banknote breakdown (Only if change is due) */}
-            {calculation.changeDueThb > 0 && (
-              <div className="pt-1">
-                <span className="text-[10px] font-extrabold uppercase text-slate-400 tracking-wider block mb-1.5">
-                  💵 Tayland Bahtı Para Üstü Banknot Dağılımı:
-                </span>
-                <div className="flex flex-wrap gap-2 text-xs">
-                  {calculation.changeBreakdown.bill1000 > 0 && (
-                    <span className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 font-mono font-bold text-amber-300">
-                      {calculation.changeBreakdown.bill1000}x 1,000฿
-                    </span>
-                  )}
-                  {calculation.changeBreakdown.bill500 > 0 && (
-                    <span className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 font-mono font-bold text-purple-300">
-                      {calculation.changeBreakdown.bill500}x 500฿
-                    </span>
-                  )}
-                  {calculation.changeBreakdown.bill100 > 0 && (
-                    <span className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 font-mono font-bold text-red-300">
-                      {calculation.changeBreakdown.bill100}x 100฿
-                    </span>
-                  )}
-                  {calculation.changeBreakdown.bill50 > 0 && (
-                    <span className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 font-mono font-bold text-blue-300">
-                      {calculation.changeBreakdown.bill50}x 50฿
-                    </span>
-                  )}
-                  {calculation.changeBreakdown.bill20 > 0 && (
-                    <span className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 font-mono font-bold text-emerald-300">
-                      {calculation.changeBreakdown.bill20}x 20฿
-                    </span>
-                  )}
-                  {calculation.changeBreakdown.coins > 0 && (
-                    <span className="px-2.5 py-1 rounded-xl bg-slate-800 border border-slate-700 font-mono font-bold text-slate-300">
-                      {calculation.changeBreakdown.coins}฿ Madeni
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
+          <FieldCashierResultsBoard calculation={calculation} />
         </div>
 
         {/* Footer Actions */}

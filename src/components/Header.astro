@@ -11,6 +11,8 @@ try {
 } catch {}
 
 const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
+const googleRating = siteSettings?.googleRating || '4.9';
+const googleReviewCount = Number(siteSettings?.googleReviewCount) || 148;
 const logoUrl = siteSettings?.logoUrl || '/assets/logo-main-transparent.png';
 const logoText = (siteSettings?.logoText || 'Phuket Tatili').trim();
 const lastSpaceIdx = logoText.lastIndexOf(' ');
@@ -49,7 +51,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
             <span>Turlar</span>
             <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </a>
-          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto">
             <div class="w-72 p-2.5 bg-white/95 dark:bg-surface-1/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
               <a href="/turlar/?kategori=island-tours" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors">
                 <span class="text-base shrink-0">🏝️</span>
@@ -104,7 +106,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
             <span>VIP & Transfer</span>
             <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </a>
-          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto">
             <div class="w-72 p-2.5 bg-white/95 dark:bg-surface-1/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
               <a href="/transferler" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-sky-500/10 hover:text-sky-700 dark:hover:text-sky-400 transition-colors">
                 <span class="text-base shrink-0">✈️</span>
@@ -150,7 +152,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
             <span>Rehber</span>
             <svg class="w-3.5 h-3.5 transition-transform duration-200 group-hover:rotate-180 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
           </a>
-          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto">
+          <div class="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 pointer-events-none group-hover:pointer-events-auto group-focus-within:pointer-events-auto">
             <div class="w-60 p-2.5 bg-white/95 dark:bg-surface-1/95 backdrop-blur-xl rounded-2xl shadow-xl border border-slate-200/80 dark:border-slate-800 space-y-1">
               <a href="/blog" class="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-400 transition-colors">
                 <span class="text-base shrink-0">📖</span>
@@ -183,19 +185,31 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
 
         <a
           href="/#testimonials"
-          class="hidden xl:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 transition-colors shrink-0"
-          title="Google Doğrulanmış Misafir Yorumları (4.9 / 5)"
+          class="hidden lg:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 transition-colors shrink-0"
+          title={`Google Doğrulanmış Misafir Yorumları (${googleRating} / 5)`}
         >
           <span class="text-amber-400 text-xs">★</span>
-          <span>4.9</span>
-          <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Google (150+)</span>
+          <span>{googleRating}</span>
+          <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">Google ({googleReviewCount}+)</span>
         </a>
 
-        <a href={`https://wa.me/${whatsappNumber}`} target="_blank" class="ml-1 lg:ml-2 bg-[#25D366] text-white px-5 py-2.5 lg:px-6 lg:py-3 rounded-full text-sm font-bold hover:bg-[#128C7E] transition-all transform hover:-translate-y-1 hover:shadow-xl shadow-md flex items-center gap-2 shrink-0 whitespace-nowrap">
+        <a href={`https://wa.me/${whatsappNumber}`} target="_blank" class="ml-1 lg:ml-2 bg-whatsapp text-white px-5 py-2.5 lg:px-6 lg:py-3 rounded-full text-sm font-bold hover:bg-whatsapp-dark transition-all transform hover:-translate-y-1 hover:shadow-xl shadow-md flex items-center gap-2 shrink-0 whitespace-nowrap">
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
           WhatsApp
         </a>
       </nav>
+
+      {/* Mobil sosyal kanıt: masaüstü rozeti xl'de kaldığı için telefonlarda
+          güven sinyali hiç görünmüyordu — hamburger'in yanında kompakt çip. */}
+      <a
+        href="/#testimonials"
+        class="flex md:hidden items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0"
+        title={`Google Doğrulanmış Misafir Yorumları (${googleRating} / 5)`}
+        aria-label={`Google puanı ${googleRating} bölü 5, ${googleReviewCount} üzeri yorum`}
+      >
+        <span class="text-amber-400">★</span>
+        <span>{googleRating}</span>
+      </a>
 
       <!-- Mobile Menu Button -->
       <button id="mobile-menu-btn" class="md:hidden rounded-xl p-3 text-brand-primary dark:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer" aria-label="Menüyü Aç" aria-expanded="false" aria-controls="mobile-menu">
@@ -334,7 +348,13 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
 
     {/* Alt CTA: WhatsApp & İletişim */}
     <div class="pt-3 border-t border-slate-200/80 dark:border-slate-800 shrink-0">
-      <a href={`https://wa.me/${whatsappNumber}`} target="_blank" class="w-full bg-[#25D366] text-white py-3.5 px-4 rounded-2xl text-center font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 hover:bg-[#128C7E] transition-colors">
+      {/* Sosyal kanıt: menüde karar anında güven tazeleme */}
+      <div class="flex items-center justify-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-medium mb-2.5">
+        <span class="text-amber-400 font-bold">★ {googleRating}/5</span>
+        <span class="text-slate-300 dark:text-slate-600">·</span>
+        <span>{googleReviewCount}+ Doğrulanmış Google Yorumu</span>
+      </div>
+      <a href={`https://wa.me/${whatsappNumber}`} target="_blank" class="w-full bg-whatsapp text-white py-3.5 px-4 rounded-2xl text-center font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 hover:bg-whatsapp-dark transition-colors">
         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         <span>WhatsApp ile Hızlı İletişim</span>
       </a>

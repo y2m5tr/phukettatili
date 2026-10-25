@@ -98,7 +98,10 @@ export const POST: APIRoute = async (context) => {
 
   const zone = detectHotelZone(hotel);
   const pickupTime = getRecommendedPickupTime(zone);
-  const bookingId = `BK-${Math.floor(1000 + Math.random() * 9000)}`;
+  // Çakışmaya dayanıklı ID: eski BK-1000..9999 havuzu (9000 olasılık) aynı
+  // gün yoğun trafikte çakışabiliyordu. Zaman damgası (base36) + crypto
+  // rastgeleliği pratikte benzersiz; "BK-" öneki operasyon ekranlarında korunur.
+  const bookingId = `BK-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
   const ticketCode = generateTicketCode();
   const managerPhone = siteSettings?.whatsappNumber || '66828950665';
 

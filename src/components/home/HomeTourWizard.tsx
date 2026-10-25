@@ -380,7 +380,7 @@ export default function HomeTourWizard({
                     href={whatsappUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-[#25D366] hover:bg-[#128C7E] text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 transition transform hover:-translate-y-0.5 cursor-pointer"
+                    className="w-full sm:w-auto px-6 py-3.5 rounded-2xl bg-whatsapp hover:bg-whatsapp-dark text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 transition transform hover:-translate-y-0.5 cursor-pointer"
                   >
                     <span>💬</span>
                     <span>Bu Rotayı WhatsApp'tan Talep Et</span>

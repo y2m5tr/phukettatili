@@ -23,6 +23,12 @@ import type { CategoryItem } from '../../../data/adminTypes';
 import type { SiteSettingsState } from '../SettingsTab';
 import {
   STORAGE_KEY_TOURS,
+  STORAGE_KEY_BLOGS,
+  STORAGE_KEY_SERVICES,
+  STORAGE_KEY_FAQS,
+  STORAGE_KEY_TESTIMONIALS,
+  STORAGE_KEY_SITE,
+  STORAGE_KEY_MEDIA,
   STORAGE_KEY_PAYMENTS,
   STORAGE_KEY_AGENTS,
   STORAGE_KEY_SUPPLIERS,
@@ -32,11 +38,8 @@ import {
   DEFAULT_AVAILABLE_IMAGES,
 } from './dashboardTypes';
 import {
-  loadCmsCollections,
   saveCmsCollection,
-  writeLocalCollection,
   readLocalCollection,
-  type CmsCollectionKey,
 } from '../../../lib/cmsSync';
 import {
   normalizeOptionLibrary,
@@ -46,12 +49,8 @@ import {
   type OptionKind,
 } from '../../../lib/inclusionLibrary';
 import { safeGet, } from '../../../lib/safeStorage';
-import {
-  UPLOAD_MAX_MB,
-  slugifyFileName,
-  processImageFile,
-  uploadToStorage,
-} from '../../../lib/imageUpload';
+import { filterTours } from '../../../lib/adminFilters';
+import { uploadMediaItem, fetchAndApplyCloudCms } from './adminCmsSyncHelper';
 
 export interface UseAdminCollectionsArgs {
   initialTours: TourItem[];
@@ -109,6 +108,14 @@ export function useAdminCollections({
     const fromCats = categories.map((c) => c.slug).filter(Boolean);
     return Array.from(new Set([...fromTours, ...fromCats])).sort();
   }, [tours, categories]);
+
+  // Filtrelenmiş tur listesi (ToursTab) — AdminDashboard.tsx'teki orijinal
+  // implementasyonun birebir taşınmış hali. Eksikliği panelde "t.map" çökmesine
+  // yol açtığı için dönüş objesine dahil edilmesi zorunlu.
+  const filteredTours = useMemo(
+    () => filterTours(tours, tourSearchQuery, tourCategoryFilter),
+    [tours, tourSearchQuery, tourCategoryFilter],
+  );
 
   // Inclusion Library
   const [inclusionLibrary, setInclusionLibrary] = useState<OptionLibrary>(() =>
@@ -235,7 +242,18 @@ export function useAdminCollections({
   );
 
   // Media
-  const [mediaList, setMediaList] = useState<MediaItem[]>([]);
+  const [mediaList, setMediaList] = useState<MediaItem[]>(() => {
+    const saved = safeGet<MediaItem[] | null>(STORAGE_KEY_MEDIA, null);
+    if (saved && saved.length > 0) return saved;
+    const pool = availableImages && availableImages.length > 0 ? availableImages : DEFAULT_AVAILABLE_IMAGES;
+    return pool.map((filename, idx) => ({
+      id: `sys-${idx + 1}-${filename}`,
+      title: filename.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' '),
+      url: filename,
+      type: 'system' as const,
+      createdAt: 'Sistem',
+    }));
+  });
   const [mediaSearchQuery, setMediaSearchQuery] = useState<string>('');
   const [mediaTypeFilter, setMediaTypeFilter] = useState<'all' | 'system' | 'uploaded' | 'external'>('all');
 
@@ -247,11 +265,48 @@ export function useAdminCollections({
     [showToast]
   );
 
+  // Medya kütüphanesi filtreleme (MediaTab) — AdminDashboard.tsx'ten taşındı.
+  const filteredMedia = useMemo(() => {
+    return mediaList.filter((m) => {
+      const matchesSearch =
+        m.title.toLowerCase().includes(mediaSearchQuery.toLowerCase()) ||
+        m.url.toLowerCase().includes(mediaSearchQuery.toLowerCase());
+      const matchesType = mediaTypeFilter === 'all' || m.type === mediaTypeFilter;
+      return matchesSearch && matchesType;
+    });
+  }, [mediaList, mediaSearchQuery, mediaTypeFilter]);
+
+  // Görsel URL çözümleyici: tam URL/data/absolute yollar aynen geçer, çıplak
+  // dosya adları /assets/ altına eşlenir (AdminDashboard.tsx'ten taşındı).
+  const getImageUrl = useCallback((img?: string): string => {
+    if (!img) return '/assets/phuket_hero.webp';
+    if (img.startsWith('data:') || img.startsWith('http://') || img.startsWith('https://') || img.startsWith('/')) {
+      return img;
+    }
+    return `/assets/${img}`;
+  }, []);
+
+  const handleCopyMediaUrl = useCallback(
+    (url: string) => {
+      navigator.clipboard.writeText(url);
+      showToast('Görsel bağlantısı panoya kopyalandı! 📋');
+    },
+    [showToast]
+  );
+
   // Blogs, Services, Faqs, Testimonials
-  const [blogs, setBlogs] = useState<BlogItem[]>([]);
-  const [services, setServices] = useState<ServiceItem[]>([]);
-  const [faqs, setFaqs] = useState<FaqItem[]>([]);
-  const [testimonials, setTestimonials] = useState<TestimonialItem[]>([]);
+  const [blogs, setBlogs] = useState<BlogItem[]>(() =>
+    safeGet<BlogItem[]>(STORAGE_KEY_BLOGS, initialBlogs || [])
+  );
+  const [services, setServices] = useState<ServiceItem[]>(() =>
+    safeGet<ServiceItem[]>(STORAGE_KEY_SERVICES, initialServices || [])
+  );
+  const [faqs, setFaqs] = useState<FaqItem[]>(() =>
+    safeGet<FaqItem[]>(STORAGE_KEY_FAQS, initialFaqs || [])
+  );
+  const [testimonials, setTestimonials] = useState<TestimonialItem[]>(() =>
+    safeGet<TestimonialItem[]>(STORAGE_KEY_TESTIMONIALS, initialTestimonials || [])
+  );
 
   const saveBlogs = useCallback(
     (next: BlogItem[]) => {
@@ -286,7 +341,9 @@ export function useAdminCollections({
   );
 
   // Site & Home Settings
-  const [siteSettings, setSiteSettings] = useState<SiteSettingsState>(initialSiteSettings);
+  const [siteSettings, setSiteSettings] = useState<SiteSettingsState>(() =>
+    safeGet<SiteSettingsState>(STORAGE_KEY_SITE, initialSiteSettings)
+  );
   const [settingsSaved, setSettingsSaved] = useState<boolean>(false);
   const [homeSettings, setHomeSettings] = useState<any>(() => {
     return safeGet(STORAGE_KEY_HOME_SETTINGS, initialHomeSettings || null);
@@ -303,94 +360,41 @@ export function useAdminCollections({
   );
 
   const handleFileUpload = useCallback(
-    (file: File, callback?: (url: string) => void) => {
-      if (!file) return;
-      if (!file.type.startsWith('image/')) {
-        showToast('Hata: Sadece görsel dosyası yüklenebilir (JPG, PNG, WebP, GIF).');
-        return;
+    async (file: File, callback?: (url: string) => void) => {
+      const newMedia = await uploadMediaItem(file, showToast, callback);
+      if (newMedia) {
+        saveMediaList([newMedia, ...mediaList]);
       }
-      if (file.size > UPLOAD_MAX_MB * 1024 * 1024) {
-        showToast(`Hata: Dosya çok büyük (${(file.size / 1024 / 1024).toFixed(1)}MB). En fazla ${UPLOAD_MAX_MB}MB.`);
-        return;
-      }
-      processImageFile(file)
-        .then(async ({ width, height, blob }) => {
-          const slug = slugifyFileName(file.name);
-          const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
-          const fileName = `${slug}.${ext}`;
-          const { url: finalUrl, cloud } = await uploadToStorage(blob, fileName);
-          const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
-          const newMedia: MediaItem = {
-            id: `med-${Date.now()}`,
-            title: cleanTitle,
-            url: finalUrl,
-            type: 'uploaded',
-            size: `${Math.round(blob.size / 1024)} KB · ${width}×${height}`,
-            createdAt: new Date().toLocaleDateString('tr-TR'),
-            slug: fileName,
-          };
-          const updated = [newMedia, ...mediaList];
-          saveMediaList(updated);
-          showToast(
-            cloud
-              ? `"${file.name}" buluta yüklendi: ${width}×${height} → ${(blob.size / 1024).toFixed(0)}KB WebP`
-              : `"${file.name}" yerel yüklendi (bulut kapalı): ${width}×${height}`
-          );
-          if (callback) callback(finalUrl);
-        })
-        .catch((err) => {
-          showToast(err?.message || 'Yükleme sırasında hata oluştu.');
-        });
     },
     [mediaList, saveMediaList, showToast]
   );
 
   const refreshCmsFromServer = useCallback(async (): Promise<void> => {
-    try {
-      const { items, offline } = await loadCmsCollections();
-      if (offline) return;
-      const apply = <T,>(key: CmsCollectionKey, setValue: (v: T) => void) => {
-        const cloud = items[key];
-        if (cloud === undefined) return;
-        setValue(cloud as T);
-        writeLocalCollection(key, cloud);
-      };
-      apply('tours', setTours);
-      apply('categories', setCategories);
-      apply('blogs', setBlogs);
-      apply('services', setServices);
-      apply('faqs', setFaqs);
-      apply('testimonials', setTestimonials);
-      apply('media', setMediaList);
-      apply('site-settings', setSiteSettings);
-      apply('home-settings', setHomeSettings);
-      apply('vehicles', setVehicles);
-      apply('drivers', setDrivers);
-      apply('payments', setPayments);
-      apply('agents', setAgents);
-      apply('suppliers', setSuppliers);
-      apply('tour-costs', setTourCosts);
-      apply('inclusion-library', (val) => {
-        const normalized = normalizeOptionLibrary(val);
-        setInclusionLibrary(normalized);
-        writeLocalCollection('inclusion-library', normalized);
-      });
-      apply('expenses', (val) => writeLocalCollection('expenses', val));
-      apply('virmans', (val) => writeLocalCollection('virmans', val));
-      apply('driver-expenses', (val) => writeLocalCollection('driver-expenses', val));
-      apply('guide-expenses', (val) => writeLocalCollection('guide-expenses', val));
-      apply('proposals', (val) => writeLocalCollection('proposals', val));
-      apply('lost-found', (val) => writeLocalCollection('lost-found', val));
-      apply('luggage', (val) => writeLocalCollection('luggage', val));
-    } catch {
-      // ignore
-    }
+    await fetchAndApplyCloudCms({
+      setTours,
+      setCategories,
+      setBlogs,
+      setServices,
+      setFaqs,
+      setTestimonials,
+      setMediaList,
+      setSiteSettings,
+      setHomeSettings,
+      setVehicles,
+      setDrivers,
+      setPayments,
+      setAgents,
+      setSuppliers,
+      setTourCosts,
+      setInclusionLibrary,
+    });
   }, []);
 
   return {
     tours,
     setTours,
     saveTours,
+    filteredTours,
     tourSearchQuery,
     setTourSearchQuery,
     tourCategoryFilter,
@@ -424,10 +428,13 @@ export function useAdminCollections({
     mediaList,
     setMediaList,
     saveMediaList,
+    filteredMedia,
     mediaSearchQuery,
     setMediaSearchQuery,
     mediaTypeFilter,
     setMediaTypeFilter,
+    getImageUrl,
+    handleCopyMediaUrl,
     handleFileUpload,
     blogs,
     setBlogs,

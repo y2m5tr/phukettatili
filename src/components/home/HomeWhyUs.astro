@@ -59,7 +59,7 @@ const cards = customCards && customCards.length > 0 ? customCards : defaultCards
 
   <div class="max-w-6xl mx-auto relative z-10">
     <!-- Section Title -->
-    <FadeIn client:visible delay={0.1}>
+    <FadeIn delay={0.1}>
       <div class="text-center max-w-2xl mx-auto mb-16">
         <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-accent/20 border border-brand-accent/30 text-amber-300 text-xs font-bold uppercase tracking-widest">
           {badge}
@@ -76,7 +76,7 @@ const cards = customCards && customCards.length > 0 ? customCards : defaultCards
     <!-- 3 Feature Cards with Images, Icons & Rich Micro-Details -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
       {cards.map((card, idx) => (
-        <FadeIn client:visible delay={0.2 + idx * 0.15} direction="up">
+        <FadeIn delay={0.2 + idx * 0.15} direction="up">
           <div class="group relative rounded-3xl overflow-hidden bg-slate-800/90 border border-slate-700/80 hover:border-brand-accent/50 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1 flex flex-col h-full">
             <!-- Visual Header -->
             <div class="relative h-48 overflow-hidden">

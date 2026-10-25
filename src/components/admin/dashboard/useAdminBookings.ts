@@ -367,9 +367,10 @@ export function useAdminBookings({
   );
 
   const stats = useMemo(() => {
+    const activeBookings = bookings.filter((b) => b.status !== 'cancelled');
     const totalRevenue = bookings
       .filter((b) => b.status === 'confirmed' || b.status === 'completed')
-      .reduce((acc, curr) => acc + curr.totalPriceThb, 0);
+      .reduce((acc, curr) => acc + (curr.totalPriceThb || 0), 0);
 
     const pendingCount = bookings.filter((b) => b.status === 'inquiry').length;
     const confirmedCount = bookings.filter((b) => b.status === 'confirmed').length;
@@ -380,13 +381,48 @@ export function useAdminBookings({
         (!b.assignedVehicle || b.assignedVehicle === 'Atanmadı')
     ).length;
 
+    // OverviewStats sözleşmesi (overview/overviewTypes.ts) — OverviewStatsCards
+    // bu alanları fmtMoney ile render eder. Eksik alan = undefined = panel çöker.
+    const totalGuests = activeBookings.reduce(
+      (sum, b) => sum + (b.adultCount || 0) + (b.childCount || 0),
+      0
+    );
+    const collectedRevenueThb = activeBookings.reduce(
+      (sum, b) => sum + (Number(b.paidAmountThb) || 0),
+      0
+    );
+    const pendingCollectionThb = activeBookings.reduce(
+      (sum, b) => sum + (Number(b.remainingAmountThb) || 0),
+      0
+    );
+    // Tedarikçi maliyeti: booking.costThb > tours[].costThb toplamı > %55 varsayılan
+    // (profitability.ts ile aynı öncelik sırası — iki ekran aynı rakamı göstermeli).
+    const totalCostThb = activeBookings.reduce((sum, b) => {
+      if (b.costThb && b.costThb > 0) return sum + b.costThb;
+      const tourCost = (b.tours || []).reduce((tSum, t) => tSum + (t.costThb || 0), 0);
+      return sum + (tourCost > 0 ? tourCost : Math.round((b.totalPriceThb || 0) * 0.55));
+    }, 0);
+    const totalCommissionThb = activeBookings.reduce(
+      (sum, b) => sum + (Number(b.agentCommissionThb) || 0),
+      0
+    );
+    const netProfitThb = totalRevenue - totalCostThb - totalCommissionThb;
+    const profitMarginPercent =
+      totalRevenue > 0 ? Number(((netProfitThb / totalRevenue) * 100).toFixed(1)) : 0;
+
     return {
       totalBookings: bookings.length,
       confirmedCount,
       pendingCount,
       completedCount,
       unassignedCount,
-      totalRevenue,
+      totalRevenueThb: totalRevenue,
+      totalGuests,
+      collectedRevenueThb,
+      pendingCollectionThb,
+      totalCostThb,
+      netProfitThb,
+      profitMarginPercent,
     };
   }, [bookings]);
 

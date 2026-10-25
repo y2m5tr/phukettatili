@@ -39,7 +39,7 @@ function getPostCategory(id: string): string {
   <div class="max-w-6xl mx-auto">
     <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
-      <FadeIn client:visible delay={0.1}>
+      <FadeIn delay={0.1}>
         <div>
           <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand-accent/10 text-brand-accent text-xs font-bold uppercase tracking-wider mb-3">
             {badge}
@@ -53,7 +53,7 @@ function getPostCategory(id: string): string {
         </div>
       </FadeIn>
 
-      <FadeIn client:visible delay={0.2}>
+      <FadeIn delay={0.2}>
         <a
           href="/blog"
           class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-brand-accent hover:text-white dark:hover:bg-brand-accent text-slate-800 dark:text-slate-200 text-xs font-bold transition-all shadow-xs shrink-0"
@@ -69,7 +69,7 @@ function getPostCategory(id: string): string {
     <!-- 3'lü Blog Kart Grid -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
       {topPosts.map((post, idx) => (
-        <FadeIn client:visible delay={0.15 * (idx + 1)} direction="up">
+        <FadeIn delay={0.15 * (idx + 1)} direction="up">
           <article class="group flex flex-col h-full rounded-3xl overflow-hidden bg-slate-50 dark:bg-slate-800/70 border border-slate-200/60 dark:border-slate-700/60 hover:border-brand-accent/50 transition-all duration-300 hover:shadow-xl">
             <!-- Görsel -->
             <a href={`/blog/${post.id}`} class="relative block h-52 overflow-hidden">

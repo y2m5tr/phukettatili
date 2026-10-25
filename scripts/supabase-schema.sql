@@ -244,6 +244,33 @@ create table if not exists public.content_store (
 alter table public.content_store enable row level security;
 drop policy if exists "content_store_anon_all" on public.content_store;
 
+-- Atomik tur görüntülenme sayacı: /api/tour-views POST'taki eski
+-- select→+1→upsert akışı eşzamanlı isteklerde güncelleme kaybettiriyordu
+-- (iki lambda aynı değeri okuyup aynı sayıyı yazıyordu). Tek upsert içinde
+-- jsonb_set ile artırma DB tarafında serileşir; yeni sayıyı döndürür.
+-- Yalnızca servis rolü çağırır (RLS default deny bunu zaten garanti eder).
+create or replace function public.increment_tour_view(tour_id text)
+returns integer
+language plpgsql
+as $$
+declare
+  new_count integer;
+begin
+  insert into public.content_store (key, data, updated_at)
+  values ('tour-views', jsonb_build_object(tour_id, 1), now())
+  on conflict (key) do update
+    set data = jsonb_set(
+          content_store.data,
+          array[tour_id],
+          to_jsonb(coalesce((content_store.data ->> tour_id)::bigint, 0) + 1)
+        ),
+        updated_at = now()
+  returning (data ->> tour_id)::integer into new_count;
+
+  return new_count;
+end;
+$$;
+
 -- -----------------------------------------------------------------------------
 -- 10. RATE LIMIT SAYAÇLARI — serverless'ta kalıcı brute-force koruması
 --

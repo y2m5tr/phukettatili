@@ -47,9 +47,15 @@ const homeData = mergeHomeSettings(homeDataJson, panelContent.homeSettings);
 const siteSettings = mergeSiteSettings(siteSettingsJson, panelContent.siteSettings);
 
 const whatsappUrl = `https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}`;
+const googleRating = siteSettings?.googleRating || '4.9';
+const googleReviewCount = Number(siteSettings?.googleReviewCount) || 148;
 
 // Admin panelinden veya home.json'dan dinamik Hero & Bölüm verileri
 const heroTitle = homeData?.heroTitle || (siteSettings as any)?.heroTitle || "Phuket'in Büyüsünü Keşfedin";
+// Yapısal vurgu: eski sürüm başlıkta hardcoded 'Büyüsünü' arıyordu — panel
+// editörü başlığı değiştirince italik vurgu sessizce kayboluyordu. Artık
+// vurgulanacak parça ayrı bir alan (heroTitleAccent); boşsa vurgu basılmaz.
+const heroTitleAccent = (homeData as any)?.heroTitleAccent || '';
 const heroSubtitle = homeData?.heroSubtitle || (siteSettings as any)?.heroSubtitle || "Size özel tasarlanmış turlar, gizli kalmış cennet koylar ve unutulmaz anılar için en doğru yerdesiniz.";
 const heroImage = (siteSettings as any)?.heroImage || homeData?.heroImage;
 const heroCtaPrimaryText = homeData?.heroCtaPrimaryText || "Turları İncele";
@@ -173,25 +179,25 @@ const schemas: Record<string, unknown>[] = [
       <HeroSlider customFirstImage={heroImage} sliderImages={heroSliderImages} />
 
       <div class="relative z-20 text-center px-4 max-w-3xl mx-auto mb-5">
-        <FadeIn client:load delay={0.2} direction="up">
+        <FadeIn delay={0.2} direction="up">
           <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl text-white mb-5 drop-shadow-lg leading-[1.08] font-serif font-bold tracking-tight">
-            {heroTitle.includes('Büyüsünü') ? (
+            {heroTitleAccent && heroTitle.includes(heroTitleAccent) ? (
               <>
-                {heroTitle.split('Büyüsünü')[0]}
-                <span class="text-brand-accent italic">Büyüsünü</span>
-                {heroTitle.split('Büyüsünü')[1]}
+                {heroTitle.split(heroTitleAccent)[0]}
+                <span class="text-brand-accent italic">{heroTitleAccent}</span>
+                {heroTitle.split(heroTitleAccent)[1]}
               </>
             ) : (
               heroTitle
             )}
           </h1>
         </FadeIn>
-        <FadeIn client:load delay={0.4} direction="up">
+        <FadeIn delay={0.4} direction="up">
           <p class="text-base sm:text-lg md:text-xl text-slate-100/90 mb-7 max-w-xl mx-auto font-light leading-relaxed">
             {heroSubtitle}
           </p>
         </FadeIn>
-        <FadeIn client:load delay={0.6} direction="up">
+        <FadeIn delay={0.6} direction="up">
           <div class="flex flex-col sm:flex-row gap-3 justify-center mb-4">
             <a href={heroCtaPrimaryLink} class="premium-cta bg-brand-accent hover:bg-brand-accent/90 text-white px-8 py-3.5 rounded-full font-semibold transition-transform duration-300 hover:-translate-y-0.5 shadow-xl shadow-slate-950/20">
               {heroCtaPrimaryText}
@@ -202,9 +208,9 @@ const schemas: Record<string, unknown>[] = [
           </div>
           <!-- Hero içine küçük editorial güven satırı -->
           <div class="inline-flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[11px] sm:text-xs text-slate-200/90 font-medium tracking-wide bg-slate-950/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
-            <span class="text-amber-400 font-bold">★ 4.9/5</span>
+            <span class="text-amber-400 font-bold">★ {googleRating}/5</span>
             <span class="text-white/35">·</span>
-            <span>148+ Doğrulanmış Yorum</span>
+            <span>{googleReviewCount}+ Doğrulanmış Yorum</span>
             <span class="text-white/35">·</span>
             <span>Türkçe Yerel Ekip</span>
             <span class="text-white/35">·</span>
@@ -222,7 +228,7 @@ const schemas: Record<string, unknown>[] = [
 
   <!-- 4'lü Güven & Sosyal Kanıt Rozetleri (Hemen Hero'nun Ardından) -->
   {sections.trustBadges !== false && (
-    <HomeTrustBadges badges={trustBadges} />
+    <HomeTrustBadges badges={trustBadges} googleRating={googleRating} googleReviewCount={googleReviewCount} />
   )}
 
   <!-- Öne Çıkan Üç Rota (Hemen Güven Rozetlerinin Ardından Satış Odağı) -->

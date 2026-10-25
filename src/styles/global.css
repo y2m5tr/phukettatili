@@ -20,6 +20,11 @@
   --font-serif: "Playfair Display", serif;
   --color-brand-primary: #0f172a;
 
+  /* WhatsApp marka yeşili — tek kaynak. Eskiden bg-[#25D366]/hover:bg-[#128C7E]
+     10+ dosyada elle yazılıyordu; artık bg-whatsapp / hover:bg-whatsapp-dark. */
+  --color-whatsapp: #25d366;
+  --color-whatsapp-dark: #128c7e;
+
   /* Vurgu rengi üç role ayrıldı — tek ton hem koyu yüzeyde metin hem de
      beyaz metin taşıyan dolgu olarak AA sınırını geçemiyordu:
      brand-amber: koyu kehribar; beyaz zeminde metin (5.0:1) ve beyaz metinli
@@ -266,6 +271,31 @@
 
 .premium-whatsapp {
   animation: soft-pulse 3s ease-in-out infinite;
+}
+
+/* ---- FadeIn (saf CSS sürüm — React adası değil) ----
+   İçerik yalnızca JS etkinken gizlenir (.js sınıfı Layout'taki erken inline
+   script ile eklenir). JS yoksa her şey görünür kalır — erişilebilirlik ve
+   SEO için kritik. Gözlemci Layout.astro'daki astro:page-load script'i. */
+.js .ptt-fade-in {
+  opacity: 0;
+  transform: var(--ptt-offset, translateY(40px));
+  transition:
+    opacity var(--ptt-duration, 0.8s) cubic-bezier(0.25, 0.25, 0, 1),
+    transform var(--ptt-duration, 0.8s) cubic-bezier(0.25, 0.25, 0, 1);
+  transition-delay: var(--ptt-delay, 0s);
+  will-change: opacity, transform;
+}
+.js .ptt-fade-in.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .ptt-fade-in {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 /* ---- Sayfa üstü okuma/ilerleme çubuğu ---- */

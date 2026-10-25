@@ -1,0 +1,142 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { fmtMoney } from '../../../lib/moneyFormat';
+
+interface Props {
+  tour: CollectionEntry<'tours'>;
+  whatsappNumber: string;
+  googleRating: string;
+  googleReviewCount: number;
+  initialWhatsAppUrl: string;
+}
+const { tour, whatsappNumber, googleRating, googleReviewCount, initialWhatsAppUrl } = Astro.props;
+---
+
+<!-- Sidebar -->
+<div class="lg:col-span-1">
+  <div id="booking-sidebar" class="sticky top-28 bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-7 lg:p-8 border border-slate-100 dark:border-slate-700 scroll-mt-24">
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="font-serif text-2xl font-bold text-brand-primary dark:text-white">Rezervasyon & Teklif</h3>
+      <span class="w-2.5 h-2.5 rounded-full bg-whatsapp animate-pulse" title="WhatsApp Canlı Destek"></span>
+    </div>
+    <p class="text-slate-600 dark:text-slate-400 text-sm mb-5 leading-relaxed">
+      Tur tarihi ve kişi sayınızı seçerek anında WhatsApp üzerinden özel fiyat teklifi ve müsaitlik alabilirsiniz.
+    </p>
+
+    <!-- Canlı Kur & Yaklaşık Fiyat Çevirici -->
+    {tour.data.price_thb && tour.data.price_thb > 0 && (
+      <div class="mb-5 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-slate-400">
+          <span>Tahmini Fiyat:</span>
+          <span id="sidebar-converted-price" class="font-bold text-slate-900 dark:text-white text-sm" data-base-thb={tour.data.price_thb}>
+            {fmtMoney(tour.data.price_thb)} THB (~{fmtMoney(Math.round(tour.data.price_thb / 1.2))} ₺)
+          </span>
+        </div>
+        <div class="flex items-center gap-1.5 pt-0.5" id="currency-pills-row">
+          <button type="button" class="currency-pill px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer bg-brand-primary text-white" data-currency="TRY">🇹🇷 TRY (₺)</button>
+          <button type="button" class="currency-pill px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700" data-currency="USD">🇺🇸 USD ($)</button>
+          <button type="button" class="currency-pill px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700" data-currency="EUR">🇪🇺 EUR (€)</button>
+          <button type="button" class="currency-pill px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700" data-currency="THB">🇹🇭 THB (฿)</button>
+        </div>
+        <span class="text-[10px] text-slate-400 block italic leading-tight">
+          *Ödemeler Tayland Bahtı (THB) olarak tahsil edilir. Kurlar anlık bilgi amaçlıdır.
+        </span>
+      </div>
+    )}
+
+    <!-- Booking Interactive Form (Syncs to WhatsApp message) -->
+    <div class="space-y-4 mb-6">
+      <div>
+        <label for="booking-date-input" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+          Tur Tarihi
+        </label>
+        <input
+          type="date"
+          id="booking-date-input"
+          class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-accent transition-all"
+        />
+      </div>
+
+      <div>
+        <label for="booking-guests-select" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+          Kişi Sayısı
+        </label>
+        <select
+          id="booking-guests-select"
+          class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-accent transition-all"
+        >
+          <option value="1 Kişi">1 Kişi</option>
+          <option value="2 Kişi" selected>2 Kişi (Önerilen)</option>
+          <option value="3 Kişi">3 Kişi</option>
+          <option value="4 Kişi">4 Kişi (Aile / Küçük Grup)</option>
+          <option value="5 Kişi">5 Kişi</option>
+          <option value="6+ Kişi">6+ Kişi (Özel Grup Teklifi)</option>
+        </select>
+      </div>
+
+      <div>
+        <label for="booking-hotel-input" class="block text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+          Konaklama Oteli / Bölge (İsteğe Bağlı)
+        </label>
+        <input
+          type="text"
+          id="booking-hotel-input"
+          placeholder="Örn: Patong, Karon, Kata..."
+          class="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-brand-accent/50 focus:border-brand-accent transition-all"
+        />
+      </div>
+    </div>
+
+    <a
+      id="whatsapp-booking-btn"
+      href={initialWhatsAppUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-tour-title={tour.data.title}
+      data-wa-number={whatsappNumber}
+      class="premium-cta flex items-center justify-center gap-2.5 w-full bg-whatsapp hover:bg-whatsapp-dark text-white px-6 py-4 rounded-xl font-bold transition-all shadow-lg shadow-green-500/30 transform hover:-translate-y-0.5"
+    >
+      <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      <span>WhatsApp ile Teklif Al</span>
+    </a>
+
+    <!-- Google Yorum & Doğrulanmış Acente Rozeti -->
+    <div class="mt-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs">
+      <div class="flex items-center gap-1.5">
+        <span class="text-amber-400 font-bold">★ {googleRating}</span>
+        <span class="text-slate-400">/ 5</span>
+        <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">({googleReviewCount}+ Google Yorumu)</span>
+      </div>
+      <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+        ✓ Doğrulanmış Acente
+      </span>
+    </div>
+
+    {(tour.data.included && tour.data.included.length > 0) || (tour.data.excluded && tour.data.excluded.length > 0) ? (
+      <div class="mt-8 border-t border-slate-100 dark:border-slate-700 pt-6">
+        {tour.data.included && tour.data.included.length > 0 && (
+          <div class="mb-6">
+            <h4 class="font-bold mb-3 text-slate-800 dark:text-slate-200 flex items-center gap-2 text-sm">
+              <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+              Fiyata Dahil Olanlar
+            </h4>
+            <ul class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 space-y-2">
+              {tour.data.included.map(item => <li class="flex items-start gap-1.5"><span class="text-green-500">✓</span><span>{item}</span></li>)}
+            </ul>
+          </div>
+        )}
+        {tour.data.excluded && tour.data.excluded.length > 0 && (
+          <div>
+            <h4 class="font-bold mb-3 text-slate-800 dark:text-slate-200 flex items-center gap-2 text-sm">
+              <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              Dahil Olmayanlar
+            </h4>
+            <ul class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 space-y-2">
+              {tour.data.excluded.map(item => <li class="flex items-start gap-1.5"><span class="text-red-500">✗</span><span>{item}</span></li>)}
+            </ul>
+          </div>
+        )}
+      </div>
+    ) : null}
+  </div>
+</div>

@@ -1,0 +1,58 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { resolveAssetUrl } from '../../../lib/assets';
+import { fmtMoney } from '../../../lib/moneyFormat';
+
+interface Props {
+  tour: CollectionEntry<'tours'>;
+  relatedTours: CollectionEntry<'tours'>[];
+}
+const { tour, relatedTours } = Astro.props;
+---
+
+<!-- Related Tours (same category, SEO cross-links) -->
+{relatedTours.length > 0 && (
+  <section class="py-16 bg-white dark:bg-surface-1 px-4 border-t border-slate-100 dark:border-slate-800">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center justify-between mb-8">
+        <div>
+          <span class="text-xs uppercase tracking-widest text-brand-accent font-bold">Benzer Deneyimler</span>
+          <h2 class="text-2xl md:text-3xl font-serif font-bold text-brand-primary dark:text-white mt-2">
+            {tour.data.category_label || 'Aynı Kategoride'} Turları
+          </h2>
+        </div>
+        <a href={`/turlar/?kategori=${tour.data.category}`} class="text-sm font-semibold text-brand-accent hover:underline whitespace-nowrap shrink-0">
+          Tümünü Gör →
+        </a>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {relatedTours.map((t) => (
+          <a href={`/turlar/${t.id}`} class="premium-card group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-md hover:shadow-xl transition-all duration-300 border border-slate-100 dark:border-slate-700">
+            <div class="relative h-44 overflow-hidden">
+              <img
+                src={resolveAssetUrl(t.data.image)}
+                alt={t.data.title}
+                loading="lazy"
+                decoding="async"
+                class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-500"
+              />
+              <div class="absolute inset-0 bg-brand-primary/20 group-hover:bg-transparent transition-colors duration-500"></div>
+            </div>
+            <div class="p-5">
+              <h3 class="text-lg font-bold text-brand-primary dark:text-white group-hover:text-brand-accent transition-colors line-clamp-1">{t.data.title}</h3>
+              <p class="text-slate-600 dark:text-slate-300 text-sm mt-1.5 line-clamp-2">{t.data.excerpt}</p>
+              <div class="flex justify-between items-center border-t border-slate-100 dark:border-slate-700 pt-3 mt-3">
+                <span class="text-xs font-medium text-slate-500 dark:text-slate-400">{t.data.duration || 'Tam Gün'}</span>
+                {t.data.price_thb && t.data.price_thb > 0 ? (
+                  <span class="text-sm font-bold text-brand-primary dark:text-white">{fmtMoney(t.data.price_thb)} THB</span>
+                ) : (
+                  <span class="text-xs font-bold text-brand-accent">Teklif Alın</span>
+                )}
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+)}

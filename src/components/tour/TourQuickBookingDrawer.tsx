@@ -164,7 +164,7 @@ export default function TourQuickBookingDrawer({
             href={directWhatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 rounded-xl bg-[#25D366] hover:bg-[#20ba59] text-white font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center gap-1 transition cursor-pointer"
+            className="p-2.5 rounded-xl bg-whatsapp hover:bg-whatsapp-dark text-white font-bold text-xs shadow-md shadow-emerald-500/20 flex items-center gap-1 transition cursor-pointer"
             title="WhatsApp ile Sor"
           >
             <span className="text-sm">💬</span>
@@ -251,7 +251,7 @@ export default function TourQuickBookingDrawer({
                     href={submitSuccess.whatsAppUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full py-3.5 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-sm shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="w-full py-3.5 rounded-2xl bg-whatsapp hover:bg-whatsapp-dark text-white font-black text-sm shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
                   >
                     <span>💬</span>
                     <span>WhatsApp Görüşmesini Başlat</span>

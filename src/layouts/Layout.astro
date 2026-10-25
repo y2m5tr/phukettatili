@@ -55,7 +55,7 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 		<meta name="apple-mobile-web-app-title" content="Phuket Tatili" />
-		<meta name="theme-color" content="#0a192f" />
+		<meta name="theme-color" content="#0a0f1a" />
 		<meta name="generator" content={Astro.generator} />
 		<link rel="dns-prefetch" href="//xiyuozntwoqibvwivkms.supabase.co" />
 		<link rel="dns-prefetch" href="//wa.me" />
@@ -149,13 +149,17 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
               "closes": "22:00"
             }
           ],
-          "aggregateRating": {
-            "@type": "AggregateRating",
-            "ratingValue": "4.9",
-            "reviewCount": "148",
-            "bestRating": "5",
-            "worstRating": "1"
-          },
+          // Puan bilgisi TEK KAYNAKTAN: site.json googleRating/googleReviewCount.
+          // Değerler yoksa aggregateRating hiç basılmaz (uydurma markup cezası riski).
+          ...((siteSettings as any)?.googleRating && (siteSettings as any)?.googleReviewCount ? {
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": String((siteSettings as any).googleRating),
+              "reviewCount": String((siteSettings as any).googleReviewCount),
+              "bestRating": "5",
+              "worstRating": "1"
+            }
+          } : {}),
           "areaServed": [
             {
               "@type": "Place",
@@ -216,6 +220,8 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 
         <!-- Dark Mode Setup -->
         <script is:inline>
+          // JS etkin işareti — .ptt-fade-in içeriği yalnızca bu sınıf varsa gizlenir
+          document.documentElement.classList.add('js');
           const applyTheme = () => {
             const theme = (() => {
               if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
@@ -240,9 +246,16 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
         <Tracking />
 	</head>
 	<body class="flex flex-col min-h-screen relative">
+        <!-- Erişilebilirlik: klavye kullanıcıları header linklerini atlayabilsin -->
+        <a
+          href="#main-content"
+          class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[110] focus:px-4 focus:py-2.5 focus:rounded-xl focus:bg-brand-primary focus:text-white focus:text-sm focus:font-bold focus:shadow-xl"
+        >
+          İçeriğe geç
+        </a>
         <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
         <Header />
-        <main class="flex-grow pt-28 sm:pt-32">
+        <main id="main-content" class="flex-grow pt-28 sm:pt-32">
 		    <slot />
         </main>
         <Footer />
@@ -254,6 +267,29 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
         <HolidayShortlist client:idle />
 
         <script>
+          document.addEventListener('astro:page-load', () => {
+            // FadeIn gözlemcisi: .ptt-fade-in öğeleri viewport'a girince
+            // .is-visible ekler (framer-motion whileInView + once:true eşleniği).
+            const fadeEls = document.querySelectorAll<HTMLElement>('.ptt-fade-in:not(.is-visible)');
+            if (fadeEls.length === 0) return;
+            if (!('IntersectionObserver' in window)) {
+              fadeEls.forEach((el) => el.classList.add('is-visible'));
+              return;
+            }
+            const io = new IntersectionObserver(
+              (entries) => {
+                for (const entry of entries) {
+                  if (entry.isIntersecting) {
+                    entry.target.classList.add('is-visible');
+                    io.unobserve(entry.target);
+                  }
+                }
+              },
+              { rootMargin: '-40px 0px' },
+            );
+            fadeEls.forEach((el) => io.observe(el));
+          });
+
           document.addEventListener('astro:page-load', () => {
             // Premium kartlarda imleci takip eden spot ışığı
             if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches ||

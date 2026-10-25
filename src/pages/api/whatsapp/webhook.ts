@@ -52,8 +52,15 @@ export const POST: APIRoute = async ({ request }) => {
   const rawBody = await request.text();
   const signature = request.headers.get('x-hub-signature-256');
 
-  // 1. İmza Doğrulama
-  if (config.appSecret && !validateMetaSignature(rawBody, signature, config.appSecret)) {
+  // 1. İmza Doğrulama — FAIL-CLOSED
+  // appSecret tanımsızken doğrulamayı atlamak, herkesin panele sahte "gelen
+  // misafir mesajı" enjekte edebilmesi demek. Auth'taki fail-closed ilkesiyle
+  // aynı: secret yoksa olay kabul edilmez (Meta retry yapar, veri kaybı olmaz).
+  if (!config.appSecret) {
+    console.error('[WhatsApp Webhook] WHATSAPP_APP_SECRET tanımlı değil — olaylar reddediliyor (fail-closed).');
+    return new Response('Webhook signature verification not configured', { status: 503 });
+  }
+  if (!validateMetaSignature(rawBody, signature, config.appSecret)) {
     console.warn('[WhatsApp Webhook] Geçersiz HMAC-SHA256 imzası!');
     return new Response('Invalid signature', { status: 401 });
   }

@@ -17,5 +17,10 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // Hız: worker başına yeni ortam kurma maliyetini düşürür (458 test, ~40sn
+    // kazanç). Not: 5 test dosyası process.env değiştirdiği için env'i import
+    // anında OKUYAN modüller dosyalar arası bayat değer görebilir — tam suite
+    // bu ayarla doğrulandı; yeni env-bağımlı modül eklerken suite'i tekrar koştur.
+    isolate: false,
   },
 });

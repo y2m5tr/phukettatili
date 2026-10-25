@@ -27,6 +27,10 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
         <img
           src={resolveAssetUrl(logoUrl, '/assets/logo-main-transparent.png')}
           alt={`${logoText} Logo`}
+          width="460"
+          height="340"
+          loading="lazy"
+          decoding="async"
           class="h-16 w-auto object-contain brightness-0 invert opacity-90"
         />
         {logoText && (

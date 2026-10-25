@@ -31,6 +31,10 @@ describe('/api/whatsapp/webhook endpoint', () => {
   });
 
   it('handles POST event payload and returns 200 EVENT_RECEIVED', async () => {
+    // Fail-closed politika: appSecret TANIMSIZSA olaylar reddedilir.
+    // Bu test geçerli imzalı bir payload ile 200 akışını doğrular.
+    const secret = 'secret_key_123';
+    process.env.WHATSAPP_APP_SECRET = secret;
     const payload = {
       object: 'whatsapp_business_account',
       entry: [
@@ -61,16 +65,37 @@ describe('/api/whatsapp/webhook endpoint', () => {
       ],
     };
 
+    const bodyStr = JSON.stringify(payload);
+    const hmac = crypto.createHmac('sha256', secret);
+    hmac.update(bodyStr, 'utf8');
+
     const request = new Request('https://phukettatili.com/api/whatsapp/webhook', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-hub-signature-256': `sha256=${hmac.digest('hex')}`,
+      },
+      body: bodyStr,
     });
 
     const response = await POST({ request } as any);
     expect(response.status).toBe(200);
     const text = await response.text();
     expect(text).toBe('EVENT_RECEIVED');
+  });
+
+  it('rejects POST with 503 when app secret is NOT configured (fail-closed)', async () => {
+    delete process.env.WHATSAPP_APP_SECRET;
+    const payload = JSON.stringify({ object: 'whatsapp_business_account', entry: [] });
+
+    const request = new Request('https://phukettatili.com/api/whatsapp/webhook', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: payload,
+    });
+
+    const response = await POST({ request } as any);
+    expect(response.status).toBe(503);
   });
 
   it('rejects POST with 401 when app secret is set and signature is invalid', async () => {

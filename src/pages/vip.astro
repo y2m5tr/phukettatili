@@ -92,10 +92,10 @@ const schemas: Record<string, unknown>[] = [
       <img src="/assets/phuket_yacht.webp" alt="Phuket VIP Yacht" class="w-full h-full object-cover animate-ken-burns" />
     </div>
     <div class="relative max-w-4xl mx-auto text-center z-10">
-      <FadeIn client:load direction="up">
+      <FadeIn direction="up">
         <h1 class="text-4xl md:text-6xl font-serif font-bold mb-6">VIP <span class="text-brand-gold italic">Ayrıcalığı</span></h1>
       </FadeIn>
-      <FadeIn client:load delay={0.2} direction="up">
+      <FadeIn delay={0.2} direction="up">
         <p class="text-slate-300 text-lg md:text-xl font-light">
           Size ve sevdiklerinize özel, sıradanlıktan uzak, kusursuz detaylarla örülmüş seyahat deneyimleri.
         </p>
@@ -109,14 +109,14 @@ const schemas: Record<string, unknown>[] = [
       <!-- Service 1 -->
       <div class="flex flex-col md:flex-row gap-12 items-center mb-24">
         <div class="md:w-1/2 w-full">
-          <FadeIn client:visible direction="right">
+          <FadeIn direction="right">
             <div class="aspect-video rounded-3xl overflow-hidden shadow-xl">
               <img src="/assets/yacht.webp" alt="Özel Yat" class="w-full h-full object-cover transform hover:scale-110 transition-transform duration-700" />
             </div>
           </FadeIn>
         </div>
         <div class="md:w-1/2 w-full">
-          <FadeIn client:visible delay={0.2} direction="left">
+          <FadeIn delay={0.2} direction="left">
             <h3 class="text-3xl font-serif text-brand-primary font-bold mb-4">Özel Yat ve Katamaran Kiralama</h3>
             <p class="text-slate-600 mb-6 leading-relaxed">
               Kalabalıktan uzak, sadece size ait bir rota oluşturun. Phi Phi, James Bond, Racha veya Similan Adaları'na aileniz veya arkadaş grubunuzla konforlu, lüks ve izole bir seyahat gerçekleştirin.
@@ -136,14 +136,14 @@ const schemas: Record<string, unknown>[] = [
       <!-- Service 2 -->
       <div class="flex flex-col md:flex-row-reverse gap-12 items-center">
         <div class="md:w-1/2 w-full">
-          <FadeIn client:visible direction="left">
+          <FadeIn direction="left">
             <div class="aspect-video rounded-3xl overflow-hidden shadow-xl">
               <img src="/assets/phuket_transfer.webp" alt="Özel Transfer" class="w-full h-full object-cover transform hover:scale-110 transition-transform duration-700" />
             </div>
           </FadeIn>
         </div>
         <div class="md:w-1/2 w-full">
-          <FadeIn client:visible delay={0.2} direction="right">
+          <FadeIn delay={0.2} direction="right">
             <h3 class="text-3xl font-serif text-brand-primary font-bold mb-4">Lüks VIP Transfer</h3>
             <p class="text-slate-600 mb-6 leading-relaxed">
               Havalimanı inişinizden itibaren ayrıcalığı hissetmeye başlayın. Özel şoförlü, lüks tasarımlı VIP araçlarımızla otelinize konforlu ve güvenli bir şekilde ulaşın.

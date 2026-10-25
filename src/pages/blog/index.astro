@@ -127,7 +127,7 @@ const schemas: Record<string, unknown>[] = [
                 data-title={post.data.title.toLowerCase()}
                 data-excerpt={(post.data.excerpt || '').toLowerCase()}
               >
-                <FadeIn client:visible delay={0.08 * (index % 3)} direction="up">
+                <FadeIn delay={0.08 * (index % 3)} direction="up">
                   <a href={`/blog/${post.id}`} class="group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-md hover:shadow-2xl transition-all duration-300 border border-slate-100 dark:border-slate-700">
                     <div class="relative h-60 overflow-hidden">
                       <img

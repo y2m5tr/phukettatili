@@ -118,6 +118,14 @@ export const INITIAL_GUIDE_EXPENSES: GuideExpenseItem[] = [
   },
 ];
 
+export type GuideDailySettlement = {
+  collectedCashThb: number;
+  totalExpensesThb: number;
+  netHandoverToOfficeThb: number;
+  reimbursementDueThb: number;
+  guideExpenses: GuideExpenseItem[];
+};
+
 /**
  * Rehberin günlük misafir nakit tahsilatından saha masraflarını düşerek net ofis teslimatını hesaplar
  */
@@ -126,13 +134,7 @@ export function calculateGuideDailySettlement(params: {
   date: string;
   collectedCashThb: number;
   expenses: GuideExpenseItem[];
-}): {
-  collectedCashThb: number;
-  totalExpensesThb: number;
-  netHandoverToOfficeThb: number;
-  reimbursementDueThb: number;
-  guideExpenses: GuideExpenseItem[];
-} {
+}): GuideDailySettlement {
   const { guideId, date, collectedCashThb, expenses } = params;
 
   const relevantExpenses = expenses.filter(

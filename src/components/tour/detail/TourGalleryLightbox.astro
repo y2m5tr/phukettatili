@@ -1,0 +1,58 @@
+---
+// Fullscreen Image Lightbox Modal — turlar/[id].astro'dan birebir taşındı.
+// Props yok: tetikleyiciler (.gallery-trigger) ve kontroller sayfa genelinde
+// tourDetailClient.ts betiğinin astro:page-load dinleyicisiyle bağlanır.
+---
+
+<!-- Fullscreen Image Lightbox Modal -->
+<div
+  id="gallery-lightbox"
+  class="fixed inset-0 z-[100] bg-slate-950/95 backdrop-blur-md hidden items-center justify-center p-4 transition-all duration-300"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Tur Galerisi Büyütülmüş Görünüm"
+>
+  <!-- Counter & Close Bar -->
+  <div class="absolute top-4 left-4 right-4 flex items-center justify-between z-20">
+    <div id="lightbox-counter" class="px-4 py-1.5 rounded-full bg-white/10 backdrop-blur text-white text-xs font-semibold">
+      1 / 1
+    </div>
+    <button
+      id="lightbox-close-btn"
+      type="button"
+      class="p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer"
+      aria-label="Kapat"
+    >
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
+  </div>
+
+  <!-- Nav Arrows -->
+  <button
+    id="lightbox-prev-btn"
+    type="button"
+    class="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer"
+    aria-label="Önceki Fotoğraf"
+  >
+    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+  </button>
+
+  <button
+    id="lightbox-next-btn"
+    type="button"
+    class="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer"
+    aria-label="Sonraki Fotoğraf"
+  >
+    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+  </button>
+
+  <!-- Main Active Image -->
+  <div class="relative max-w-5xl max-h-[85vh] w-full flex items-center justify-center p-2">
+    <img
+      id="lightbox-img"
+      src=""
+      alt="Phuket Tur Fotoğrafı"
+      class="max-w-full max-h-[82vh] object-contain rounded-2xl shadow-2xl transition-all duration-300 select-none"
+    />
+  </div>
+</div>

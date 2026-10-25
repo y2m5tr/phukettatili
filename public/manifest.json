@@ -4,8 +4,8 @@
   "description": "Phuket Tatili Turizm & Saha Operasyon Yönetim Paneli",
   "start_url": "/admin",
   "display": "standalone",
-  "background_color": "#0a192f",
-  "theme_color": "#0a192f",
+  "background_color": "#0a0f1a",
+  "theme_color": "#0a0f1a",
   "orientation": "portrait-primary",
   "icons": [
     {

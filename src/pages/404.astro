@@ -15,7 +15,7 @@ const quickLinks = [
 <Layout title="Sayfa Bulunamadı" noIndex={true}>
   <div class="min-h-[75vh] flex items-center justify-center bg-slate-50 dark:bg-surface-1 py-16 px-4 transition-colors">
     <div class="max-w-2xl mx-auto text-center">
-      <FadeIn client:load direction="up">
+      <FadeIn direction="up">
         <span class="inline-block text-xs font-bold uppercase tracking-widest text-brand-accent bg-brand-accent/10 px-4 py-1.5 rounded-full mb-4">
           Hata 404
         </span>
@@ -24,7 +24,7 @@ const quickLinks = [
         </h1>
       </FadeIn>
 
-      <FadeIn client:load delay={0.15} direction="up">
+      <FadeIn delay={0.15} direction="up">
         <h2 class="text-3xl md:text-4xl font-serif font-bold text-brand-primary dark:text-white mt-4 mb-3">
           Rotayı Kaybettik!
         </h2>
@@ -34,7 +34,7 @@ const quickLinks = [
       </FadeIn>
 
       <!-- Quick Navigation Grid -->
-      <FadeIn client:load delay={0.25} direction="up">
+      <FadeIn delay={0.25} direction="up">
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left mb-10">
           {quickLinks.map((link) => (
             <a 
@@ -57,7 +57,7 @@ const quickLinks = [
         </div>
       </FadeIn>
 
-      <FadeIn client:load delay={0.35} direction="up">
+      <FadeIn delay={0.35} direction="up">
         <a 
           href="/" 
           class="premium-cta inline-flex items-center gap-2 bg-brand-accent hover:bg-brand-accent/90 text-white px-8 py-4 rounded-full font-bold transition-all transform hover:scale-105 shadow-xl shadow-amber-900/20"
