@@ -142,6 +142,9 @@ export function DashboardMainView({
         onUpdateSingleBooking={bk.handleUpdateSingleBooking}
         onExportCSV={onExportCSV}
         onExportSiteData={onExportSiteData}
+        inclusionLibrary={coll.inclusionLibrary}
+        onRememberOption={coll.rememberLibraryOption}
+        onForgetOption={coll.forgetLibraryOption}
         onOpenCreateTour={onOpenCreateTour}
         onOpenEditTour={onOpenEditTour}
         onDeleteTour={onDeleteTour}

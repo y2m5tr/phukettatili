@@ -1,5 +1,6 @@
 import type React from 'react';
 import type { MediaItem } from '../../../data/adminInitialData';
+import type { OptionKind, OptionLibrary } from '../../../lib/inclusionLibrary';
 
 export interface SiteSettingsState {
   whatsappNumber: string;
@@ -57,4 +58,8 @@ export interface SettingsTabProps {
   showToast?: (msg: string) => void;
   /** Panel CMS verisini tek JSON olarak indirir (repo'ya uygulanmak uzere). */
   onExportSiteData?: () => void;
+  /** Merkezi dahil/hariç havuzu yönetimi (SettingsInclusionLibrarySection). */
+  inclusionLibrary?: OptionLibrary | null;
+  onRememberOption?: (kind: OptionKind, item: string) => void;
+  onForgetOption?: (kind: OptionKind, item: string) => void;
 }

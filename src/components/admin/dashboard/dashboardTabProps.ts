@@ -17,6 +17,7 @@ import type {
 import type { CategoryItem } from '../../../data/adminTypes';
 import type { AdminTab } from '../adminNav';
 import type { SiteSettingsState } from '../SettingsTab';
+import type { OptionKind, OptionLibrary } from '../../../lib/inclusionLibrary';
 
 export interface DashboardTabsRendererProps {
   activeTab: AdminTab;
@@ -95,6 +96,10 @@ export interface DashboardTabsRendererProps {
   onUpdateSingleBooking: (b: Booking, successMsg?: string) => void;
   onExportCSV: () => void;
   onExportSiteData: () => void;
+  /** Ayarlar sekmesindeki merkezi dahil/hariç havuzu yönetimi. */
+  inclusionLibrary?: OptionLibrary | null;
+  onRememberOption?: (kind: OptionKind, item: string) => void;
+  onForgetOption?: (kind: OptionKind, item: string) => void;
   onOpenCreateTour: () => void;
   onOpenEditTour: (t: TourItem) => void;
   onDeleteTour: (id: string, title: string) => void;

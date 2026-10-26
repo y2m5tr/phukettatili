@@ -92,6 +92,9 @@ export function DashboardTabsRenderer({
   onUpdateSingleBooking,
   onExportCSV,
   onExportSiteData,
+  inclusionLibrary,
+  onRememberOption,
+  onForgetOption,
   onOpenCreateTour,
   onOpenEditTour,
   onDeleteTour,
@@ -386,6 +389,9 @@ export function DashboardTabsRenderer({
           viewerRole={viewerRole}
           showToast={showToast}
           onExportSiteData={onExportSiteData}
+          inclusionLibrary={inclusionLibrary}
+          onRememberOption={onRememberOption}
+          onForgetOption={onForgetOption}
         />
       )}
 

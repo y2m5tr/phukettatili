@@ -4,6 +4,7 @@ import type { SiteSettingsState, SettingsTabProps } from './settings/settingsTyp
 import { SettingsGeneralHeroSection } from './settings/SettingsGeneralHeroSection';
 import { SettingsFeaturesSection } from './settings/SettingsFeaturesSection';
 import { SettingsBackupPasswordSection } from './settings/SettingsBackupPasswordSection';
+import { SettingsInclusionLibrarySection } from './settings/SettingsInclusionLibrarySection';
 
 export type { SiteSettingsState, SettingsTabProps };
 
@@ -19,6 +20,9 @@ export default function SettingsTab({
   viewerRole = null,
   showToast,
   onExportSiteData,
+  inclusionLibrary,
+  onRememberOption,
+  onForgetOption,
 }: SettingsTabProps) {
   const [isHeroPickerOpen, setIsHeroPickerOpen] = useState(false);
   const [isLogoPickerOpen, setIsLogoPickerOpen] = useState(false);
@@ -76,6 +80,14 @@ export default function SettingsTab({
           </div>
         )}
       </div>
+
+      {/* MERKEZİ DAHİL/HARİÇ HAVUZU YÖNETİMİ */}
+      <SettingsInclusionLibrarySection
+        inclusionLibrary={inclusionLibrary}
+        onRememberOption={onRememberOption}
+        onForgetOption={onForgetOption}
+        showToast={showToast}
+      />
 
       {/* SİSTEM VERİTABANI YEDEKLEME & ŞİFRE */}
       <SettingsBackupPasswordSection
