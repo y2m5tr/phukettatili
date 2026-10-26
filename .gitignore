@@ -29,3 +29,7 @@ skills-lock.json
 skills/
 yarn-debug.log*
 yarn-error.log*
+
+# Playwright E2E çıktıları
+test-results/
+playwright-report/
