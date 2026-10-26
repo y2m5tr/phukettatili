@@ -45,6 +45,11 @@ jobs:
       - name: Lint (Biome)
         run: npm run lint
 
+      # 500 satır kuralı (CLAUDE.md) — ihlal build'i kırar. Yerelde de
+      # .githooks/pre-commit aynı kontrolü commit anında çalıştırır.
+      - name: Dosya boyutu bekçisi (500 satır)
+        run: npm run check:lines
+
       - name: Testler
         run: npm test
 

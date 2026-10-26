@@ -12,9 +12,11 @@
     "astro": "astro",
     "lint": "biome lint",
     "lint:fix": "biome lint --write",
-    "check": "astro check && biome lint",
+    "check:lines": "node scripts/check-file-size.mjs",
+    "check": "astro check && biome lint && node scripts/check-file-size.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
     "@astrojs/react": "^7.0.1",

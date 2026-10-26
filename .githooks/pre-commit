@@ -1,0 +1,25 @@
+#!/bin/sh
+# Versiyonlu git hook'ları (core.hooksPath=.githooks, `npm run prepare` kurar).
+#
+# Neden var: 2026-10-25'te 23 noUnusedImports hatası origin/main'e push edilmiş
+# commit'lerde birikmişti — CI lint çalıştırmasına rağmen hatalı commit'ler yerelde
+# yapıldığı için düzeltme maliyeti sonraya kalmıştı. Bu hook, commit ANINDA
+# hızlı kontrolleri (lint + 500 satır kuralı) çalıştırıp kırık kodun history'ye
+# girmesini engeller. astro check/test/build ağır olduğu için bilinçli olarak
+# burada DEĞİL, CI'da koşar.
+#
+# Acil kaçış (önerilmez): git commit --no-verify
+
+set -e
+
+echo "pre-commit: biome lint…"
+npx biome lint --max-diagnostics=20 || {
+  echo ""
+  echo "✗ Lint hatası var. 'npm run lint:fix' ile otomatik düzeltmeyi dene."
+  exit 1
+}
+
+echo "pre-commit: 500 satır kuralı…"
+node scripts/check-file-size.mjs || exit 1
+
+echo "pre-commit: ✓"
