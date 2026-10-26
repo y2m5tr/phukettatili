@@ -15,7 +15,12 @@ import type {
 } from '../../../data/adminInitialData';
 import type { CategoryItem } from '../../../data/adminTypes';
 import type { OptionLibrary, OptionKind } from '../../../lib/inclusionLibrary';
-import { AddMediaModal, MediaLightboxModal } from '../MediaModals';
+
+// Lazy modals — AddMedia/Lightbox yalnızca medya yönetimi açıldığında indirilir.
+const AddMediaModal = React.lazy(() => import('../MediaModals').then((m) => ({ default: m.AddMediaModal })));
+const MediaLightboxModal = React.lazy(() =>
+  import('../MediaModals').then((m) => ({ default: m.MediaLightboxModal })),
+);
 
 const BookingModal = React.lazy(() => import('../BookingModal'));
 const TourModal = React.lazy(() => import('../TourModal'));

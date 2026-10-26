@@ -1,10 +1,12 @@
 import React from 'react';
 import type { DashboardTabsRendererProps } from './dashboardTabProps';
-import OverviewTab from '../OverviewTab';
-import BookingsTab from '../BookingsTab';
-import TransfersTab from '../TransfersTab';
 
-// Lazy Tabs
+// Lazy Tabs — ilk açılışta yalnızca sidebar+header+aktif tab indirilir.
+// Veriler store'dan geldiği için yükleme anı neredeyse hissedilmez.
+// TransfersTab de lazy: admin?tab=transfers ile gelinmedikçe indirilmez.
+const OverviewTab = React.lazy(() => import('../OverviewTab'));
+const BookingsTab = React.lazy(() => import('../BookingsTab'));
+const TransfersTab = React.lazy(() => import('../TransfersTab'));
 const FinanceTab = React.lazy(() => import('../FinanceTab'));
 const FleetManager = React.lazy(() => import('../FleetManager'));
 const SupplierSettlementManager = React.lazy(() => import('../SupplierSettlementManager'));
