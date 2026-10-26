@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Copy, Check, Send } from 'lucide-react';
 import { CANNED_RESPONSES, type CannedResponseItem } from './cannedResponses';
 

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { UserCheck, Trash2 } from 'lucide-react';
 import {
   GUIDE_EXPENSE_CATEGORIES,

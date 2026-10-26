@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Copy, Check, Send } from 'lucide-react';
 import type { Booking } from '../../../data/adminInitialData';
 import { generateTriggerMessage, type WhatsAppTriggerType } from '../../../lib/whatsappEngine';

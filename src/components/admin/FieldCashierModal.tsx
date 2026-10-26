@@ -7,8 +7,6 @@ import {
   Copy,
   Check,
   Wallet,
-  CheckCircle2,
-  AlertCircle,
   QrCode,
 } from 'lucide-react';
 import type { Booking } from '../../data/adminInitialData';

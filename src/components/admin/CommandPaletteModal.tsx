@@ -1,27 +1,12 @@
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Search,
-  Plus,
-  Camera,
-  FileText,
-  Users,
   ArrowRight,
   X,
-  Zap,
-  Globe,
-  Waves,
-  Package,
-  ShieldAlert,
-  Coins,
-  Compass,
-  Car,
-  CreditCard,
-  Clock,
 } from 'lucide-react';
 import type { Booking, TourItem } from '../../data/adminInitialData';
 import type { AdminTab, NavItem } from './AdminDashboard';
 import { safeGet, safeSet } from '../../lib/safeStorage';
-import { fmtMoney } from '../../lib/moneyFormat';
 import {
   type PaletteAction,
   buildPaletteItems,

@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Search, Send, ShieldAlert, Coins, Download, Plus } from 'lucide-react';
 import type { PickupItem } from '../../../lib/adminFilters';
 

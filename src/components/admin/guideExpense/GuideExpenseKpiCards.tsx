@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Wallet } from 'lucide-react';
 import { fmtMoney } from '../../../lib/moneyFormat';
 import type { GuideDailySettlement } from '../../../lib/guideExpenses';

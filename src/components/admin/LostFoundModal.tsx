@@ -4,19 +4,12 @@ import {
   Search,
   Plus,
   Package,
-  Car,
-  Hotel,
-  ShieldCheck,
-  Send,
-  MessageCircle,
-  CheckCircle2,
 } from 'lucide-react';
 import {
   type LostFoundItem,
   type LostFoundStatus,
   type LostFoundItemType,
   INITIAL_LOST_FOUND_ITEMS,
-  ITEM_TYPE_LABELS,
   STATUS_LABELS,
   filterLostFoundItems,
 } from '../../lib/lostAndFound';

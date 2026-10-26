@@ -1,4 +1,4 @@
-import React from 'react';
+
 import type { SupportedCurrency } from '../../../lib/exchangeRates';
 import { fmtMoney } from '../../../lib/moneyFormat';
 import type { FieldCashierCalculation } from './FieldCashierResultsBoard';

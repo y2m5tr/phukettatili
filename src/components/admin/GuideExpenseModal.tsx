@@ -1,18 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import {
   X,
-  UserCheck,
-  Plus,
   Send,
   MessageCircle,
   Copy,
   Check,
   Calendar,
   User,
-  Receipt,
-  Trash2,
   DollarSign,
-  Wallet,
   Compass,
 } from 'lucide-react';
 import {
