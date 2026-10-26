@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig, envField } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import sentryAstro from '@sentry/astro';
 
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
@@ -59,6 +60,21 @@ export default defineConfig({
         access: 'secret',
         optional: true,
       }),
+
+      // Sentry — sunucu tarafı DSN'u (sentry.server.config.ts okur).
+      // Tanımsızsa SDK hiç etkinleşmez; Vercel'de eklenince açılır.
+      SENTRY_DSN: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+      // Sentry — tarayıcı tarafı DSN'u (public değer; gizli tutulması
+      // gerekmez, Sentry tasarımı gereği herkese görünür).
+      PUBLIC_SENTRY_DSN: envField.string({
+        context: 'client',
+        access: 'public',
+        optional: true,
+      }),
     },
   },
   vite: {
@@ -69,6 +85,19 @@ export default defineConfig({
   },
   integrations: [
     react(),
+    // Sentry hata izleme — DSN yoksa init dosyaları boş kalır ve SDK
+    // etkinleşmez; Vercel'de SENTRY_DSN/PUBLIC_SENTRY_DSN eklendiğinde
+    // otomatik çalışır. Yerel geliştirmede maliyeti sıfır.
+    // requestHandler: SSR rotalarındaki (/api/*, /admin) sunucu hatalarını
+    // otomatik yakalar; prerender sayfalarına dokunmaz.
+    // telemetry + sourcemap upload kapalı: auth token eklenmeden
+    // sessiz çalışır, CI log'ları temiz kalır. Release takibi istenirse
+    // SENTRY_AUTH_TOKEN Vercel'e eklenip burada açılabilir.
+    sentryAstro({
+      autoInstrumentation: { requestHandler: true },
+      telemetry: false,
+      sourcemaps: { disable: true },
+    }),
     // Statik sitemap ana sayfalar (prerender edilen) için üretilir;
     // dinamik SSR turları src/pages/sitemap-turlar.xml.ts tarafından
     // eklenir (robots.txt her ikisini de işaret eder).
