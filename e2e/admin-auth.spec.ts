@@ -28,8 +28,10 @@ test.describe('Admin erişim kontrolü', () => {
   });
 
   test('ops-login sayfası giriş formunu render eder', async ({ page }) => {
-    await page.goto('/ops-login');
-    await expect(page.locator('h1')).toContainText('Yönetim');
+    // Dev sunucu ilk ayağa kalkarken SSR derlemesi yarışabilir —
+    // h1 görünür olana dek bekle (auto-retry), timeout'a bırakma.
+    await page.goto('/ops-login', { waitUntil: 'domcontentloaded' });
+    await expect(page.locator('h1')).toContainText('Yönetim', { timeout: 15_000 });
     await expect(page.locator('#passcode-form-wrap, #membership-form-wrap').first()).toBeAttached();
     await expect(page).toHaveTitle(/Yönetim/i);
   });

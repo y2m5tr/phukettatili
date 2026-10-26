@@ -26,10 +26,6 @@ export default function FadeIn({
 
   return (
     <motion.div
-      initial={{
-        opacity: 0,
-        ...directions[direction],
-      }}
       whileInView={{
         opacity: 1,
         x: 0,
@@ -41,7 +37,37 @@ export default function FadeIn({
         delay: delay,
         ease: [0.25, 0.25, 0, 1], // easeOutQuart
       }}
-      className={className}
+      // SSR + hydration'sız kullanım için kritik: bu bileşen client:*
+      // directive'i olmadan render edildiğinde framer-motion'un
+      // whileInView'i asla çalışmaz (SSR'de initial prop'u inline
+      // style olarak basar: opacity:0). Bu yüzden:
+      // 1. SSR çıktısına .ptt-fade-in + CSS değişkenleri basılır —
+      //    Layout'taki IntersectionObserver animasyonu devralır.
+      // 2. initial: SSR'de false — inline opacity:0 BASILMAZ, görünmezlik
+      //    tamamen .js .ptt-fade-in CSS kuralından gelir. Gözlemci
+      //    .is-visible ekleyince inline style ile çakışmaz.
+      // 3. JS yoksa CSS .js sınıfına bağlıdır → içerik görünür kalır (SEO).
+      className={`ptt-fade-in ${className}`}
+      initial={typeof window === 'undefined' ? false : {
+        opacity: 0,
+        ...directions[direction],
+      }}
+      style={
+        {
+          '--ptt-delay': `${delay}s`,
+          '--ptt-duration': `${duration}s`,
+          '--ptt-offset':
+            direction === 'up'
+              ? 'translateY(40px)'
+              : direction === 'down'
+                ? 'translateY(-40px)'
+                : direction === 'left'
+                  ? 'translateX(40px)'
+                  : direction === 'right'
+                    ? 'translateX(-40px)'
+                    : 'none',
+        } as React.CSSProperties
+      }
     >
       {children}
     </motion.div>
