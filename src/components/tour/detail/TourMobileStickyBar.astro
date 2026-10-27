@@ -30,6 +30,7 @@ const { tour, whatsappNumber } = Astro.props;
     <a
       id="mobile-wa-booking-btn"
       href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(`Merhaba, ${tour.data.title} turu hakkında bilgi ve rezervasyon için yazıyorum.`)}`}
+      data-wa-lead-source={`tour-mobile-bar:${tour.id}`}
       target="_blank"
       rel="noopener noreferrer"
       class="bg-whatsapp hover:bg-whatsapp-dark text-white px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-md transition-colors"

@@ -3,7 +3,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import FadeIn from '../../components/ui/FadeIn';
 import TourShowcase from '../../components/ui/TourShowcase';
-import { resolveAssetUrl } from '../../lib/assets';
+import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
 import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
 import { fmtMoney } from '../../lib/moneyFormat';
 
@@ -136,8 +136,10 @@ const schemas: Record<string, unknown>[] = [
             <FadeIn delay={0.1 * (index % 3)} direction="up">
               <a href={`/turlar/${tour.id}`} class="premium-card group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 dark:border-slate-700">
                 <div class="relative h-64 overflow-hidden">
-                  <img 
+                  <img
                     src={resolveAssetUrl(tour.data.image)}
+                    srcset={responsiveSrcset(tour.data.image)}
+                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                     alt={tour.data.title}
                     loading="lazy"
                     decoding="async"

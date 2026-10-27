@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { resolveAssetUrl } from '../../lib/assets';
+import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
 import { fmtMoney } from '../../lib/moneyFormat';
 
 interface TourSlide {
@@ -46,7 +46,7 @@ export default function TourShowcase({ tours }: { tours: TourSlide[] }) {
         touchStart.current = null;
       }}>
       <div className="showcase-backdrop" key={current.id}>
-        <img src={resolveAssetUrl(current.data.image)} alt="" loading="eager" decoding="async" />
+        <img src={resolveAssetUrl(current.data.image)} srcSet={responsiveSrcset(current.data.image)} sizes="100vw" alt="" loading="eager" decoding="async" />
         <div className="showcase-wash" />
       </div>
       <div className="showcase-grain" aria-hidden="true" />

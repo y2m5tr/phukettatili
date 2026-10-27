@@ -52,3 +52,32 @@ export function resolveOgImageUrl(
   }
   return new URL(`/assets/${trimmed}`, base).toString();
 }
+
+/**
+ * Yerel asset için responsive srcset üretir.
+ *
+ * `scripts/generate-responsive-images.mjs` her geniş görselin 640px varyantını
+ * `ad-640.webp` olarak üretir; bu yardımcı o varyantı tanıyor ise
+ * "…, ad-640.webp 640w" biçiminde srcset döndürür, tanımıyorsa undefined
+ * verir (çağıran taraf srcset'i hiç basmaz — davranış değişimi sıfır).
+ *
+ * Bulut/data URL'leri ve panel galerisinden gelen dinamik görseller için
+ * hep undefined döner: varyantın varlığından emin olamadığımız kaynaklarda
+ * sadece orijinal dosya sunulur.
+ */
+const RESPONSIVE_VARIANTS = import.meta.glob<{ default: string }>(
+  '/public/assets/*-640.webp',
+  { eager: true, query: '?url', import: 'default' },
+);
+const responsiveWidths = new Set<string>();
+for (const path of Object.keys(RESPONSIVE_VARIANTS)) {
+  responsiveWidths.add(path.replace('/public', '').replace(/-640\.webp$/, '.webp'));
+}
+
+export function responsiveSrcset(img?: string | null): string | undefined {
+  if (!img) return undefined;
+  const resolved = resolveAssetUrl(img);
+  if (!resolved.startsWith('/assets/')) return undefined;
+  if (!responsiveWidths.has(resolved)) return undefined;
+  return `${resolved} 1280w, ${resolved.replace(/\.webp$/, '-640.webp')} 640w`;
+}

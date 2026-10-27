@@ -25,6 +25,70 @@ document.addEventListener('astro:page-load', () => {
   const desktopBtn = document.getElementById('whatsapp-booking-btn') as HTMLAnchorElement | null;
   const mobileBtn = document.getElementById('mobile-wa-booking-btn') as HTMLAnchorElement | null;
 
+  // 1b. Tarih Bazlı Müsaitlik Göstergesi
+  // Tur tarihi seçilince /api/tour-availability toplam doluluk döndürür;
+  // `unknown` durumu (bulut yok, hata) göstergeyi gizli bırakır — site
+  // müsaitliksiz de çalışır. Gösterge ID ile değil tur başlığı+kapasite ile
+  // hesaplandığından API'ye her iki anahtarı da gönderiyoruz.
+  const availabilityEl = document.getElementById('tour-availability-indicator');
+  if (availabilityEl && dateInput) {
+    const tourKey = availabilityEl.dataset.tourKey || '';
+    const dot = document.getElementById('tour-availability-dot');
+    const text = document.getElementById('tour-availability-text');
+
+    const dotColor: Record<string, string> = {
+      available: 'bg-emerald-500',
+      filling: 'bg-amber-400',
+      critical: 'bg-orange-500',
+      full: 'bg-rose-500',
+      overbooked: 'bg-rose-500',
+    };
+    const textColor: Record<string, string> = {
+      available: 'text-emerald-600 dark:text-emerald-400',
+      filling: 'text-amber-600 dark:text-amber-400',
+      critical: 'text-orange-600 dark:text-orange-400',
+      full: 'text-rose-600 dark:text-rose-400',
+      overbooked: 'text-rose-600 dark:text-rose-400',
+    };
+
+    let lastFetchKey = '';
+    const refreshAvailability = () => {
+      const date = dateInput.value;
+      if (!date || !dot || !text) {
+        availabilityEl.classList.add('hidden');
+        return;
+      }
+      const fetchKey = `${tourKey}:${date}`;
+      if (fetchKey === lastFetchKey) return;
+      lastFetchKey = fetchKey;
+
+      fetch(`/api/tour-availability?tour=${encodeURIComponent(tourKey)}&date=${encodeURIComponent(date)}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          if (!data || !data.ok || !data.status || data.status === 'unknown' || !dot || !text) {
+            availabilityEl.classList.add('hidden');
+            return;
+          }
+          const st = data.status as string;
+          dot.className = `w-2 h-2 rounded-full shrink-0 ${dotColor[st] || 'bg-slate-400'}`;
+          text.className = (textColor[st] || 'text-slate-500') + ' text-xs font-semibold';
+          let label = data.label || '';
+          if (typeof data.remainingSeats === 'number' && st !== 'full' && st !== 'overbooked') {
+            label += ` · ${data.remainingSeats} yer`;
+          }
+          text.textContent = label;
+          availabilityEl.classList.remove('hidden');
+          availabilityEl.classList.add('flex');
+        })
+        .catch(() => {
+          availabilityEl.classList.add('hidden');
+        });
+    };
+
+    dateInput.addEventListener('change', refreshAvailability);
+    refreshAvailability();
+  }
+
   if (desktopBtn) {
     const tourTitle = desktopBtn.dataset.tourTitle || '';
     const waNumber = desktopBtn.dataset.waNumber || '66828950665';

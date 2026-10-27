@@ -1,9 +1,10 @@
 ---
-import { resolveAssetUrl } from '../lib/assets';
+import { resolveAssetUrl, responsiveSrcset } from '../lib/assets';
 
 interface Slide {
   src: string;
   alt: string;
+  srcset?: string;
 }
 
 interface Props {
@@ -20,18 +21,25 @@ const defaultSlides: Slide[] = [
   { src: '/assets/longtail.webp', alt: "Geleneksel Longtail Rotaları" },
 ];
 
-let slides: Slide[] = defaultSlides;
+let slides: Slide[] = defaultSlides.map((s) => ({
+  ...s,
+  srcset: responsiveSrcset(s.src),
+}));
 
 if (sliderImages && sliderImages.length > 0) {
   slides = sliderImages.map((img, idx) => ({
     src: resolveAssetUrl(img),
     alt: `Phuket Tatili Karşılama Slayt ${idx + 1}`,
+    srcset: responsiveSrcset(img),
   }));
 } else if (customFirstImage) {
   const customSrc = resolveAssetUrl(customFirstImage);
   slides = [
-    { src: customSrc, alt: "Phuket Tatili Özel Karşılama" },
-    ...defaultSlides.filter((s) => s.src !== customSrc),
+    { src: customSrc, alt: "Phuket Tatili Özel Karşılama", srcset: responsiveSrcset(customFirstImage) },
+    ...defaultSlides.filter((s) => s.src !== customSrc).map((s) => ({
+      ...s,
+      srcset: responsiveSrcset(s.src),
+    })),
   ];
 }
 ---
@@ -46,6 +54,8 @@ if (sliderImages && sliderImages.length > 0) {
     >
       <img
         src={slide.src}
+        srcset={slide.srcset}
+        sizes="100vw"
         alt={slide.alt}
         class={`w-full h-full object-cover ${index % 2 === 0 ? 'animate-ken-burns' : 'animate-ken-burns-alt'}`}
         loading={index === 0 ? 'eager' : 'lazy'}

@@ -1,5 +1,5 @@
 ---
-import { resolveAssetUrl } from '../../lib/assets';
+import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
 
 interface Props {
   videoSrc?: string;
@@ -42,6 +42,8 @@ const resolvedPoster = resolveAssetUrl(posterImage, '/assets/phuket_hero.webp');
       <!-- Poster: hero görseli -->
       <img
         src={resolvedPoster}
+        srcset={responsiveSrcset(resolvedPoster)}
+        sizes="(min-width: 1152px) 1152px, 100vw"
         alt="Phuket tanıtım videosu kapak görüntüsü"
         loading="lazy"
         decoding="async"

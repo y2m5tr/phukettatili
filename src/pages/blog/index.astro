@@ -2,7 +2,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import FadeIn from '../../components/ui/FadeIn';
-import { resolveAssetUrl } from '../../lib/assets';
+import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
 import { getCloudBlogPosts, applyBlogOverlay } from '../../lib/server/blogContent';
 
 // Dinamik SSR: panelin Blog ekranında değişen başlık/özet/kapak/tarih anında
@@ -71,7 +71,7 @@ const schemas: Record<string, unknown>[] = [
 >
   <div class="bg-brand-primary text-white py-20 px-4 relative overflow-hidden">
     <div class="absolute inset-0 z-0">
-      <img src="/assets/blog-hero-phuket.webp" alt="Phuket sahil manzarasi - rehber kapagi" class="w-full h-full object-cover animate-ken-burns" />
+      <img src="/assets/blog-hero-phuket.webp" srcset="/assets/blog-hero-phuket.webp 1440w, /assets/blog-hero-phuket-640.webp 640w" sizes="100vw" alt="Phuket sahil manzarasi - rehber kapagi" class="w-full h-full object-cover animate-ken-burns" />
       <div class="absolute inset-0 bg-gradient-to-b from-surface-1/85 via-brand-primary/60 to-brand-primary z-10"></div>
     </div>
     <div class="max-w-4xl mx-auto text-center relative z-20">
@@ -132,6 +132,8 @@ const schemas: Record<string, unknown>[] = [
                     <div class="relative h-60 overflow-hidden">
                       <img
                         src={resolveAssetUrl(post.data.cover_image, '/assets/beach.webp')}
+                        srcset={responsiveSrcset(post.data.cover_image)}
+                        sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                         alt={post.data.title}
                         loading="lazy"
                         decoding="async"

@@ -33,6 +33,41 @@ const hasTracking = Boolean(gaId || metaPixelId);
     const panel = document.getElementById('tracking-consent');
     if (!panel) return;
 
+    // WhatsApp lead takibi: sitenin iş modeli WhatsApp üzerinden kapandığı
+    // için tüm wa.me tıklamaları GA/Meta'ya dönüşüm eventi olarak akar.
+    // Delegasyon ile tek listener — anasayfa CTA'ları, tur detay sidebar'ı,
+    // mobil sabit bar, footer, destek widget'ı vb. hepsini kapsar.
+    // Not: consent verilmeden de listener bağlanır; gtag/fbq yoksa event
+    // sessizce düşer (kabul sonrası ölçüm otomatik başlar).
+    const trackWhatsAppLead = (target: Element | null) => {
+      if (!target) return;
+      const anchor = target.closest('a[href*="wa.me/"], a[href*="api.whatsapp.com"]') as HTMLAnchorElement | null;
+      if (!anchor) return;
+      // En yakın [data-wa-lead-source] bağlamı; yoksa sayfa yolundan kaynak çıkar.
+      const ctxEl = anchor.closest('[data-wa-lead-source]') as HTMLElement | null;
+      const source = ctxEl?.dataset.waLeadSource
+        || anchor.dataset.waLeadSource
+        || document.body.dataset.waLeadSource
+        || location.pathname;
+
+      const payload = {
+        link_url: anchor.href,
+        lead_source: source,
+        page_path: location.pathname + location.search,
+      };
+
+      window.gtag?.('event', 'whatsapp_lead', payload);
+      window.gtag?.('event', 'generate_lead', payload);
+      window.fbq?.('track', 'Contact', payload);
+    };
+
+    if (!document.body.dataset.waLeadBound) {
+      document.body.dataset.waLeadBound = 'true';
+      document.body.addEventListener('click', (e) => {
+        trackWhatsAppLead(e.target as Element | null);
+      });
+    }
+
     const load = () => {
       const gaId = panel.dataset.gaId;
       const pixelId = panel.dataset.metaPixelId;

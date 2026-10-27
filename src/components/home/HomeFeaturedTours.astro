@@ -1,7 +1,7 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import FadeIn from '../ui/FadeIn';
-import { resolveAssetUrl } from '../../lib/assets';
+import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
 import { fmtMoney } from '../../lib/moneyFormat';
 
 interface Props {
@@ -49,8 +49,10 @@ function getDifferentiatorBadge(tour: CollectionEntry<'tours'>, index: number): 
             <a href={`/turlar/${tour.id}`} class="premium-card group flex flex-col h-full rounded-2xl overflow-hidden bg-white dark:bg-slate-800/90 shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200/80 dark:border-slate-700/80">
               {/* Görsel Alanı */}
               <div class="relative h-64 overflow-hidden bg-slate-900">
-                <img 
+                <img
                   src={resolveAssetUrl(tour.data.image)}
+                  srcset={responsiveSrcset(tour.data.image)}
+                  sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
                   alt={tour.data.title}
                   loading="lazy"
                   decoding="async"

@@ -37,3 +37,18 @@ describe('Asset & Gallery URL Resolver', () => {
     expect(resolveOgImageUrl('data:image/avif;base64,...')).toBe('https://phukettatili.com/assets/phuket_hero.webp');
   });
 });
+
+describe('responsiveSrcset', () => {
+  it('640 varyantı bilinen yerel asset için srcset üretir', async () => {
+    const { responsiveSrcset } = await import('../src/lib/assets');
+    const s = responsiveSrcset('bay.webp');
+    expect(s).toBe('/assets/bay.webp 1280w, /assets/bay-640.webp 640w');
+  });
+
+  it('varyantı olmayan görsel ve bulut URL için undefined döner', async () => {
+    const { responsiveSrcset } = await import('../src/lib/assets');
+    expect(responsiveSrcset('atv-1.webp')).toBeUndefined();
+    expect(responsiveSrcset('https://example.com/a.webp')).toBeUndefined();
+    expect(responsiveSrcset(undefined)).toBeUndefined();
+  });
+});
