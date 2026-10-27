@@ -33,3 +33,4 @@ yarn-error.log*
 # Playwright E2E çıktıları
 test-results/
 playwright-report/
+.design-review/

@@ -22,11 +22,14 @@ export default defineConfig({
     locale: 'tr-TR',
   },
   webServer: {
-    command: 'npx astro dev --port 4400 --host',
+    command: 'ASTRO_TELEMETRY_DISABLED=1 npx astro dev --port 4400 --host',
     port: 4400,
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
     stdout: 'ignore',
     stderr: 'pipe',
+    env: {
+      ASTRO_TELEMETRY_DISABLED: '1',
+    },
   },
 });
