@@ -14,7 +14,7 @@ export interface GuideExpenseFormProps {
   setDescription: (v: string) => void;
   receiptNo: string;
   setReceiptNo: (v: string) => void;
-  handleAddExpense: (e: React.FormEvent) => void;
+  handleAddExpense: (e: React.SyntheticEvent) => void;
 }
 
 export function GuideExpenseForm({

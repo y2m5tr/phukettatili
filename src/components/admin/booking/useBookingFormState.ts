@@ -162,7 +162,7 @@ export function useBookingFormState({
 
   const handleAddPassenger = () => {
     const newPax: PassengerItem = {
-      id: `pax-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      id: `pax-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       fullName: '',
       passportNo: '',
       passportNumber: '',
@@ -220,7 +220,7 @@ export function useBookingFormState({
   const bookingHotels: BookingHotelStay[] = formData.hotels || [];
 
   const handleAddBookingHotel = () => {
-    const newId = `hotel-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`;
+    const newId = `hotel-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
     const newHotel: BookingHotelStay = {
       id: newId,
       hotelName: '',

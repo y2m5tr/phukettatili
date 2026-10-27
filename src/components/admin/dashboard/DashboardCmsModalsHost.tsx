@@ -7,8 +7,6 @@ import type {
   BlogItem,
   MediaItem,
   Booking,
-  VehicleItem,
-  DriverItem,
   PartnerAgent,
   SupplierItem,
   TourCostItem,
@@ -42,9 +40,6 @@ export interface DashboardCmsModalsHostProps {
   agents?: PartnerAgent[];
   suppliers?: SupplierItem[];
   tourCosts?: TourCostItem[];
-  vehicles: VehicleItem[];
-  drivers: DriverItem[];
-  onOpenCreateTour: () => void;
   showToast?: (msg: string) => void;
 
   isTourModalOpen: boolean;
@@ -125,9 +120,6 @@ export function DashboardCmsModalsHost({
   agents,
   suppliers,
   tourCosts,
-  vehicles,
-  drivers,
-  onOpenCreateTour,
   showToast,
   isTourModalOpen,
   setIsTourModalOpen,

@@ -254,9 +254,6 @@ export function DashboardMainView({
         agents={coll.agents}
         suppliers={coll.suppliers}
         tourCosts={coll.tourCosts}
-        vehicles={coll.vehicles}
-        drivers={coll.drivers}
-        onOpenCreateTour={onOpenCreateTour}
         showToast={showToast}
         isTourModalOpen={modals.isTourModalOpen}
         setIsTourModalOpen={modals.setIsTourModalOpen}

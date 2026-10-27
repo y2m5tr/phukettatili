@@ -18,11 +18,12 @@ const PRECACHE_ASSETS = [
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS).catch((err) => {
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      await cache.addAll(PRECACHE_ASSETS).catch((err) => {
         console.warn('[SW] Pre-caching non-fatal warning:', err);
       });
-    })
+    })()
   );
 });
 
