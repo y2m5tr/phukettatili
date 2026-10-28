@@ -78,7 +78,7 @@ sudo npm install -g pm2
 sudo apt install -y nginx
 
 # Projeyi klonla
-git clone https://github.com/y2m5tr/phukettatili2.git /var/www/phukettatili
+git clone https://github.com/y2m5tr/phukettatili.git /var/www/phukettatili
 cd /var/www/phukettatili
 ```
 
