@@ -257,6 +257,12 @@ const accent = '#0ea5e9';
 
     <script is:inline define:vars={{ configured, errorCode }}>
       (() => {
+        // HTTP ile açıldıysa güvenli HTTPS bağlantısına yönlendir
+        if (window.location.protocol === 'http:' && !['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+          window.location.replace('https://' + window.location.host + window.location.pathname + window.location.search);
+          return;
+        }
+
         const msg = document.getElementById('msg');
         const showError = (text) => {
           msg.textContent = text;
@@ -303,7 +309,10 @@ const accent = '#0ea5e9';
           mButton.textContent = 'Doğrulanıyor…';
 
           try {
-            const res = await fetch('/api/auth/login', {
+            const targetUrl = new URL('/api/auth/login', window.location.href);
+            if (window.location.protocol === 'https:') targetUrl.protocol = 'https:';
+
+            const res = await fetch(targetUrl.toString(), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
@@ -352,7 +361,10 @@ const accent = '#0ea5e9';
           button.textContent = 'Doğrulanıyor…';
 
           try {
-            const res = await fetch(form.action, {
+            const targetUrl = new URL(form.action, window.location.href);
+            if (window.location.protocol === 'https:') targetUrl.protocol = 'https:';
+
+            const res = await fetch(targetUrl.toString(), {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ passcode: input.value }),

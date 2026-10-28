@@ -21,7 +21,8 @@ export type AdminTab =
   | 'testimonials'
   | 'whatsapp'
   | 'settings'
-  | 'users';
+  | 'users'
+  | 'audit';
 
 export interface AdminStoreState {
   // Navigation & View State

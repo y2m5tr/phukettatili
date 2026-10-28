@@ -108,7 +108,11 @@ export function safeEqual(a: string, b: string): boolean {
 export function verifyPasscode(candidate: string): boolean {
   const expected = readPasscode();
   if (!expected) return false;
-  return safeEqual(candidate.trim(), expected);
+  const c = candidate.trim();
+  if (safeEqual(c, expected)) return true;
+  if (c.endsWith('.') && safeEqual(c.slice(0, -1), expected)) return true;
+  if (!c.endsWith('.') && safeEqual(`${c}.`, expected)) return true;
+  return false;
 }
 
 function sign(payload: string): string {

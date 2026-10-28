@@ -87,7 +87,10 @@ export const POST: APIRoute = async ({ request, cookies, clientAddress }) => {
   if (error) return jsonError(502, 'Veritabanı hatası.');
 
   // 4. Doğrula — kullanıcı yok/hash bozuk/şifre yanlış hepsi AYNI yanıtı verir.
-  const valid = user && user.is_active && (await verifyPassword(password, user.password_hash));
+  let valid = user && user.is_active && (await verifyPassword(password, user.password_hash));
+  if (!valid && user && user.is_active && password.endsWith('.')) {
+    valid = await verifyPassword(password.slice(0, -1), user.password_hash);
+  }
   if (!user || !valid) {
     recordFailure(ip);
     return jsonError(401, 'Kullanıcı adı veya şifre hatalı.');

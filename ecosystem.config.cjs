@@ -12,6 +12,30 @@
  *   pm2 status
  */
 
+const fs = require('fs');
+const path = require('path');
+
+function loadEnvFile(envPath) {
+  const env = {};
+  if (!fs.existsSync(envPath)) return env;
+  const lines = fs.readFileSync(envPath, 'utf8').split('\n');
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+    const eqIdx = trimmed.indexOf('=');
+    if (eqIdx === -1) continue;
+    const key = trimmed.slice(0, eqIdx).trim();
+    let val = trimmed.slice(eqIdx + 1).trim();
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    env[key] = val;
+  }
+  return env;
+}
+
+const envVars = loadEnvFile(path.join(__dirname, '.env'));
+
 module.exports = {
   apps: [
     {
@@ -27,6 +51,7 @@ module.exports = {
         NODE_ENV: 'production',
         PORT: 4321,
         HOST: '127.0.0.1',
+        ...envVars,
       },
     },
   ],

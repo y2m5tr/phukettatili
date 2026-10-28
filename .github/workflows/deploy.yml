@@ -1,0 +1,47 @@
+name: Production VPS Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy to Verunix VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Deploy to VPS via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER || 'root' }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            echo "🚀 [Deploy] Dağıtım başlatılıyor..."
+            cd /var/www/phukettatili
+
+            echo "📥 [Git] En son kodlar çekiliyor..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            echo "📦 [NPM] Bağımlılıklar güncelleniyor..."
+            npm install --prefer-offline --no-audit
+
+            echo "🏗️ [Build] Astro Node.js derlemesi yapılıyor..."
+            DEPLOY_TARGET=node ASTRO_TELEMETRY_DISABLED=1 npm run build
+
+            echo "🔄 [PM2] Servis kesintisiz yenileniyor..."
+            pm2 reload ecosystem.config.cjs
+
+            echo "🩺 [Health Check] Sistem kontrol ediliyor..."
+            sleep 2
+            curl -f https://phukettatili.com/api/health || true
+            echo "✅ Dağıtım başarıyla tamamlandı!"

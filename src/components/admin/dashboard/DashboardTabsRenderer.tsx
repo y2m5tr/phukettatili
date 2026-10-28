@@ -23,6 +23,7 @@ const HomeEditorTab = React.lazy(() => import('../HomeEditorTab'));
 const PartnersTab = React.lazy(() => import('../PartnersTab'));
 const SuppliersTab = React.lazy(() => import('../SuppliersTab'));
 const CuratedProposalModal = React.lazy(() => import('../CuratedProposalModal'));
+const AuditLogTab = React.lazy(() => import('../AuditLogTab'));
 
 export function DashboardTabsRenderer({
   activeTab,
@@ -376,6 +377,10 @@ export function DashboardTabsRenderer({
           onUpdateBooking={onUpdateSingleBooking}
           showToast={showToast}
         />
+      )}
+
+      {activeTab === 'audit' && perms.canManageSettings && (
+        <AuditLogTab showToast={showToast} />
       )}
 
       {activeTab === 'settings' && perms.canManageSettings && (

@@ -200,7 +200,12 @@ export default function AdminDashboard({
     } catch {
       // ignore
     }
-    window.location.href = '/admin-login';
+    try {
+      await fetch('/api/ops-login', { method: 'DELETE' });
+    } catch {
+      // ignore
+    }
+    window.location.href = '/ops-login';
   };
 
   const handleOpenCreateBooking = () => {

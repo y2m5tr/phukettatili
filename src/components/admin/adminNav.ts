@@ -30,6 +30,7 @@ import {
   Building,
   Ship,
   Globe,
+  History,
 } from 'lucide-react';
 
 /* ---------------------------------------------------------------------------
@@ -43,7 +44,7 @@ import {
 export type AdminTab =
   | 'overview' | 'bookings' | 'finance' | 'transfers' | 'proposals' | 'partners' | 'settlements' | 'suppliers' | 'fleet'
   | 'tours' | 'homepage' | 'media' | 'services' | 'blogs' | 'faqs' | 'testimonials'
-  | 'whatsapp' | 'settings' | 'users';
+  | 'whatsapp' | 'settings' | 'users' | 'audit';
 
 export type NavCategory = 'operations' | 'finance' | 'content' | 'system' | 'all';
 
@@ -371,6 +372,14 @@ export const NAV_ITEMS: NavItem[] = [
       { id: 'users_list', label: 'Personel Hesapları', icon: '👥' },
       { id: 'users_rbac', label: 'Rol & Yetki Matrisi', icon: '🛡️' },
     ],
+  },
+  {
+    id: 'audit',
+    label: 'Değişiklik Geçmişi',
+    shortLabel: 'Geçmiş',
+    category: 'system',
+    icon: History,
+    description: 'CMS koleksiyonlarında yapılan son değişiklikler',
   },
   {
     id: 'settings',

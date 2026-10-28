@@ -28,6 +28,9 @@ export default defineConfig({
   output: 'server',
   adapter,
   trailingSlash: 'ignore',
+  redirects: {
+    '/admin-login': '/ops-login',
+  },
   env: {
     schema: {
       // `secret: true` => değer build çıktısına INLINE EDİLMEZ, runtime'da
