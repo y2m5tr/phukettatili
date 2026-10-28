@@ -16,6 +16,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, statSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
+
 const ASSETS_DIR = 'public/assets';
 const TARGET_WIDTH = 640;
 const MIN_SOURCE_WIDTH = 900; // zaten dar olan görsellere varyant üretme
@@ -35,6 +36,7 @@ const files = candidates.length
 const script = `
 from PIL import Image
 import sys, os
+import pillow_avif
 
 src, dst, target_w = sys.argv[1], sys.argv[2], int(sys.argv[3])
 im = Image.open(src)
@@ -45,7 +47,7 @@ if w < target_w:
 nw = target_w
 nh = round(h * nw / w)
 im2 = im.resize((nw, nh), Image.LANCZOS)
-im2.save(dst, "WEBP", quality=80, method=6)
+im2.save(dst, "AVIF", quality=60, speed=6)
 print(f"OK {nw}x{nh} {os.path.getsize(dst)//1024}KB")
 `;
 
@@ -75,7 +77,7 @@ try {
       continue;
     }
 
-    const dst = join(ASSETS_DIR, file.replace('.webp', `-${TARGET_WIDTH}.webp`));
+    const dst = join(ASSETS_DIR, file.replace('.webp', `-${TARGET_WIDTH}.avif`));
     const srcMtime = statSync(src).mtimeMs;
     const dstMtime = existsSync(dst) ? statSync(dst).mtimeMs : 0;
 

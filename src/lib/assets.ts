@@ -65,19 +65,36 @@ export function resolveOgImageUrl(
  * hep undefined döner: varyantın varlığından emin olamadığımız kaynaklarda
  * sadece orijinal dosya sunulur.
  */
-const RESPONSIVE_VARIANTS = import.meta.glob<{ default: string }>(
+const RESPONSIVE_WEBP_VARIANTS = import.meta.glob<{ default: string }>(
   '/public/assets/*-640.webp',
   { eager: true, query: '?url', import: 'default' },
 );
-const responsiveWidths = new Set<string>();
-for (const path of Object.keys(RESPONSIVE_VARIANTS)) {
-  responsiveWidths.add(path.replace('/public', '').replace(/-640\.webp$/, '.webp'));
+const RESPONSIVE_AVIF_VARIANTS = import.meta.glob<{ default: string }>(
+  '/public/assets/*-640.avif',
+  { eager: true, query: '?url', import: 'default' },
+);
+const responsiveWebpWidths = new Set<string>();
+for (const path of Object.keys(RESPONSIVE_WEBP_VARIANTS)) {
+  responsiveWebpWidths.add(path.replace('/public', '').replace(/-640\.webp$/, '.webp'));
 }
+const responsiveAvifWidths = new Set<string>();
+for (const path of Object.keys(RESPONSIVE_AVIF_VARIANTS)) {
+  responsiveAvifWidths.add(path.replace('/public', '').replace(/-640\.avif$/, '.webp'));
+}
+
 
 export function responsiveSrcset(img?: string | null): string | undefined {
   if (!img) return undefined;
   const resolved = resolveAssetUrl(img);
   if (!resolved.startsWith('/assets/')) return undefined;
-  if (!responsiveWidths.has(resolved)) return undefined;
+  if (!responsiveWebpWidths.has(resolved)) return undefined;
   return `${resolved} 1280w, ${resolved.replace(/\.webp$/, '-640.webp')} 640w`;
+}
+
+export function responsiveAvifSrcset(img?: string | null): string | undefined {
+  if (!img) return undefined;
+  const resolved = resolveAssetUrl(img);
+  if (!resolved.startsWith('/assets/')) return undefined;
+  if (!responsiveAvifWidths.has(resolved)) return undefined;
+  return resolved.replace(/\.webp$/, '-640.avif');
 }

@@ -1,10 +1,11 @@
 ---
-import { resolveAssetUrl, responsiveSrcset } from '../lib/assets';
+import { resolveAssetUrl, responsiveSrcset, responsiveAvifSrcset } from '../lib/assets';
 
 interface Slide {
   src: string;
   alt: string;
   srcset?: string;
+  avifSrcset?: string;
 }
 
 interface Props {
@@ -35,6 +36,7 @@ if (sliderImages && sliderImages.length > 0) {
     src: resolveAssetUrl(img),
     alt: `Phuket Tatili Karşılama Slayt ${idx + 1}`,
     srcset: responsiveSrcset(img),
+    avifSrcset: responsiveAvifSrcset(img),
   }));
 } else if (customFirstImage) {
   const customSrc = resolvedFirstImage;
@@ -56,15 +58,21 @@ if (sliderImages && sliderImages.length > 0) {
       }`}
       data-slide-index={index}
     >
-      <img
-        src={slide.src}
-        srcset={slide.srcset}
-        sizes="100vw"
-        alt={slide.alt}
-        class={`w-full h-full object-cover ${index % 2 === 0 ? 'animate-ken-burns' : 'animate-ken-burns-alt'}`}
-        loading={index === 0 ? 'eager' : 'lazy'}
-        fetchpriority={index === 0 ? 'high' : 'auto'}
-      />
+      <picture>
+        {slide.avifSrcset && (
+          <source type="image/avif" srcset={slide.avifSrcset} sizes="100vw" />
+        )}
+        {slide.srcset && (
+          <source type="image/webp" srcset={slide.srcset} sizes="100vw" />
+        )}
+        <img
+          src={slide.src}
+          alt={slide.alt}
+          class={`w-full h-full object-cover ${index % 2 === 0 ? 'animate-ken-burns' : 'animate-ken-burns-alt'}`}
+          loading={index === 0 ? 'eager' : 'lazy'}
+          fetchpriority={index === 0 ? 'high' : 'auto'}
+        />
+      </picture>
     </div>
   ))}
 
