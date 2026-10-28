@@ -31,7 +31,7 @@ export function slugifyFileName(name: string): string {
 }
 
 /**
- * Görseli canvas üzerinde boyutlandırır, WebP'ye (desteklenmiyorsa JPEG) çevirir.
+ * Görseli canvas üzerinde boyutlandırır, AVIF'e (desteklenmiyorsa WebP, sonra JPEG) çevirir.
  * Çözümleyemezse Türkçe hata mesajıyla reject eder.
  */
 export function processImageFile(
@@ -58,15 +58,17 @@ export function processImageFile(
       ctx.fillStyle = '#ffffff';
       ctx.fillRect(0, 0, w, h);
       ctx.drawImage(img, 0, 0, w, h);
-      // Once PNG dene — bazi tarayicilar webp encode'u desteklemez
+      // Format zinciri: AVIF -> WebP -> JPEG. Modern tarayicilar AVIF uretir,
+      // eski tarayicilar WebP'e, hicbiri yoksa JPEG'e duser.
       const tryBlob = (type: string, quality: number, cb: (b: Blob) => void) => {
         canvas.toBlob((b) => {
-          if (b && b.size > 0) cb(b);
+          if (b && b.size > 0 && b.type === type) cb(b);
+          else if (type === 'image/avif') tryBlob('image/webp', 0.85, cb);
           else if (type === 'image/webp') tryBlob('image/jpeg', 0.85, cb);
           else reject(new Error('Görsel dönüştürülemedi.'));
         }, type, quality);
       };
-      tryBlob('image/webp', 0.85, (b) => {
+      tryBlob('image/avif', 0.75, (b) => {
         const reader = new FileReader();
         reader.onload = (ev) => {
           URL.revokeObjectURL(objectUrl);

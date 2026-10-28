@@ -29,7 +29,7 @@ export async function uploadMediaItem(
   try {
     const { width, height, blob } = await processImageFile(file);
     const slug = slugifyFileName(file.name);
-    const ext = blob.type === 'image/webp' ? 'webp' : 'jpg';
+    const ext = blob.type === 'image/avif' ? 'avif' : blob.type === 'image/webp' ? 'webp' : 'jpg';
     const fileName = `${slug}.${ext}`;
     const { url: finalUrl, cloud } = await uploadToStorage(blob, fileName);
     const cleanTitle = file.name.replace(/\.[^/.]+$/, '').replace(/[-_]/g, ' ');
@@ -42,9 +42,10 @@ export async function uploadMediaItem(
       createdAt: new Date().toLocaleDateString('tr-TR'),
       slug: fileName,
     };
+    const formatLabel = blob.type === 'image/avif' ? 'AVIF' : blob.type === 'image/webp' ? 'WebP' : 'JPEG';
     showToast(
       cloud
-        ? `"${file.name}" buluta yüklendi: ${width}×${height} → ${(blob.size / 1024).toFixed(0)}KB WebP`
+        ? `"${file.name}" buluta yüklendi: ${width}×${height} → ${(blob.size / 1024).toFixed(0)}KB ${formatLabel}`
         : `"${file.name}" yerel yüklendi (bulut kapalı): ${width}×${height}`
     );
     if (callback) callback(finalUrl);
