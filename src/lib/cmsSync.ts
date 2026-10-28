@@ -16,6 +16,38 @@
 
 import { safeGet, safeSet } from './safeStorage';
 
+const AUDIT_LOG_KEY = 'ptt_cms_audit_log';
+const AUDIT_LOG_MAX = 50;
+
+export interface AuditLogEntry {
+  id: string;
+  timestamp: string;
+  key: CmsCollectionKey;
+  action: 'save' | 'delete' | 'sync';
+  summary: string;
+}
+
+function appendAuditLog(key: CmsCollectionKey, action: AuditLogEntry['action'], summary: string): void {
+  const entry: AuditLogEntry = {
+    id: `log-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    timestamp: new Date().toISOString(),
+    key,
+    action,
+    summary,
+  };
+  const existing = safeGet<AuditLogEntry[]>(AUDIT_LOG_KEY, []);
+  const next = [entry, ...existing].slice(0, AUDIT_LOG_MAX);
+  safeSet(AUDIT_LOG_KEY, next);
+}
+
+export function getAuditLog(): AuditLogEntry[] {
+  return safeGet<AuditLogEntry[]>(AUDIT_LOG_KEY, []);
+}
+
+export function clearAuditLog(): void {
+  safeSet(AUDIT_LOG_KEY, []);
+}
+
 const API = '/api/content';
 
 /** Beyaz listedeki koleksiyon anahtarları — API ile hizalı. */
@@ -96,6 +128,7 @@ export async function saveCmsCollection(
   options?: { expectedUpdatedAt?: string; force?: boolean }
 ): Promise<{ ok: boolean; status?: number; error?: string }> {
   writeLocalCollection(key, data);
+  appendAuditLog(key, 'save', `${key} koleksiyonu güncellendi`);
 
   try {
     const res = await fetch(API, {
