@@ -20,7 +20,7 @@ test.describe('Admin erişim kontrolü', () => {
     await page.waitForURL(/ops-login/);
 
     // Giriş sayfası render edildi — başlık ve form görünür
-    await expect(page.locator('h1')).toContainText('Yönetim');
+    await expect(page.getByRole('heading', { name: 'Yönetim & Operasyon Girişi' })).toBeVisible();
 
     // Panel verisi sızmadı — rezervasyon tablosu terimi görünmemeli
     const body = await page.textContent('body');
@@ -31,7 +31,7 @@ test.describe('Admin erişim kontrolü', () => {
     // Dev sunucu ilk ayağa kalkarken SSR derlemesi yarışabilir —
     // h1 görünür olana dek bekle (auto-retry), timeout'a bırakma.
     await page.goto('/ops-login', { waitUntil: 'domcontentloaded' });
-    await expect(page.locator('h1')).toContainText('Yönetim', { timeout: 15_000 });
+    await expect(page.getByRole('heading', { name: 'Yönetim & Operasyon Girişi' })).toBeVisible({ timeout: 15_000 });
     await expect(page.locator('#passcode-form-wrap, #membership-form-wrap').first()).toBeAttached();
     await expect(page).toHaveTitle(/Yönetim/i);
   });

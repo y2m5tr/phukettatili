@@ -20,6 +20,7 @@
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
+    "@astrojs/node": "^11.1.9",
     "@astrojs/react": "^7.0.1",
     "@astrojs/sitemap": "^3.7.4",
     "@astrojs/vercel": "^11.0.12",

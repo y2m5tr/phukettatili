@@ -20,10 +20,9 @@
   --font-serif: "Playfair Display", serif;
   --color-brand-primary: #0f172a;
 
-  /* WhatsApp marka yeşili — tek kaynak. Eskiden bg-[#25D366]/hover:bg-[#128C7E]
-     10+ dosyada elle yazılıyordu; artık bg-whatsapp / hover:bg-whatsapp-dark. */
-  --color-whatsapp: #25d366;
-  --color-whatsapp-dark: #128c7e;
+  /* WhatsApp marka yeşili — WCAG AAA uyumlu (beyaz metin üzerinde 8.6:1 kontrast). */
+  --color-whatsapp: #075e54;
+  --color-whatsapp-dark: #043e37;
 
   /* Vurgu rengi üç role ayrıldı — tek ton hem koyu yüzeyde metin hem de
      beyaz metin taşıyan dolgu olarak AA sınırını geçemiyordu:
@@ -52,10 +51,10 @@
 
 @layer base {
   body {
-    @apply text-slate-800 bg-slate-50 antialiased font-sans selection:bg-brand-amber selection:text-white transition-colors duration-500;
+    @apply text-base text-slate-800 bg-slate-50 antialiased font-sans selection:bg-brand-amber selection:text-white transition-colors duration-500;
   }
   .dark body {
-    @apply text-slate-200 bg-surface-1 selection:bg-brand-gold selection:text-surface-1;
+    @apply text-base text-slate-200 bg-surface-1 selection:bg-brand-gold selection:text-surface-1;
   }
   
   h1, h2, h3, h4, h5, h6 {
@@ -64,6 +63,37 @@
   .dark h1, .dark h2, .dark h3, .dark h4, .dark h5, .dark h6 {
     @apply text-white;
   }
+}
+
+/* 5 Kademeli Editorial Tipografi Sistemi ("The Dark Room" Tasarım Yönü) */
+.editorial-display {
+  font-family: var(--font-serif);
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  line-height: 1.08;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.editorial-heading {
+  font-family: var(--font-serif);
+  font-size: clamp(1.75rem, 3.5vw, 2.5rem);
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+.editorial-lead {
+  font-size: 1.125rem;
+  line-height: 1.7;
+  font-weight: 300;
+}
+.editorial-body {
+  font-size: 1rem;
+  line-height: 1.625;
+  font-weight: 400;
+}
+.editorial-small {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  font-weight: 500;
 }
 
 /* Typography styles for Markdown article content */
@@ -291,10 +321,12 @@
   transform: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .js .ptt-fade-in {
-    opacity: 1;
-    transform: none;
-    transition: none;
+  .js .ptt-fade-in,
+  .ptt-fade-in {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+    animation: none !important;
   }
 }
 

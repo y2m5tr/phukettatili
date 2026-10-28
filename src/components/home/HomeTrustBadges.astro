@@ -1,5 +1,4 @@
 ---
-import FadeIn from '../ui/FadeIn';
 import siteSettingsJson from '../../content/settings/site.json';
 
 interface BadgeItem {
@@ -58,25 +57,23 @@ const badges = customBadges && customBadges.length > 0 ? customBadges : defaultB
 <section class={`py-7 bg-white dark:bg-surface-2 border-y border-slate-200/80 dark:border-slate-800/80 ${className}`}>
   <div class="max-w-7xl mx-auto px-4 sm:px-6">
     <div class="grid grid-cols-2 lg:grid-cols-4 divide-x divide-slate-200/80 dark:divide-slate-700/70">
-      {badges.map((badge, idx) => (
-        <FadeIn delay={0.1 * idx} direction="up">
-          <div class="flex items-start gap-2.5 px-3 py-2 sm:px-5 sm:py-1.5 first:pl-0 last:pr-0 group">
-            <span class="text-xl sm:text-2xl shrink-0 opacity-80 transition-transform duration-300 group-hover:scale-105" aria-hidden="true">
-              {badge.icon}
+      {badges.map((badge) => (
+        <div class="flex items-start gap-2.5 px-3 py-2 sm:px-5 sm:py-1.5 first:pl-0 last:pr-0 group">
+          <span class="text-xl sm:text-2xl shrink-0 opacity-80 transition-transform duration-300 group-hover:scale-105" aria-hidden="true">
+            {badge.icon}
+          </span>
+          <div class="min-w-0">
+            <span class="block text-[10px] font-bold uppercase tracking-[0.14em] text-brand-accent dark:text-amber-400">
+              {badge.highlight}
             </span>
-            <div class="min-w-0">
-              <span class="block text-[10px] font-bold uppercase tracking-[0.14em] text-brand-accent dark:text-amber-400">
-                {badge.highlight}
-              </span>
-              <h3 class="font-bold text-xs sm:text-sm text-brand-primary dark:text-white truncate mt-0.5">
-                {badge.title}
-              </h3>
-              <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed font-light">
-                {badge.desc}
-              </p>
-            </div>
+            <h3 class="font-bold text-xs sm:text-sm text-brand-primary dark:text-white truncate mt-0.5">
+              {badge.title}
+            </h3>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5 leading-relaxed font-light">
+              {badge.desc}
+            </p>
           </div>
-        </FadeIn>
+        </div>
       ))}
     </div>
   </div>

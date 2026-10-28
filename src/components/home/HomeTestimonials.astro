@@ -1,5 +1,4 @@
 ---
-import FadeIn from '../ui/FadeIn';
 
 interface Testimonial {
   name: string;
@@ -7,6 +6,7 @@ interface Testimonial {
   tour: string;
   text: string;
   stars?: number;
+  image?: string;
 }
 
 interface Props {
@@ -22,17 +22,29 @@ const { testimonials } = Astro.props;
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
         <!-- Sol: bölüm başlığı + öne çıkan büyük alıntı -->
         <div class="lg:col-span-7">
-          <FadeIn delay={0.1}>
             <div class="mb-10">
               <span class="text-xs uppercase tracking-widest text-brand-accent font-bold">Misafir Deneyimleri</span>
               <h2 class="text-3xl md:text-5xl text-brand-primary dark:text-white font-serif font-bold mt-2 text-left">Bizimle Phuket'i Keşfedenler</h2>
             </div>
-          </FadeIn>
-          <FadeIn delay={0.2} direction="up">
             <figure class="relative bg-brand-primary text-white p-10 md:p-12 rounded-3xl shadow-2xl overflow-hidden">
               <div class="absolute top-6 right-8 font-serif text-[7rem] leading-none text-brand-accent/20 select-none pointer-events-none" aria-hidden="true">"</div>
               <div class="absolute -bottom-20 -left-20 w-56 h-56 bg-brand-accent/10 blur-3xl rounded-full pointer-events-none" aria-hidden="true"></div>
               <div class="relative z-10">
+                <div class="flex items-center gap-4 mb-6">
+                  <img
+                    src={testimonials[0].image || '/assets/couple.webp'}
+                    alt={`${testimonials[0].name} misafir fotoğrafı`}
+                    width="56"
+                    height="56"
+                    loading="lazy"
+                    decoding="async"
+                    class="w-14 h-14 rounded-2xl object-cover border border-white/20"
+                  />
+                  <div>
+                    <span class="block font-bold text-white">{testimonials[0].name}</span>
+                    <span class="text-xs text-slate-400">{testimonials[0].type}</span>
+                  </div>
+                </div>
                 <div class="flex items-center gap-1 text-amber-400 mb-6">
                   {Array.from({ length: testimonials[0].stars || 5 }).map(() => (
                     <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
@@ -41,24 +53,33 @@ const { testimonials } = Astro.props;
                 <blockquote class="font-serif text-xl md:text-2xl leading-relaxed italic text-slate-100">
                   "{testimonials[0].text}"
                 </blockquote>
-                <figcaption class="mt-8 pt-6 border-t border-white/15">
-                  <span class="font-bold text-white">{testimonials[0].name}</span>
-                  <div class="flex items-center gap-3 text-sm text-slate-400 mt-1">
-                    <span>{testimonials[0].type}</span>
-                    <span class="w-1 h-1 rounded-full bg-brand-accent"></span>
-                    <span class="text-brand-accent font-medium">{testimonials[0].tour}</span>
-                  </div>
+                <figcaption class="mt-8 pt-6 border-t border-white/15 flex flex-wrap items-center justify-between gap-3">
+                  <span class="text-sm font-bold text-white">Doğrulanmış Google Değerlendirmesi</span>
+                  <span class="text-sm text-brand-accent font-medium">{testimonials[0].tour}</span>
                 </figcaption>
               </div>
             </figure>
-          </FadeIn>
         </div>
 
         <!-- Sağ: diğer yorumlar, kompakt kartlar -->
         <div class="lg:col-span-5 flex flex-col gap-6 lg:pt-[7.5rem]">
-          {testimonials.slice(1).map((item, idx) => (
-            <FadeIn delay={0.3 + 0.15 * idx} direction="up">
+          {testimonials.slice(1).map((item) => (
               <div class="bg-white dark:bg-slate-800 p-7 rounded-3xl shadow-md border border-slate-100 dark:border-slate-700 hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
+                <div class="flex items-center gap-3 mb-3">
+                  <img
+                    src={item.image || '/assets/beach.webp'}
+                    alt={`${item.name} misafir fotoğrafı`}
+                    width="40"
+                    height="40"
+                    loading="lazy"
+                    decoding="async"
+                    class="w-10 h-10 rounded-xl object-cover border border-slate-200/70 dark:border-slate-700"
+                  />
+                  <div>
+                    <h3 class="font-bold text-brand-primary dark:text-white text-sm">{item.name}</h3>
+                    <span class="text-xs text-slate-500 dark:text-slate-400">{item.type}</span>
+                  </div>
+                </div>
                 <div class="flex items-center gap-1 text-amber-500 mb-3">
                   {Array.from({ length: item.stars || 5 }).map(() => (
                     <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
@@ -68,15 +89,11 @@ const { testimonials } = Astro.props;
                   "{item.text}"
                 </p>
                 <div class="flex items-center justify-between gap-3 border-t border-slate-100 dark:border-slate-700 pt-4">
-                  <div>
-                    <h3 class="font-bold text-brand-primary dark:text-white text-sm">{item.name}</h3>
-                    <span class="text-xs text-slate-500 dark:text-slate-400">{item.type}</span>
-                  </div>
+                  <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">Doğrulanmış Misafir</span>
                   <span class="text-xs text-brand-accent font-medium text-right shrink-0">{item.tour}</span>
                 </div>
               </div>
-            </FadeIn>
-          ))}
+            ))}
         </div>
       </div>
     </div>

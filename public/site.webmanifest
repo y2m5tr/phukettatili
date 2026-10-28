@@ -1,0 +1,61 @@
+{
+  "name": "Phuket Tatili — Türkçe Ada Turları & VIP Transfer",
+  "short_name": "Phuket Tatili",
+  "description": "Phuket'te Türkçe rehberli ada turları, Phi Phi & James Bond gezileri, VIP havalimanı transferi ve lüks yat kiralama.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0f1a",
+  "theme_color": "#0a0f1a",
+  "orientation": "portrait-primary",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tüm Turlar",
+      "short_name": "Turlar",
+      "description": "Phuket Türkçe rehberli ada ve macera turları",
+      "url": "/turlar",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "VIP Transfer",
+      "short_name": "Transfer",
+      "description": "Havalimanı ve oteller arası VIP minivan transferi",
+      "url": "/transferler",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Tatil Asistanı",
+      "short_name": "Asistan",
+      "description": "3 adımda size özel Phuket tatili planlayın",
+      "url": "/tatil-asistani",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

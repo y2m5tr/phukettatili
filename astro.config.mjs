@@ -7,6 +7,17 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import vercel from '@astrojs/vercel';
 
+// Çift Dağıtım Desteği: Linux VPS (Node.js Standalone) & Vercel Serverless
+let adapter = vercel();
+if (process.env.DEPLOY_TARGET === 'node' || process.env.ASTRO_ADAPTER === 'node') {
+  try {
+    const nodeAdapter = (await import('@astrojs/node')).default;
+    adapter = nodeAdapter({ mode: 'standalone' });
+  } catch {
+    // @astrojs/node yüklü değilse varsayılan adapter kullanılır
+  }
+}
+
 // https://astro.build/config
 export default defineConfig({
   site: 'https://phukettatili.com',
@@ -15,7 +26,7 @@ export default defineConfig({
   // `export const prerender = false` diyen /admin, /ekip ve /ops-login
   // sunucu fonksiyonu olarak çalışır — middleware oturum kontrolü için şart.
   output: 'server',
-  adapter: vercel(),
+  adapter,
   trailingSlash: 'ignore',
   env: {
     schema: {
@@ -117,6 +128,7 @@ export default defineConfig({
       },
     }),
   ],
+  outDir: process.env.ASTRO_OUTPUT_DIR || 'dist',
   build: {
     format: 'directory',
     inlineStylesheets: 'auto',

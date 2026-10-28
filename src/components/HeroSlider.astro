@@ -13,9 +13,13 @@ interface Props {
 }
 
 const { customFirstImage, sliderImages } = Astro.props;
+const fallbackHeroImage = '/assets/phuket_hero.webp';
+const resolvedFirstImage = resolveAssetUrl(
+  customFirstImage || (sliderImages && sliderImages[0]) || fallbackHeroImage
+);
 
 const defaultSlides: Slide[] = [
-  { src: '/assets/phuket_hero.webp', alt: "Phuket Kumsalları ve Turkuaz Deniz" },
+  { src: resolvedFirstImage, alt: "Phuket Kumsalları ve Turkuaz Deniz", srcset: responsiveSrcset(resolvedFirstImage) },
   { src: '/assets/pileh.webp', alt: "Phi Phi Pi Leh Zümrüt Lagün" },
   { src: '/assets/yacht.webp', alt: "Lüks VIP Yat ve Katamaran Deneyimi" },
   { src: '/assets/longtail.webp', alt: "Geleneksel Longtail Rotaları" },
@@ -33,7 +37,7 @@ if (sliderImages && sliderImages.length > 0) {
     srcset: responsiveSrcset(img),
   }));
 } else if (customFirstImage) {
-  const customSrc = resolveAssetUrl(customFirstImage);
+  const customSrc = resolvedFirstImage;
   slides = [
     { src: customSrc, alt: "Phuket Tatili Özel Karşılama", srcset: responsiveSrcset(customFirstImage) },
     ...defaultSlides.filter((s) => s.src !== customSrc).map((s) => ({

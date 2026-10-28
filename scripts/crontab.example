@@ -1,0 +1,21 @@
+# ==============================================================================
+# PhuketTatili3 — Linux VPS Crontab Konfigürasyon Örneği
+# ==============================================================================
+# Bu dosyayı sunucuda crontab'a eklemek için:
+#   crontab -e
+# ve aşağıdaki satırları ekleyin (proje yolunu /var/www/phukettatili olarak varsayar):
+# ==============================================================================
+
+# Ortam değişkenleri
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# 1. Her Gün 20:00 (Phuket UTC+7 / Türkiye 16:00) — T-24 WhatsApp Tur Hatırlatması
+# Yarınki turların misafirlerine bilet & alınış saati, şoförlerine ise iş emri gider.
+0 13 * * * cd /var/www/phukettatili && /usr/bin/node scripts/cron-dispatch-reminders.mjs >> /var/log/phuket-cron.log 2>&1
+
+# 2. Her Pazar Gece 03:00 — PM2 Log ve Cache Temizliği
+0 3 * * 0 /usr/bin/pm2 flush > /dev/null 2>&1
+
+# 3. Her Ayın 1'i Gece 04:00 — Log Döndürme & Temizleme (30 günden eski cron loglarını sil)
+0 4 1 * * find /var/log/phuket-cron.log* -mtime +30 -delete > /dev/null 2>&1

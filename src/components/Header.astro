@@ -24,7 +24,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
   <div class="max-w-7xl mx-auto px-6">
     <div class="header-inner flex items-center justify-between h-20 transition-all duration-300">
       <!-- Logo -->
-      <a href="/" class="flex items-center gap-2.5 shrink-0 group mr-8 lg:mr-12 xl:mr-16">
+      <a href="/" class="flex items-center gap-2.5 shrink-0 group mr-4 lg:mr-8 xl:mr-12">
         <img
           src={resolveAssetUrl(logoUrl, '/assets/logo-main-transparent.png')}
           alt={`${logoText} Logo`}
@@ -42,7 +42,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
       </a>
 
       <!-- Desktop Navigation -->
-      <nav class="hidden md:flex items-center gap-5 lg:gap-6 xl:gap-7">
+      <nav class="hidden lg:flex items-center gap-4 lg:gap-5 xl:gap-7">
         <a href="/" class="text-slate-600 dark:text-slate-200 hover:text-brand-accent dark:hover:text-brand-accent font-semibold text-sm lg:text-base whitespace-nowrap transition-colors relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-brand-accent after:transition-all hover:after:w-full">Ana Sayfa</a>
 
         {/* Turlar Dropdown */}
@@ -203,7 +203,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
           güven sinyali hiç görünmüyordu — hamburger'in yanında kompakt çip. */}
       <a
         href="/#testimonials"
-        class="flex md:hidden items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0"
+        class="flex lg:hidden items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0"
         title={`Google Doğrulanmış Misafir Yorumları (${googleRating} / 5)`}
         aria-label={`Google puanı ${googleRating} bölü 5, ${googleReviewCount} üzeri yorum`}
       >
@@ -212,7 +212,7 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
       </a>
 
       <!-- Mobile Menu Button -->
-      <button id="mobile-menu-btn" class="md:hidden rounded-xl p-3 text-brand-primary dark:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer" aria-label="Menüyü Aç" aria-expanded="false" aria-controls="mobile-menu">
+      <button id="mobile-menu-btn" class="lg:hidden rounded-xl p-3 text-brand-primary dark:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer" aria-label="Menüyü Aç" aria-expanded="false" aria-controls="mobile-menu">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
       </button>
     </div>

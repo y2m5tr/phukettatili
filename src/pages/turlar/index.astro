@@ -1,7 +1,6 @@
 ---
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import FadeIn from '../../components/ui/FadeIn';
 import TourShowcase from '../../components/ui/TourShowcase';
 import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
 import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
@@ -37,6 +36,24 @@ const categories = uniqueCategorySlugs.map(slug => ({
 }));
 
 const site = Astro.site || 'https://phukettatili.com';
+
+// Filtre türetme: Türkçe rehber sinyali dahil edilen hizmetlerde geçiyorsa
+// true kabul edilir. Yapılandırılmış alan eklendiğinde burası tek noktadan
+// değiştirilebilir.
+const hasTurkishGuide = (tour: CollectionEntry<'tours'>) => {
+  const haystack = [tour.data.included, tour.data.excerpt, tour.data.category_label]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase();
+  return haystack.includes('türkçe') || haystack.includes('turkce');
+};
+
+const priceBand = (price: number | null | undefined): 'quote' | 'budget' | 'mid' | 'premium' => {
+  if (!price || price <= 0) return 'quote';
+  if (price < 2000) return 'budget';
+  if (price < 5000) return 'mid';
+  return 'premium';
+};
 const schemas: Record<string, unknown>[] = [
   {
     "@type": "CollectionPage",
@@ -72,14 +89,10 @@ const schemas: Record<string, unknown>[] = [
 >
   <div class="bg-brand-primary text-white py-16 px-4 relative overflow-hidden">
     <div class="max-w-6xl mx-auto text-center relative z-10">
-      <FadeIn direction="up">
         <h1 class="text-4xl md:text-5xl font-serif font-bold mb-4">Tüm Turlar</h1>
-      </FadeIn>
-      <FadeIn delay={0.2} direction="up">
         <p class="text-slate-300 max-w-xl mx-auto text-base mb-10">
           Günübirlik ada turlarından özel VIP rotalara kadar Phuket'i bizimle keşfedin.
         </p>
-      </FadeIn>
       
       <!-- Slider -->
       <TourShowcase tours={sliderTours} client:load />
@@ -114,7 +127,7 @@ const schemas: Record<string, unknown>[] = [
         <a 
           href="/turlar/" 
           data-filter="all" 
-          class="filter-btn px-6 py-2.5 rounded-full bg-brand-accent text-white font-medium shadow-md transition-all duration-300 hover:scale-105"
+          class="filter-btn px-5 py-2.5 rounded-full bg-brand-gold text-slate-950 font-bold shadow-md transition-all duration-300 hover:scale-105"
         >
           Tümü
         </a>
@@ -129,11 +142,50 @@ const schemas: Record<string, unknown>[] = [
         ))}
       </div>
 
+      <!-- Ek Filtreler: Fiyat Bandı / Süre / Türkçe Rehber -->
+      <div class="flex flex-wrap items-center justify-center gap-3 mb-10">
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Fiyat</span>
+          <select
+            id="tour-price-filter"
+            class="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+          >
+            <option value="all">Tümü</option>
+            <option value="budget">Bütçe Dostu</option>
+            <option value="mid">Orta Seviye</option>
+            <option value="premium">Premium & VIP</option>
+            <option value="quote">Teklif ile</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Süre</span>
+          <select
+            id="tour-duration-filter"
+            class="px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-brand-gold/40"
+          >
+            <option value="all">Tümü</option>
+            <option value="tam gün">Tam Gün</option>
+            <option value="yarım gün">Yarım Gün</option>
+            <option value="akşam">Akşam</option>
+          </select>
+        </div>
+        <label class="flex items-center gap-2 px-3 py-2 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-200 cursor-pointer">
+          <input type="checkbox" id="turkish-guide-filter" class="accent-brand-gold" />
+          <span>Türkçe Rehberli</span>
+        </label>
+      </div>
+
       <!-- Tours Grid -->
       <div id="tours-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {sortedTours.map((tour, index) => (
-          <div class="tour-card" data-category={tour.data.category}>
-            <FadeIn delay={0.1 * (index % 3)} direction="up">
+        {sortedTours.map((tour) => (
+          <div
+            class="tour-card"
+            data-category={tour.data.category}
+            data-price={tour.data.price_thb || 0}
+            data-price-band={priceBand(tour.data.price_thb)}
+            data-turkish-guide={hasTurkishGuide(tour)}
+            data-duration={(tour.data.duration || '').toLowerCase()}
+          >
               <a href={`/turlar/${tour.id}`} class="premium-card group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 dark:border-slate-700">
                 <div class="relative h-64 overflow-hidden">
                   <img
@@ -143,7 +195,7 @@ const schemas: Record<string, unknown>[] = [
                     alt={tour.data.title}
                     loading="lazy"
                     decoding="async"
-                    class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                    class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
                   />
                   <div class="absolute inset-0 bg-brand-primary/20 group-hover:bg-transparent transition-colors duration-500"></div>
                   <!-- Wishlist Heart Button -->
@@ -167,15 +219,14 @@ const schemas: Record<string, unknown>[] = [
                   <div class="flex justify-between items-center border-t border-slate-100 dark:border-slate-700 pt-4 mt-4">
                     <span class="text-sm font-medium text-slate-500 dark:text-slate-400">{tour.data.duration || 'Tam Gün'}</span>
                     {tour.data.price_thb && tour.data.price_thb > 0 ? (
-                      <span class="text-lg font-bold text-brand-primary dark:text-white">{fmtMoney(tour.data.price_thb)} THB</span>
+                      <span class="text-xl font-bold text-brand-primary dark:text-white tracking-tight">{fmtMoney(tour.data.price_thb)} <span class="text-xs font-semibold text-amber-500">THB</span></span>
                     ) : (
-                      <span class="text-xs font-bold text-brand-accent bg-brand-accent/10 px-2.5 py-1 rounded-full">Fiyat Teklifi Alın</span>
+                      <span class="text-xs font-bold text-slate-900 dark:text-amber-300 bg-amber-400/15 px-2.5 py-1 rounded-full">Özel Fiyat Teklifi</span>
                     )}
                   </div>
                 </div>
               </a>
-            </FadeIn>
-          </div>
+                </div>
         ))}
       </div>
       
@@ -202,6 +253,9 @@ const schemas: Record<string, unknown>[] = [
 
     let activeCategory = 'all';
     let activeSearchText = '';
+    let activePriceBand = 'all';
+    let activeDuration = 'all';
+    let requireTurkishGuide = false;
 
     function renderFilteredCards() {
       let visibleCount = 0;
@@ -210,11 +264,17 @@ const schemas: Record<string, unknown>[] = [
       tourCards.forEach(card => {
         const cardCategory = (card.getAttribute('data-category') || '').toLowerCase();
         const cardText = (card.textContent || '').toLowerCase();
+        const cardPriceBand = card.getAttribute('data-price-band') || 'all';
+        const cardDuration = (card.getAttribute('data-duration') || '').toLowerCase();
+        const cardTurkishGuide = card.getAttribute('data-turkish-guide') === 'true';
 
         const matchCat = activeCategory === 'all' || activeCategory === '' || cardCategory === activeCategory;
         const matchSearch = q === '' || cardText.includes(q);
+        const matchPrice = activePriceBand === 'all' || cardPriceBand === activePriceBand;
+        const matchDuration = activeDuration === 'all' || cardDuration.includes(activeDuration);
+        const matchGuide = !requireTurkishGuide || cardTurkishGuide;
 
-        if (matchCat && matchSearch) {
+        if (matchCat && matchSearch && matchPrice && matchDuration && matchGuide) {
           card.style.display = 'block';
           visibleCount++;
         } else {
@@ -236,10 +296,10 @@ const schemas: Record<string, unknown>[] = [
         
         if (isActive) {
           btn.classList.remove('bg-white', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
-          btn.classList.add('bg-brand-accent', 'text-white', 'shadow-md');
+          btn.classList.add('bg-brand-gold', 'text-slate-950', 'shadow-md');
         } else {
           btn.classList.add('bg-white', 'dark:bg-slate-800', 'text-slate-600', 'dark:text-slate-300');
-          btn.classList.remove('bg-brand-accent', 'text-white', 'shadow-md');
+          btn.classList.remove('bg-brand-gold', 'text-slate-950', 'shadow-md');
         }
       });
 
@@ -285,6 +345,31 @@ const schemas: Record<string, unknown>[] = [
         activeSearchText = '';
         searchClearBtn.classList.add('hidden');
         searchInput.focus();
+        renderFilteredCards();
+      });
+    }
+
+    // Attach additional filter events
+    const priceFilter = document.getElementById('tour-price-filter') as HTMLSelectElement | null;
+    if (priceFilter) {
+      priceFilter.addEventListener('change', () => {
+        activePriceBand = priceFilter.value;
+        renderFilteredCards();
+      });
+    }
+
+    const durationFilter = document.getElementById('tour-duration-filter') as HTMLSelectElement | null;
+    if (durationFilter) {
+      durationFilter.addEventListener('change', () => {
+        activeDuration = durationFilter.value;
+        renderFilteredCards();
+      });
+    }
+
+    const guideFilter = document.getElementById('turkish-guide-filter') as HTMLInputElement | null;
+    if (guideFilter) {
+      guideFilter.addEventListener('change', () => {
+        requireTurkishGuide = guideFilter.checked;
         renderFilteredCards();
       });
     }

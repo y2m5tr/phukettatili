@@ -7,6 +7,7 @@ import Tracking from '../components/Tracking.astro';
 import WhatsAppSupportWidget from '../components/WhatsAppSupportWidget.astro';
 import HolidayShortlist from '../components/ui/HolidayShortlist';
 import siteSettings from '../content/settings/site.json';
+import { resolveAssetUrl, responsiveSrcset } from '../lib/assets';
 
 interface Props {
 	title: string;
@@ -52,6 +53,7 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+		<link rel="manifest" href="/site.webmanifest" />
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 		<meta name="apple-mobile-web-app-title" content="Phuket Tatili" />
@@ -181,7 +183,14 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 
         <!-- Fontlar self-hosted (global.css içinde @fontsource) — dış CDN bağımlılığı yok -->
         {preloadImage && (
-          <link rel="preload" as="image" href={preloadImage} fetchpriority="high" />
+          <link
+            rel="preload"
+            as="image"
+            href={resolveAssetUrl(preloadImage)}
+            imagesrcset={responsiveSrcset(preloadImage)}
+            imagesizes="100vw"
+            fetchpriority="high"
+          />
         )}
 
         <!-- Real Web Vitals LCP Measurement via PerformanceObserver -->
@@ -220,8 +229,11 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 
         <!-- Dark Mode Setup -->
         <script is:inline>
-          // JS etkin işareti — .ptt-fade-in içeriği yalnızca bu sınıf varsa gizlenir
-          document.documentElement.classList.add('js');
+          // JS etkin işareti — .ptt-fade-in içeriği yalnızca hareket azaltma kapalıysa ve JS varsa gizlenir.
+          // prefers-reduced-motion açıkken hiçbir öğe gizlenmez; ilk frame'den itibaren %100 görünür kalır.
+          if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            document.documentElement.classList.add('js');
+          }
           const applyTheme = () => {
             const theme = (() => {
               if (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) {
@@ -245,7 +257,7 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
         
         <Tracking />
 	</head>
-	<body class="flex flex-col min-h-screen relative">
+	<body class="flex flex-col min-h-screen relative overflow-x-clip">
         <!-- Erişilebilirlik: klavye kullanıcıları header linklerini atlayabilsin -->
         <a
           href="#main-content"
@@ -255,7 +267,7 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
         </a>
         <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
         <Header />
-        <main id="main-content" class="flex-grow pt-28 sm:pt-32">
+        <main id="main-content" class="flex-grow pt-28 sm:pt-32 overflow-x-clip">
 		    <slot />
         </main>
         <Footer />
@@ -285,7 +297,7 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
                   }
                 }
               },
-              { rootMargin: '-40px 0px' },
+              { rootMargin: '120px 0px' },
             );
             fadeEls.forEach((el) => io.observe(el));
           });
@@ -322,6 +334,13 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
             window.addEventListener('scroll', onScroll, { passive: true });
             update();
           });
+
+          // PWA Kurulabilirlik ve Çevrimdışı Bellek (Turist Web App)
+          if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !window.location.pathname.startsWith('/admin')) {
+            window.addEventListener('load', () => {
+              navigator.serviceWorker.register('/sw.js').catch(() => {});
+            }, { once: true });
+          }
         </script>
 	</body>
 </html>
