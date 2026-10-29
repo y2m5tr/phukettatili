@@ -4,7 +4,7 @@ category: "entertainment-tours"
 subcategory: "siam-niramit-show"
 category_label: "Siam Niramit"
 excerpt: "Tayland'ın zengin kültürel mirasını sahneye taşıyan dev prodüksiyonlu akşam gösterisi."
-image: "culture.webp"
+image: "siam_niramit_cover.webp"
 price_type: "quote"
 price_thb: 2400
 duration: "Akşam programı"

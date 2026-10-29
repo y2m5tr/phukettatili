@@ -4,7 +4,7 @@ category: "island-tours"
 subcategory: "coral-island"
 category_label: "Coral Adası"
 excerpt: "Coral Adası'nın en özel koyu Banana Beach'te şeffaf kano, şnorkel ve dinlendirici bir plaj kulübü deneyimi."
-image: "beach.webp"
+image: "banana_beach.webp"
 price_type: "quote"
 price_thb: 2300
 duration: "Tam gün / Yarım gün"

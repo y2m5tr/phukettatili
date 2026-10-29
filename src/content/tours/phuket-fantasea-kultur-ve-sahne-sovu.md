@@ -4,7 +4,7 @@ category: "entertainment-tours"
 subcategory: "fantasea-show"
 category_label: "Gösteriler"
 excerpt: "Kamala'da Tay mitolojisi, akrobasi, sihirbazlık ve 4000 kişilik Golden Kinnaree açık büfesi."
-image: "culture.webp"
+image: "phuket_fantasea.webp"
 price_type: "quote"
 price_thb: 2500
 duration: "Akşam programı"
