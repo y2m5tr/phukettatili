@@ -6,7 +6,7 @@ category_label: "Özel Rotalar"
 excerpt: "Phuket Rassada İskelesi ile Phi Phi Tonsai / Laemtong koyları arasında konforlu transfer seçenekleri."
 image: "longtail.webp"
 price_type: "quote"
-price_thb: 1200
+price_thb: 2300
 duration: "1 - 2 saat (seçilen tekneye göre)"
 included:
   - "Tek yön veya gidiş-dönüş tekne bileti"

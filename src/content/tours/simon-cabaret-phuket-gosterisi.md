@@ -6,7 +6,7 @@ category_label: "Gösteriler"
 excerpt: "Patong sahilinde 30 yılı aşkın süredir sahnelenen, ışıltılı kostümler ve müzikal kabare performansı."
 image: "culture.webp"
 price_type: "quote"
-price_thb: 1400
+price_thb: 2300
 duration: "75 dakika"
 included:
   - "Simon Cabaret salonuna giriş bileti"

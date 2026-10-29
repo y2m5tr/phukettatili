@@ -49,7 +49,8 @@ export function generateMetaCatalogXml(
       const title = escapeXml(tour.title);
       const description = escapeXml(tour.excerpt || tour.title);
       const category = escapeXml(tour.category_label || tour.category || 'Ada Turları');
-      const price = `${tour.price_thb && tour.price_thb > 0 ? tour.price_thb : 1500} THB`;
+      const validPrice = Math.max(tour.price_thb || 0, 2300);
+      const price = `${validPrice} THB`;
       const featuredLabel = tour.featured ? 'Featured' : 'Standard';
 
       return `    <item>
@@ -107,7 +108,8 @@ export function generateMetaCatalogCsv(
     const tourUrl = `${baseUrl.replace(/\/$/, '')}/turlar/${tour.id}`;
     const imageUrl = resolveOgImageUrl(tour.image, baseUrl);
     const category = tour.category_label || tour.category || 'Ada Turları';
-    const price = `${tour.price_thb && tour.price_thb > 0 ? tour.price_thb : 1500} THB`;
+    const validPrice = Math.max(tour.price_thb || 0, 2300);
+    const price = `${validPrice} THB`;
     const featured = tour.featured ? 'Featured' : 'Standard';
 
     return [

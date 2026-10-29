@@ -6,7 +6,7 @@ category_label: "Coral Adası"
 excerpt: "Phuket'e en yakın berrak ada kaçışı; beyaz kumsal, şnorkel ve sakin deniz keyfi."
 image: "beach.webp"
 price_type: "quote"
-price_thb: 1800
+price_thb: 2300
 duration: "Tam gün"
 included:
   - "Chalong iskelesine otel transferi"

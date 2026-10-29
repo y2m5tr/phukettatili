@@ -6,7 +6,7 @@ category_label: "Phuket Şehir Turu"
 excerpt: "Phuket Old Town'un kolonyal sokakları, Chalong Tapınağı ve Big Buddha manzara seyri."
 image: "culture.webp"
 price_type: "quote"
-price_thb: 1900
+price_thb: 2300
 duration: "Yarım gün (5 saat)"
 included:
   - "Özel klimalı araç ve şoför"
