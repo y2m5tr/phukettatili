@@ -130,7 +130,7 @@ export default function AdminSidebar({
                       type="button"
                       onClick={() => onSelectCategory(cat.id)}
                       title={cat.description}
-                      className={`py-1.5 px-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer justify-center ${
+                      className={`min-h-[40px] py-1.5 px-2 rounded-xl font-bold text-xs transition-all flex items-center gap-1.5 cursor-pointer justify-center ${
                         isSel
                           ? 'bg-white dark:bg-surface-2 text-slate-900 dark:text-white shadow-xs font-extrabold ring-1 ring-slate-200/60 dark:ring-slate-700/60'
                           : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/40 dark:hover:bg-slate-800/40'
@@ -233,9 +233,12 @@ export default function AdminSidebar({
                       <button
                         key={item.id}
                         type="button"
-                        onClick={() => onTabSelect(item.id)}
+                        onClick={() => {
+                          onTabSelect(item.id);
+                          onMobileSidebarClose();
+                        }}
                         title={isSidebarCollapsed ? item.label : item.description}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer relative group ${
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 min-h-[44px] rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer relative group ${
                           isActive
                             ? 'bg-slate-900 text-white dark:bg-brand-accent dark:text-slate-950 shadow-sm font-bold'
                             : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/80 hover:text-slate-900 dark:hover:text-white'

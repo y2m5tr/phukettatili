@@ -35,6 +35,8 @@ import {
 } from './dashboard/adminTourFormUtils';
 
 import { useAdminShortcuts } from './dashboard/useAdminShortcuts';
+import { AdminMobileBottomNav } from './mobile/AdminMobileBottomNav';
+import { AdminMobileQuickActionsModal } from './mobile/AdminMobileQuickActionsModal';
 
 export type { AdminTab, NavCategory, NavCategoryDef, NavItem, NavSubItem } from './adminNav';
 
@@ -52,6 +54,7 @@ export default function AdminDashboard({
 }: AdminDashboardProps) {
   const [isSigningOut, setIsSigningOut] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<string>('');
+  const [isMobileQuickActionsOpen, setIsMobileQuickActionsOpen] = useState<boolean>(false);
 
   const showToast = useCallback((msg: string) => {
     setToastMessage(msg);
@@ -407,7 +410,7 @@ export default function AdminDashboard({
           logoText={coll.siteSettings.logoText || coll.siteSettings.siteTitle}
         />
 
-        <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 sm:pt-6 pb-24 md:pb-8">
+        <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-6 lg:px-8 pt-3 sm:pt-6 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-8">
           <AdminErrorBoundary
             tabName={nav.activeNavItem?.label}
             onResetToOverview={() => nav.setActiveTab('overview')}
@@ -444,8 +447,27 @@ export default function AdminDashboard({
         </main>
       </div>
 
+      {/* Mobil Alt Navigasyon Çubuğu (Native App Ergonomisi) */}
+      <AdminMobileBottomNav
+        activeTab={nav.activeTab}
+        onTabSelect={nav.handleTabSelect}
+        pendingBookingsCount={bk.pendingBookingsCount}
+        onOpenQuickActions={() => setIsMobileQuickActionsOpen(true)}
+        onOpenSidebar={() => nav.setIsMobileSidebarOpen(true)}
+      />
+
+      {/* Mobil Hızlı Eylem Çekmecesi (Bottom Sheet) */}
+      <AdminMobileQuickActionsModal
+        isOpen={isMobileQuickActionsOpen}
+        onClose={() => setIsMobileQuickActionsOpen(false)}
+        onNewBooking={handleOpenCreateBooking}
+        onSelectTab={nav.handleTabSelect}
+        actions={headerActions}
+        canCreateBookings={nav.perms.canCreateBookings}
+      />
+
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl bg-slate-900/95 text-white text-xs sm:text-sm font-bold shadow-2xl border border-slate-700/80 flex items-center gap-2.5 backdrop-blur-md">
+        <div className="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 px-5 py-3 rounded-2xl bg-slate-900/95 text-white text-xs sm:text-sm font-bold shadow-2xl border border-slate-700/80 flex items-center gap-2.5 backdrop-blur-md animate-in fade-in slide-in-from-bottom-2">
           <Sparkles className="w-4 h-4 text-brand-accent animate-pulse" />
           <span>{toastMessage}</span>
         </div>
