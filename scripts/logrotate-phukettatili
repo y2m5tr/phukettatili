@@ -1,8 +1,9 @@
-/var/log/phuket-cron.log {
+/var/log/phuket-cron.log
+/root/.pm2/logs/*.log {
     weekly
-    rotate 8
+    rotate 4
     compress
     missingok
     notifempty
-    create 0640 www-data www-data
+    copytruncate
 }
