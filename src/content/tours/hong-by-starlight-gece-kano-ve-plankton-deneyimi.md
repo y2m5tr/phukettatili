@@ -6,7 +6,7 @@ category_label: "Ada Turları"
 excerpt: "Phang Nga Körfezi'nin mağaralarında gün batımı, el yapımı çiçek fenerleri (Kratong) ve parlayan biyolüminesans planktonlar."
 image: "longtail.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 3900
 duration: "Öğleden sonra - Gece (11:30 - 21:30)"
 included:
   - "Phuket otellerinden klimalı transfer"

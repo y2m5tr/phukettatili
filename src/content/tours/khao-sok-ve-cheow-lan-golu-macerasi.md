@@ -6,7 +6,7 @@ category_label: "Macera Turları"
 excerpt: "Dünyanın en eski yağmur ormanlarından birinde, zümrüt renkli göl üzerinde yüzen evler ve kano keşfi."
 image: "longtail.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 4500
 duration: "Günübirlik / 2 Gün 1 Gece"
 included:
   - "Phuket otellerinden klimalı VIP araç transferi"

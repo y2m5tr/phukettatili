@@ -6,7 +6,7 @@ category_label: "Longtail Tekne"
 excerpt: "Phuket açıklarındaki gizli koylara geleneksel ahşap tekne ile esnek ve sakin bir keşif."
 image: "longtail.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 3500
 duration: "4 - 6 saat"
 included:
   - "Özel longtail tekne ve yerel kaptan"

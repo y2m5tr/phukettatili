@@ -10,7 +10,7 @@ gallery:
   - "atv-2.webp"
   - "atv-3.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 2200
 duration: "1 - 2 saat parkur"
 included:
   - "Otel çift yön transferi"

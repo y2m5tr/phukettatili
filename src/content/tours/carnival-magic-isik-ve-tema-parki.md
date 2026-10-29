@@ -6,7 +6,7 @@ category_label: "Gösteriler"
 excerpt: "40 milyondan fazla ışıkla Guinness rekorlu, karnaval geçit töreni ve masalsı gece tema parkı."
 image: "culture.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 2800
 duration: "Akşam programı"
 included:
   - "Carnival Magic giriş bileti"

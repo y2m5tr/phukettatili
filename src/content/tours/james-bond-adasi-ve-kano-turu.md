@@ -13,7 +13,7 @@ gallery:
   - "james-bond-5.webp"
   - "james-bond-6.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 2800
 duration: "Tam gün"
 included:
   - "Otel transferi (klimalı minibüs)"

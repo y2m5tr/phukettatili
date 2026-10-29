@@ -6,7 +6,7 @@ category_label: "Özel Rotalar"
 excerpt: "Çiftler, aileler ve özel arkadaş grupları için kişisel rotalı lüks yat ve seyir deneyimi."
 image: "phuket_yacht.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 4200
 duration: "Tam gün / Gün batımı"
 included:
   - "Lüks yat ve deneyimli mürettebat"

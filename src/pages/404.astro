@@ -2,7 +2,11 @@
 import Layout from '../layouts/Layout.astro';
 import FadeIn from '../components/ui/FadeIn';
 
-export const prerender = true;
+// SSR modunda Astro Node sunucusunun dinamik 404 yanıtı verebilmesi için
+// prerender = false yapılır; böylece unhandled rotalarda düz "Not Found" metni yerine
+// tam markalı ve tasarımlı 404 sayfası HTTP 404 koduyla render edilir.
+export const prerender = false;
+Astro.response.status = 404;
 
 const quickLinks = [
   { href: '/turlar', title: 'Tüm Turlar', desc: 'Ada turları ve macera rotaları', icon: '🏝️' },

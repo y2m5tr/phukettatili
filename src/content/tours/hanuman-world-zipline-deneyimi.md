@@ -6,7 +6,7 @@ category_label: "Hanuman World (Zipline)"
 excerpt: "Phuket yağmur ormanlarının üzerinde zipline hatları, asma köprüler ve gökyüzü yürüyüşü."
 image: "elephant.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 2600
 duration: "2 - 3 saat"
 included:
   - "Otel çift yön transferi"

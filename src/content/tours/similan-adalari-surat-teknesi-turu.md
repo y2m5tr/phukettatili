@@ -6,7 +6,7 @@ category_label: "Similan Adaları"
 excerpt: "Andaman Denizi'nin en berrak suları, dev granit kayalıklar ve dünyaca ünlü mercan resifleri."
 image: "beach.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 3600
 duration: "Tam gün"
 included:
   - "Phuket otel transferi (Khao Lak iskelesine)"

@@ -47,7 +47,7 @@ function getDifferentiatorBadge(tour: CollectionEntry<'tours'>, index: number): 
               {/* Görsel Alanı (Parmakla Kaydırılabilir Galeri & Carousel) */}
               <div class="relative h-64 overflow-hidden bg-slate-900">
                 <TourCardImageCarousel
-                  image={tour.data.image}
+                  image={tour.data.image || '/assets/phuket_hero.webp'}
                   gallery={tour.data.gallery}
                   title={tour.data.title}
                 />

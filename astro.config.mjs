@@ -118,11 +118,16 @@ export default defineConfig({
     sitemap({
       // Operasyon yüzeyleri noindex — sitemap'e girmeleri Google için
       // çelişkili sinyal üretir (sitemap "önemli" der, meta "indeksleme" der).
+      // 301 yönlendirmesi olan /tur-kategorisi/ ve /hakkimizda/ da hariç tutulur.
       filter: (page) =>
         !page.includes('/admin') &&
         !page.includes('/ekip') &&
         !page.includes('/ops-login') &&
-        !page.includes('/bilet'),
+        !page.includes('/bilet') &&
+        !page.endsWith('/tur-kategorisi') &&
+        !page.endsWith('/tur-kategorisi/') &&
+        !page.endsWith('/hakkimizda') &&
+        !page.endsWith('/hakkimizda/'),
       i18n: {
         defaultLocale: 'tr',
         locales: {

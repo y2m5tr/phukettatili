@@ -6,7 +6,7 @@ category_label: "Gösteriler"
 excerpt: "Kamala'da Tay mitolojisi, akrobasi, sihirbazlık ve 4000 kişilik Golden Kinnaree açık büfesi."
 image: "culture.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 2500
 duration: "Akşam programı"
 included:
   - "Palace of the Elephants tiyatrosu gösteri bileti"

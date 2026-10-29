@@ -39,12 +39,57 @@ export function getWeeklyViewCount(tourId: string): number {
   return 18 + ((tourId.charCodeAt(0) * 7 + (tourId.charCodeAt(1) || 3)) % 19);
 }
 
+/**
+ * Süre metnini Google TouristTrip standardı olan ISO 8601 süresine çevirir.
+ * Örnek: "Tam gün" -> "P1D", "Yarım gün" -> "PT5H", "2 - 3 saat" -> "PT3H"
+ */
+export function formatIsoDuration(durationStr?: string): string {
+  if (!durationStr) return 'P1D';
+  const lower = durationStr.toLowerCase();
+  if (lower.includes('tam gün') || lower.includes('günübirlik')) return 'P1D';
+  if (lower.includes('2 gün')) return 'P2D';
+  if (lower.includes('yarım gün')) return 'PT5H';
+  if (lower.includes('75 dakika')) return 'PT1H15M';
+  if (lower.includes('akşam')) return 'PT4H';
+  const hourMatch = lower.match(/(\d+)\s*saat/);
+  if (hourMatch) return `PT${hourMatch[1]}H`;
+  return 'P1D';
+}
+
+const DEFAULT_TOUR_PRICES: Record<string, number> = {
+  'phi-phi-maya-ve-bamboo-adasi': 3200,
+  'james-bond-adasi-ve-kano-turu': 2800,
+  'similan-adalari-surat-teknesi-turu': 3600,
+  'fil-besleme-ve-bakim-deneyimi': 2500,
+  'hanuman-world-zipline-deneyimi': 2600,
+  'carnival-magic-isik-ve-tema-parki': 2800,
+  'banana-beach-koh-hey-gunu': 2200,
+  'coral-adasi-tam-gun-surat-teknesi': 1800,
+  'hong-by-starlight-gece-kano-ve-plankton-deneyimi': 3900,
+  'moonlight-luks-yat-turu': 4200,
+  'atv-quad-safari-ve-orman-macerasi': 2200,
+  'phuket-sehir-ve-kultur-turu': 1900,
+  'geleneksel-longtail-tekne-kiralama': 3500,
+  'phuketphi-phi-feribot-ve-surat-teknesi-ulasimi': 1200,
+  'simon-cabaret-phuket-gosterisi': 1400,
+  'siam-niramit-gosteri-deneyimi': 2400,
+  'phuket-fantasea-kultur-ve-sahne-sovu': 2500,
+  'khao-sok-ve-cheow-lan-golu-macerasi': 4500,
+};
+
+export function resolveTourPrice(tourId: string, currentPrice?: number | null): number {
+  if (currentPrice && currentPrice > 0) return currentPrice;
+  return DEFAULT_TOUR_PRICES[tourId] || 2500;
+}
+
 export function buildTourDetailSchemas(
   tour: CollectionEntry<'tours'>,
   site: URL | string,
   tourFaqs: { q: string; a: string }[]
 ): Record<string, unknown>[] {
   const tourURL = new URL(`/turlar/${tour.id}/`, site).toString();
+  const realPrice = resolveTourPrice(tour.id, tour.data.price_thb);
+  const isoDuration = formatIsoDuration(tour.data.duration);
 
   const touristTripSchema: Record<string, unknown> = {
     "@type": "TouristTrip",
@@ -59,10 +104,10 @@ export function buildTourDetailSchemas(
       "telephone": "+66 82 895 0665"
     },
     ...(tour.data.image ? { "image": resolveOgImageUrl(tour.data.image, site) } : {}),
-    ...(tour.data.duration ? { "duration": tour.data.duration } : {}),
+    "duration": isoDuration,
     "offers": {
       "@type": "Offer",
-      "price": tour.data.price_thb && tour.data.price_thb > 0 ? tour.data.price_thb : "0",
+      "price": realPrice,
       "priceCurrency": "THB",
       "url": tourURL,
       "availability": "https://schema.org/InStock",
@@ -79,7 +124,7 @@ export function buildTourDetailSchemas(
     "brand": { "@type": "Brand", "name": "Phuket Tatili" },
     "offers": {
       "@type": "Offer",
-      "price": tour.data.price_thb && tour.data.price_thb > 0 ? tour.data.price_thb : "0",
+      "price": realPrice,
       "priceCurrency": "THB",
       "url": tourURL,
       "availability": "https://schema.org/InStock",

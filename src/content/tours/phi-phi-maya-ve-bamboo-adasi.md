@@ -17,7 +17,7 @@ gallery:
   - "family.webp"
   - "culture.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 3200
 duration: "Tam gün"
 included:
   - "Otel çift yönlü transferi (seçili bölgeler)"

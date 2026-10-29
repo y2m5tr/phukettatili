@@ -6,7 +6,7 @@ category_label: "Fil Gözlem"
 excerpt: "Doğal ortamında fillerle temas, yemek hazırlama ve etik bakım ilkelerine dayalı doğa programı."
 image: "elephant.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 2500
 duration: "Yarım gün"
 included:
   - "Otel transferi (Phuket geneli)"

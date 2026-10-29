@@ -6,7 +6,7 @@ category_label: "Siam Niramit"
 excerpt: "Tayland'ın zengin kültürel mirasını sahneye taşıyan dev prodüksiyonlu akşam gösterisi."
 image: "culture.webp"
 price_type: "quote"
-price_thb: 0
+price_thb: 2400
 duration: "Akşam programı"
 included:
   - "Gösteri giriş bileti (Silver / Gold koltuk seçeneği)"

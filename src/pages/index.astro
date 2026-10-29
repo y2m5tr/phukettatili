@@ -36,10 +36,9 @@ import { getCloudTours, applyTourOverlay } from '../lib/server/tourContent';
 // yansımıyordu. Bulut erişilemezse merge sessizce statik JSON'lara düşer.
 export const prerender = false;
 
-// CDN cache: anasayfa sitenin en çok istenen sayfası. Her görüntülemede SSR +
-// Supabase fetch maliyeti yerine 60sn Vercel edge cache, 5dk bayat kabul.
-// Panel değişikliği en geç ~1dk içinde yansır (blog/tur detayı ile aynı).
-Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+// CDN cache: anasayfa sitenin en çok istenen sayfası. Edge & reverse proxy önbelleği
+// 5 dakika taze, 10 dakika bayat kabul edilerek yüksek TTFB hızı ve düşük sunucu yükü sağlanır.
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
 
 const panelContent = await getPublicHomeContent();
 const homeData = mergeHomeSettings(homeDataJson, panelContent.homeSettings);
@@ -171,7 +170,6 @@ const schemas: Record<string, unknown>[] = [
   title="Phuket Turları, Türkçe Rehberli Geziler & VIP Transfer"
   description="Phuket'te Türkçe rehberli ada turları, Phi Phi & James Bond gezileri, VIP havalimanı transferi ve özel lüks yat kiralama. En iyi fiyat ve yerinde Türk destek."
   schemas={schemas}
-  preloadImage={heroImage || (heroSliderImages && heroSliderImages[0]) || "/assets/phuket_hero.webp"}
 >
   <!-- Hero Section with Dynamic Content & Quick Search -->
   {sections.hero !== false && (
