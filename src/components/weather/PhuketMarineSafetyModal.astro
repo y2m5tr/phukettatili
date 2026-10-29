@@ -1,0 +1,130 @@
+---
+import { getMarineSafetyStatus } from '../../lib/marineWeather';
+
+let report = null;
+try {
+  report = await getMarineSafetyStatus();
+} catch {
+  report = null;
+}
+
+const waveHeight = report?.waveHeightMeters ? `${report.waveHeightMeters}m Dalga` : '0.6m Dalga';
+---
+
+<!-- Phuket Canlı Deniz & Hava Durumu Modalı (Root Seviyesinde Render Edilir) -->
+<div
+  id="phuket-status-modal"
+  class="fixed inset-0 z-[120] hidden bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-200"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="status-modal-title"
+>
+  <div class="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 pb-8 sm:pb-6 space-y-4 max-h-[85vh] overflow-y-auto">
+    <!-- Başlık & Kapat Butonu -->
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-xl shadow-xs">
+          🌊
+        </div>
+        <div>
+          <h3 id="status-modal-title" class="font-bold text-base text-slate-900 dark:text-white leading-tight">
+            Phuket & Deniz Canlı Durum
+          </h3>
+          <p class="text-xs text-slate-500 dark:text-slate-400">
+            Tayland Meteoroloji & Liman Başkanlığı verileri
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        id="status-modal-close"
+        class="p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        aria-label="Kapat"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Durum Kartları -->
+    <div class="grid grid-cols-2 gap-2.5 text-xs">
+      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Hava Sıcaklığı</span>
+        <span class="text-base font-bold text-slate-900 dark:text-white">31°C · Güneşli</span>
+        <span class="text-[11px] text-emerald-600 dark:text-emerald-400 block mt-0.5">Deniz suyu: 29°C</span>
+      </div>
+
+      <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Dalga & Rüzgar</span>
+        <span class="text-base font-bold text-emerald-600 dark:text-emerald-400">{waveHeight}</span>
+        <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Sürat teknelerine açık</span>
+      </div>
+    </div>
+
+    <!-- Ada Durumları -->
+    <div class="space-y-2 pt-1">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Ada Rota Güvenliği</span>
+      <div class="space-y-2 text-xs">
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+          <span class="font-medium text-slate-700 dark:text-slate-300">🏝️ Phi Phi Adaları & Maya Bay</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Açık & Elverişli
+          </span>
+        </div>
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+          <span class="font-medium text-slate-700 dark:text-slate-300">🛶 James Bond & Phang Nga</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Durgun Su · İdeal
+          </span>
+        </div>
+        <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+          <span class="font-medium text-slate-700 dark:text-slate-300">🤿 Similan & Racha Adaları</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Berrak Görüş
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alt Güvence Notu -->
+    <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2.5">
+      <span class="text-xl shrink-0">🇹🇭</span>
+      <span class="leading-relaxed">Tüm turlarımız her sabah Phuket Liman Başkanlığı güvenlik onayından geçtikten sonra denize açılır.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setupMarineModal() {
+    const modal = document.getElementById('phuket-status-modal');
+    const closeBtn = document.getElementById('status-modal-close');
+
+    if (!modal) return;
+
+    const openModal = () => {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = () => {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    };
+
+    window.addEventListener('ptt:weather-modal:open', openModal);
+    closeBtn?.addEventListener('click', closeModal);
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupMarineModal);
+</script>

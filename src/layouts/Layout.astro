@@ -9,6 +9,7 @@ import HolidayShortlist from '../components/ui/HolidayShortlist';
 import MobileBottomNav from '../components/MobileBottomNav.astro';
 import PwaInstallPrompt from '../components/ui/PwaInstallPrompt.astro';
 import QuickTripAssistantDrawer from '../components/tour/QuickTripAssistantDrawer';
+import PhuketMarineSafetyModal from '../components/weather/PhuketMarineSafetyModal.astro';
 import siteSettings from '../content/settings/site.json';
 import { resolveAssetUrl, responsiveSrcset } from '../lib/assets';
 
@@ -289,6 +290,9 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 
         <!-- PWA Smart Install Prompt (iOS & Android) -->
         <PwaInstallPrompt />
+
+        <!-- Phuket Canlı Deniz & Hava Durumu Modalı (Root Seviyesi) -->
+        <PhuketMarineSafetyModal />
 
         <script>
           document.addEventListener('astro:page-load', () => {
