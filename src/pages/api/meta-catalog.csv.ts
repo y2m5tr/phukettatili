@@ -11,7 +11,9 @@ export const GET: APIRoute = async ({ url }) => {
     const tours = applyTourOverlay(mdTours, await getCloudTours());
     const sortedTours = [...tours].sort((a, b) => a.data.order - b.data.order);
 
-    const baseUrl = url.origin || 'https://phukettatili.com';
+    const baseUrl = url.origin && !url.origin.includes('localhost') && !url.origin.includes('127.0.0.1')
+      ? url.origin
+      : 'https://phukettatili.com';
     const catalogItems = sortedTours.map((t) => ({
       id: t.id,
       title: t.data.title,
