@@ -56,9 +56,10 @@ Sitemap: https://phukettatili.com/sitemap-index.xml
 Sitemap: https://phukettatili.com/sitemap-turlar.xml
 Sitemap: https://phukettatili.com/sitemap-blog.xml
 
-# Meta Commerce / Facebook Product Catalog Feed (Allowed)
+# Meta Commerce & Google Merchant Product Catalog Feed (Allowed)
 Allow: /api/meta-catalog.xml
 Allow: /api/meta-catalog.csv
+Allow: /api/google-catalog.xml
 
 # Block search bots from internal, operational and private paths
 Disallow: /api/

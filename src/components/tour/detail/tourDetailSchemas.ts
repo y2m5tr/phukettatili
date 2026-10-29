@@ -79,8 +79,8 @@ const DEFAULT_TOUR_PRICES: Record<string, number> = {
 };
 
 export function resolveTourPrice(tourId: string, currentPrice?: number | null): number {
-  if (currentPrice && currentPrice > 0) return currentPrice;
-  return DEFAULT_TOUR_PRICES[tourId] || 2500;
+  const base = (currentPrice && currentPrice > 0) ? currentPrice : (DEFAULT_TOUR_PRICES[tourId] || 2500);
+  return Math.max(base, 2300);
 }
 
 export function buildTourDetailSchemas(

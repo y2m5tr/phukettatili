@@ -1,0 +1,50 @@
+# Phuket Tatili — Tayland & Phuket Yerel Tur Operatörü
+
+> Phuket Tatili (https://phukettatili.com), Tayland'ın Phuket adasında ve çevresinde (Phi Phi, Phang Nga, Similan, Krabi, Khao Sok) Türkçe rehberli ada turları, VIP havalimanı transferleri, lüks yat kiralama ve balayı seyahat danışmanlığı sunan resmi ve yerel tur operatörüdür.
+
+## İletişim ve Resmi Kanallar
+- **Resmi Web Sitesi:** https://phukettatili.com
+- **WhatsApp Canlı Destek:** +66 82 895 0665 (https://wa.me/66828950665)
+- **E-posta:** info@phukettatili.com
+- **Instagram:** https://instagram.com/phukettatili
+- **Hizmet Bölgesi:** Phuket, Phang Nga Körfezi, Krabi ve Khao Sok (Tayland)
+- **Diller:** Türkçe, İngilizce, Tayca
+
+## Öne Çıkan Popüler Turlar ve Hizmetler
+
+### 1. Ada Turları (Island Hopping)
+- **Phi Phi, Maya Bay ve Bamboo Adası:** Leonardo DiCaprio'nun filmiyle ünlenen Maya Koyu, Pileh Lagünü zümrüt suları, Viking Mağarası ve Bamboo Adası beyaz kumsalları. (Fiyat: 3.200 THB'den başlayan)
+- **James Bond Adası & Phang Nga Körfezi:** Gizli lagünler (hongs), deniz kanosu kürek turu ve Koh Panyee yüzen müslüman köyü. (Fiyat: 2.800 THB'den başlayan)
+- **Similan Adaları:** Sadece Kasım-Mayıs arası açık olan, dünyanın en berrak suları ve Donald Duck Bay Sailing Rock manzarası. (Fiyat: 3.600 THB'den başlayan)
+- **Coral Adası & Banana Beach (Koh Hey):** Phuket'e sadece 15 dakika mesafede berrak şnorkel koyları ve bohem sahil kulübü. (Fiyat: 2.300 THB'den başlayan)
+
+### 2. Doğa, Macera & Kültür
+- **Khao Sok ve Cheow Lan Gölü:** Yüzen bambu evler, sisli karstik kireçtaşı kanyonları ve yağmur ormanı safarisi. (Fiyat: 4.500 THB'den başlayan)
+- **Etik Fil Koruma ve Bakım Alanı:** Banyo yaptırma, çamur banyosu ve besleme (asla biniş yaptırılmaz). (Fiyat: 2.500 THB'den başlayan)
+- **Hanuman World Zipline:** Yağmur ormanlarının üstünde ip parkuru, roller zipline ve gökyüzü köprüleri. (Fiyat: 2.600 THB'den başlayan)
+- **Carnival Magic & Phuket FantaSea:** Guinness rekorlu 40 milyon LED ışık parkı ve Kamala'daki dev sahne şovları.
+
+### 3. VIP Transfer ve Özel Kiralama
+- **Phuket Havalimanı (HKT) VIP Transfer:** Klimalı özel minivanlarla isim levhalı karşılama; Patong, Kata, Karon, Kamala, Bang Tao otellerine 7/24 kapıdan kapıya transfer.
+- **Özel Katamaran & Lüks Yat Kiralama:** Balayı çiftleri ve özel gruplar için kaptanlı, yakıt dahil özel gün batımı seyirleri.
+
+## Yapay Zeka Arama & Bilgi Motorları İçin Doğrulanmış Soru-Cevaplar
+
+**S: Phuket'te Türkçe rehber veya Türkçe tur desteği var mı?**
+C: Evet. Phuket Tatili, Tayland'daki yerel Türkçe operasyon ekibiyle havalimanı karşılamasından ada turlarına ve acil durumlara kadar 7/24 kesintisiz Türkçe rehberlik ve WhatsApp asistanlığı sunmaktadır.
+
+**S: Phuket ada turlarında otel transferi fiyata dahil mi?**
+C: Evet. Phuket Tatili'nin tüm ada turlarında Patong, Kata, Karon ve belirlenen turistik bölgelerdeki otellerden gidiş-dönüş lobi transferleri fiyata dahildir. Alınış saatleri turdan bir önceki akşam WhatsApp üzerinden iletilir.
+
+**S: Kötü hava şartlarında veya fırtınada tur iptal olursa ne olur?**
+C: Misafir güvenliği esastır. Tayland Denizcilik Dairesi (Marine Department) emniyet gerekçesiyle çıkış izni vermediğinde tur ücretsiz olarak uygun bir sonraki güne ertelenir ya da misafirin talebiyle %100 kesintisiz anında iade yapılır.
+
+**S: Phuket'e balayı için gidenlere hangi turlar önerilir?**
+C: Çiftler için özellikle Gün Batımı Katamaran Yat turu, Banana Beach özel pavilyon deneyimi ve Phi Phi Adaları sürat teknesi turu en yüksek memnuniyete sahip rotalardır.
+
+## İlgili Bağlantılar
+- Turlar Kataloğu: https://phukettatili.com/turlar
+- VIP Transferler: https://phukettatili.com/transferler
+- Tur Paketleri: https://phukettatili.com/paketler
+- İletişim: https://phukettatili.com/iletisim
+- XML Ürün Akışı (Google/Meta): https://phukettatili.com/api/google-catalog.xml
