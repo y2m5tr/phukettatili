@@ -60,12 +60,58 @@ const {
 } = Astro.props;
 
 const guestMoments = customMoments && customMoments.length > 0 ? customMoments : defaultMoments;
+
+const storyHighlights = [
+  { label: 'Phi Phi & Maya', image: 'couple.webp', href: '/turlar/phi-phi-maya-ve-bamboo-adasi' },
+  { label: 'Özel VIP Yat', image: 'yacht.webp', href: '/vip' },
+  { label: 'Fil Barınağı', image: 'elephant.webp', href: '/turlar/fil-besleme-ve-bakim-deneyimi' },
+  { label: 'James Bond', image: 'bay.webp', href: '/turlar/james-bond-adasi-ve-kano-turu' },
+  { label: 'VIP Transfer', image: 'couple.webp', href: '/transferler' },
+  { label: 'Şnorkel Cenneti', image: 'underwater.webp', href: '/turlar/coral-adasi-tam-gun-surat-teknesi' },
+];
 ---
 
 <!-- Guest Moments & Social Proof (Instagram) -->
-<section class="py-24 bg-white dark:bg-surface-1 px-4 border-t border-slate-100 dark:border-slate-800/80">
+<section class="py-20 sm:py-24 bg-white dark:bg-surface-1 px-4 border-t border-slate-100 dark:border-slate-800/80">
   <div class="max-w-6xl mx-auto">
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+    <!-- Instagram Story Highlights Rail -->
+    <div class="mb-10 sm:mb-14">
+      <div class="flex items-center justify-between mb-4 px-1">
+        <span class="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+          Öne Çıkan Hikayeler & Canlı Rotalar
+        </span>
+        <span class="text-[11px] text-slate-400 dark:text-slate-500 font-medium sm:hidden">Kaydır →</span>
+      </div>
+      <div class="overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div class="flex items-center gap-4 sm:gap-7 min-w-max pb-2 pt-1">
+          {storyHighlights.map((story) => (
+            <a
+              href={story.href}
+              class="flex flex-col items-center gap-2 group cursor-pointer focus:outline-none"
+            >
+              <div class="relative p-[2.5px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-fuchsia-600 shadow-md group-hover:scale-105 active:scale-95 transition-all duration-300">
+                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full p-0.5 bg-white dark:bg-surface-1 overflow-hidden">
+                  <img
+                    src={resolveAssetUrl(story.image)}
+                    alt={story.label}
+                    class="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-500"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </div>
+                <span class="absolute bottom-0 right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white dark:border-surface-1 flex items-center justify-center text-[8px] text-white font-bold" title="Doğrulanmış Rota">✓</span>
+              </div>
+              <span class="text-xs font-medium text-slate-800 dark:text-slate-200 group-hover:text-brand-accent transition-colors max-w-[80px] text-center truncate">
+                {story.label}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 sm:mb-14">
       <FadeIn delay={0.1}>
         <div>
           <div class="flex items-center gap-2 mb-3">

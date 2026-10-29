@@ -20,6 +20,8 @@ const hasTracking = Boolean(gaId || metaPixelId);
 )}
 
 <script>
+  import { syncUtmFromCurrentUrl, getStoredUtm, enrichWhatsAppUrl, formatCampaignRef } from '../lib/marketing/utmTracker';
+
   declare global {
     interface Window {
       dataLayer: any[];
@@ -30,6 +32,9 @@ const hasTracking = Boolean(gaId || metaPixelId);
 
   const key = 'tracking-consent-v1';
   const initialize = () => {
+    // Sayfa açılışında gelen UTM parametrelerini hafızaya al
+    const activeUtm = syncUtmFromCurrentUrl();
+
     const panel = document.getElementById('tracking-consent');
     if (!panel) return;
 
@@ -37,12 +42,18 @@ const hasTracking = Boolean(gaId || metaPixelId);
     // için tüm wa.me tıklamaları GA/Meta'ya dönüşüm eventi olarak akar.
     // Delegasyon ile tek listener — anasayfa CTA'ları, tur detay sidebar'ı,
     // mobil sabit bar, footer, destek widget'ı vb. hepsini kapsar.
-    // Not: consent verilmeden de listener bağlanır; gtag/fbq yoksa event
-    // sessizce düşer (kabul sonrası ölçüm otomatik başlar).
     const trackWhatsAppLead = (target: Element | null) => {
       if (!target) return;
       const anchor = target.closest('a[href*="wa.me/"], a[href*="api.whatsapp.com"]') as HTMLAnchorElement | null;
       if (!anchor) return;
+
+      const currentUtm = getStoredUtm() || activeUtm;
+
+      // WhatsApp linkini kampanya referans koduyla zenginleştir
+      if (anchor.href && currentUtm) {
+        anchor.href = enrichWhatsAppUrl(anchor.href, currentUtm);
+      }
+
       // En yakın [data-wa-lead-source] bağlamı; yoksa sayfa yolundan kaynak çıkar.
       const ctxEl = anchor.closest('[data-wa-lead-source]') as HTMLElement | null;
       const source = ctxEl?.dataset.waLeadSource
@@ -54,10 +65,16 @@ const hasTracking = Boolean(gaId || metaPixelId);
         link_url: anchor.href,
         lead_source: source,
         page_path: location.pathname + location.search,
+        campaign_ref: formatCampaignRef(currentUtm),
+        utm_source: currentUtm?.utm_source,
+        utm_campaign: currentUtm?.utm_campaign,
+        utm_medium: currentUtm?.utm_medium,
       };
 
       window.gtag?.('event', 'whatsapp_lead', payload);
       window.gtag?.('event', 'generate_lead', payload);
+      // Meta Pixel için birincil Lead ve Contact dönüşümü
+      window.fbq?.('track', 'Lead', payload);
       window.fbq?.('track', 'Contact', payload);
     };
 
