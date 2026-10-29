@@ -544,3 +544,27 @@
     transform: none !important;
   }
 }
+
+/* ============================================================
+   Mobil Yerel Uygulama (Native App) Hissiyatı & Dokunma Ergonomisi
+   ============================================================ */
+@media (hover: none) and (pointer: coarse) {
+  /* Çift dokunma gecikmesini ve tarayıcı mavi/gri seçim kutusunu kaldır */
+  a, button, input, select, textarea, [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  /* Mobil kaydırmada rubber-band sıçramalarını yumuşat */
+  body {
+    overscroll-behavior-y: none;
+  }
+}
+
+/* iOS Safe Area & Çentik Uyum Sınıfları */
+.pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+}
+.pt-safe {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
+}

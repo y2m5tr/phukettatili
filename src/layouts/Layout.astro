@@ -6,6 +6,7 @@ import Footer from '../components/Footer.astro';
 import Tracking from '../components/Tracking.astro';
 import WhatsAppSupportWidget from '../components/WhatsAppSupportWidget.astro';
 import HolidayShortlist from '../components/ui/HolidayShortlist';
+import MobileBottomNav from '../components/MobileBottomNav.astro';
 import siteSettings from '../content/settings/site.json';
 import { resolveAssetUrl, responsiveSrcset } from '../lib/assets';
 
@@ -50,7 +51,7 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 <html lang="tr" class="scroll-smooth">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 		<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 		<link rel="manifest" href="/site.webmanifest" />
@@ -267,7 +268,7 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
         </a>
         <div class="scroll-progress" id="scroll-progress" aria-hidden="true"></div>
         <Header />
-        <main id="main-content" class="flex-grow pt-28 sm:pt-32 overflow-x-clip">
+        <main id="main-content" class="flex-grow pt-28 sm:pt-32 pb-16 lg:pb-0 overflow-x-clip">
 		    <slot />
         </main>
         <Footer />
@@ -277,6 +278,9 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 
         <!-- Interactive Holiday Shortlist (Wishlist & Multi-Tour Inquiry) -->
         <HolidayShortlist client:idle />
+
+        <!-- Native App-Like Mobile Bottom Navigation Bar -->
+        <MobileBottomNav />
 
         <script>
           document.addEventListener('astro:page-load', () => {

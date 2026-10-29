@@ -77,6 +77,8 @@ function HolidayShortlistInner({ whatsappNumber = '66828950665' }: HolidayShortl
       }
     };
 
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('ptt:shortlist:open', handleOpen);
     window.addEventListener('ptt:shortlist:updated', handleUpdate);
     window.addEventListener('storage', () => {
       const updated = getShortlistFromStorage();
@@ -92,6 +94,7 @@ function HolidayShortlistInner({ whatsappNumber = '66828950665' }: HolidayShortl
     updateHeartButtonsOnPage(getShortlistFromStorage());
 
     return () => {
+      window.removeEventListener('ptt:shortlist:open', handleOpen);
       window.removeEventListener('ptt:shortlist:updated', handleUpdate);
       document.removeEventListener('astro:page-load', onPageLoad);
     };

@@ -1,0 +1,224 @@
+---
+import siteSettings from '../content/settings/site.json';
+
+const pathname = Astro.url.pathname;
+const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
+
+// Tur detay sayfalarında (/turlar/phi-phi vb.) özel TourMobileStickyBar devrede olduğu için
+// ve admin/ops sayfalarında global alt tab bar gizlenir
+const isTourDetailPage = /^\/turlar\/[^/]+\/?$/.test(pathname) && pathname !== '/turlar/' && pathname !== '/turlar';
+const isAdminPage = pathname.startsWith('/admin') || pathname.startsWith('/ops-login');
+
+if (isTourDetailPage || isAdminPage) {
+  return null;
+}
+
+const isExploreActive = pathname === '/' || pathname.startsWith('/turlar');
+const isTransfersActive = pathname.startsWith('/transferler');
+const isBlogActive = pathname.startsWith('/blog') || pathname.startsWith('/rehber');
+---
+
+<!-- Mobil Yerel Uygulama Hissiyatı: Sabit Alt Navigasyon Barı (Native Bottom Tab Bar) -->
+<nav
+  id="mobile-bottom-nav"
+  aria-label="Mobil Ana Menü"
+  class="lg:hidden fixed bottom-0 inset-x-0 z-40 select-none bg-white/92 dark:bg-slate-950/92 backdrop-blur-2xl border-t border-slate-200/90 dark:border-white/10 shadow-[0_-6px_24px_rgba(0,0,0,0.06)] dark:shadow-[0_-8px_30px_rgba(0,0,0,0.5)] transition-transform duration-300 transform translate-y-0"
+>
+  <div class="max-w-md mx-auto px-3 pt-1.5 pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] flex items-center justify-around">
+    
+    <!-- 1. Sekme: Keşfet (Turlar) -->
+    <a
+      href="/turlar/"
+      data-mobile-nav-item
+      class:list={[
+        "flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all duration-150 active:scale-90",
+        isExploreActive
+          ? "text-brand-amber dark:text-brand-gold font-bold"
+          : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+      ]}
+    >
+      <div class="relative flex items-center justify-center w-7 h-7">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+        </svg>
+        {isExploreActive && (
+          <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-brand-amber dark:bg-brand-gold animate-pulse"></span>
+        )}
+      </div>
+      <span class="text-[10px] tracking-tight mt-0.5">Keşfet</span>
+    </a>
+
+    <!-- 2. Sekme: VIP Transfer -->
+    <a
+      href="/transferler/"
+      data-mobile-nav-item
+      class:list={[
+        "flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl transition-all duration-150 active:scale-90",
+        isTransfersActive
+          ? "text-brand-amber dark:text-brand-gold font-bold"
+          : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+      ]}
+    >
+      <div class="relative flex items-center justify-center w-7 h-7">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11.1 2 11.5 2 12v4c0 .6.4 1 1 1h2"></path>
+          <circle cx="7" cy="17" r="2"></circle>
+          <path d="M9 17h6"></path>
+          <circle cx="17" cy="17" r="2"></circle>
+        </svg>
+        {isTransfersActive && (
+          <span class="absolute -bottom-1 w-1.5 h-1.5 rounded-full bg-brand-amber dark:bg-brand-gold animate-pulse"></span>
+        )}
+      </div>
+      <span class="text-[10px] tracking-tight mt-0.5">Transfer</span>
+    </a>
+
+    <!-- 3. Sekme (Öne Çıkan Merkez): WhatsApp Canlı Destek -->
+    <a
+      href={`https://wa.me/${whatsappNumber}?text=${encodeURIComponent('Merhaba! Phuket Tatili hakkında bilgi ve rezervasyon için yazıyorum.')}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      data-mobile-nav-item
+      data-wa-lead-source="mobile-bottom-nav-center"
+      class="flex flex-col items-center justify-center flex-1 -mt-4 group active:scale-90 transition-transform duration-150"
+      aria-label="WhatsApp Canlı Danışman"
+    >
+      <div class="relative w-12 h-12 rounded-full bg-gradient-to-tr from-[#054c44] via-[#075e54] to-[#25D366] text-white flex items-center justify-center shadow-lg shadow-emerald-600/30 ring-3 ring-white dark:ring-slate-950 transition-all group-hover:scale-105">
+        <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        <span class="absolute top-0 right-0 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white dark:border-slate-950 animate-pulse"></span>
+      </div>
+      <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1">Canlı Hat</span>
+    </a>
+
+    <!-- 4. Sekme: Tatil Planım (Kaydedilenler) -->
+    <button
+      type="button"
+      id="mobile-nav-shortlist-btn"
+      data-mobile-nav-item
+      class="flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-150 active:scale-90 cursor-pointer"
+      aria-label="Kayıtlı Turlarım ve Tatil Planım"
+    >
+      <div class="relative flex items-center justify-center w-7 h-7">
+        <svg class="w-5 h-5 text-rose-500 fill-rose-500/20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+        </svg>
+        <span
+          id="mobile-shortlist-badge"
+          class="hidden absolute -top-1 -right-2 px-1.5 py-0.2 rounded-full bg-rose-600 text-white text-[9px] font-black min-w-[16px] text-center shadow-xs"
+        >
+          0
+        </span>
+      </div>
+      <span class="text-[10px] tracking-tight mt-0.5">Planım</span>
+    </button>
+
+    <!-- 5. Sekme: Menü (Tüm Kategoriler & Rehber) -->
+    <button
+      type="button"
+      id="mobile-nav-menu-btn"
+      data-mobile-nav-item
+      class="flex flex-col items-center justify-center flex-1 py-1 px-1 rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all duration-150 active:scale-90 cursor-pointer"
+      aria-label="Detaylı Menüyü Aç"
+    >
+      <div class="flex items-center justify-center w-7 h-7">
+        <svg class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <rect width="7" height="7" x="3" y="3" rx="1.5"></rect>
+          <rect width="7" height="7" x="14" y="3" rx="1.5"></rect>
+          <rect width="7" height="7" x="14" y="14" rx="1.5"></rect>
+          <rect width="7" height="7" x="3" y="14" rx="1.5"></rect>
+        </svg>
+      </div>
+      <span class="text-[10px] tracking-tight mt-0.5">Menü</span>
+    </button>
+
+  </div>
+</nav>
+
+<script>
+  function setupMobileBottomNav() {
+    // 1. Dokunma Geri Bildirimi (Haptic Feedback)
+    document.querySelectorAll<HTMLElement>('[data-mobile-nav-item]').forEach((item) => {
+      item.addEventListener('click', () => {
+        if ('vibrate' in navigator && typeof navigator.vibrate === 'function') {
+          navigator.vibrate(10);
+        }
+      });
+    });
+
+    // 2. Tatil Planı (Wishlist) Açılışı & Rozet Sayacı
+    const shortlistBtn = document.getElementById('mobile-nav-shortlist-btn');
+    const badge = document.getElementById('mobile-shortlist-badge');
+
+    const updateBadge = (count: number) => {
+      if (!badge) return;
+      if (count > 0) {
+        badge.textContent = String(count);
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    };
+
+    try {
+      const stored = localStorage.getItem('ptt_holiday_shortlist');
+      const items = stored ? JSON.parse(stored) : [];
+      updateBadge(items.length);
+    } catch {}
+
+    window.addEventListener('ptt:shortlist:updated', (e: any) => {
+      const count = e.detail?.items?.length || 0;
+      updateBadge(count);
+    });
+
+    shortlistBtn?.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('ptt:shortlist:open'));
+    });
+
+    // 3. Menü Sekmesi: Header'daki mobil menüyü tetikler
+    const menuBtn = document.getElementById('mobile-nav-menu-btn');
+    menuBtn?.addEventListener('click', () => {
+      const headerMobileBtn = document.getElementById('mobile-menu-btn');
+      if (headerMobileBtn) {
+        headerMobileBtn.click();
+      }
+    });
+
+    // 4. Akıllı Kaydırma (Scroll): Aşağı kaydırırken barı gizle, yukarı kaydırırken göster
+    const nav = document.getElementById('mobile-bottom-nav');
+    if (!nav) return;
+
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+
+    const onScroll = () => {
+      const currentScrollY = window.scrollY;
+      const scrollDiff = currentScrollY - lastScrollY;
+
+      // Sayfa en üstündeyse veya en altındaysa bar her zaman görünsün
+      if (currentScrollY < 60) {
+        nav.style.transform = 'translateY(0)';
+      } else if (scrollDiff > 12 && currentScrollY > 150) {
+        // Aşağı hızlı kaydırma -> Gizle
+        nav.style.transform = 'translateY(110%)';
+      } else if (scrollDiff < -8) {
+        // Yukarı kaydırma -> Göster
+        nav.style.transform = 'translateY(0)';
+      }
+
+      lastScrollY = currentScrollY;
+      ticking = false;
+    };
+
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(onScroll);
+        ticking = true;
+      }
+    }, { passive: true });
+  }
+
+  document.addEventListener('astro:page-load', setupMobileBottomNav);
+</script>
