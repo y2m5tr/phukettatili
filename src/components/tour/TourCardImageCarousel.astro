@@ -1,0 +1,89 @@
+---
+import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
+
+interface Props {
+  image: string;
+  gallery?: string[];
+  title: string;
+  loading?: 'lazy' | 'eager';
+}
+
+const { image, gallery = [], title, loading = 'lazy' } = Astro.props;
+
+// Ana görsel + galeri görsellerinden en fazla 4 tanesi alınır
+const rawImages = [image, ...gallery].filter(Boolean);
+const images = Array.from(new Set(rawImages)).slice(0, 4);
+---
+
+<div class="relative h-64 overflow-hidden bg-slate-900 group/carousel">
+  <!-- Yatay Kaydırılabilir Görsel İskelesi (Snap Scroll) -->
+  <div
+    class="tour-card-carousel flex w-full h-full overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar"
+    style="scrollbar-width: none; -ms-overflow-style: none;"
+    tabindex="-1"
+  >
+    {images.map((img, idx) => (
+      <div class="w-full h-full shrink-0 snap-center relative">
+        <img
+          src={resolveAssetUrl(img)}
+          srcset={responsiveSrcset(img)}
+          sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
+          alt={`${title} - Görsel ${idx + 1}`}
+          loading={idx === 0 ? loading : 'lazy'}
+          decoding="async"
+          class="w-full h-full object-cover transform group-hover/carousel:scale-105 transition-transform duration-700 select-none pointer-events-none"
+        />
+      </div>
+    ))}
+  </div>
+
+  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-slate-950/20 to-transparent pointer-events-none"></div>
+
+  <!-- Sayfalama Noktaları (Pagination Dots) -->
+  {images.length > 1 && (
+    <div class="carousel-dots-container absolute bottom-2.5 right-3.5 flex items-center gap-1 z-20 pointer-events-none">
+      {images.map((_, i) => (
+        <span
+          data-dot-index={i}
+          class={`carousel-dot transition-all duration-200 rounded-full ${
+            i === 0
+              ? 'w-4 h-1.5 bg-amber-400'
+              : 'w-1.5 h-1.5 bg-white/50'
+          }`}
+        />
+      ))}
+    </div>
+  )}
+</div>
+
+<script>
+  function setupTourCarousels() {
+    document.querySelectorAll<HTMLElement>('.tour-card-carousel').forEach((carousel) => {
+      const container = carousel.closest('.group\\/carousel');
+      if (!container) return;
+      const dots = container.querySelectorAll<HTMLElement>('.carousel-dot');
+      if (!dots.length) return;
+
+      const updateDots = () => {
+        const scrollLeft = carousel.scrollLeft;
+        const width = carousel.offsetWidth;
+        if (!width) return;
+        const activeIndex = Math.round(scrollLeft / width);
+
+        dots.forEach((dot, idx) => {
+          if (idx === activeIndex) {
+            dot.classList.remove('w-1.5', 'bg-white/50');
+            dot.classList.add('w-4', 'bg-amber-400');
+          } else {
+            dot.classList.remove('w-4', 'bg-amber-400');
+            dot.classList.add('w-1.5', 'bg-white/50');
+          }
+        });
+      };
+
+      carousel.addEventListener('scroll', updateDots, { passive: true });
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupTourCarousels);
+</script>

@@ -3,6 +3,7 @@ import siteSettingsJson from '../content/settings/site.json';
 import { getPublicHomeContent, mergeSiteSettings } from '../lib/server/homeSettings';
 import { resolveAssetUrl } from '../lib/assets';
 import TopAnnouncementBar from './TopAnnouncementBar.astro';
+import PhuketLiveStatusPill from './weather/PhuketLiveStatusPill.astro';
 
 let siteSettings: Record<string, any> = siteSettingsJson;
 try {
@@ -199,22 +200,27 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
         </a>
       </nav>
 
-      {/* Mobil sosyal kanıt: masaüstü rozeti xl'de kaldığı için telefonlarda
-          güven sinyali hiç görünmüyordu — hamburger'in yanında kompakt çip. */}
-      <a
-        href="/#testimonials"
-        class="flex lg:hidden items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0"
-        title={`Google Doğrulanmış Misafir Yorumları (${googleRating} / 5)`}
-        aria-label={`Google puanı ${googleRating} bölü 5, ${googleReviewCount} üzeri yorum`}
-      >
-        <span class="text-amber-400">★</span>
-        <span>{googleRating}</span>
-      </a>
+      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+        <!-- Canlı Phuket Saat & Hava Durumu Rozeti -->
+        <PhuketLiveStatusPill />
 
-      <!-- Mobile Menu Button -->
-      <button id="mobile-menu-btn" class="lg:hidden rounded-xl p-3 text-brand-primary dark:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer" aria-label="Menüyü Aç" aria-expanded="false" aria-controls="mobile-menu">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-      </button>
+        {/* Mobil sosyal kanıt: masaüstü rozeti xl'de kaldığı için telefonlarda
+            güven sinyali hiç görünmüyordu — hamburger'in yanında kompakt çip. */}
+        <a
+          href="/#testimonials"
+          class="hidden sm:flex lg:hidden items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0"
+          title={`Google Doğrulanmış Misafir Yorumları (${googleRating} / 5)`}
+          aria-label={`Google puanı ${googleRating} bölü 5, ${googleReviewCount} üzeri yorum`}
+        >
+          <span class="text-amber-400">★</span>
+          <span>{googleRating}</span>
+        </a>
+
+        <!-- Mobile Menu Button -->
+        <button id="mobile-menu-btn" class="lg:hidden rounded-xl p-2.5 sm:p-3 text-brand-primary dark:text-white transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer" aria-label="Menüyü Aç" aria-expanded="false" aria-controls="mobile-menu">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+        </button>
+      </div>
     </div>
   </div>
 </header>

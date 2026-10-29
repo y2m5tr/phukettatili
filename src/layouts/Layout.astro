@@ -7,6 +7,8 @@ import Tracking from '../components/Tracking.astro';
 import WhatsAppSupportWidget from '../components/WhatsAppSupportWidget.astro';
 import HolidayShortlist from '../components/ui/HolidayShortlist';
 import MobileBottomNav from '../components/MobileBottomNav.astro';
+import PwaInstallPrompt from '../components/ui/PwaInstallPrompt.astro';
+import QuickTripAssistantDrawer from '../components/tour/QuickTripAssistantDrawer';
 import siteSettings from '../content/settings/site.json';
 import { resolveAssetUrl, responsiveSrcset } from '../lib/assets';
 
@@ -279,8 +281,14 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
         <!-- Interactive Holiday Shortlist (Wishlist & Multi-Tour Inquiry) -->
         <HolidayShortlist client:idle />
 
+        <!-- 3 Adımda Akıllı Tatil Planlayıcı Asistanı (Drawer) -->
+        <QuickTripAssistantDrawer client:idle whatsappNumber={siteSettings?.whatsappNumber} />
+
         <!-- Native App-Like Mobile Bottom Navigation Bar -->
         <MobileBottomNav />
+
+        <!-- PWA Smart Install Prompt (iOS & Android) -->
+        <PwaInstallPrompt />
 
         <script>
           document.addEventListener('astro:page-load', () => {

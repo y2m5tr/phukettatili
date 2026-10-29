@@ -1,0 +1,146 @@
+---
+// PWA Akıllı Yükleme Bildirimi (iOS Safari & Android Chrome Uyumlu)
+---
+
+<div
+  id="pwa-install-banner"
+  class="hidden fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] inset-x-3 sm:left-auto sm:right-6 sm:max-w-sm z-50 select-none"
+  aria-live="polite"
+>
+  <div class="relative overflow-hidden rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-2xl p-4 transition-all duration-300">
+    <!-- Kapat Butonu -->
+    <button
+      type="button"
+      id="pwa-dismiss-btn"
+      class="absolute top-2.5 right-2.5 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+      aria-label="Kapat"
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+
+    <div class="flex items-start gap-3.5 pr-5">
+      <!-- App Icon -->
+      <div class="w-12 h-12 rounded-xl bg-brand-primary dark:bg-slate-800 border border-brand-accent/30 shadow-md flex items-center justify-center shrink-0 overflow-hidden">
+        <img
+          src="/icon-192.png"
+          alt="Phuket Tatili"
+          class="w-full h-full object-cover"
+          onerror="this.onerror=null; this.src='/favicon.svg';"
+        />
+      </div>
+
+      <div class="flex-1 min-w-0">
+        <h3 class="text-sm font-bold text-slate-900 dark:text-white leading-tight">
+          Phuket Tatili Uygulaması
+        </h3>
+        <p class="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-snug">
+          Bilet ve turlarınıza internetiniz çekmese bile telefonunuzdan tek dokunuşla ulaşın.
+        </p>
+
+        <!-- Android Yükle Butonu (beforeinstallprompt varsa) -->
+        <div id="pwa-android-actions" class="hidden mt-3">
+          <button
+            type="button"
+            id="pwa-install-action-btn"
+            class="w-full py-2 px-3 rounded-xl bg-brand-accent hover:bg-amber-500 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+            </svg>
+            <span>Ana Ekrana Ekle (Ücretsiz)</span>
+          </button>
+        </div>
+
+        <!-- iOS Safari Yükleme İpucu -->
+        <div id="pwa-ios-instructions" class="hidden mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
+          <p class="flex items-center gap-1.5">
+            <span>1. Alttaki <strong>Paylaş</strong> simgesine</span>
+            <svg class="w-4 h-4 text-sky-500 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
+            </svg>
+            <span>dokunun.</span>
+          </p>
+          <p class="flex items-center gap-1.5">
+            <span>2. <strong>"Ana Ekrana Ekle"</strong></span>
+            <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-sm bg-slate-200 dark:bg-slate-700 font-bold text-[10px]">+</span>
+            <span>seçeneğini seçin.</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setupPwaBanner() {
+    const banner = document.getElementById('pwa-install-banner');
+    const dismissBtn = document.getElementById('pwa-dismiss-btn');
+    const androidActions = document.getElementById('pwa-android-actions');
+    const installActionBtn = document.getElementById('pwa-install-action-btn');
+    const iosInstructions = document.getElementById('pwa-ios-instructions');
+
+    if (!banner) return;
+
+    // 1. Zaten Standalone (PWA) modunda açılmışsa gösterme
+    const isStandalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (navigator as any).standalone === true ||
+      document.referrer.includes('android-app://');
+
+    if (isStandalone) return;
+
+    // 2. Kullanıcı son 7 gün içinde kapattıysa gösterme
+    const dismissedTime = localStorage.getItem('ptt_pwa_dismissed_at');
+    if (dismissedTime && Date.now() - Number(dismissedTime) < 7 * 24 * 60 * 60 * 1000) {
+      return;
+    }
+
+    // 3. Cihaz Tespiti
+    const ua = navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !(window as any).MSStream;
+    let deferredPrompt: any = null;
+
+    // Android/Chrome için beforeinstallprompt yakalama
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (androidActions) androidActions.classList.remove('hidden');
+    });
+
+    // 5 saniye sonra kullanıcıyı rahatsız etmeden yumuşakça göster
+    const timer = setTimeout(() => {
+      if (isIOS) {
+        if (iosInstructions) iosInstructions.classList.remove('hidden');
+        banner.classList.remove('hidden');
+        banner.classList.add('animate-in', 'fade-in', 'slide-in-from-bottom-5', 'duration-500');
+      } else if (deferredPrompt) {
+        if (androidActions) androidActions.classList.remove('hidden');
+        banner.classList.remove('hidden');
+        banner.classList.add('animate-in', 'fade-in', 'slide-in-from-bottom-5', 'duration-500');
+      }
+    }, 6000);
+
+    // Kapat butonuna basıldığında
+    const dismiss = () => {
+      banner.classList.add('hidden');
+      localStorage.setItem('ptt_pwa_dismissed_at', String(Date.now()));
+    };
+
+    dismissBtn?.addEventListener('click', dismiss);
+
+    // Android yükle butonuna tıklandığında
+    installActionBtn?.addEventListener('click', async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        dismiss();
+      }
+      deferredPrompt = null;
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupPwaBanner);
+</script>

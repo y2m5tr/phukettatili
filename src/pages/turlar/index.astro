@@ -5,6 +5,7 @@ import TourShowcase from '../../components/ui/TourShowcase';
 import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
 import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
 import { fmtMoney } from '../../lib/moneyFormat';
+import TourCardImageCarousel from '../../components/tour/TourCardImageCarousel.astro';
 
 // Dinamik SSR: panelde değişen fiyat/başlık/kapak listede de görünsün. Eskiden
 // bu sayfa prerender=true iken tur DETAY sayfası content_store okuyordu;
@@ -188,16 +189,11 @@ const schemas: Record<string, unknown>[] = [
           >
               <a href={`/turlar/${tour.id}`} class="premium-card group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-100 dark:border-slate-700">
                 <div class="relative h-64 overflow-hidden">
-                  <img
-                    src={resolveAssetUrl(tour.data.image)}
-                    srcset={responsiveSrcset(tour.data.image)}
-                    sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                    alt={tour.data.title}
-                    loading="lazy"
-                    decoding="async"
-                    class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
+                  <TourCardImageCarousel
+                    image={tour.data.image}
+                    gallery={tour.data.gallery}
+                    title={tour.data.title}
                   />
-                  <div class="absolute inset-0 bg-brand-primary/20 group-hover:bg-transparent transition-colors duration-500"></div>
                   <!-- Wishlist Heart Button -->
                   <button
                     type="button"

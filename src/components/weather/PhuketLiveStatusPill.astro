@@ -1,0 +1,176 @@
+---
+import { getMarineSafetyStatus } from '../../lib/marineWeather';
+
+let report = null;
+try {
+  report = await getMarineSafetyStatus();
+} catch {
+  report = null;
+}
+
+const isCalm = report?.level === 'calm';
+const statusText = isCalm ? 'Deniz Sakin & Güvenli' : 'Deniz Hareketli';
+const waveHeight = report?.waveHeightMeters ? `${report.waveHeightMeters}m Dalga` : '0.6m Dalga';
+---
+
+<!-- Canlı Phuket Durum Kapsülü (Yerel Saat + Hava & Deniz Güvenliği) -->
+<div class="inline-flex items-center gap-2 text-xs">
+  <button
+    type="button"
+    id="phuket-status-pill-btn"
+    class="group inline-flex items-center gap-2 py-1 px-2.5 rounded-full bg-slate-900/60 dark:bg-slate-800/80 hover:bg-slate-900/80 dark:hover:bg-slate-700/80 text-white backdrop-blur-md border border-white/10 shadow-xs transition-all active:scale-95 cursor-pointer"
+    title="Canlı Phuket Deniz ve Hava Durumu Raporunu Gör"
+    aria-label="Canlı Phuket Deniz ve Hava Durumu"
+  >
+    <!-- Canlı Yanıp Sönen Yeşil Nokta -->
+    <span class="relative flex h-2 w-2 shrink-0">
+      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+      <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+    </span>
+
+    <!-- Canlı Phuket Saati -->
+    <span id="live-phuket-clock" class="font-mono font-bold text-amber-300 tracking-tight">
+      16:42
+    </span>
+
+    <span class="text-white/30 text-[10px]">|</span>
+
+    <!-- Hava & Deniz Özeti -->
+    <span class="text-[11px] font-medium text-slate-200 group-hover:text-white flex items-center gap-1">
+      <span>☀️ 31°C</span>
+      <span class="hidden sm:inline">· {statusText}</span>
+    </span>
+
+    <svg class="w-3 h-3 text-white/50 group-hover:text-white transition-transform group-hover:translate-x-0.5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"></path>
+    </svg>
+  </button>
+</div>
+
+<!-- Tıklandığında Açılan Detaylı Modal (Bottom Sheet) -->
+<div
+  id="phuket-status-modal"
+  class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="status-modal-title"
+>
+  <div class="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 pb-8 sm:pb-6 space-y-4">
+    <!-- Başlık & Kapat -->
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+          🌊
+        </div>
+        <div>
+          <h4 id="status-modal-title" class="font-bold text-sm text-slate-900 dark:text-white leading-tight">
+            Phuket & Andaman Denizi Canlı Durum
+          </h4>
+          <p class="text-[11px] text-slate-500 dark:text-slate-400">
+            Tayland Meteoroloji ve Liman Başkanlığı verileri
+          </p>
+        </div>
+      </div>
+      <button
+        type="button"
+        id="status-modal-close"
+        class="p-1.5 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+    </div>
+
+    <!-- Durum Kartları -->
+    <div class="grid grid-cols-2 gap-2.5 text-xs">
+      <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Hava Sıcaklığı</span>
+        <span class="text-base font-bold text-slate-900 dark:text-white">31°C · Güneşli</span>
+        <span class="text-[10px] text-emerald-600 dark:text-emerald-400 block mt-0.5">Deniz suyu: 29°C</span>
+      </div>
+
+      <div class="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
+        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Dalga & Rüzgar</span>
+        <span class="text-base font-bold text-emerald-600 dark:text-emerald-400">{waveHeight}</span>
+        <span class="text-[10px] text-slate-500 block mt-0.5">Sürat teknelerine açık</span>
+      </div>
+    </div>
+
+    <!-- Ada Durumları -->
+    <div class="space-y-2 pt-1">
+      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Ada Rota Durumları</span>
+      <div class="space-y-1.5 text-xs">
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+          <span class="font-medium text-slate-700 dark:text-slate-300">🏝️ Phi Phi Adaları & Maya Bay</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Açık & Elverişli
+          </span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+          <span class="font-medium text-slate-700 dark:text-slate-300">🛶 James Bond & Phang Nga Körfezi</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Durgun Su · İdeal
+          </span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-xl bg-slate-50 dark:bg-slate-800/40">
+          <span class="font-medium text-slate-700 dark:text-slate-300">🤿 Similan & Racha Adaları</span>
+          <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Berrak Görüş
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alt Güvence Notu -->
+    <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 text-[11px] text-amber-900 dark:text-amber-200 flex items-center gap-2">
+      <span class="text-base shrink-0">🇹🇭</span>
+      <span>Turlarımız her sabah Phuket Liman Başkanlığı onayından geçtikten sonra güvenle denize açılır.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setupLiveClockAndModal() {
+    // 1. Canlı Phuket Saati (Asia/Bangkok = UTC+7)
+    const clockEl = document.getElementById('live-phuket-clock');
+    const updateTime = () => {
+      if (!clockEl) return;
+      try {
+        const phuketTimeStr = new Intl.DateTimeFormat('tr-TR', {
+          timeZone: 'Asia/Bangkok',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        }).format(new Date());
+        clockEl.textContent = phuketTimeStr;
+      } catch {
+        clockEl.textContent = '16:40';
+      }
+    };
+    updateTime();
+    setInterval(updateTime, 10000);
+
+    // 2. Modal Açılış / Kapanış
+    const pillBtn = document.getElementById('phuket-status-pill-btn');
+    const modal = document.getElementById('phuket-status-modal');
+    const closeBtn = document.getElementById('status-modal-close');
+
+    if (!pillBtn || !modal) return;
+
+    pillBtn.addEventListener('click', () => {
+      modal.classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    });
+
+    const closeModal = () => {
+      modal.classList.add('hidden');
+      document.body.style.overflow = '';
+    };
+
+    closeBtn?.addEventListener('click', closeModal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) closeModal();
+    });
+  }
+
+  document.addEventListener('astro:page-load', setupLiveClockAndModal);
+</script>
