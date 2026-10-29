@@ -4,7 +4,7 @@ category: "island-tours"
 subcategory: "hong-by-starlight"
 category_label: "Ada Turları"
 excerpt: "Phang Nga Körfezi'nin mağaralarında gün batımı, el yapımı çiçek fenerleri (Kratong) ve parlayan biyolüminesans planktonlar."
-image: "longtail.webp"
+image: "hong_starlight_cave.webp"
 price_type: "quote"
 price_thb: 3900
 duration: "Öğleden sonra - Gece (11:30 - 21:30)"

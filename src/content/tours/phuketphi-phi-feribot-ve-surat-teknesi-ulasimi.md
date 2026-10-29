@@ -4,7 +4,7 @@ category: "private-charters"
 subcategory: "speedboat"
 category_label: "Özel Rotalar"
 excerpt: "Phuket Rassada İskelesi ile Phi Phi Tonsai / Laemtong koyları arasında konforlu transfer seçenekleri."
-image: "longtail.webp"
+image: "phuket_ferry_speedboat.webp"
 price_type: "quote"
 price_thb: 2300
 duration: "1 - 2 saat (seçilen tekneye göre)"

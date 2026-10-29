@@ -4,7 +4,7 @@ category: "entertainment-tours"
 subcategory: "simon-cabaret"
 category_label: "Gösteriler"
 excerpt: "Patong sahilinde 30 yılı aşkın süredir sahnelenen, ışıltılı kostümler ve müzikal kabare performansı."
-image: "culture.webp"
+image: "simon_cabaret.webp"
 price_type: "quote"
 price_thb: 2300
 duration: "75 dakika"
