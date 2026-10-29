@@ -75,7 +75,12 @@ export const GET: APIRoute = async (context) => {
         '/sitemap-blog.xml',
       ],
       features: {
-        whatsappCloudApi: !!(process.env.WHATSAPP_CLOUD_API_TOKEN || process.env.WHATSAPP_TOKEN),
+        whatsappCloudApi: !!(
+          process.env.WHATSAPP_CLOUD_TOKEN ||
+          process.env.WHATSAPP_CLOUD_API_TOKEN ||
+          process.env.WHATSAPP_TOKEN ||
+          process.env.META_WA_TOKEN
+        ),
         googleSearchConsole: true,
         guestBoardingPassPdf: true,
       },
