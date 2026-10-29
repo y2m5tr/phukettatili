@@ -50,7 +50,8 @@ export function formatIsoDuration(durationStr?: string): string {
   if (lower.includes('2 gün')) return 'P2D';
   if (lower.includes('yarım gün')) return 'PT5H';
   if (lower.includes('75 dakika')) return 'PT1H15M';
-  if (lower.includes('akşam')) return 'PT4H';
+  if (lower.includes('11:30 - 21:30')) return 'PT10H';
+  if (lower.includes('akşam') || lower.includes('gece')) return 'PT4H';
   const hourMatch = lower.match(/(\d+)\s*saat/);
   if (hourMatch) return `PT${hourMatch[1]}H`;
   return 'P1D';
@@ -90,6 +91,8 @@ export function buildTourDetailSchemas(
   const tourURL = new URL(`/turlar/${tour.id}/`, site).toString();
   const realPrice = resolveTourPrice(tour.id, tour.data.price_thb);
   const isoDuration = formatIsoDuration(tour.data.duration);
+  const currentYear = new Date().getFullYear();
+  const priceValidUntil = `${currentYear + 1}-12-31`;
 
   const touristTripSchema: Record<string, unknown> = {
     "@type": "TouristTrip",
@@ -111,7 +114,7 @@ export function buildTourDetailSchemas(
       "priceCurrency": "THB",
       "url": tourURL,
       "availability": "https://schema.org/InStock",
-      "priceValidUntil": "2026-12-31"
+      "priceValidUntil": priceValidUntil
     }
   };
 
@@ -128,7 +131,7 @@ export function buildTourDetailSchemas(
       "priceCurrency": "THB",
       "url": tourURL,
       "availability": "https://schema.org/InStock",
-      "priceValidUntil": "2026-12-31"
+      "priceValidUntil": priceValidUntil
     }
   };
 

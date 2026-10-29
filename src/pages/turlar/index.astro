@@ -21,7 +21,19 @@ const categoriesCollection = await getCollection('categories');
 const sortedTours = [...tours].sort((a, b) => a.data.order - b.data.order);
 const sliderTours = [...tours]
   .sort((a, b) => Number(b.data.featured) - Number(a.data.featured) || a.data.order - b.data.order)
-  .slice(0, 5);
+  .slice(0, 5)
+  .map(tour => ({
+    id: tour.id,
+    data: {
+      title: tour.data.title,
+      category_label: tour.data.category_label,
+      cat: tour.data.category,
+      excerpt: tour.data.excerpt,
+      image: tour.data.image,
+      duration: tour.data.duration,
+      price_thb: tour.data.price_thb,
+    }
+  }));
 
 // Category map to Turkish labels
 const categoryMap = new Map<string, string>();

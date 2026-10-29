@@ -5,15 +5,36 @@ const hasTracking = Boolean(gaId || metaPixelId);
 ---
 
 {hasTracking && (
-  <div id="tracking-consent" data-ga-id={gaId} data-meta-pixel-id={metaPixelId} class="fixed bottom-4 left-4 right-4 z-[60] mx-auto hidden max-w-3xl rounded-2xl border border-slate-200 bg-white p-5 text-slate-800 shadow-2xl dark:border-slate-700 dark:bg-surface-2 dark:text-white" role="dialog" aria-labelledby="tracking-consent-title" aria-describedby="tracking-consent-description">
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <h2 id="tracking-consent-title" class="font-bold">Gizlilik tercihiniz</h2>
-        <p id="tracking-consent-description" class="mt-1 text-sm text-slate-600 dark:text-slate-300">Analitik ve pazarlama çerezleri yalnızca onayınızla etkinleştirilir. Tercihinizi tarayıcı verilerini temizleyerek değiştirebilirsiniz.</p>
+  <div
+    id="tracking-consent"
+    data-ga-id={gaId}
+    data-meta-pixel-id={metaPixelId}
+    class="fixed bottom-20 sm:bottom-4 left-3 right-3 sm:left-auto sm:right-6 sm:max-w-md z-[65] hidden rounded-2xl border border-slate-200/90 bg-white/95 backdrop-blur-md p-3.5 text-slate-800 shadow-2xl dark:border-slate-700/80 dark:bg-slate-900/95 dark:text-white"
+    role="dialog"
+    aria-labelledby="tracking-consent-title"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="text-base shrink-0" aria-hidden="true">🍪</span>
+        <p id="tracking-consent-title" class="text-xs text-slate-600 dark:text-slate-300 leading-snug">
+          Deneyiminizi geliştirmek için çerezleri kullanıyoruz.
+        </p>
       </div>
-      <div class="flex shrink-0 gap-2">
-        <button id="tracking-reject" type="button" class="rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:bg-slate-100 dark:border-slate-600 dark:hover:bg-slate-800 transition-colors">Reddet</button>
-        <button id="tracking-accept" type="button" class="rounded-lg bg-brand-primary px-4 py-2 text-sm font-semibold text-white hover:bg-brand-amber transition-colors">Kabul Et</button>
+      <div class="flex shrink-0 items-center gap-2">
+        <button
+          id="tracking-reject"
+          type="button"
+          class="min-h-[44px] min-w-[44px] px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center justify-center cursor-pointer"
+        >
+          Reddet
+        </button>
+        <button
+          id="tracking-accept"
+          type="button"
+          class="min-h-[44px] px-4 py-2.5 rounded-xl bg-brand-primary text-xs font-bold text-white hover:bg-brand-amber transition-colors shadow-sm flex items-center justify-center cursor-pointer"
+        >
+          Kabul Et
+        </button>
       </div>
     </div>
   </div>

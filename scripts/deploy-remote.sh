@@ -12,8 +12,10 @@ ssh -i ~/.ssh/id_verunix -o StrictHostKeyChecking=no root@87.192.36.63 bash << '
   echo "📥 [Git] En son kodlar çekiliyor..."
   git fetch origin main
   git reset --hard origin/main
+  git clean -fd
   echo "📦 [NPM] Bağımlılıklar kontrol ediliyor..."
   npm install --prefer-offline --no-audit
+  git checkout -- package-lock.json 2>/dev/null || true
   echo "🏗️ [Build] Astro SSR derlemesi..."
   DEPLOY_TARGET=node ASTRO_TELEMETRY_DISABLED=1 npm run build
   echo "🔄 [PM2] Servis kesintisiz yenileniyor..."

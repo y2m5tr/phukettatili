@@ -235,9 +235,9 @@ document.addEventListener('astro:page-load', () => {
 
       currencyPills.forEach((p) => {
         if (p.dataset.currency === cur) {
-          p.className = 'currency-pill px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer bg-brand-primary text-white shadow-xs';
+          p.className = 'currency-pill min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer bg-brand-primary text-white inline-flex items-center justify-center shadow-xs';
         } else {
-          p.className = 'currency-pill px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700';
+          p.className = 'currency-pill min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center justify-center hover:border-brand-primary/40';
         }
       });
       try {
