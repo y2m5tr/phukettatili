@@ -13,6 +13,7 @@ export interface UtmCampaignData {
   utm_campaign?: string;
   utm_content?: string;
   utm_term?: string;
+  ref?: string;
   fbclid?: string;
   gclid?: string;
   landing_page?: string;
@@ -34,20 +35,22 @@ export function parseUtmParams(search: string, pathname = '/'): UtmCampaignData 
     const utmCampaign = params.get('utm_campaign')?.trim();
     const utmContent = params.get('utm_content')?.trim();
     const utmTerm = params.get('utm_term')?.trim();
+    const ref = (params.get('ref') || params.get('agent'))?.trim();
     const fbclid = params.get('fbclid')?.trim();
     const gclid = params.get('gclid')?.trim();
 
-    // Reklam veya UTM parametresi yoksa null dön
-    if (!utmSource && !utmMedium && !utmCampaign && !utmContent && !fbclid && !gclid) {
+    // Reklam, UTM veya referans parametresi yoksa null dön
+    if (!utmSource && !utmMedium && !utmCampaign && !utmContent && !fbclid && !gclid && !ref) {
       return null;
     }
 
     return {
-      utm_source: utmSource || (fbclid ? 'meta_ad' : gclid ? 'google_ad' : undefined),
-      utm_medium: utmMedium || (fbclid ? 'cpc' : gclid ? 'cpc' : undefined),
+      utm_source: utmSource || (fbclid ? 'meta_ad' : gclid ? 'google_ad' : ref ? 'partner_ref' : undefined),
+      utm_medium: utmMedium || (fbclid ? 'cpc' : gclid ? 'cpc' : ref ? 'referral' : undefined),
       utm_campaign: utmCampaign || undefined,
       utm_content: utmContent || undefined,
       utm_term: utmTerm || undefined,
+      ref: ref ? ref.toUpperCase() : undefined,
       fbclid: fbclid || undefined,
       gclid: gclid || undefined,
       landing_page: pathname,
@@ -103,6 +106,10 @@ export function syncUtmFromCurrentUrl(): UtmCampaignData | null {
  */
 export function formatCampaignRef(utm: UtmCampaignData | null): string {
   if (!utm) return '';
+
+  if (utm.ref) {
+    return `[Acente Ref: ${utm.ref}]`;
+  }
 
   let sourceLabel = utm.utm_source || '';
   if (sourceLabel.toLowerCase().includes('instagram')) sourceLabel = 'IG';

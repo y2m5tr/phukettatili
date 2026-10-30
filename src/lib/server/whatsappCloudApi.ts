@@ -210,6 +210,34 @@ export async function sendT24PickupReminder(
 }
 
 /**
+ * Tur bitiminden sonra (T+24 ertesi gün öğlen) misafire Google Haritalar & memnuniyet mesajı gönderir.
+ */
+export async function sendTPlus24ReviewInvite(
+  booking: Booking
+): Promise<WhatsAppSendResult> {
+  const googleReviewUrl = (siteSettings as any)?.googleReviewUrl || 'https://g.page/r/phukettatili/review';
+  const ticketUrl = `https://phukettatili.com/bilet/${booking.ticketCode || booking.id}`;
+
+  const message = `🌴 *PHUKET TATİLİ — TUR DENEYİMİNİZ NASILDI?* 🌴
+
+Sayın *${booking.customerName}*, merhaba!
+
+*${booking.tourTitle}* turumuzdan ve Phuket gününüzden keyif aldığınızı umuyoruz. ✨
+
+Misafirlerimizin mutluluğu bizim için her şeyden değerlidir. Deneyiminizi 1 dakikanızı ayırıp Google'da 5 yıldızla taçlandırarak Tayland'a gelecek diğer Türk gezginlere rehberlik etmek ister misiniz?
+
+⭐ *Google Haritalar Puanlama Linki:*
+${googleReviewUrl}
+
+🎫 *Fotoğraf & Bilet Portalı:*
+${ticketUrl}
+
+Herhangi bir öneriniz, aksaklık veya bir sonraki tur talebiniz olursa bize bu hattan dilediğiniz an yazabilirsiniz. Phuket'te bizi tercih ettiğiniz için teşekkür ederiz! 🙏🇹🇭`;
+
+  return sendWhatsAppTextMessage(booking.phone, message, { previewUrl: true });
+}
+
+/**
  * Şoför otel lobisine vardığında misafire canlı bildirim iletir.
  */
 export async function sendLobbyArrivalNotice(

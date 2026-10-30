@@ -28,6 +28,8 @@ export default function TourQuickBookingDrawer({
   const [phone, setPhone] = useState('');
   const [hotel, setHotel] = useState('');
   const [currency, setCurrency] = useState<DisplayCurrency>('THB');
+  const [addTransfer, setAddTransfer] = useState(false);
+  const [agentRef, setAgentRef] = useState<string>('');
 
   // Gönderim & Başarı Durumu
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -42,6 +44,16 @@ export default function TourQuickBookingDrawer({
     const saved = (localStorage.getItem('ptt_currency') as DisplayCurrency) || 'THB';
     setCurrency(saved);
 
+    const storedUtm = sessionStorage.getItem('ptt_utm_campaign_data');
+    if (storedUtm) {
+      try {
+        const parsed = JSON.parse(storedUtm);
+        if (parsed?.ref) {
+          setAgentRef(parsed.ref);
+        }
+      } catch {}
+    }
+
     const handleCurrencyChange = (e: any) => {
       if (e.detail?.currency) {
         setCurrency(e.detail.currency);
@@ -54,7 +66,8 @@ export default function TourQuickBookingDrawer({
   const totalPax = adults + children;
   // Çocuk için %30 indirimli fiyat hesaplama
   const childPriceThb = Math.round(priceThb * 0.7);
-  const totalThb = adults * priceThb + children * childPriceThb;
+  const transferCost = addTransfer ? 1400 : 0;
+  const totalThb = adults * priceThb + children * childPriceThb + transferCost;
 
   const generateWhatsAppUrl = (ticketCode?: string) => {
     const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
@@ -63,9 +76,11 @@ export default function TourQuickBookingDrawer({
       `🌴 *Merhaba Phuket Tatili, ${tourTitle} Turu İçin Rezervasyon Talebi:*`,
       ``,
       ...(ticketCode ? [`🎫 *Referans Kodu:* ${ticketCode}`, ``] : []),
+      ...(agentRef ? [`🤝 *Acente / Rehber Kodu:* ${agentRef.toUpperCase()}`, ``] : []),
       ...(customerName ? [`👤 *İsim:* ${customerName.trim()}`] : []),
       `📅 *Tarih:* ${displayDate}`,
       `👥 *Kişi:* ${adults} Yetişkin${children > 0 ? `, ${children} Çocuk` : ''} (Toplam ${totalPax} Kişi)`,
+      ...(addTransfer ? [`🚐 *Paket Eki:* Havalimanı VIP Minibüs Transferi Eklendi (+1.400 THB)`] : []),
       `🏨 *Otel / Bölge:* ${hotel ? hotel.trim() : 'Belirtilmedi (Görüşmede netleşecek)'}`,
       `💰 *Tahmini Tutar:* ~${totalThb.toLocaleString('tr-TR')} THB (${formatDisplayPrice(totalThb, currency)})`,
       ``,
@@ -97,11 +112,12 @@ export default function TourQuickBookingDrawer({
           phone: phone.trim(),
           hotel: hotel.trim(),
           tourId,
-          tourTitle,
+          tourTitle: addTransfer ? `${tourTitle} + VIP Havalimanı Transferi (Combo)` : tourTitle,
           tourDate: date,
           adultCount: adults,
           childCount: children,
           totalPriceThb: totalThb,
+          agentCode: agentRef || undefined,
         }),
       });
 
@@ -394,6 +410,29 @@ export default function TourQuickBookingDrawer({
                     onChange={(e) => setHotel(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-brand-accent"
                   />
+                </div>
+
+                {/* Akıllı Paket / Combo Ekleme Seçeneği */}
+                <div className="p-3.5 rounded-2xl bg-gradient-to-r from-amber-500/15 via-amber-500/5 to-transparent border border-amber-500/30">
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={addTransfer}
+                      onChange={(e) => setAddTransfer(e.target.checked)}
+                      className="mt-1 h-4 w-4 rounded border-slate-700 bg-slate-900 text-amber-500 focus:ring-amber-500 cursor-pointer accent-amber-500"
+                    />
+                    <div className="flex-1 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-white flex items-center gap-1.5">
+                          <span>🚐</span> VIP Havalimanı Transferi Ekle
+                        </span>
+                        <span className="text-amber-400 font-bold font-mono">+1.400 THB</span>
+                      </div>
+                      <p className="text-slate-300 text-[11px] mt-0.5">
+                        Normalde 1.800 THB yerine paket avantajıyla 400 THB indirimli özel minibüs transferi.
+                      </p>
+                    </div>
+                  </label>
                 </div>
 
                 {/* Toplam Hesaplama & Gönder Butonu */}

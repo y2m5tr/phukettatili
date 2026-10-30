@@ -30,8 +30,8 @@ export default function TourSmartBundle({
         id: 'james-bond',
         title: 'James Bond Adası & Kano Mağara Keşfi',
         tagline: 'Phang Nga Körfezi\'nin sakin koyları ve kano safari macerası',
-        regularPrice: 2900,
-        bundlePrice: 2600,
+        regularPrice: 2800,
+        bundlePrice: 2400,
         icon: 'island',
       }
     : isJamesBond
@@ -40,7 +40,7 @@ export default function TourSmartBundle({
         title: 'Phi Phi, Maya Bay & Bamboo Adası Turu',
         tagline: 'Turkuaz lagünler, efsanevi Maya Bay ve şnorkel resifleri',
         regularPrice: 3200,
-        bundlePrice: 2850,
+        bundlePrice: 2750,
         icon: 'island',
       }
     : {
@@ -48,7 +48,7 @@ export default function TourSmartBundle({
         title: 'Etik Fil Koruma, Besleme & Bakım',
         tagline: 'Fillerle doğal ortamında sevgi dolu bir gün ve çamur banyosu',
         regularPrice: 2500,
-        bundlePrice: 2250,
+        bundlePrice: 2200,
         icon: 'nature',
       };
 
@@ -57,8 +57,8 @@ export default function TourSmartBundle({
       id: 'airport-transfer',
       title: 'Havalimanı ⇄ Otel VIP Minibüs Transferi',
       tagline: 'Uçak inişinde isminizle karşılama, klimalı konforlu özel araç',
-      regularPrice: 1400,
-      bundlePrice: 1100,
+      regularPrice: 1800,
+      bundlePrice: 1400,
       icon: 'car',
     },
     secondTourAddon,

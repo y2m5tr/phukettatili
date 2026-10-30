@@ -16,12 +16,14 @@ import {
   Zap,
   MessageCircle,
   ExternalLink,
+  Star,
 } from 'lucide-react';
 import type { AdminTab } from '../AdminDashboard';
 import type { Booking } from '../../../data/adminInitialData';
 import { generateGuestPickupReminderTurkish } from '../../../lib/whatsappEngine';
 import { fmtMoney } from '../../../lib/moneyFormat';
 import type { TodayDispatchSummary, OverviewTabProps } from './overviewTypes';
+import { dispatchT24Reminders, dispatchReviewReminders } from './overviewDispatchActions';
 
 interface OverviewDispatchCockpitProps {
   todayStr: string;
@@ -70,27 +72,18 @@ export const OverviewDispatchCockpit: React.FC<OverviewDispatchCockpitProps> = (
     });
   }, [todayDispatch.todayItems, todayFilter]);
 
-  const handleDispatchT24Reminders = async () => {
-    if (
-      typeof window !== 'undefined' &&
-      !window.confirm('Yarınki turların onaylı misafirlerine WhatsApp lobi alınış hatırlatması (T-24) gönderilsin mi?')
-    ) {
-      return;
-    }
+  const [isDispatchingReviews, setIsDispatchingReviews] = useState(false);
+
+  const handleDispatchT24 = async () => {
     setIsDispatchingReminders(true);
-    try {
-      const res = await fetch('/api/whatsapp/dispatch-reminders', { method: 'POST' });
-      const data = await res.json();
-      if (res.ok && data?.ok) {
-        showToast?.(`✅ ${data.sentCount} misafire T-24 WhatsApp hatırlatması iletildi!`);
-      } else {
-        showToast?.(`⚠️ Hatırlatma gönderilemedi: ${data?.error || 'Bilinmeyen hata'}`);
-      }
-    } catch {
-      showToast?.('⚠️ Bağlantı hatası, hatırlatmalar gönderilemedi.');
-    } finally {
-      setIsDispatchingReminders(false);
-    }
+    await dispatchT24Reminders(showToast);
+    setIsDispatchingReminders(false);
+  };
+
+  const handleDispatchReviews = async () => {
+    setIsDispatchingReviews(true);
+    await dispatchReviewReminders(showToast);
+    setIsDispatchingReviews(false);
   };
 
   return (
@@ -165,13 +158,24 @@ export const OverviewDispatchCockpit: React.FC<OverviewDispatchCockpitProps> = (
 
             <button
               type="button"
-              onClick={handleDispatchT24Reminders}
+              onClick={handleDispatchT24}
               disabled={isDispatchingReminders}
-              className="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-              title="Yarınki turların misafirlerine 20:00 T-24 WhatsApp lobi alınış hatırlatmasını otomatik gönder"
+              className="px-3 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="Yarınki turların misafirlerine 20:00 T-24 WhatsApp lobi alınış hatırlatmasını gönder"
             >
               <Send className="w-3.5 h-3.5 text-emerald-400" />
-              <span>{isDispatchingReminders ? 'Gönderiliyor...' : 'T-24 WhatsApp'}</span>
+              <span>{isDispatchingReminders ? '...' : 'T-24 WhatsApp'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDispatchReviews}
+              disabled={isDispatchingReviews}
+              className="px-3 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+              title="Dün turu tamamlanan misafirlere T+24 Google & TripAdvisor yorum daveti gönder"
+            >
+              <Star className="w-3.5 h-3.5 text-amber-400" />
+              <span>{isDispatchingReviews ? '...' : 'T+24 Yorum İste'}</span>
             </button>
 
             {onOpenCreateBooking && (

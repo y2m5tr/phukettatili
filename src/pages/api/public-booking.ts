@@ -22,6 +22,9 @@ import {
 import { bookingToRow } from '../../lib/supabase';
 import {
   type Booking,
+  type PartnerAgent,
+  initialAgents,
+  calculateAgentCommission,
   detectHotelZone,
   getRecommendedPickupTime,
 } from '../../data/adminInitialData';
@@ -44,6 +47,7 @@ interface PublicBookingPayload {
   childCount?: number;
   totalPriceThb?: number;
   specialNotes?: string;
+  agentCode?: string;
 }
 
 export const POST: APIRoute = async (context) => {
@@ -105,6 +109,19 @@ export const POST: APIRoute = async (context) => {
   const ticketCode = generateTicketCode();
   const managerPhone = siteSettings?.whatsappNumber || '66828950665';
 
+  const rawAgentCode = (body.agentCode || '').trim().toUpperCase();
+  const matchedAgent: PartnerAgent | undefined = rawAgentCode
+    ? initialAgents.find((a) => a.code.toUpperCase() === rawAgentCode && a.active)
+    : undefined;
+
+  const commissionThb = matchedAgent
+    ? calculateAgentCommission(matchedAgent, total, adults + children)
+    : undefined;
+
+  const notesPrefix = matchedAgent
+    ? `[Acente Referansı: ${matchedAgent.name} (${matchedAgent.code})] `
+    : '';
+
   const newBooking: Booking = {
     id: bookingId,
     customerName: customerName.trim(),
@@ -124,7 +141,13 @@ export const POST: APIRoute = async (context) => {
     status: 'inquiry',
     paymentStatus: 'unpaid',
     nationalParkFeeIncluded: false,
-    specialNotes: specialNotes ? `[Web Talep] ${specialNotes.trim()}` : '[Web Doğrudan Talep]',
+    specialNotes: specialNotes
+      ? `${notesPrefix}[Web Talep] ${specialNotes.trim()}`
+      : `${notesPrefix}[Web Doğrudan Talep]`,
+    agentId: matchedAgent?.id,
+    agentName: matchedAgent?.name,
+    agentCommissionThb: commissionThb,
+    agentCommissionStatus: matchedAgent ? 'pending' : undefined,
     ticketCode,
     createdAt: new Date().toISOString().split('T')[0],
   };

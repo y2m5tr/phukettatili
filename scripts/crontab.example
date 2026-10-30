@@ -10,7 +10,11 @@
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
-# 1. Her Gün 20:00 (Phuket UTC+7 / Türkiye 16:00) — T-24 WhatsApp Tur Hatırlatması
+# 1. Her Gün 12:00 (Phuket UTC+7 / Türkiye 08:00) — T+24 WhatsApp Google Yorum Daveti
+# Dün turu tamamlanan misafirlere memnuniyet anketi ve Google Haritalar 5 yıldız yorum linki gider.
+0 5 * * * cd /var/www/phukettatili && /usr/bin/node scripts/cron-review-reminders.mjs >> /var/log/phuket-cron.log 2>&1
+
+# 2. Her Gün 20:00 (Phuket UTC+7 / Türkiye 16:00) — T-24 WhatsApp Tur Hatırlatması
 # Yarınki turların misafirlerine bilet & alınış saati, şoförlerine ise iş emri gider.
 0 13 * * * cd /var/www/phukettatili && /usr/bin/node scripts/cron-dispatch-reminders.mjs >> /var/log/phuket-cron.log 2>&1
 

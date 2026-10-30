@@ -58,7 +58,7 @@ export function generateHolidayPackage(
           timeSlot: '18:30 - 21:00',
           category: 'show',
           highlight: 'VIP ön sıra koltuklar ve ışıltılı sahne performansı.',
-          individualPriceThb: 1200,
+          individualPriceThb: 2300,
         },
         {
           dayNumber: 2,
@@ -67,7 +67,7 @@ export function generateHolidayPackage(
           timeSlot: '08:00 - 17:00',
           category: 'bay',
           highlight: 'Kireçtaşı mağaraları arasında çift kişilik özel kano gezisi.',
-          individualPriceThb: 2400,
+          individualPriceThb: 2800,
         },
         {
           dayNumber: 3,
@@ -76,7 +76,7 @@ export function generateHolidayPackage(
           timeSlot: '09:00 - 13:00',
           category: 'nature',
           highlight: 'Kurtarılmış fillerle doğada özel anlar ve fotoğraf çekimi.',
-          individualPriceThb: 2200,
+          individualPriceThb: 2500,
         },
       ];
     } else if (duration === 5) {
@@ -90,7 +90,7 @@ export function generateHolidayPackage(
           timeSlot: 'Uçuş saatine göre',
           category: 'transfer',
           highlight: 'Klimalı lüks araç ve soğuk içecek ikramı ile otele konforlu geçiş.',
-          individualPriceThb: 1100,
+          individualPriceThb: 1800,
         },
         {
           dayNumber: 2,
@@ -108,7 +108,7 @@ export function generateHolidayPackage(
           timeSlot: '09:30 - 13:30',
           category: 'nature',
           highlight: 'Orman içinde fil terapisi ve öğleden sonra otel plajında dinlenme.',
-          individualPriceThb: 2200,
+          individualPriceThb: 2500,
         },
         {
           dayNumber: 4,
@@ -141,7 +141,7 @@ export function generateHolidayPackage(
           timeSlot: 'İniş saatine göre',
           category: 'transfer',
           highlight: 'Özel şoförlü VIP karşılama.',
-          individualPriceThb: 1100,
+          individualPriceThb: 1800,
         },
         {
           dayNumber: 2,
@@ -159,7 +159,7 @@ export function generateHolidayPackage(
           timeSlot: '09:00 - 13:00',
           category: 'nature',
           highlight: 'Fillerle doğal orman yürüyüşü.',
-          individualPriceThb: 2200,
+          individualPriceThb: 2500,
         },
         {
           dayNumber: 4,
@@ -168,7 +168,7 @@ export function generateHolidayPackage(
           timeSlot: '08:00 - 17:00',
           category: 'bay',
           highlight: 'Phang Nga Körfezi kano macerası.',
-          individualPriceThb: 2400,
+          individualPriceThb: 2800,
         },
         {
           dayNumber: 5,
@@ -186,7 +186,7 @@ export function generateHolidayPackage(
           timeSlot: '17:30 - 22:30',
           category: 'show',
           highlight: 'Dünyanın en büyük LED ışık ve festival parkı.',
-          individualPriceThb: 2600,
+          individualPriceThb: 2800,
         },
         {
           dayNumber: 7,
@@ -195,7 +195,7 @@ export function generateHolidayPackage(
           timeSlot: '10:00 - 15:00',
           category: 'leisure',
           highlight: 'Tarihi sokaklar ve havalimanına rahat transfer.',
-          individualPriceThb: 1500,
+          individualPriceThb: 2300,
         },
       ];
     }
@@ -211,7 +211,7 @@ export function generateHolidayPackage(
         timeSlot: 'İniş saatine göre',
         category: 'transfer',
         highlight: 'Bavullarınız ve çocuklarınızla konforlu transfer.',
-        individualPriceThb: 1200,
+        individualPriceThb: 1800,
       },
       {
         dayNumber: 2,
@@ -220,7 +220,7 @@ export function generateHolidayPackage(
         timeSlot: '09:00 - 13:00',
         category: 'nature',
         highlight: 'Çocukların hayvan sevgisini pekiştiren güvenli etik barınak.',
-        individualPriceThb: 2200,
+        individualPriceThb: 2500,
       },
       {
         dayNumber: 3,
@@ -229,7 +229,7 @@ export function generateHolidayPackage(
         timeSlot: '08:30 - 14:00',
         category: 'island',
         highlight: 'Kıyıdan sadece 1 metre mesafede renkli balıkları elle besleme.',
-        individualPriceThb: 1900,
+        individualPriceThb: 2300,
       },
     ];
 
@@ -242,7 +242,7 @@ export function generateHolidayPackage(
           timeSlot: '17:30 - 22:30',
           category: 'show',
           highlight: 'Guinness rekorlu ışık şovları ve çocuk oyun alanları.',
-          individualPriceThb: 2600,
+          individualPriceThb: 2800,
         },
         {
           dayNumber: 5,
@@ -251,7 +251,7 @@ export function generateHolidayPackage(
           timeSlot: '08:30 - 16:30',
           category: 'bay',
           highlight: 'Dalgasız sakin iç körfezde rehber eşliğinde kano.',
-          individualPriceThb: 2400,
+          individualPriceThb: 2800,
         }
       );
     }
@@ -273,7 +273,7 @@ export function generateHolidayPackage(
           timeSlot: '10:00 - 14:00',
           category: 'leisure',
           highlight: 'Panoramik manzara noktaları ve havalimanına geçiş.',
-          individualPriceThb: 1500,
+          individualPriceThb: 2300,
         }
       );
     }
@@ -289,7 +289,7 @@ export function generateHolidayPackage(
         timeSlot: 'İniş saatine göre',
         category: 'transfer',
         highlight: 'Otele hızlı ve konforlu varış.',
-        individualPriceThb: 1100,
+        individualPriceThb: 1800,
       },
       {
         dayNumber: 2,
@@ -320,7 +320,7 @@ export function generateHolidayPackage(
           timeSlot: '06:00 - 18:00',
           category: 'island',
           highlight: 'Dünyanın en iyi 10 dalış/şnorkel noktasından biri.',
-          individualPriceThb: 3800,
+          individualPriceThb: 3600,
         },
         {
           dayNumber: 5,
@@ -329,7 +329,7 @@ export function generateHolidayPackage(
           timeSlot: '08:00 - 16:30',
           category: 'bay',
           highlight: 'Gizli deniz mağaralarında kano macerası.',
-          individualPriceThb: 2400,
+          individualPriceThb: 2800,
         }
       );
     }
@@ -351,7 +351,7 @@ export function generateHolidayPackage(
           timeSlot: '10:00 - 14:00',
           category: 'leisure',
           highlight: 'Son gün manzaraları ve havalimanı transferi.',
-          individualPriceThb: 1500,
+          individualPriceThb: 2300,
         }
       );
     }
@@ -367,7 +367,7 @@ export function generateHolidayPackage(
         timeSlot: 'İniş saatine göre',
         category: 'transfer',
         highlight: 'Havalimanında isimli karşılama ve premium araç.',
-        individualPriceThb: 1500,
+        individualPriceThb: 1800,
       },
       {
         dayNumber: 2,
@@ -385,7 +385,7 @@ export function generateHolidayPackage(
         timeSlot: '14:00 - 19:30',
         category: 'island',
         highlight: 'Akşam üzeri şampanya ikramı eşliğinde günbatımı.',
-        individualPriceThb: 3600,
+        individualPriceThb: 4200,
       },
     ];
 
@@ -429,7 +429,7 @@ export function generateHolidayPackage(
           timeSlot: 'Uçuş saatine göre',
           category: 'transfer',
           highlight: 'Kusursuz ve stressiz eve dönüş.',
-          individualPriceThb: 1500,
+          individualPriceThb: 1800,
         }
       );
     }
