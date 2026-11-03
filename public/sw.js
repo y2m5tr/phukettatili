@@ -6,7 +6,7 @@
  * API çağrıları ağ önceliklidir; ağ yoksa IndexedDB çevrimdışı kuyruğu devreye girer.
  */
 
-const CACHE_NAME = 'phuket-tatili-pwa-v3';
+const CACHE_NAME = 'phuket-tatili-pwa-v6';
 const PRECACHE_ASSETS = [
   '/',
   '/site.webmanifest',
@@ -53,10 +53,10 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // 3. Sayfa geçişleri / HTML gezintileri (Navigation): Ağ öncelikli, önbellek yedekli
+  // 3. Sayfa geçişleri / HTML gezintileri (Navigation): Ağ öncelikli, disk önbelleğini atla
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      fetch(request, { cache: 'no-cache' })
         .then((response) => {
           if (response.status === 200) {
             const clone = response.clone();

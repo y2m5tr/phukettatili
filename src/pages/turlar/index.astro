@@ -12,8 +12,8 @@ import TourCardImageCarousel from '../../components/tour/TourCardImageCarousel.a
 // panelde fiyat değişince detayda yeni, listede eski fiyat görünüyordu.
 export const prerender = false;
 
-// CDN cache: sayfa 60sn Vercel edge'de, 5 dk bayat kabul edilir.
-Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
+// CDN cache: Vercel edge'de 60sn, istemci tarayıcıda max-age=0
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=60, stale-while-revalidate=120');
 
 const mdTours: CollectionEntry<'tours'>[] = await getCollection('tours');
 const tours: CollectionEntry<'tours'>[] = applyTourOverlay(mdTours, await getCloudTours());

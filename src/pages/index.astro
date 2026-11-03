@@ -36,9 +36,8 @@ import { getCloudTours, applyTourOverlay } from '../lib/server/tourContent';
 // yansımıyordu. Bulut erişilemezse merge sessizce statik JSON'lara düşer.
 export const prerender = false;
 
-// CDN cache: anasayfa sitenin en çok istenen sayfası. Edge & reverse proxy önbelleği
-// 5 dakika taze, 10 dakika bayat kabul edilerek yüksek TTFB hızı ve düşük sunucu yükü sağlanır.
-Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+// CDN cache: Vercel edge'de 300sn, istemci tarayıcıda max-age=0
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=300, stale-while-revalidate=600');
 
 const panelContent = await getPublicHomeContent();
 const homeData = mergeHomeSettings(homeDataJson, panelContent.homeSettings);
