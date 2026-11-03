@@ -1,7 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
 import { resolveAssetUrl } from '../../../lib/assets';
-import { fmtMoney } from '../../../lib/moneyFormat';
 
 interface Props {
   tour: CollectionEntry<'tours'>;
@@ -43,11 +42,7 @@ const { tour, relatedTours } = Astro.props;
               <p class="text-slate-600 dark:text-slate-300 text-sm mt-1.5 line-clamp-2">{t.data.excerpt}</p>
               <div class="flex justify-between items-center border-t border-slate-100 dark:border-slate-700 pt-3 mt-3">
                 <span class="text-xs font-medium text-slate-500 dark:text-slate-400">{t.data.duration || 'Tam Gün'}</span>
-                {t.data.price_thb && t.data.price_thb > 0 ? (
-                  <span class="text-sm font-bold text-brand-primary dark:text-white">{fmtMoney(t.data.price_thb)} THB</span>
-                ) : (
-                  <span class="text-xs font-bold text-brand-accent">Teklif Alın</span>
-                )}
+                <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">Teklif Alın →</span>
               </div>
             </div>
           </a>

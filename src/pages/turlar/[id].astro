@@ -4,7 +4,6 @@ import Layout from '../../layouts/Layout.astro';
 import Accordion from '../../components/ui/Accordion';
 import siteSettings from '../../content/settings/site.json';
 import TourQuickBookingDrawer from '../../components/tour/TourQuickBookingDrawer';
-import TourSmartBundle from '../../components/tour/TourSmartBundle';
 import { getCloudTours, applyTourOverlay, applyTourOverlayToEntry } from '../../lib/server/tourContent';
 import { resolveAssetUrl, resolveOgImageUrl } from '../../lib/assets';
 // 500 satır kuralı: hero, program, galeri, rezervasyon sidebar'ı, benzer
@@ -98,14 +97,6 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
 
         <TourProgramTimeline tour={tour} />
         <TourGallery tour={tour} />
-
-        <!-- Akıllı Paket Önerisi (Cross-Sell Bundle) -->
-        <TourSmartBundle
-          client:load
-          currentTourTitle={tour.data.title}
-          currentTourPrice={tour.data.price_thb || 0}
-          whatsappNumber={whatsappNumber}
-        />
 
         <!-- Sıkça Sorulan Sorular (Google FAQPage Rich Snippet Destekli) -->
         {tourFaqs && tourFaqs.length > 0 && (
