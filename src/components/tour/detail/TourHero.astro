@@ -48,15 +48,10 @@ const { tour, weeklyViewCount } = Astro.props;
           <span class="font-medium">{tour.data.duration}</span>
         </div>
       )}
-      {tour.data.price_thb && tour.data.price_thb > 0 ? (
-        <div class="flex items-center gap-2 font-bold text-2xl text-white">
-          <span>{fmtMoney(tour.data.price_thb)} THB</span>
-        </div>
-      ) : (
-        <div class="flex items-center gap-2 font-semibold text-base text-brand-accent bg-white/10 backdrop-blur px-3.5 py-1.5 rounded-full border border-white/20">
-          <span>Fiyat Teklifi Alın</span>
-        </div>
-      )}
+      <div class="flex items-center gap-2 font-semibold text-sm sm:text-base text-emerald-300 bg-emerald-500/15 backdrop-blur px-3.5 py-1.5 rounded-full border border-emerald-400/25">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span>WhatsApp ile Özel Fiyat Teklifi</span>
+      </div>
 
       <!-- Tatil Planıma / Favorilere Ekle Butonu -->
       <button

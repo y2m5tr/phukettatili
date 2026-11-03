@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { formatDisplayPrice, type DisplayCurrency } from '../../lib/siteCurrency';
+import { useState, useEffect } from 'react';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
 import TourBookingSuccessView from './TourBookingSuccessView';
 
@@ -37,7 +36,6 @@ export default function TourQuickBookingDrawer({
   const [customerName, setCustomerName] = useState('');
   const [phone, setPhone] = useState('');
   const [hotel, setHotel] = useState('');
-  const [currency, setCurrency] = useState<DisplayCurrency>('THB');
   const [addTransfer, setAddTransfer] = useState(false);
   const [agentRef, setAgentRef] = useState<string>('');
 
@@ -51,9 +49,6 @@ export default function TourQuickBookingDrawer({
   const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
-    const saved = (localStorage.getItem('ptt_currency') as DisplayCurrency) || 'THB';
-    setCurrency(saved);
-
     const storedUtm = sessionStorage.getItem('ptt_utm_campaign_data');
     if (storedUtm) {
       try {
@@ -63,14 +58,6 @@ export default function TourQuickBookingDrawer({
         }
       } catch {}
     }
-
-    const handleCurrencyChange = (e: any) => {
-      if (e.detail?.currency) {
-        setCurrency(e.detail.currency);
-      }
-    };
-    window.addEventListener('ptt:currency-changed', handleCurrencyChange);
-    return () => window.removeEventListener('ptt:currency-changed', handleCurrencyChange);
   }, []);
 
   const totalPax = adults + children;
@@ -92,11 +79,9 @@ export default function TourQuickBookingDrawer({
       ...(customerName ? [`👤 *İsim:* ${customerName.trim()}`] : []),
       `📅 *Tarih:* ${displayDate}`,
       `👥 *Kişi:* ${adults} Yetişkin${children > 0 ? `, ${children} Çocuk` : ''} (Toplam ${totalPax} Kişi)`,
-      ...(addTransfer ? [`🚐 *Paket Eki:* Havalimanı VIP Minibüs Transferi Eklendi (+1.400 THB)`] : []),
-      `🏨 *Otel / Bölge:* ${hotel ? hotel.trim() : 'Belirtilmedi (Görüşmede netleşecek)'}`,
-      `💰 *Tahmini Tutar:* ~${totalThb.toLocaleString('tr-TR')} THB (${formatDisplayPrice(totalThb, currency)})`,
-      ``,
-      `Tur programı, otel transfer saati ve müsaitlik durumu hakkında bilgi alabilir miyim?`,
+      ...(addTransfer ? [`🚐 *Paket Eki:* Havalimanı VIP Minibüs Transferi Eklensin`] : []),
+      `🏨 *Otel / Bölge:* ${hotel ? hotel.trim() : 'Görüşmede netleşecek'}`,
+      `💬 *Fiyat & Teklif:* Tarih ve kişi sayımıza göre en uygun güncel fiyat teklifini rica ediyorum.`,
     ];
     return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(lines.join('\n'))}`;
   };
@@ -172,24 +157,13 @@ export default function TourQuickBookingDrawer({
       {/* ==================================================== */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-slate-800 p-3 backdrop-blur-xl shadow-2xl flex items-center justify-between gap-2.5">
         <div className="min-w-0 pr-1">
-          <span className="text-[9px] text-slate-400 uppercase tracking-wider block font-mono">
-            {priceThb > 0 ? 'KİŞİ BAŞI' : 'FİYATLANDIRMA'}
+          <span className="text-[9px] text-emerald-400 uppercase tracking-wider block font-bold font-mono">
+            GÜNCEL FİYAT & REZERVASYON
           </span>
           <div className="flex items-baseline gap-1">
-            {priceThb > 0 ? (
-              <>
-                <strong className="text-base font-black text-amber-400 font-mono truncate">
-                  {formatDisplayPrice(priceThb, currency)}
-                </strong>
-                {currency !== 'THB' && (
-                  <span className="text-[9px] text-slate-400">
-                    (฿{priceThb.toLocaleString('tr-TR')})
-                  </span>
-                )}
-              </>
-            ) : (
-              <strong className="text-xs font-bold text-amber-400">Teklif Alın</strong>
-            )}
+            <strong className="text-xs sm:text-sm font-bold text-white truncate">
+              WhatsApp Özel Teklif
+            </strong>
           </div>
         </div>
 
@@ -304,7 +278,7 @@ export default function TourQuickBookingDrawer({
                   <div>
                     <label className="block font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between text-xs">
                       <span>Tur Paketi / Program Seçimi</span>
-                      <span className="text-[10px] text-amber-400 lowercase font-medium">fiyat otomatik güncellenir</span>
+                      <span className="text-[10px] text-emerald-400 lowercase font-medium">WhatsApp'ta netleşir</span>
                     </label>
                     <select
                       value={selectedPackage}
@@ -313,7 +287,7 @@ export default function TourQuickBookingDrawer({
                     >
                       {packages.map((pkg) => (
                         <option key={pkg.name} value={pkg.name}>
-                          {pkg.name} {pkg.price_thb ? `(${pkg.price_thb.toLocaleString('en-US')} THB)` : ''}
+                          {pkg.name}
                         </option>
                       ))}
                     </select>
@@ -338,7 +312,7 @@ export default function TourQuickBookingDrawer({
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-300">Yetişkin</span>
-                      <span className="text-amber-400 font-mono font-bold">{formatDisplayPrice(priceThb, currency)}</span>
+                      <span className="text-slate-400 text-xs font-semibold">Kişi Sayısı</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <button
@@ -362,7 +336,7 @@ export default function TourQuickBookingDrawer({
                   <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-300">Çocuk (4-11)</span>
-                      <span className="text-emerald-400 font-mono font-bold">-%30 İndirim</span>
+                      <span className="text-emerald-400 font-bold text-xs">İndirimli</span>
                     </div>
                     <div className="flex items-center justify-between">
                       <button
@@ -412,37 +386,35 @@ export default function TourQuickBookingDrawer({
                         <span className="font-bold text-white flex items-center gap-1.5">
                           <span>🚐</span> VIP Havalimanı Transferi Ekle
                         </span>
-                        <span className="text-amber-400 font-bold font-mono">+1.400 THB</span>
+                        <span className="text-emerald-400 font-bold font-mono">Avantajlı VIP Araç</span>
                       </div>
                       <p className="text-slate-300 text-[11px] mt-0.5">
-                        Normalde 1.800 THB yerine paket avantajıyla 400 THB indirimli özel minibüs transferi.
+                        Tur paketiyle birlikte özel havalimanı VIP minibüs transferi için indirimli kombine teklif alın.
                       </p>
                     </div>
                   </label>
                 </div>
 
-                {/* Toplam Hesaplama & Gönder Butonu */}
+                {/* Teklif Özeti & Gönder Butonu */}
                 <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-mono">TOPLAM TAHMİNİ TUTAR</span>
-                    <strong className="text-lg sm:text-xl font-black text-amber-400 font-mono">
-                      {formatDisplayPrice(totalThb, currency)}
+                    <span className="text-[10px] text-emerald-400 uppercase tracking-widest block font-bold font-mono">FİYATLANDIRMA</span>
+                    <strong className="text-sm sm:text-base font-bold text-white block">
+                      WhatsApp ile Özel Fiyat
                     </strong>
-                    {currency !== 'THB' && (
-                      <span className="text-[10px] text-slate-400 block">
-                        (~{totalThb.toLocaleString('tr-TR')} THB)
-                      </span>
-                    )}
+                    <span className="text-[11px] text-slate-400 block">
+                      Temsilcimiz müsaitlik ve en uygun fiyatı onaylar.
+                    </span>
                   </div>
 
                   <div className="flex items-center gap-2 w-full sm:w-auto">
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className="flex-1 sm:flex-initial px-6 py-3 rounded-2xl bg-brand-accent hover:bg-brand-accent/90 disabled:opacity-50 text-white font-black text-xs sm:text-sm shadow-xl shadow-brand-accent/25 flex items-center justify-center gap-2 transition cursor-pointer"
+                      className="flex-1 sm:flex-initial px-6 py-3 rounded-2xl bg-whatsapp hover:bg-whatsapp-dark disabled:opacity-50 text-white font-black text-xs sm:text-sm shadow-xl shadow-emerald-500/25 flex items-center justify-center gap-2 transition cursor-pointer"
                     >
-                      <span>⚡</span>
-                      <span>{isSubmitting ? 'Kaydediliyor...' : 'Talebi Gönder & Bilet Al'}</span>
+                      <span>💬</span>
+                      <span>{isSubmitting ? 'İletiliyor...' : 'Talebi İlet & Fiyat Al'}</span>
                     </button>
                   </div>
                 </div>

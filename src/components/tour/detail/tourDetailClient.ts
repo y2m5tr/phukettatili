@@ -1,8 +1,6 @@
 // Tur detay sayfası istemci betiği — turlar/[id].astro'daki satır içi
 // <script> bloğundan birebir taşındı. Sayfadaki <script> bu modülü import
 // eder; Astro bundle'ı aynı şekilde üretir.
-// Tarayıcı tarafı: sunucu fmtMoney import'u buraya taşınmaz, aynı en-US biçimi yerelde tutulur.
-const fmtMoney = (amount: number) => amount.toLocaleString('en-US');
 
 document.addEventListener('astro:page-load', () => {
   // 0. Background Tour View Tracker (Non-blocking)
@@ -218,58 +216,5 @@ document.addEventListener('astro:page-load', () => {
         if (lightboxCounter) lightboxCounter.textContent = `${activeIndex + 1} / ${images.length}`;
       }
     });
-  }
-
-  // 3. Live Currency Converter Pills
-  const convertedPriceEl = document.getElementById('sidebar-converted-price') as HTMLElement | null;
-  const currencyPills = document.querySelectorAll<HTMLButtonElement>('.currency-pill');
-  if (convertedPriceEl && currencyPills.length > 0) {
-    let baseThb = parseFloat(convertedPriceEl.dataset.baseThb || '0');
-    const updateCurrencyDisplay = (cur: string) => {
-      let text = `${fmtMoney(baseThb)} THB`;
-      if (cur === 'TRY') {
-        text = `${fmtMoney(baseThb)} THB (~${fmtMoney(Math.round(baseThb * 1.48))} ₺)`;
-      } else if (cur === 'USD') {
-        text = `${fmtMoney(baseThb)} THB (~$${fmtMoney(Math.round(baseThb / 33.7))})`;
-      } else if (cur === 'EUR') {
-        text = `${fmtMoney(baseThb)} THB (~€${fmtMoney(Math.round(baseThb / 37.8))})`;
-      }
-      convertedPriceEl.textContent = text;
-
-      currencyPills.forEach((p) => {
-        if (p.dataset.currency === cur) {
-          p.className = 'currency-pill min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer bg-brand-primary text-white inline-flex items-center justify-center shadow-xs';
-        } else {
-          p.className = 'currency-pill min-h-[44px] px-3 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 inline-flex items-center justify-center hover:border-brand-primary/40';
-        }
-      });
-      try {
-        localStorage.setItem('ptt_currency', cur);
-        window.dispatchEvent(new CustomEvent('ptt:currency-changed', { detail: { currency: cur } }));
-      } catch {}
-    };
-
-    if (packageSelect) {
-      packageSelect.addEventListener('change', () => {
-        const selectedOpt = packageSelect.selectedOptions[0];
-        const newPrice = parseFloat(selectedOpt?.dataset.price || '0');
-        if (newPrice > 0) {
-          baseThb = newPrice;
-          convertedPriceEl.dataset.baseThb = String(newPrice);
-          const savedCur = localStorage.getItem('ptt_currency') || 'TRY';
-          updateCurrencyDisplay(savedCur);
-        }
-      });
-    }
-
-    currencyPills.forEach((pill) => {
-      pill.addEventListener('click', () => {
-        const cur = pill.dataset.currency || 'TRY';
-        updateCurrencyDisplay(cur);
-      });
-    });
-
-    const savedCur = localStorage.getItem('ptt_currency') || 'TRY';
-    updateCurrencyDisplay(savedCur);
   }
 });

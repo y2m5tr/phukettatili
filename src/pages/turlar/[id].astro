@@ -16,7 +16,6 @@ import TourGallery from '../../components/tour/detail/TourGallery.astro';
 import TourBookingSidebar from '../../components/tour/detail/TourBookingSidebar.astro';
 import TourRelatedTours from '../../components/tour/detail/TourRelatedTours.astro';
 import TourGalleryLightbox from '../../components/tour/detail/TourGalleryLightbox.astro';
-import TourMobileStickyBar from '../../components/tour/detail/TourMobileStickyBar.astro';
 import {
   buildTourDetailSchemas,
   defaultTourFaqs,
@@ -149,7 +148,6 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
   <TourRelatedTours tour={tour} relatedTours={relatedTours} />
 
   <TourGalleryLightbox />
-  <TourMobileStickyBar tour={tour} whatsappNumber={whatsappNumber} />
 </Layout>
 
 <script>
