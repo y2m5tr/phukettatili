@@ -1,0 +1,38 @@
+{
+  "title": "Phuket VIP Fast Track & Havalimanı Karşılama",
+  "slug": "fast-track",
+  "menu_label": "VIP Fast Track",
+  "eyebrow": "Kuyruksuz Geçiş · VIP Hostes · Hızlı Pasaport Kontrolü",
+  "heading": "HAVALİMANINDA SIRA BEKLEMEDEN PHUKET'E ADIM ATIN.",
+  "intro": "Phuket Uluslararası Havalimanı'nda (HKT) uzun pasaport ve güvenlik kuyruklarını atlayın. Uçak körüğünden çıkış anında özel hostesimiz tarafından karşılanarak öncelikli diplomatik şeritten dakikalar içinde geçin ve VIP aracınıza geçin.",
+  "media": "phuket_transfer.webp",
+  "media_alt": "Phuket VIP havalimanı transferi ve karşılama hizmeti",
+  "media_caption": "Phuket Uluslararası Havalimanı (HKT) VIP Karşılama ve Hızlı Pasaport Geçişi",
+  "options": [
+    {
+      "title": "Öncelikli Pasaport Geçişi (Fast Track)",
+      "text": "Uçaktan inişte isminizin yazılı olduğu tabela ile karşılanıp özel hızlı geçiş bankosundan sıra beklemeden 5-10 dakikada pasaport kontrolünü tamamlayın."
+    },
+    {
+      "title": "Bagaj Asistanlığı & Porter Hizmeti",
+      "text": "Pasaport sonrasında bagaj bantlarından valizlerinizin alınmasına refakat edilir ve gümrükten çıkışınıza kadar eşlik edilir."
+    },
+    {
+      "title": "VIP Buggy / Elektrikli Araç Refakati",
+      "text": "Uzak körük ve kapılardan inişlerde terminal içi konforlu elektrikli araç ile doğrudan pasaport bankosuna transfer sağlanır."
+    },
+    {
+      "title": "Fast Track + VIP Minibüs Kombosu",
+      "text": "Havalimanından otelinize kapıdan kapıya özel VIP minibüs transferi ile birleştirerek Phuket'e en konforlu ve stressiz başlangıcı yapın."
+    }
+  ],
+  "questions": [
+    "Uçuş numarası (Örn: TK 172) ve iniş tarihi",
+    "Gruptaki toplam yolcu ve çocuk sayısı",
+    "Kombine VIP araç transferi talebiniz var mı?",
+    "Gideceğiniz otel veya bölge bilgisi"
+  ],
+  "cta_context": "VIP Fast Track Talebi",
+  "cta_details": "Uçuş No ve Tarih:\nYolcu Sayısı:\nOtel / Bölge:\nVIP Araç Transferi İstiyor musunuz (Evet/Hayır):",
+  "order": 5
+}

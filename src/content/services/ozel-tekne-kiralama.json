@@ -1,0 +1,38 @@
+{
+  "title": "Phuket Özel Tekne & Katamaran Kiralama",
+  "slug": "ozel-tekne-kiralama",
+  "menu_label": "Özel Tekne Kiralama",
+  "eyebrow": "Kişiye Özel Rota · Özel Kaptan · Sadece Sizin Grubunuz",
+  "heading": "ADALARI KENDİ TEMPONUZDA VE ÖZGÜRCE KEŞFEDİN.",
+  "intro": "Kalabalık tur teknelerinden uzak, tamamen ailenize veya arkadaş grubunuza tahsis edilmiş özel sürat teknesi veya lüks katamaran kiralayarak Phi Phi, James Bond, Racha veya Coral adalarına dilediğiniz saatte açılın.",
+  "media": "phuket_yacht.webp",
+  "media_alt": "Phuket özel yat ve katamaran kiralama hizmeti",
+  "media_caption": "Phuket marinadan hareketli özel sürat tekneleri ve yelkenli katamaran filosu",
+  "options": [
+    {
+      "title": "Özel Sürat Teknesi (Private Speedboat)",
+      "text": "1-25 kişilik gruplar için çift veya üç motorlu modern tekneler. Phi Phi, Maya Bay, Bamboo ve James Bond rotalarında hızlı ve esnek seyir imkanı."
+    },
+    {
+      "title": "Lüks Yelkenli & Motorlu Katamaran",
+      "text": "Geniş ön file güvertesi, salon alanı ve şık konseptiyle gün batımı partileri, doğum günü kutlamaları ve balayı çiftleri için ideal deniz deneyimi."
+    },
+    {
+      "title": "Özgür ve Esnek Rota Seçimi",
+      "text": "Kalkış saatini ve koylarda kalış sürenizi siz belirlersiniz. Kalabalık saatlerden önce tenha koylarda yüzme ve şnorkel ayrıcalığı yaşayın."
+    },
+    {
+      "title": "Her Şey Dahil Özel Hizmet",
+      "text": "Lisanslı kaptan, yardımcı mürettebat, yakıt, şnorkel ekipmanları, meyve ikramları, soğuk meşrubatlar ve otel-iskele çift yönlü VIP transferi dahildir."
+    }
+  ],
+  "questions": [
+    "Planlanan tarih ve tahmini kişi sayısı",
+    "Tercih edilen rota (Phi Phi, James Bond, Racha/Coral veya Gün Batımı)",
+    "Tekne tercihi (Sürat Teknesi veya Lüks Katamaran)",
+    "Konakladığınız otel veya bölge"
+  ],
+  "cta_context": "Özel Tekne Kiralama Talebi",
+  "cta_details": "Tarih:\nKişi Sayısı:\nRota Tercihi (Phi Phi / James Bond / Racha & Coral / Sunset):\nTekne Türü (Speedboat / Katamaran):\nOtel:",
+  "order": 6
+}

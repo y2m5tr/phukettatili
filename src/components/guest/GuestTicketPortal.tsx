@@ -381,6 +381,19 @@ export default function GuestTicketPortal({
               </button>
             ))}
           </div>
+
+          {/* WhatsApp ile Hatırlatıcı Gönder / Paylaş Butonu */}
+          <div className="pt-2">
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`🎒 *${booking.tourTitle} Tura Hazırlık:* Otel: ${booking.hotel || 'Lobi'} · Alınış: ${booking.pickupTime || 'Belirtilen saat'}\n\n✅ Yanınıza Alınacaklar:\n• Otel Plaj Havlusu\n• Mayo / Şort\n• Güneş Kremi & Şapka\n• Su Geçirmez Kılıf\n• Nakit Baht (Milli Park için)\n• Pasaport Fotoğrafı (Telefonda)\n\n🌴 Keyifli turlar! Phuket Tatili`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-2.5 px-4 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
+            >
+              <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Listeyi WhatsApp ile Paylaş / Kendine Gönder</span>
+            </a>
+          </div>
         </div>
 
         {/* ⭐ TUR SONU AKILLI DEĞERLENDİRME & GOOGLE YORUM BOOSTER (SMART SENTIMENT GATE) */}

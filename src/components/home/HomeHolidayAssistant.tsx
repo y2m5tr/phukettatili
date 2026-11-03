@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Sparkles, Calendar, Heart, Users, CheckCircle2, MessageCircle, Compass } from 'lucide-react';
 import {
   generateHolidayPackage,
@@ -17,8 +17,6 @@ import {
   type TourCandidate,
   type WizardRecommendation,
 } from '../../lib/tourWizard';
-import { formatDisplayPrice, type DisplayCurrency } from '../../lib/siteCurrency';
-import { fmtMoney } from '../../lib/moneyFormat';
 
 interface HomeHolidayAssistantProps {
   tours?: TourCandidate[];
@@ -41,21 +39,6 @@ export default function HomeHolidayAssistant({
   const [wizardStep, setWizardStep] = useState<1 | 2 | 3>(1);
   const [selectedProfile, setSelectedProfile] = useState<TravelerProfile>('honeymoon');
   const [selectedVibe, setSelectedVibe] = useState<VacationVibe>('luxury_catamaran');
-  const [currency, setCurrency] = useState<DisplayCurrency>('THB');
-
-  useEffect(() => {
-    const saved = (localStorage.getItem('ptt_currency') as DisplayCurrency) || 'THB';
-    setCurrency(saved);
-
-    const handleCurrencyChange = (e: any) => {
-      if (e.detail?.currency) {
-        setCurrency(e.detail.currency);
-      }
-    };
-
-    window.addEventListener('ptt:currency-changed', handleCurrencyChange);
-    return () => window.removeEventListener('ptt:currency-changed', handleCurrencyChange);
-  }, []);
 
   // Hesaplamalar
   const packagePlan = generateHolidayPackage(duration, style, zone);
@@ -234,15 +217,15 @@ export default function HomeHolidayAssistant({
                 </div>
 
                 {/* Fiyatlama Kutusu */}
-                <div className="text-left sm:text-right shrink-0 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-                  <div className="text-xs text-slate-400 line-through">
-                    Ayrı Ayrı: {fmtMoney(packagePlan.totalIndividualPriceThb)} ฿
+                <div className="text-left sm:text-right shrink-0 bg-emerald-500/10 dark:bg-emerald-500/15 p-4 rounded-2xl border border-emerald-500/30 shadow-xs">
+                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
+                    ÖZEL PAKET TEKLİFİ
+                  </span>
+                  <div className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+                    İndirimli Kombine Fiyat
                   </div>
-                  <div className="text-2xl font-black text-brand-primary dark:text-amber-400 font-mono">
-                    {fmtMoney(packagePlan.finalPackagePriceThb)} ฿
-                  </div>
-                  <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                    Kişi Başı {fmtMoney(packagePlan.discountAmountThb)} ฿ Tasarruf!
+                  <div className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    WhatsApp'ta Anında Teklif Alın
                   </div>
                 </div>
               </div>
@@ -411,15 +394,15 @@ export default function HomeHolidayAssistant({
                     </p>
                   </div>
 
-                  {wizardRecommendation.discountedPriceThb > 0 && (
-                    <div className="text-left sm:text-right shrink-0 bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xs">
-                      <div className="text-xs text-slate-400">İndirimli Paket Fiyatı</div>
-                      <div className="text-2xl font-black text-brand-primary dark:text-amber-400 font-mono">
-                        {formatDisplayPrice(wizardRecommendation.discountedPriceThb, currency)}
-                      </div>
-                      <div className="text-[10px] text-slate-400">Kişi başı yaklaşık</div>
+                  <div className="text-left sm:text-right shrink-0 bg-emerald-500/10 dark:bg-emerald-500/15 p-4 rounded-2xl border border-emerald-500/30 shadow-xs">
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
+                      GÜNCEL FİYAT
+                    </span>
+                    <div className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                      WhatsApp ile Özel Teklif
                     </div>
-                  )}
+                    <div className="text-[10px] text-slate-500 dark:text-slate-400">Tarih & otele göre netleşir</div>
+                  </div>
                 </div>
 
                 {/* Öne Çıkan Özellikler */}
