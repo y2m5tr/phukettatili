@@ -55,6 +55,7 @@ Sitemap: https://phukettatili.com/sitemap.xml
 Sitemap: https://phukettatili.com/sitemap-index.xml
 Sitemap: https://phukettatili.com/sitemap-turlar.xml
 Sitemap: https://phukettatili.com/sitemap-blog.xml
+Sitemap: https://phukettatili.com/rss.xml
 
 # Meta Commerce & Google Merchant Product Catalog Feed (Allowed)
 Allow: /api/meta-catalog.xml
