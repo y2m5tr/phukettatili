@@ -6,7 +6,7 @@
  * API çağrıları ağ önceliklidir; ağ yoksa IndexedDB çevrimdışı kuyruğu devreye girer.
  */
 
-const CACHE_NAME = 'phuket-tatili-pwa-v7';
+const CACHE_NAME = 'phuket-tatili-pwa-v8';
 const PRECACHE_ASSETS = [
   '/',
   '/site.webmanifest',

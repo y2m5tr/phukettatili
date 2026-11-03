@@ -19,7 +19,7 @@ function QuickTripAssistantInner({ whatsappNumber = '66828950665' }: QuickTripAs
     window.addEventListener('ptt:trip-assistant:open', handleOpen);
 
     const onTriggerClick = (e: MouseEvent) => {
-      const target = (e.target as HTMLElement).closest('[data-open-trip-assistant], a[href*="tatil-asistani"], a[href*="tatil-sihirbazi"]');
+      const target = (e.target as HTMLElement).closest('[data-open-trip-assistant]');
       if (target) {
         e.preventDefault();
         setIsOpen(true);
