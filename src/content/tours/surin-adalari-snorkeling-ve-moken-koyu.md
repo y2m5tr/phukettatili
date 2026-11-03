@@ -27,7 +27,7 @@ included:
   - "İngilizce lisanslı profesyonel deniz rehberliği ve seyahat kaza sigortası"
 excluded:
   - "Moken köyünde el yapımı ahşap hediyelik eşya alışverişi"
-  - "Palet kiralama (isteğe bağlı iskelede ~100 THB)"
+  - "Palet kiralama (isteğe bağlı)"
   - "Rehber ve tekne personeli bahşişleri"
 packages:
   - name: "Surin Secret / Day Trip: 3 Şnorkel Noktası + Moken Köyü"
@@ -56,7 +56,7 @@ faq:
   - q: "Moken Köyü kimlerden oluşur?"
     a: "Moken halkı, yüzyıllardır Andaman Denizi'nde yarı göçebe olarak yaşayan 'Deniz Çingeneleri'dir. Kendilerine özgü dilleri, geleneksel ahşap tekne yapımları ve olağanüstü sualtı dalış yetenekleriyle bilinirler."
   - q: "2 Gün 1 Gece konaklama seçeneği var mı?"
-    a: "Evet. SeaStar ile milli parkın Mai Ngam sahilindeki bungalov veya çadır kampında 1 gece konaklamalı turumuz mevcuttur (Kişi başı 8.600 THB). Akşam gün batımı yürüyüşü ve gece sessizliği yaşamak isteyen doğaseverler için eşsizdir."
+    a: "Evet. SeaStar ile milli parkın Mai Ngam sahilindeki bungalov veya çadır kampında 1 gece konaklamalı turumuz mevcuttur. Akşam gün batımı yürüyüşü ve gece sessizliği yaşamak isteyen doğaseverler için eşsizdir."
 restrictions:
   - "Hamile kadınlar ve 1 yaş altı bebekler için sürat teknesi uygun değildir"
   - "Milli park koruma kanunları gereği pasaport kopyası rezervasyonda gereklidir"
@@ -76,12 +76,12 @@ Kitle turizminden uzak, doğanın tüm saflığını koruduğu bu ada grubu, ger
 
 ---
 
-### 🤿 Resmi Fiyatlandırma ve Paketler
+### 🤿 Resmi Paket Seçenekleri
 
-| Paket Tipi | Süre & Konsept | Yetişkin Fiyatı (Phuket) | Çocuk Fiyatı (4-11 Yaş) | Khao Lak Çıkış |
-| :--- | :--- | :--- | :--- | :--- |
-| **Surin Secret / Day Trip** | Günübirlik: 3 ayrı şnorkel noktası + Moken Köyü + Açık büfe öğle yemeği | **4.300 THB** | **3.100 THB** | *3.900 / 2.700 THB* |
-| **Surin 2 Gün 1 Gece Kamp/Bungalov** | 2 Gün: Milli park konaklaması + Gün batımı Kra Ting yürüyüşü + 5 şnorkel seansı | **8.600 THB** | **6.000 THB** | *8.200 / 5.600 THB* |
+| Paket Tipi | Süre & Konsept | Teklif & Bilgi |
+| :--- | :--- | :--- |
+| **Surin Secret / Day Trip** | Günübirlik: 3 ayrı şnorkel noktası + Moken Köyü + Açık büfe öğle yemeği | WhatsApp ile Özel Teklif |
+| **Surin 2 Gün 1 Gece Kamp/Bungalov** | 2 Gün: Milli park konaklaması + Gün batımı Kra Ting yürüyüşü + 5 şnorkel seansı | WhatsApp ile Özel Teklif |
 
 ---
 

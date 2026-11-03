@@ -2,9 +2,7 @@
 import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import TourShowcase from '../../components/ui/TourShowcase';
-import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
 import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
-import { fmtMoney } from '../../lib/moneyFormat';
 import TourCardImageCarousel from '../../components/tour/TourCardImageCarousel.astro';
 
 // Dinamik SSR: panelde değişen fiyat/başlık/kapak listede de görünsün. Eskiden

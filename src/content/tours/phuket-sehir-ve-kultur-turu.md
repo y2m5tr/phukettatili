@@ -83,17 +83,17 @@ order: 7
 
 Phuket'in sadece kristal koylarını değil; asırlık kolonyal tarihini, zengin Budist tapınaklarını ve yemyeşil doğasını keşfedin. Kendi ilgi alanınıza ve ailenize uygun programı seçerek adanın en ikonik noktalarını deneyimli şoförümüz eşliğinde keşfedebilirsiniz.
 
-### 📋 Resmi Program ve Fiyatlandırma Tablosu
+### 📋 Resmi Program Seçenekleri Tablosu
 
-| Program No | Rota & Dahil Aktiviteler | Yetişkin Fiyatı | Çocuk Fiyatı (4-11 Yaş) |
-| :--- | :--- | :--- | :--- |
-| **Program 1** | Big Buddha + Wat Chalong + Phuket Old Town + Kaju Fabrikası + Bal Çiftliği + Kahve Evi + Hafta Sonu Pazarı | **1.450 THB** | **1.050 THB** |
-| **Program 2** | Big Buddha + Wat Chalong + Promthep Burnu + Brahma Tapınağı + Bebek Fil Fotoğrafı + Kaju & Bal Çiftliği + Hafta Sonu Pazarı | **1.450 THB** | **1.050 THB** |
-| **Program 3** | Big Buddha + Wat Chalong + 30 Dk Fil Safarisi + Bebek Fil Fotoğrafı + Bal Çiftliği + Kaju + Kahve + Hafta Sonu Pazarı | **1.850 THB** | **1.450 THB** |
-| **Program 4** | Big Buddha + Wat Chalong + Yılan Şovu + 30 Dk Fil Safarisi + Bebek Fil Fotoğrafı + Maymun Şovu + Bal & Kaju + Hafta Sonu Pazarı | **2.450 THB** | **2.050 THB** |
-| **Program 5** | Big Buddha + Wat Chalong + 30 Dk Fil Safarisi + Bebek Fil Fotoğrafı + 30 Dk Orman ATV + Kaju & Bal Çiftliği + Hafta Sonu Pazarı | **2.650 THB** | **2.250 THB** |
-| **Program 6** | Big Buddha + Wat Chalong + Tiger Kingdom Kaplan Fotoğrafı (1 Boy) + Bebek Fil Fotoğrafı + Bal Çiftliği + Kaju + Hafta Sonu Pazarı | **2.850 THB** | **2.450 THB** |
-| **Program 7** | Big Buddha + Wat Chalong + 30 Dk Fil Safarisi + Tiger Kingdom Kaplan Fotoğrafı (1 Boy) + Bebek Fil Fotoğrafı + Kaju + Hafta Sonu Pazarı | **3.050 THB** | **2.650 THB** |
+| Program No | Rota & Dahil Aktiviteler | Teklif & Bilgi |
+| :--- | :--- | :--- |
+| **Program 1** | Big Buddha + Wat Chalong + Phuket Old Town + Kaju Fabrikası + Bal Çiftliği + Kahve Evi + Hafta Sonu Pazarı | WhatsApp ile Özel Teklif |
+| **Program 2** | Big Buddha + Wat Chalong + Promthep Burnu + Brahma Tapınağı + Bebek Fil Fotoğrafı + Kaju & Bal Çiftliği + Hafta Sonu Pazarı | WhatsApp ile Özel Teklif |
+| **Program 3** | Big Buddha + Wat Chalong + 30 Dk Fil Safarisi + Bebek Fil Fotoğrafı + Bal Çiftliği + Kaju + Kahve + Hafta Sonu Pazarı | WhatsApp ile Özel Teklif |
+| **Program 4** | Big Buddha + Wat Chalong + Yılan Şovu + 30 Dk Fil Safarisi + Bebek Fil Fotoğrafı + Maymun Şovu + Bal & Kaju + Hafta Sonu Pazarı | WhatsApp ile Özel Teklif |
+| **Program 5** | Big Buddha + Wat Chalong + 30 Dk Fil Safarisi + Bebek Fil Fotoğrafı + 30 Dk Orman ATV + Kaju & Bal Çiftliği + Hafta Sonu Pazarı | WhatsApp ile Özel Teklif |
+| **Program 6** | Big Buddha + Wat Chalong + Tiger Kingdom Kaplan Fotoğrafı (1 Boy) + Bebek Fil Fotoğrafı + Bal Çiftliği + Kaju + Hafta Sonu Pazarı | WhatsApp ile Özel Teklif |
+| **Program 7** | Big Buddha + Wat Chalong + 30 Dk Fil Safarisi + Tiger Kingdom Kaplan Fotoğrafı (1 Boy) + Bebek Fil Fotoğrafı + Kaju + Hafta Sonu Pazarı | WhatsApp ile Özel Teklif |
 
 ---
 

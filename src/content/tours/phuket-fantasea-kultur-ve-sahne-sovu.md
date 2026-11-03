@@ -19,8 +19,8 @@ included:
   - "Festival Village karnaval köyü, el sanatları çarşısı ve ışıklandırmalı göl gösterileri"
   - "Kaza sigortası ve park içi teknik destek"
 excluded:
-  - "Otelden paylaşımlı çift yönlü servis transferi (Kişi başı 350 THB ek ücretle eklenebilir)"
-  - "Tiyatro Gold Seat (Altın Koltuk) ön sıra yükseltmesi (Kişi başı +350 THB)"
+  - "Otelden paylaşımlı çift yönlü servis transferi (İsteğe bağlı eklenebilir)"
+  - "Tiyatro Gold Seat (Altın Koltuk) ön sıra yükseltmesi (İsteğe bağlı)"
   - "Kişisel karnaval oyunları, hediyelik eşya ve özel içecekler"
 program:
   - "17:30 - Phuket otellerinden transfer minibüslerinin hareket etmesi (transferli biletlerde)"
@@ -58,14 +58,14 @@ Dev fil heykelleriyle süslenmiş taş saraylar, karnaval sokakları ve lotus g�
 
 ---
 
-### 🎭 Resmi Bilet Fiyatlandırma Tablosu
+### 🎭 Resmi Bilet ve Paket Seçenekleri
 
-| Bilet Tipi | İçerik & Ayrıcalıklar | Yetişkin Fiyatı | Çocuk Fiyatı (101-140 cm) |
-| :--- | :--- | :--- | :--- |
-| **Sadece Gösteri (Show Only)** | Park Girişi + Karnaval Köyü + Standart Tiyatro Koltuğu | **1.800 THB** | **1.800 THB** |
-| **Gösteri + Açık Büfe Akşam Yemeği** | Park Girişi + Golden Kinnaree Dev Açık Büfe Yemek + Standart Koltuk | **2.200 THB** | **2.000 THB** |
-| **Gold Seat (Altın Koltuk) Yükseltmesi** | Sahneyi en merkezi açıdan gören VIP tiyatro koltuğu | **+350 THB** | **+350 THB** |
-| **Otel Gidiş-Dönüş Transfer Hizmeti** | Klimalı ortak transfer servisi (Ada geneli) | **350 THB** | **350 THB** |
+| Bilet Tipi | İçerik & Ayrıcalıklar | Teklif & Bilgi |
+| :--- | :--- | :--- |
+| **Sadece Gösteri (Show Only)** | Park Girişi + Karnaval Köyü + Standart Tiyatro Koltuğu | WhatsApp ile Özel Teklif |
+| **Gösteri + Açık Büfe Akşam Yemeği** | Park Girişi + Golden Kinnaree Dev Açık Büfe Yemek + Standart Koltuk | WhatsApp ile Özel Teklif |
+| **Gold Seat (Altın Koltuk) Yükseltmesi** | Sahneyi en merkezi açıdan gören VIP tiyatro koltuğu | WhatsApp ile Özel Teklif |
+| **Otel Gidiş-Dönüş Transfer Hizmeti** | Klimalı ortak transfer servisi (Ada geneli) | Teklife dahil edilebilir |
 
 *Boyu 100 cm altındaki bebekler ve küçük çocuklar ücretsizdir.*
 

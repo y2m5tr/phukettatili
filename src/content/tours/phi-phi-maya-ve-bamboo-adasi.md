@@ -80,7 +80,7 @@ faq:
   - q: "Maya Bay yılın her dönemi açık mı?"
     a: "Maya Bay doğal ekosistemin yenilenmesi amacıyla her yıl 1 Ağustos - 30 Eylül tarihleri arasında 2 ay boyunca ziyarete kapatılır. Bu dönemde tur programı aksamaz; Maya Bay yerine ekstra bir şnorkel noktası (örneğin Shark Point veya Khai Nok) eklenerek program eksiksiz uygulanır."
   - q: "Milli park ücreti fiyata dahil mi?"
-    a: "Evet, SeaStar ve Andaman Surprise tam gün programlarımızda 400 THB yetişkin ve 200 THB çocuk milli park harçları tur paket fiyatına dahildir. Ekstra gizli bir park ücreti ödemezsiniz."
+    a: "Evet, SeaStar ve Andaman Surprise tam gün programlarımızda milli park giriş harçları paket teklifimize dahildir. Ekstra gizli bir park ücreti ödemezsiniz."
   - q: "Hamile misafirler veya bebekler katılabilir mi?"
     a: "Tayland Denizcilik Güvenlik Kuralları uyarınca sürat tekneleri (speedboat) hamile kadınlar, 1 yaş altı bebekler ve omurga/boyun ameliyatı geçirmiş kişiler için uygun değildir. Bu misafirlerimize sarsıntısız Moonlight Lüks Yat veya büyük konforlu feribot seçeneklerimizi öneriyoruz."
 restrictions:
@@ -103,18 +103,18 @@ Leonardo DiCaprio'nun başrolünde oynadığı "The Beach" filmiyle dünya çap�
 
 ---
 
-### 🚤 Resmi Tur Seçenekleri ve Fiyat Karşılaştırması
+### 🚤 Resmi Tur ve Tekne Seçenekleri
 
-| Operatör & Tekne Tipi | Öne Çıkan Özellikler | Yetişkin Fiyatı | Çocuk Fiyatı (4-11 Yaş) |
-| :--- | :--- | :--- | :--- |
-| **SeaStar Phi Phi & Bamboo (Speedboat)** | Bamboo Adası + Maya Bay + Pileh Lagoon kano & SUP + Ton Sai öğle yemeği + Milli Park Dahil | **3.700 THB** | **2.600 THB** |
-| **SeaStar Lazy Phi Phi (Speedboat)** | 10:00 Rahat çıkış + Maya Bay + Pileh + Khai Adası şnorkel & plaj molası | **3.400 THB** | **2.400 THB** |
-| **SeaStar Lazy Phi Phi (Speed Catamaran)** | Çift gövdeli sarsıntısız hızlı katamaran + Maya + Pileh + Khai Adası | **3.700 THB** | **2.700 THB** |
-| **Diamond Sea Phi Phi Day Trip** | Boat Lagoon çıkışlı + Maya Bay + Khai Adası + Açık büfe öğle yemeği | **3.500 THB** | **2.400 THB** |
-| **Andaman Surprise VIP Catamaran** | Maksimum 30 kişi kontenjanı + Premium hizmet + Paddleboard & Şeffaf Kano | **3.900 THB** | **2.900 THB** |
-| **Moonlight Luxury Yacht (Seven Plus)** | 2 katlı lüks yat + Güneşlenme güvertesi + Chalong kalkış + Gurme büfe | **5.500 THB** | **5.000 THB** |
+| Operatör & Tekne Tipi | Öne Çıkan Özellikler | Teklif & Bilgi |
+| :--- | :--- | :--- |
+| **SeaStar Phi Phi & Bamboo (Speedboat)** | Bamboo Adası + Maya Bay + Pileh Lagoon kano & SUP + Ton Sai öğle yemeği + Milli Park Dahil | WhatsApp ile Özel Teklif |
+| **SeaStar Lazy Phi Phi (Speedboat)** | 10:00 Rahat çıkış + Maya Bay + Pileh + Khai Adası şnorkel & plaj molası | WhatsApp ile Özel Teklif |
+| **SeaStar Lazy Phi Phi (Speed Catamaran)** | Çift gövdeli sarsıntısız hızlı katamaran + Maya + Pileh + Khai Adası | WhatsApp ile Özel Teklif |
+| **Diamond Sea Phi Phi Day Trip** | Boat Lagoon çıkışlı + Maya Bay + Khai Adası + Açık büfe öğle yemeği | WhatsApp ile Özel Teklif |
+| **Andaman Surprise VIP Catamaran** | Maksimum 30 kişi kontenjanı + Premium hizmet + Paddleboard & Şeffaf Kano | WhatsApp ile Özel Teklif |
+| **Moonlight Luxury Yacht (Seven Plus)** | 2 katlı lüks yat + Güneşlenme güvertesi + Chalong kalkış + Gurme büfe | WhatsApp ile Özel Teklif |
 
-*Not: Khaolak bölgesi otellerinden transferli binişlerde yetişkin +400 THB, çocuk +400 THB transfer farkı uygulanır.*
+*Not: Tüm programlarımızda milli park harçları ve otel transferleri teklif içeriğinde netleştirilmektedir.*
 
 ---
 

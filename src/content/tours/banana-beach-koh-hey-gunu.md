@@ -76,13 +76,13 @@ Hilal şeklindeki bembeyaz kumlu koyu, kristal berraklığındaki sakin denizi v
 
 ---
 
-### 🌴 Resmi Paket Seçenekleri ve Fiyatlandırma
+### 🌴 Resmi Paket Seçenekleri
 
-| Paket Adı | Program Özeti ve Dahil Olanlar | Yetişkin Fiyatı | Çocuk Fiyatı (4-12 Yaş) |
-| :--- | :--- | :--- | :--- |
-| **Beautiful Relaxing Day** | Otel Transferi + Sürat Teknesi + Plaj Şezlongu + Hornbill Restaurant Açık Büfe Öğle Yemeği + Kumsalda Yüzme | **2.200 THB** | **1.700 THB** |
-| **Snorkeling in Crystal Clear Waters** | Relaxing Paketi + **Tekneyle Açık Deniz Şnorkel Turu** + Şnorkel Ekipmanları + Şeffaf Kano (Clear Kayak) | **2.800 THB** | **2.300 THB** |
-| **Impress The Excitement** | Relaxing + Tekne Şnorkeli + Şeffaf Kano + **Özel Sahil Aktiviteleri ve Su Sporları Önceliği** | **3.500 THB** | **3.000 THB** |
+| Paket Adı | Program Özeti ve Dahil Olanlar | Teklif & Bilgi |
+| :--- | :--- | :--- |
+| **Beautiful Relaxing Day** | Otel Transferi + Sürat Teknesi + Plaj Şezlongu + Hornbill Restaurant Açık Büfe Öğle Yemeği + Kumsalda Yüzme | WhatsApp ile Özel Teklif |
+| **Snorkeling in Crystal Clear Waters** | Relaxing Paketi + **Tekneyle Açık Deniz Şnorkel Turu** + Şnorkel Ekipmanları + Şeffaf Kano (Clear Kayak) | WhatsApp ile Özel Teklif |
+| **Impress The Excitement** | Relaxing + Tekne Şnorkeli + Şeffaf Kano + **Özel Sahil Aktiviteleri ve Su Sporları Önceliği** | WhatsApp ile Özel Teklif |
 
 *Her gün 2 farklı seans seçeneği: Sabah Seansı (08:30 - 14:00) veya Tam Gün Seansı (10:00 - 17:00).*
 

@@ -21,6 +21,7 @@ import {
 } from '../../lib/guideExpenses';
 import type { DriverItem } from '../../data/adminInitialData';
 import { readLocalCollection, saveCmsCollection } from '../../lib/cmsSync';
+import { fmtMoney } from '../../lib/moneyFormat';
 import { GuideExpenseKpiCards } from './guideExpense/GuideExpenseKpiCards';
 import { GuideExpenseForm } from './guideExpense/GuideExpenseForm';
 import { GuideExpenseTable } from './guideExpense/GuideExpenseTable';

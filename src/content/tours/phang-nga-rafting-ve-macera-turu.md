@@ -57,7 +57,7 @@ faq:
   - q: "Rafting turu güvenli midir? Yüzme bilmek gerekir mi?"
     a: "Tone Pariwat Nehri'ndeki rafting turlarımız uluslararası güvenlik standartlarındadır. Her botta en az 2 profesyonel yerel kürek kaptanı bulunur. Can yeleği ve kask takmak zorunludur; yüzme bilmeyen misafirler de güvenle katılabilir."
   - q: "Program A, B, C ve Bambu Rafting arasındaki fark nedir?"
-    a: "Program A: Rafting + Zipline + Fil Yürüyüşü (2.200 THB). Program B: Rafting + Zipline + 30 Dk ATV Safarisi (2.500 THB). Program C: Rafting + ATV + Fil + Zipline full kombo (2.900 THB). Bambu Rafting: Akarsu yerine sakin nehirde bambu salla gezi, kaplumbağa koruma merkezi ve fil banyosunu içerir (2.400 THB)."
+    a: "Program A: Rafting + Zipline + Fil Yürüyüşü. Program B: Rafting + Zipline + 30 Dk ATV Safarisi. Program C: Rafting + ATV + Fil + Zipline full kombo. Bambu Rafting: Akarsu yerine sakin nehirde bambu salla gezi, kaplumbağa koruma merkezi ve fil banyosunu içerir."
   - q: "ATV kullanmak için ehliyet gerekir mi?"
     a: "Hayır, özel bir ehliyet gerekmez. Sürüş öncesi eğitmenler otomatik vitesli ATV'lerin gaz, fren ve direksiyon kontrollerini uygulamalı olarak anlatır."
   - q: "Yanımıza neler almalıyız?"
@@ -81,14 +81,14 @@ Phang Nga Tone Pariwat Millî Parkı'nın gürül gürül akan nehirlerinde 5 ki
 
 ---
 
-### 🌊 Macera Paketleri ve Fiyat Karşılaştırması
+### 🌊 Macera Paket Seçenekleri
 
-| Paket Adı | Dahil Olan Aktiviteler | Yetişkin Fiyatı | Çocuk Fiyatı (6-11 Yaş) |
-| :--- | :--- | :--- | :--- |
-| **Program A (Rafting + Fil + Zipline)** | Maymun Mağarası + 5 km Rafting + Zipline + 30 Dk Fil Yürüyüşü + Şelale + Öğle Yemeği | **2.200 THB** | **1.700 THB** |
-| **Program B (Rafting + ATV + Zipline)** | Maymun Mağarası + 5 km Rafting + Zipline + **30 Dk Orman ATV** + Şelale + Öğle Yemeği | **2.500 THB** | **1.900 THB** |
-| **Program C (Ultimate Adrenalin)** | Maymun Mağarası + 5 km Rafting + Zipline + **30 Dk ATV** + **30 Dk Fil** + Şelale + Öğle Yemeği | **2.900 THB** | **2.300 THB** |
-| **Bambu Rafting Eko Paketi** | Kaplumbağa Koruma Merkezi + Sakin Bambu Salla Seyir + Fil Banyosu + Orman Yürüyüşü | **2.400 THB** | **1.800 THB** |
+| Paket Adı | Dahil Olan Aktiviteler | Teklif & Bilgi |
+| :--- | :--- | :--- |
+| **Program A (Rafting + Fil + Zipline)** | Maymun Mağarası + 5 km Rafting + Zipline + 30 Dk Fil Yürüyüşü + Şelale + Öğle Yemeği | WhatsApp ile Özel Teklif |
+| **Program B (Rafting + ATV + Zipline)** | Maymun Mağarası + 5 km Rafting + Zipline + **30 Dk Orman ATV** + Şelale + Öğle Yemeği | WhatsApp ile Özel Teklif |
+| **Program C (Ultimate Adrenalin)** | Maymun Mağarası + 5 km Rafting + Zipline + **30 Dk ATV** + **30 Dk Fil** + Şelale + Öğle Yemeği | WhatsApp ile Özel Teklif |
+| **Bambu Rafting Eko Paketi** | Kaplumbağa Koruma Merkezi + Sakin Bambu Salla Seyir + Fil Banyosu + Orman Yürüyüşü | WhatsApp ile Özel Teklif |
 
 ---
 

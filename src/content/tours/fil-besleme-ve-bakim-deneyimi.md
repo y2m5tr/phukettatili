@@ -46,7 +46,7 @@ faq:
   - q: "Bu parkta fillere biniliyor mu (Trekking yapılıyor mu)?"
     a: "Hayır. Kerchor Elephant Family Park, Chiang Mai Mae Wang kökenli etik bir koruma alanıdır. Burada fillerin sırtına semer takılmaz, binilmez veya gösteri yaptırılmaz. Program tamamen onların doğal davranışlarını gözlemlemeye, beslemeye ve temizlenmelerine yardımcı olmaya odaklıdır."
   - q: "Besleme & Yağmur Duşu ile Yarım Gün programı arasındaki fark nedir?"
-    a: "Besleme & Duş programı yaklaşık 1.5 saat sürer; besleme ve yağmur duşunu kapsar (2.000 THB). Yarım Gün programı ise yaklaşık 3 saat sürer; ek olarak bitkisel ilaç topları hazırlama, nehirde çamur banyosu ve geleneksel yemek pişirme atölyesini de içerir (2.800 THB)."
+    a: "Besleme & Duş programı yaklaşık 1.5 saat sürer; besleme ve yağmur duşunu kapsar. Yarım Gün programı ise yaklaşık 3 saat sürer; ek olarak bitkisel ilaç topları hazırlama, nehirde çamur banyosu ve geleneksel yemek pişirme atölyesini de içerir."
   - q: "Yanımıza neler almalıyız?"
     a: "Mayo veya bikini (kıyafetinizin altına giymeniz önerilir), yedek kuru giysiler, havlu, parmak arası terlik veya sandalet, güneş kremi ve böcek kovucu sprey getirmeniz tavsiye edilir."
   - q: "Çocuklar için güvenli midir?"
@@ -70,12 +70,12 @@ Kathu Vadisi'nin yemyeşil yağmur ormanları içinde, Andamanda Su Parkı'nın 
 
 ---
 
-### 🐘 Resmi Program Seçenekleri ve Fiyatlandırma
+### 🐘 Resmi Program Seçenekleri
 
-| Program Adı | Süre & İçerik | Yetişkin Fiyatı | Çocuk Fiyatı (3-9 Yaş) |
-| :--- | :--- | :--- | :--- |
-| **Feeding & Showering (Besleme ve Yağmur Duşu)** | Yaklaşık 1.5 Saat: Karen kültürü sunumu + Besleme sepeti hazırlama + Elle besleme + Açık hava yağmur duşunda yıkama + Tayland yemeği | **2.000 THB** | **1.500 THB** |
-| **Half Day Sanctuary (Kapsamlı Yarım Gün)** | Yaklaşık 3 Saat: Kültür sunumu + Şifalı bitki topları hazırlama + Besleme + Mineralli çamur spa kürü + Nehir / havuz banyosu + Yemek atölyesi | **2.800 THB** | **1.800 THB** |
+| Program Adı | Süre & İçerik | Teklif & Bilgi |
+| :--- | :--- | :--- |
+| **Feeding & Showering (Besleme ve Yağmur Duşu)** | Yaklaşık 1.5 Saat: Karen kültürü sunumu + Besleme sepeti hazırlama + Elle besleme + Açık hava yağmur duşunda yıkama + Tayland yemeği | WhatsApp ile Özel Teklif |
+| **Half Day Sanctuary (Kapsamlı Yarım Gün)** | Yaklaşık 3 Saat: Kültür sunumu + Şifalı bitki topları hazırlama + Besleme + Mineralli çamur spa kürü + Nehir / havuz banyosu + Yemek atölyesi | WhatsApp ile Özel Teklif |
 
 *Günde iki seans: Sabah Seansı (07:30 - 11:30) veya Öğleden Sonra Seansı (12:30 - 16:30).*
 *0-2 yaş bebekler tamamen ücretsizdir.*
