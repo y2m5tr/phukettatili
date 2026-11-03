@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { formatDisplayPrice, type DisplayCurrency } from '../../lib/siteCurrency';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
+import TourBookingSuccessView from './TourBookingSuccessView';
+
+interface TourPackageOption {
+  name: string;
+  price_thb?: number;
+  child_price_thb?: number;
+}
 
 interface TourQuickBookingDrawerProps {
   tourTitle: string;
   tourId: string;
   priceThb: number;
+  packages?: TourPackageOption[];
   whatsappNumber?: string;
 }
 
@@ -13,9 +21,11 @@ export default function TourQuickBookingDrawer({
   tourTitle,
   tourId,
   priceThb,
+  packages = [],
   whatsappNumber = '66828950665',
 }: TourQuickBookingDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [selectedPackage, setSelectedPackage] = useState<string>(packages[0]?.name || '');
   const [isPromptPayOpen, setIsPromptPayOpen] = useState(false);
   const [date, setDate] = useState(() => {
     const tomorrow = new Date();
@@ -64,16 +74,18 @@ export default function TourQuickBookingDrawer({
   }, []);
 
   const totalPax = adults + children;
-  // Çocuk için %30 indirimli fiyat hesaplama
-  const childPriceThb = Math.round(priceThb * 0.7);
+  const activePackage = packages.find(p => p.name === selectedPackage);
+  const activePriceThb = activePackage?.price_thb || priceThb;
+  const childPriceThb = activePackage?.child_price_thb || Math.round(activePriceThb * 0.7);
   const transferCost = addTransfer ? 1400 : 0;
-  const totalThb = adults * priceThb + children * childPriceThb + transferCost;
+  const totalThb = adults * activePriceThb + children * childPriceThb + transferCost;
 
   const generateWhatsAppUrl = (ticketCode?: string) => {
     const cleanNumber = whatsappNumber.replace(/[^0-9]/g, '');
     const displayDate = date ? date.split('-').reverse().join('/') : '';
+    const pkgStr = selectedPackage ? ` (${selectedPackage})` : '';
     const lines = [
-      `🌴 *Merhaba Phuket Tatili, ${tourTitle} Turu İçin Rezervasyon Talebi:*`,
+      `🌴 *Merhaba Phuket Tatili, ${tourTitle}${pkgStr} Turu İçin Rezervasyon Talebi:*`,
       ``,
       ...(ticketCode ? [`🎫 *Referans Kodu:* ${ticketCode}`, ``] : []),
       ...(agentRef ? [`🤝 *Acente / Rehber Kodu:* ${agentRef.toUpperCase()}`, ``] : []),
@@ -104,6 +116,12 @@ export default function TourQuickBookingDrawer({
 
     setIsSubmitting(true);
     try {
+      const fullTourTitle = [
+        tourTitle,
+        selectedPackage ? `(${selectedPackage})` : '',
+        addTransfer ? '+ VIP Havalimanı Transferi (Combo)' : '',
+      ].filter(Boolean).join(' ');
+
       const res = await fetch('/api/public-booking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -112,7 +130,7 @@ export default function TourQuickBookingDrawer({
           phone: phone.trim(),
           hotel: hotel.trim(),
           tourId,
-          tourTitle: addTransfer ? `${tourTitle} + VIP Havalimanı Transferi (Combo)` : tourTitle,
+          tourTitle: fullTourTitle,
           tourDate: date,
           adultCount: adults,
           childCount: children,
@@ -228,69 +246,16 @@ export default function TourQuickBookingDrawer({
             </div>
 
             {submitSuccess ? (
-              /* ==================================================== */
-              /* BAŞARI GÖRÜNÜMÜ: BİLET KODU & WHATSAPP YÖNLENDİRME */
-              /* ==================================================== */
-              <div className="space-y-5 py-2 text-center animate-fadeIn">
-                <div className="w-14 h-14 rounded-full bg-emerald-500/15 text-emerald-400 mx-auto flex items-center justify-center text-2xl border border-emerald-500/30">
-                  ✓
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-bold text-white mb-1">
-                    Rezervasyon Talebiniz Alındı!
-                  </h4>
-                  <p className="text-xs text-slate-400 max-w-sm mx-auto">
-                    Talebiniz operasyon sistemimize kaydedildi. Canlı bilet ve transfer takibiniz için referans kodunuz oluşturuldu:
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-950 border border-slate-800 space-y-1 inline-block w-full">
-                  <div className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">
-                    Misafir Takip & Bilet Kodunuz
-                  </div>
-                  <div className="text-2xl font-mono font-black text-amber-400 tracking-wider">
-                    {submitSuccess.ticketCode}
-                  </div>
-                  <a
-                    href={submitSuccess.ticketUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-brand-accent hover:underline block pt-1 font-semibold"
-                  >
-                    🎟️ Bilet Portalı ve Canlı Alınış Takibini Aç →
-                  </a>
-                </div>
-
-                <div className="pt-2 flex flex-col gap-2.5">
-                  <a
-                    href={submitSuccess.whatsAppUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full py-3.5 rounded-2xl bg-whatsapp hover:bg-whatsapp-dark text-white font-black text-sm shadow-xl shadow-emerald-500/20 flex items-center justify-center gap-2 transition cursor-pointer"
-                  >
-                    <span>💬</span>
-                    <span>WhatsApp Görüşmesini Başlat</span>
-                  </a>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsPromptPayOpen(true)}
-                    className="w-full py-3 rounded-2xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs shadow-lg shadow-blue-600/20 flex items-center justify-center gap-2 transition cursor-pointer"
-                  >
-                    <span>📱</span>
-                    <span>PromptPay Canlı QR ile Öde</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsOpen(false)}
-                    className="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition cursor-pointer"
-                  >
-                    Kapat
-                  </button>
-                </div>
-              </div>
+              <TourBookingSuccessView
+                ticketCode={submitSuccess.ticketCode}
+                ticketUrl={submitSuccess.ticketUrl}
+                whatsAppUrl={submitSuccess.whatsAppUrl}
+                onOpenPromptPay={() => setIsPromptPayOpen(true)}
+                onReset={() => {
+                  setSubmitSuccess(null);
+                  setIsOpen(false);
+                }}
+              />
             ) : (
               /* ==================================================== */
               /* REZERVASYON FORMU */
@@ -333,6 +298,27 @@ export default function TourQuickBookingDrawer({
                     />
                   </div>
                 </div>
+
+                {/* Paket / Seçenek Seçimi */}
+                {packages && packages.length > 0 && (
+                  <div>
+                    <label className="block font-bold text-slate-300 uppercase tracking-wider mb-1.5 flex items-center justify-between text-xs">
+                      <span>Tur Paketi / Program Seçimi</span>
+                      <span className="text-[10px] text-amber-400 lowercase font-medium">fiyat otomatik güncellenir</span>
+                    </label>
+                    <select
+                      value={selectedPackage}
+                      onChange={(e) => setSelectedPackage(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl bg-slate-950 border border-slate-800 text-white font-medium focus:outline-none focus:border-brand-accent text-xs sm:text-sm"
+                    >
+                      {packages.map((pkg) => (
+                        <option key={pkg.name} value={pkg.name}>
+                          {pkg.name} {pkg.price_thb ? `(${pkg.price_thb.toLocaleString('en-US')} THB)` : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 {/* Tarih Seçimi */}
                 <div>

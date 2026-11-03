@@ -77,14 +77,15 @@ export function getRecommendedPickupTime(zone: string): string {
 
 /**
  * Standart döviz kurları (1 yabancı birim = X THB).
+ * 1 THB ≈ 1.48 TRY (yani 1 TRY ≈ 0.675 THB).
  * Canlı kur `/api/exchange-rates` üzerinden gelir; bu değer yalnızca
  * ağ yokken kullanılan güvenli varsayılandır ve public sitede gösterilir.
  */
 export const DEFAULT_EXCHANGE_RATES: Record<'TRY' | 'USD' | 'EUR' | 'GBP', number> = {
-  TRY: 1.05,
-  USD: 36.5,
-  EUR: 39.5,
-  GBP: 46.0,
+  TRY: 0.675,
+  USD: 33.7,
+  EUR: 37.8,
+  GBP: 44.0,
 };
 
 export function convertToThb(

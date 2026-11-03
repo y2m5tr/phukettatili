@@ -38,9 +38,9 @@ export function convertThbPrice(
     return Math.round(amountThb || 0);
   }
 
-  const rateTry = customRates?.TRY || DEFAULT_EXCHANGE_RATES.TRY || 1.2;
-  const rateUsd = customRates?.USD || DEFAULT_EXCHANGE_RATES.USD || 36.0;
-  const rateEur = customRates?.EUR || DEFAULT_EXCHANGE_RATES.EUR || 39.0;
+  const rateTry = customRates?.TRY || DEFAULT_EXCHANGE_RATES.TRY || 0.675;
+  const rateUsd = customRates?.USD || DEFAULT_EXCHANGE_RATES.USD || 33.7;
+  const rateEur = customRates?.EUR || DEFAULT_EXCHANGE_RATES.EUR || 37.8;
 
   switch (targetCurrency) {
     case 'TRY':

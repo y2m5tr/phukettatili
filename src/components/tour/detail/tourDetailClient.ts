@@ -22,6 +22,7 @@ document.addEventListener('astro:page-load', () => {
   const dateInput = document.getElementById('booking-date-input') as HTMLInputElement | null;
   const guestsSelect = document.getElementById('booking-guests-select') as HTMLSelectElement | null;
   const hotelInput = document.getElementById('booking-hotel-input') as HTMLInputElement | null;
+  const packageSelect = document.getElementById('booking-package-select') as HTMLSelectElement | null;
   const desktopBtn = document.getElementById('whatsapp-booking-btn') as HTMLAnchorElement | null;
   const mobileBtn = document.getElementById('mobile-wa-booking-btn') as HTMLAnchorElement | null;
 
@@ -103,6 +104,7 @@ document.addEventListener('astro:page-load', () => {
       const selectedDate = dateInput?.value || '';
       const selectedGuests = guestsSelect?.value || '2 Kişi';
       const hotelVal = (hotelInput?.value || '').trim();
+      const pkgVal = packageSelect?.value ? `(${packageSelect.value}) ` : '';
 
       let dateStr = '';
       if (selectedDate) {
@@ -113,7 +115,7 @@ document.addEventListener('astro:page-load', () => {
       }
 
       const hotelStr = hotelVal ? `(Otel: ${hotelVal}) ` : '';
-      const message = `Merhaba, ${tourTitle} için ${dateStr}${selectedGuests} ${hotelStr}uygunluk ve fiyat teklifi almak istiyorum.`;
+      const message = `Merhaba, ${tourTitle} ${pkgVal}için ${dateStr}${selectedGuests} ${hotelStr}uygunluk ve fiyat teklifi almak istiyorum.`;
       const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
 
       if (desktopBtn) desktopBtn.href = waUrl;
@@ -123,6 +125,7 @@ document.addEventListener('astro:page-load', () => {
     dateInput?.addEventListener('change', updateWhatsAppUrl);
     guestsSelect?.addEventListener('change', updateWhatsAppUrl);
     hotelInput?.addEventListener('input', updateWhatsAppUrl);
+    packageSelect?.addEventListener('change', updateWhatsAppUrl);
   }
 
   // 2. Gallery Lightbox Functionality
@@ -221,15 +224,15 @@ document.addEventListener('astro:page-load', () => {
   const convertedPriceEl = document.getElementById('sidebar-converted-price') as HTMLElement | null;
   const currencyPills = document.querySelectorAll<HTMLButtonElement>('.currency-pill');
   if (convertedPriceEl && currencyPills.length > 0) {
-    const baseThb = parseFloat(convertedPriceEl.dataset.baseThb || '0');
+    let baseThb = parseFloat(convertedPriceEl.dataset.baseThb || '0');
     const updateCurrencyDisplay = (cur: string) => {
       let text = `${fmtMoney(baseThb)} THB`;
       if (cur === 'TRY') {
-        text = `${fmtMoney(baseThb)} THB (~${fmtMoney(Math.round(baseThb / 1.2))} ₺)`;
+        text = `${fmtMoney(baseThb)} THB (~${fmtMoney(Math.round(baseThb * 1.48))} ₺)`;
       } else if (cur === 'USD') {
-        text = `${fmtMoney(baseThb)} THB (~$${fmtMoney(Math.round(baseThb / 36))})`;
+        text = `${fmtMoney(baseThb)} THB (~$${fmtMoney(Math.round(baseThb / 33.7))})`;
       } else if (cur === 'EUR') {
-        text = `${fmtMoney(baseThb)} THB (~€${fmtMoney(Math.round(baseThb / 39))})`;
+        text = `${fmtMoney(baseThb)} THB (~€${fmtMoney(Math.round(baseThb / 37.8))})`;
       }
       convertedPriceEl.textContent = text;
 
@@ -245,6 +248,19 @@ document.addEventListener('astro:page-load', () => {
         window.dispatchEvent(new CustomEvent('ptt:currency-changed', { detail: { currency: cur } }));
       } catch {}
     };
+
+    if (packageSelect) {
+      packageSelect.addEventListener('change', () => {
+        const selectedOpt = packageSelect.selectedOptions[0];
+        const newPrice = parseFloat(selectedOpt?.dataset.price || '0');
+        if (newPrice > 0) {
+          baseThb = newPrice;
+          convertedPriceEl.dataset.baseThb = String(newPrice);
+          const savedCur = localStorage.getItem('ptt_currency') || 'TRY';
+          updateCurrencyDisplay(savedCur);
+        }
+      });
+    }
 
     currencyPills.forEach((pill) => {
       pill.addEventListener('click', () => {

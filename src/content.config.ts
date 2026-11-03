@@ -26,6 +26,14 @@ const toursCollection = defineCollection({
       })
     ).optional(),
     restrictions: z.array(z.string()).optional(),
+    packages: z.array(
+      z.object({
+        name: z.string(),
+        price_thb: z.number().optional(),
+        child_price_thb: z.number().optional(),
+        desc: z.string().optional(),
+      })
+    ).optional(),
     age_min: z.string().optional(),
     source_status: z.string().optional(),
     verification_status: z.string().optional(),

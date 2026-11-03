@@ -140,6 +140,7 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
         tourTitle={tour.data.title}
         tourId={tour.id}
         priceThb={tour.data.price_thb || 0}
+        packages={tour.data.packages || []}
         whatsappNumber={whatsappNumber}
       />
     </div>

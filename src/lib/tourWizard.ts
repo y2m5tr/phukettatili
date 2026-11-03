@@ -165,7 +165,7 @@ export function buildWizardRecommendation(
     perks.push('Tüm macera güvenlik ekipmanları', 'Profesyonel rehber & su geçirmez çanta');
 
     const phiphi = safeTours.find((t) => t.id.includes('phi-phi') || t.id.includes('maya')) || safeTours[0];
-    const safari = safeTours.find((t) => t.id.includes('atv') || t.id.includes('hanuman') || t.id.includes('zipline') || t.id.includes('khao-sok')) || safeTours[1] || safeTours[0];
+    const safari = safeTours.find((t) => t.id.includes('rafting') || t.id.includes('atv') || t.id.includes('hanuman') || t.id.includes('khao-sok')) || safeTours[1] || safeTours[0];
     selectedTours = [phiphi, safari];
 
     if (duration !== 'short') {
@@ -184,7 +184,7 @@ export function buildWizardRecommendation(
     selectedTours = [phiphi, jamesBond];
 
     if (duration !== 'short') {
-      const city = safeTours.find((t) => t.id.includes('sehir') || t.id.includes('city') || t.id.includes('similan')) || safeTours[2] || safeTours[0];
+      const city = safeTours.find((t) => t.id.includes('surin') || t.id.includes('similan') || t.id.includes('sehir')) || safeTours[2] || safeTours[0];
       selectedTours.push(city);
     }
   }

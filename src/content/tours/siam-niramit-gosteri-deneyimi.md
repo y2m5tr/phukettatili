@@ -1,39 +1,96 @@
 ---
-title: "Siam Niramit Gösteri Deneyimi"
+title: "Siam Niramit Phuket Gösteri ve Tayland Kültür Deneyimi"
 category: "entertainment-tours"
 subcategory: "siam-niramit-show"
-category_label: "Siam Niramit"
-excerpt: "Tayland'ın zengin kültürel mirasını sahneye taşıyan dev prodüksiyonlu akşam gösterisi."
+category_label: "Gösteriler ve Şovlar"
+excerpt: "Guinness Rekorlar Kitabı'na giren dev sahne: 100 yıllık yaşayan Tayland Köyü, göl üstünde yüzen pazar, açık büfe ve destansı sahne prodüksiyonu."
 image: "siam_niramit_cover.webp"
+gallery:
+  - "siam_niramit_cover.webp"
+  - "culture.webp"
+  - "food.webp"
+  - "family.webp"
 price_type: "quote"
-price_thb: 2400
-duration: "Akşam programı"
+price_thb: 1800
+duration: "Akşam Programı (17:30 - 22:30)"
 included:
-  - "Gösteri giriş bileti (Silver / Gold koltuk seçeneği)"
-  - "İsteğe bağlı açık büfe akşam yemeği"
-  - "Geleneksel Tay köyü ve açık hava etkinlik alanı ziyareti"
-  - "Otel çift yön transferi (paket seçeneğine göre)"
+  - "Siam Niramit Kültür Parkı'na resmi giriş bileti"
+  - "Seçilen koltuk kategorisinde (Silver, Gold veya Platinum) dev sahne gösterisi bileti"
+  - "100 Yıllık Geleneksel Tay Köyü (Thai Village) yürüyüşü ve interaktif kültürel atölyeler"
+  - "Naga Courtyard avlusunda canlı müzik ve açık hava geleneksel dans gösterileri"
+  - "Akşam yemekli biletlerde açık büfe restoranında zengin Tayland sokak lezzetleri ve dünya mutfağı büfesi"
+  - "Park içi kaza sigortası"
 excluded:
-  - "Tiyatro salonu içindeki fotoğraf ve video çekimleri (yasaktır)"
-  - "Özel içecekler"
+  - "Otelden paylaşımlı çift yönlü servis transferi (Kişi başı 350 THB ek ücretle)"
+  - "Kişisel hediyelik eşya ve barda tüketilen özel içecekler"
+  - "Göl üzerinde küçük kano gezisi (isteğe bağlı ~50 THB)"
+packages:
+  - name: "Silver Koltuk (Sadece Gösteri)"
+    price_thb: 1800
+    child_price_thb: 1600
+  - name: "Gold Koltuk (Sadece Gösteri)"
+    price_thb: 2000
+    child_price_thb: 1800
+  - name: "Silver Koltuk + Açık Büfe Akşam Yemeği"
+    price_thb: 2200
+    child_price_thb: 1800
+  - name: "Gold Koltuk + Açık Büfe Akşam Yemeği (Önerilen)"
+    price_thb: 2400
+    child_price_thb: 2000
+  - name: "Platinum VIP Koltuk + Açık Büfe Akşam Yemeği"
+    price_thb: 2600
+    child_price_thb: 2200
 program:
-  - "17:30 - Otelden transfer ve kapı açılışı"
-  - "18:00 - Geleneksel Tay Köyü keşfi, danslar ve açık büfe yemek"
-  - "20:30 - Siam Niramit dev sahne gösterisinin başlaması (80 dakika)"
-  - "22:00 - Gösteri sonu ve otele transfer"
+  - "17:30 - Park kapılarının açılışı ve otele göre transfer minibüslerinin gelişi"
+  - "17:45 - 100 Yıllık Yaşayan Tayland Köyü: Tayland'ın 4 coğrafi bölgesinin (Kuzey, Kuzeydoğu, Orta ve Güney) ahşap mimarisi, pirinç dövme atölyeleri, ipek dokuma ve göl üzerindeki yüzen pazar tekneleri"
+  - "18:15 - Açık büfe akşam yemeği başlangıcı: Pad Thai istasyonları, Som Tum (yeşil papaya salatası), taze köri çeşitleri ve uluslararası tatlılar"
+  - "19:20 - Naga Avlusu Açık Hava Gösterisi: Muay Thai dövüş sanatı canlandırması, yerel halk oyunları ve ejderha dansı"
+  - "20:00 - 2.000 kişilik tiyatro salonuna geçiş ve koltuklara yerleşim"
+  - "20:30 - Siam Niramit Başyapıt Sahne Gösterisi: 65 metre genişliğinde sahne, sahnede akan gerçek nehir, havada uçan melekler, gök gürültüsü ve 100'ü aşkın oyuncuyla Tayland'ın 700 yıllık tarihi ve mitolojisi"
+  - "21:50 - Gösteri sonu, oyuncularla hatıra fotoğrafları"
+  - "22:15 - Phuket otellerine transfer"
 faq:
-  - q: "Çocuklar için uygun mu?"
-    a: "Evet, renkli sahne efektleri, akrobasi ve Tay efsaneleri çocukların da büyük ilgisini çeken aile dostu bir şovdur."
+  - q: "Siam Niramit hangi günler açıktır?"
+    a: "Park Salı günleri hariç haftanın 6 günü açıktır (Çarşamba - Pazartesi arası, 17:30 - 22:30)."
+  - q: "Silver, Gold ve Platinum koltuklar arasındaki fark nedir?"
+    a: "Silver standart yan ve üst sıraları kapsar. Gold salonun orta ve merkezi sıralarıdır (en popüler görüş açısı). Platinum ise sahneye en hakim, geniş bacak mesafeli ve tam merkezdeki VIP koltuklardır."
+  - q: "Salona fotoğraf makinesi veya telefon sokulabilir mi?"
+    a: "Köy ve avlu alanlarında telefon ve kamera kullanımı tamamen serbesttir. Ancak tiyatro salonunda sahne çekimi yasaktır; cihazlar kapıda ücretsiz güvenli kilitli emanet dolaplarına bırakılır."
+  - q: "Çocuk misafirler için bilet kuralları nasıldır?"
+    a: "Boyu 100 cm altındaki çocuklar ücretsizdir. Boyu 100-140 cm arasındaki çocuklar çocuk biletinden yararlanır."
 restrictions:
-  - "Tiyatro ana salonuna profesyonel kamera sokulamaz"
-age_min: "Her yaş için uygun"
+  - "Tiyatro salonu içinde fotoğraf ve video çekimi yasaktır"
+  - "Kültürel alanlarda uygun ve saygılı kıyafet tavsiye edilir"
+age_min: "Her yaş için uygundur (0+)"
 source_status: "owner_approved"
 verification_status: "verified"
-verified_by: "Siam Niramit / Phuket Tatili"
+verified_by: "Siam Niramit Phuket / Phuket Tatili"
 featured: false
-order: 9
+order: 15
 ---
 
-## Rota Hakkında
+## Siam Niramit Phuket: Tayland Tarihi ve Kültürünün Zirvesi
 
-100'den fazla oyuncu, 500'ü aşkın göz alıcı kostüm ve dünya standartlarında sahne teknolojileriyle **Siam Niramit Phuket**, Tayland Krallığı'nın 700 yıllık tarihini, inançlarını ve bayramlarını büyüleyici bir görsel şölenle anlatır.
+Guinness Rekorlar Kitabı'na giren dünyanın en büyük sahne alanlarından birine sahip olan **Siam Niramit Phuket**, ziyaretçilerini Tayland Krallığı'nın 700 yıllık büyüleyici tarihine, inançlarına ve renkli festivallerine doğru unutulmaz bir zaman yolculuğuna çıkarır.
+
+---
+
+### 🎟️ Resmi Koltuk Kategorileri ve Fiyatlandırma Tablosu
+
+| Koltuk Kategorisi | Sadece Gösteri (Show Only) | Gösteri + Açık Büfe Akşam Yemeği | Çocuk Fiyatı (100-140 cm - Yemekli) |
+| :--- | :--- | :--- | :--- |
+| **Silver (Gümüş Koltuk)** | **1.800 THB** *(Çocuk: 1.600 THB)* | **2.200 THB** | **1.800 THB** |
+| **Gold (Altın Koltuk)** | **2.000 THB** *(Çocuk: 1.800 THB)* | **2.400 THB** | **2.000 THB** |
+| **Platinum (VIP Platin Koltuk)** | **2.200 THB** *(Çocuk: 2.000 THB)* | **2.600 THB** | **2.200 THB** |
+| **Otel Çift Yönlü Transfer** | **350 THB** *(Kişi başı)* | **350 THB** | **350 THB** |
+
+*Boyu 100 cm altındaki bebekler ve küçük çocuklar ücretsizdir.*
+
+---
+
+### Sahne Öncesi Köy Deneyimi
+
+Siam Niramit sadece 80 dakikalık bir tiyatro gösterisinden ibaret değildir:
+- **100 Yıllık Geleneksel Tayland Köyü:** Sazdan çatılı otantik ahşap evleri gezip geleneksel pirinç keki yapımını öğrenebilir, ipek böceğinden kumaş dokuyan yerel zanaatkarları izleyebilirsiniz.
+- **Yüzen Pazar:** Kanalların üzerinde yüzen ahşap kayıklardan taze tropikal meyveler veya geleneksel tatlılar alabilirsiniz.
+- **Naga Avlusu ve Canlı Performanslar:** Yemek öncesi açık hava avlusunda sergilenen geleneksel kılıç dansları, canlı Tay müziği ve Muay Thai gösterileri geceye harika bir enerji katar.
