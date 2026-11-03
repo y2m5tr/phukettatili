@@ -155,7 +155,7 @@ export default function TourQuickBookingDrawer({
       {/* ==================================================== */}
       {/* 1. MOBİL SABİT (STICKY) ALT BAR */}
       {/* ==================================================== */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-slate-800 p-3 backdrop-blur-xl shadow-2xl flex items-center justify-between gap-2.5">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 border-t border-slate-800 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] backdrop-blur-xl shadow-2xl flex items-center justify-between gap-2.5">
         <div className="min-w-0 pr-1">
           <span className="text-[9px] text-emerald-400 uppercase tracking-wider block font-bold font-mono">
             GÜNCEL FİYAT & REZERVASYON

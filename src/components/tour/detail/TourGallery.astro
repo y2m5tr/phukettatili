@@ -11,15 +11,23 @@ const { tour } = Astro.props;
 <!-- Gallery with Lightbox -->
 {tour.data.gallery && tour.data.gallery.length > 0 && (
   <div class="mt-16">
-    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">
-      <h3 class="text-3xl m-0">Galeri</h3>
-      <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">Büyütmek için fotoğrafa tıklayın</span>
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 mb-6">
+      <div class="flex items-center gap-2">
+        <h3 class="text-2xl sm:text-3xl font-serif font-bold text-slate-900 dark:text-white m-0">Tur Galerisi</h3>
+        <span class="text-xs font-bold text-amber-500 bg-amber-500/10 px-2.5 py-0.5 rounded-full">
+          {tour.data.gallery.length} Kare
+        </span>
+      </div>
+      <span class="text-xs font-semibold text-slate-500 dark:text-slate-400">
+        <span class="sm:hidden">👉 Kaydırın veya Dokunun</span>
+        <span class="hidden sm:inline">Büyütmek için fotoğrafa tıklayın</span>
+      </span>
     </div>
-    <div id="tour-gallery-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 not-prose">
+    <div id="tour-gallery-grid" class="flex sm:grid sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 overflow-x-auto sm:overflow-visible no-scrollbar snap-mandatory py-1 -mx-4 px-4 sm:mx-0 sm:px-0 not-prose">
       {tour.data.gallery.map((img, idx) => (
         <button
           type="button"
-          class="gallery-trigger group relative aspect-[4/3] rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer border border-slate-100 dark:border-slate-700"
+          class="gallery-trigger group relative aspect-[4/3] w-[75vw] max-w-[280px] sm:w-auto shrink-0 sm:shrink snap-start rounded-2xl overflow-hidden shadow-sm hover:shadow-lg transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent cursor-pointer border border-slate-100 dark:border-slate-700/80 active:scale-95"
           data-index={idx}
           data-src={resolveAssetUrl(img)}
           aria-label={`${tour.data.title} Fotoğraf ${idx + 1}`}

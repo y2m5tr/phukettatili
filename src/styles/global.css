@@ -568,3 +568,19 @@
 .pt-safe {
   padding-top: max(0.5rem, env(safe-area-inset-top, 0px));
 }
+
+/* iOS Safari form odaklanmalarında sayfa yakınlaşmasını (auto-zoom) engelle */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Yatay kaydırma çubuklarını gizleme (Native App hissi) */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
