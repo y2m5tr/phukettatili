@@ -96,6 +96,10 @@ const schemas: Record<string, unknown>[] = [
       "name": "Phuket Tatili",
       "url": site.toString(),
     },
+    "speakable": {
+      "@type": "SpeakableSpecification",
+      "cssSelector": [".ptt-blog-headline"],
+    },
   },
   {
     "@type": "BreadcrumbList",
@@ -136,7 +140,7 @@ const schemas: Record<string, unknown>[] = [
       <a href="/blog" class="inline-flex items-center text-brand-accent text-sm font-semibold mb-3 hover:underline">
         ← Tüm Rehber Yazıları
       </a>
-      <h1 class="text-3xl md:text-5xl text-white font-serif font-bold mb-4 drop-shadow-md">
+      <h1 class="ptt-blog-headline text-3xl md:text-5xl text-white font-serif font-bold mb-4 drop-shadow-md">
         {post.data.title}
       </h1>
       <div class="flex flex-wrap items-center gap-4 text-slate-300 text-xs md:text-sm">

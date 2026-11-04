@@ -1,15 +1,17 @@
 import type { CollectionEntry } from 'astro:content';
+import siteSettings from '../../../content/settings/site.json';
 import { resolveOgImageUrl } from '../../../lib/assets';
 
 // Tur detay sayfası JSON-LD şemaları — turlar/[id].astro'dan birebir taşındı.
 // SEO kritik: şema alanları değiştirilmeden aynı şekilde üretilir.
 
-// NOT: Tur bazında aggregateRating BASMIYORUZ. Önceden tur ID'sinden türetilen
+// NOT: Tur bazında uydurma puan BASMIYORUZ. Önceden tur ID'sinden türetilen
 // deterministik bir "puan/yorum sayısı" üretilip Product şemasına konuyordu; bu
 // Google'ın self-serving/uydurma review markup politikasını ihlal eder ve zengin
-// snippet kaybına / manuel işleme yol açabilir. Gerçek, tur bazında doğrulanmış
-// bir yorum kaynağı olmadığı sürece tur şemasında puan gösterilmez. (Site
-// geneli TravelAgency puanı Layout.astro'da, tek kaynaktan beslenir.)
+// snippet kaybına / manuel işleme yol açabilir. Product şemasındaki
+// aggregateRating artık site geneli GERÇEK Google puanını (site.json
+// googleRating/googleReviewCount, sayfada görünen 4.9/148 ile aynı) kullanır;
+// tekil Review düğümü üretilmez (gerçek yorum metni verimiz yok).
 
 export const defaultTourFaqs = [
   {
@@ -83,6 +85,33 @@ export function resolveTourPrice(tourId: string, currentPrice?: number | null): 
   return Math.max(base, 2300);
 }
 
+/**
+ * Program satırını TouristTrip.itinerary Visit düğümüne çevirir.
+ * Örnek: "08:00 - 08:45 - Otelinizden transfer..." ->
+ *   { arrivalTime: "08:00", name: "Otelinizden transfer..." }
+ * Saat bulunmayan satırlarda arrivalTime basılmaz, metin aynen name olur.
+ */
+export function buildItineraryItem(
+  programLine: string,
+  position: number,
+): Record<string, unknown> {
+  const match = programLine.match(/^(\d{1,2}:\d{2})\s*[-–—:.]?\s*(.*)$/);
+  const arrivalTime = match?.[1];
+  const name = (match?.[2] ?? programLine).trim() || programLine.trim();
+  return {
+    "@type": "Visit",
+    position,
+    ...(arrivalTime ? { arrivalTime } : {}),
+    name,
+  };
+}
+
+/** Program listesinden (boş değilse) itinerary Visit dizisi üretir. */
+export function buildItinerary(program?: string[]): Record<string, unknown>[] | undefined {
+  if (!program || program.length === 0) return undefined;
+  return program.map((line, index) => buildItineraryItem(line, index + 1));
+}
+
 export function buildTourDetailSchemas(
   tour: CollectionEntry<'tours'>,
   site: URL | string,
@@ -93,6 +122,22 @@ export function buildTourDetailSchemas(
   const isoDuration = formatIsoDuration(tour.data.duration);
   const currentYear = new Date().getFullYear();
   const priceValidUntil = `${currentYear + 1}-12-31`;
+  const itinerary = buildItinerary(tour.data.program);
+  // Puan TEK KAYNAKTAN: site.json googleRating/googleReviewCount (görünen
+  // sayfa değeriyle aynı 4.9/148). Değer yoksa basılmaz — uydurma review
+  // markup cezası riski; ayrıca tekil Review düğümü üretilmez (gerçek yorum
+  // metni verimiz yok).
+  const settings = siteSettings as Record<string, unknown>;
+  const aggregateRating =
+    settings.googleRating && settings.googleReviewCount
+      ? {
+          "@type": "AggregateRating",
+          ratingValue: String(settings.googleRating),
+          reviewCount: String(settings.googleReviewCount),
+          bestRating: "5",
+          worstRating: "1",
+        }
+      : undefined;
 
   const touristTripSchema: Record<string, unknown> = {
     "@type": "TouristTrip",
@@ -108,6 +153,7 @@ export function buildTourDetailSchemas(
     },
     ...(tour.data.image ? { "image": resolveOgImageUrl(tour.data.image, site) } : {}),
     "duration": isoDuration,
+    ...(itinerary ? { "itinerary": itinerary } : {}),
     "offers": {
       "@type": "Offer",
       "price": realPrice,
@@ -125,6 +171,7 @@ export function buildTourDetailSchemas(
     "url": tourURL,
     ...(tour.data.image ? { "image": resolveOgImageUrl(tour.data.image, site) } : {}),
     "brand": { "@type": "Brand", "name": "Phuket Tatili" },
+    ...(aggregateRating ? { "aggregateRating": aggregateRating } : {}),
     "offers": {
       "@type": "Offer",
       "price": realPrice,

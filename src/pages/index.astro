@@ -152,9 +152,33 @@ const schemas: Record<string, unknown>[] = [
       "query-input": "required name=search_term_string",
     },
   },
+  {
+    // Tanıtım filmi: /assets/tours_video.mp4 (32sn, commit 63e1427 ile eklendi).
+    // HomeVideoShowcase varsayılan poster'ı phuket_hero.webp; OG hero ile aynı
+    // çözümleme yoluyla mutlak URL'ye çevrilir.
+    "@type": "VideoObject",
+    "name": "Phuket Turları — Tanıtım Filmi",
+    "description": "Phuket Tatili turlarından kareler: zümrüt lagünler, longtail tekneler, gün batımı yat seyri ve ada deneyimleri.",
+    "thumbnailUrl": new URL("/assets/og-hero.jpg", site).toString(),
+    "uploadDate": "2026-10-07T00:00:00+07:00",
+    "contentUrl": "https://phukettatili.com/assets/tours_video.mp4",
+    "embedUrl": "https://phukettatili.com/",
+    "duration": "PT32S",
+    "inLanguage": "tr",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Phuket Tatili",
+      "url": site.toString(),
+      "logo": new URL("/assets/logo-main-transparent.png", site).toString(),
+    },
+  },
   ...(formattedFaqs.length > 0
     ? [{
         "@type": "FAQPage",
+        "speakable": {
+          "@type": "SpeakableSpecification",
+          "cssSelector": [".ptt-faq-question"],
+        },
         "mainEntity": formattedFaqs.map((item) => ({
           "@type": "Question",
           "name": item.q,

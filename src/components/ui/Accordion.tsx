@@ -24,7 +24,7 @@ export default function Accordion({ faqs }: { faqs: FAQ[] }) {
             onClick={() => setOpenIndex(openIndex === index ? null : index)}
             className="w-full px-6 py-5 flex items-center justify-between text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-accent group"
           >
-            <span className="font-bold text-lg text-brand-primary dark:text-slate-200 group-hover:text-brand-accent transition-colors">
+            <span className="ptt-faq-question font-bold text-lg text-brand-primary dark:text-slate-200 group-hover:text-brand-accent transition-colors">
               {faq.q}
             </span>
             <svg

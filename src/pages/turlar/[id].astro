@@ -35,8 +35,11 @@ const { id } = Astro.params;
 const allToursForRelated: CollectionEntry<'tours'>[] = await getCollection('tours');
 const tour = allToursForRelated.find((t) => t.id === id);
 
+// 301: var olmayan tur slug'ları kalıcı olarak katalog sayfasına işaret eder.
+// Arama motorları ve eski harici bağlantılar 302'de "geçici" sanıp URL'yi
+// indekslemeyi sürdürür; 301 link otoritesini /turlar'a devreder.
 if (!tour) {
-  return Astro.redirect('/turlar', 302);
+  return Astro.redirect('/turlar', 301);
 }
 
 // Bulut overlay: panelde düzenlenen alanlar (başlık, kapak, galeri, fiyat,

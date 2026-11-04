@@ -1,3 +1,6 @@
+# Site haritası ve LLM kılavuzu
+Sitemap: https://phukettatili.com/sitemap.xml
+
 User-agent: *
 Allow: /
 
