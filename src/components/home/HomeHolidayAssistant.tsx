@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Sparkles, Calendar, Heart, Users, CheckCircle2, MessageCircle, Compass } from 'lucide-react';
+import EmailPermissionBox from './EmailPermissionBox';
 import {
   generateHolidayPackage,
   generatePackageWhatsAppMessage,
@@ -417,6 +418,15 @@ export default function HomeHolidayAssistant({
                     </div>
                   ))}
                 </div>
+
+                <EmailPermissionBox
+                  interest={selectedProfile}
+                  planSummary={{
+                    recommendation: wizardRecommendation.packageTitle,
+                    vibe: selectedVibe,
+                    tours: wizardRecommendation.recommendedTours.map((t) => t.title),
+                  }}
+                />
 
                 {/* WhatsApp Butonu & Yeniden Başla */}
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">

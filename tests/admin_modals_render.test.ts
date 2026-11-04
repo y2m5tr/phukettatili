@@ -153,7 +153,7 @@ describe('TourQuickBookingDrawer render', () => {
     );
     // Fiyat en-US binlik ayraçla basılır (fmtMoney kuralı) — çıplak toLocaleString
     // ortam locale'ine kayarsa bu assert tr-TR runner'da kırılır ve yakalanır.
-    expect(html).toContain('1.800');
+    expect(html).toContain('1,800');
     expect(html).toContain('Rezervasyon');
     // Tur başlığı WhatsApp ön-dolu mesaj linkine URL-kodlu girer.
     expect(html).toContain('wa.me/66828950665');

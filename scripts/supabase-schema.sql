@@ -349,3 +349,38 @@ create policy "media no client update" on storage.objects
 create policy "media no client delete" on storage.objects
   for delete to authenticated
   using (false);
+
+-- -----------------------------------------------------------------------------
+-- 13. BÜLTEN ABONELİKLERİ — izin pazarlama varlığı (permission asset)
+--
+-- Tatil Asistanı quiz sonucu ve site formlarından e-posta toplanır.
+-- RLS default deny: anon/authenticated erişemez; yalnızca servis rolü
+-- (sunucu API'leri) okur/yazar. Çift kayıt engellenir (unique e-posta),
+-- mevcut kayıtta sadece yeni kaynak etiketi güncellenir.
+-- -----------------------------------------------------------------------------
+create table if not exists public.newsletter_subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique,
+  name text,
+  source text not null default 'site',        -- 'quiz' | 'blog' | 'home' | 'site'
+  interest text,                              -- 'honeymoon' | 'family' | 'adventure' | 'vip_luxury' | null
+  plan_summary jsonb,                          -- quiz çıktısı / plan özeti
+  confirmed boolean not null default false,   -- WhatsApp / ilk temas doğrulaması
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.newsletter_subscribers enable row level security;
+
+-- İlgilenme alanı değiştiğinde updated_at'i güncelle.
+create or replace function public.touch_newsletter_updated_at()
+returns trigger as $$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists newsletter_touch on public.newsletter_subscribers;
+create trigger newsletter_touch before update on public.newsletter_subscribers
+  for each row execute function public.touch_newsletter_updated_at();

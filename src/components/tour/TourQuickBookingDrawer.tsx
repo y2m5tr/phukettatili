@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import PromptPayQrModal from '../shared/PromptPayQrModal';
 import TourBookingSuccessView from './TourBookingSuccessView';
+import { fmtMoney } from '../../lib/moneyFormat';
 
 interface TourPackageOption {
   name: string;
@@ -161,9 +162,18 @@ export default function TourQuickBookingDrawer({
             GÜNCEL FİYAT & REZERVASYON
           </span>
           <div className="flex items-baseline gap-1">
-            <strong className="text-xs sm:text-sm font-bold text-white truncate">
-              WhatsApp Özel Teklif
-            </strong>
+            {priceThb > 0 ? (
+              <>
+                <strong className="text-xs sm:text-sm font-bold text-white truncate">
+                  {fmtMoney(priceThb)} THB
+                </strong>
+                <span className="text-[9px] text-slate-400 font-semibold uppercase">kişi başı</span>
+              </>
+            ) : (
+              <strong className="text-xs sm:text-sm font-bold text-white truncate">
+                WhatsApp Özel Teklif
+              </strong>
+            )}
           </div>
         </div>
 
