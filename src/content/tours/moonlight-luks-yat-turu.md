@@ -66,11 +66,11 @@ Phuket'ten Phi Phi ve Maithon adalarına yapılacak en seçkin deniz yolculuğu 
 
 ---
 
-### 🛥️ Yat Konsepti ve Dahil Ayrıcalıklar
+### 🛥️ Yat Fiyatlandırması
 
-| Misafir Tipi | Dahil Ayrıcalıklar | Teklif & Bilgi |
+| Misafir Tipi | Paket Fiyatı | Dahil Ayrıcalıklar |
 | :--- | :--- | :--- |
-| **Yetişkin** | Otel Transferi + 2 Katlı Lüks Motoryat + Gurme Açık Büfe + Maya Bay + Pileh SUP & Şeffaf Kano + Maithon Yunus Safarisi + Meyve & İçecekler + Sigorta | WhatsApp ile Özel Teklif |
-| **Çocuk (4-11 Yaş)** | Çocuklar için can yeleği, şnorkel ekipmanı ve tüm yemek/içecek olanakları | WhatsApp ile Özel Teklif |
+| **Yetişkin** | **5.500 THB** | Otel Transferi + 2 Katlı Lüks Motoryat + Gurme Açık Büfe + Maya Bay + Pileh SUP & Şeffaf Kano + Maithon Yunus Safarisi + Meyve & İçecekler + Sigorta |
+| **Çocuk (4-11 Yaş)** | **5.000 THB** | Çocuklar için can yeleği, şnorkel ekipmanı ve tüm yemek/içecek olanakları |
 
 *Rezervasyon kontenjanı her gün 55 kişiyle sınırlandırılmıştır; erken rezervasyon önerilir.*

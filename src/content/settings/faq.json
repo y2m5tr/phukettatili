@@ -9,6 +9,10 @@
       "answer": "Rezervasyon onayı için bir miktar ön ödeme alıyoruz (havale/eft). Kalan tutarı tur gününden en geç 1 gün önce yapabilirsiniz."
     },
     {
+      "question": "Listenen fiyatlar kişi başı mı, toplam mı?",
+      "answer": "Sitede görünen tutarlar kişi başı yetişkin fiyatlarıdır (THB). Çocuk indirimleri, grup avantajları ve otelinize transfer dahil kombinasyonlar için WhatsApp üzerinden bize yazmanız yeterli — güncel ve en avantajlı teklifi anında iletiriz."
+    },
+    {
       "question": "Hava kötü olursa tur iptal edilir mi?",
       "answer": "Güvenliğiniz bizim için en önemlisi. Liman başkanlığının kararıyla turlar iptal edilirse, ücretiniz iade edilir veya tur başka güne ertelenir."
     }

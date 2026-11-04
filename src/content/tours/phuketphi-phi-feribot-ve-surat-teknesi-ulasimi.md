@@ -52,16 +52,16 @@ Phi Phi Adaları'nda konaklamayı planlayan gezginler için Phuket anakarası il
 
 ---
 
-### 🚢 Resmi Sefer Saatleri ve Bilet Seçenekleri
+### 🚢 Resmi Sefer Saatleri ve Bilet Tarifesi
 
-| Rota | Kalkış İskelesi | Varış İskelesi | Sefer Saatleri | Tekne Tipi | Bilet & Rezervasyon |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| **Phuket → Phi Phi** | Rassada Pier | Tonsai Pier | 08:30 & 13:30 | Büyük Feribot (2 Sa) | WhatsApp ile Özel Teklif |
-| **Phuket → Phi Phi** | Rassada Pier | Tonsai Pier | Gün Boyu Sık Sefer | Sürat Teknesi (50 Dk) | WhatsApp ile Özel Teklif |
-| **Phi Phi → Phuket** | Tonsai Pier | Rassada Pier | 09:00 & 14:30 | Büyük Feribot (2 Sa) | WhatsApp ile Özel Teklif |
-| **Phi Phi → Krabi** | Tonsai Pier | Klong Jilad | 13:30 (Varış: 15:30) | Büyük Feribot | WhatsApp ile Özel Teklif |
-| **Phi Phi → Ao Nang** | Tonsai Pier | Nopparat Thara | 15:30 (Varış: 17:30) | Büyük Feribot | WhatsApp ile Özel Teklif |
-| **Phi Phi → Koh Lanta** | Tonsai Pier | Saladan Pier | 11:30 (Feribot) / 15:20 (Hızlı) | Feribot / Sürat Teknesi | WhatsApp ile Özel Teklif |
-| **Ada Geçiş Kombosu** | Phuket → Phi Phi → Krabi/Lanta | Aktarmalı Hat | Esnek Tarihli | Feribot + Sürat Teknesi | WhatsApp ile Özel Teklif |
+| Rota | Kalkış İskelesi | Varış İskelesi | Sefer Saatleri | Tekne Tipi | Yetişkin Fiyatı | Çocuk Fiyatı (4-11 Yaş) |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **Phuket → Phi Phi** | Rassada Pier | Tonsai Pier | 08:30 & 13:30 | Büyük Feribot (2 Sa) | **700 THB** | **500 THB** |
+| **Phuket → Phi Phi** | Rassada Pier | Tonsai Pier | Gün Boyu Sık Sefer | Sürat Teknesi (50 Dk) | **1.100 THB** | **1.000 THB** |
+| **Phi Phi → Phuket** | Tonsai Pier | Rassada Pier | 09:00 & 14:30 | Büyük Feribot (2 Sa) | **700 THB** | **500 THB** |
+| **Phi Phi → Krabi** | Tonsai Pier | Klong Jilad | 13:30 (Varış: 15:30) | Büyük Feribot | **750 THB** | **550 THB** |
+| **Phi Phi → Ao Nang** | Tonsai Pier | Nopparat Thara | 15:30 (Varış: 17:30) | Büyük Feribot | **800 THB** | **600 THB** |
+| **Phi Phi → Koh Lanta** | Tonsai Pier | Saladan Pier | 11:30 (Feribot) / 15:20 (Hızlı) | Feribot / Sürat Teknesi | **900 - 1.100 THB** | **700 - 900 THB** |
+| **Ada Geçiş Kombosu** | Phuket → Phi Phi → Krabi/Lanta | Aktarmalı Hat | Esnek Tarihli | Feribot + Sürat Teknesi | **1.400 THB** | **1.200 THB** |
 
-*Not: 0-3 yaş bebekler kucakta ücretsizdir. Otel transferli biletlerde uzak bölgelere göre küçük bir servis farkı eklenebilir.*
+*Not: 0-3 yaş bebekler kucakta ücretsizdir. Otel transferli biletlerde bölgeye göre kişi başı 150-250 THB servis farkı eklenir.*

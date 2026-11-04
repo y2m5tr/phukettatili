@@ -28,7 +28,7 @@ included:
   - "İngilizce lisanslı profesyonel rehber ve seyahat kaza sigortası"
 excluded:
   - "Panyi yüzen köyünde kişisel hediyelik eşya alışverişi"
-  - "Kano kürekçilerine verilen gönüllü bahşişler (isteğe bağlı)"
+  - "Kano kürekçilerine verilen gönüllü bahşişler (Kano başı 50-100 THB önerilir)"
   - "Özel alkollü içecekler"
 packages:
   - name: "Büyük Tekne (Big Boat): Panak & Hong Kano + James Bond + Lawa"
@@ -85,16 +85,16 @@ Dünyanın en nefes kesici jeolojik oluşumlarından birine sahip olan **Phang N
 
 ---
 
-### ⛵ Resmi Tur ve Tekne Seçenekleri
+### ⛵ Resmi Tur Seçenekleri ve Fiyat Karşılaştırması
 
-| Tekne / Operatör Tipi | Program Özeti & Duraklar | Teklif & Bilgi |
-| :--- | :--- | :--- |
-| **Büyük Tekne (Big Boat BJ Canoeing)** | Sarsıntısız geniş tekne + Panak & Hong kano + Panyi + James Bond + Lawa Adası yüzme + Teknede açık büfe | WhatsApp ile Özel Teklif |
-| **SeaStar Lazy James Bond (Speedboat)** | 10:00 geç kalkış + Panak mağarası + James Bond + Panyi büfe + Hong kano + Koh Yao Yai Dragon Spine plajı | WhatsApp ile Özel Teklif |
-| **Diamond Sea Luxury Speedboat** | Boat Lagoon çıkışlı + Panak + 45 dk Hong kano + Panyi köyü + Khao Khien mağara resimleri + Naka Adası | WhatsApp ile Özel Teklif |
-| **SeaStar Speed Catamaran** | Sarsıntısız hızlı katamaran + Panak mağarası + James Bond + Panyi + Hong kano + Khai Adası şnorkel | WhatsApp ile Özel Teklif |
-| **Sawanu Luxury Speed Catamaran** | Royal Phuket Marina çıkışlı + Naka Yai + Panak + Hong + Panyi + James Bond + Rang Yai Adası | WhatsApp ile Özel Teklif |
-| **The Seanery Catamaran Yat** | Ao Por çıkışlı + Su kaydırağı + Paddleboard + Naka + Hong + James Bond + Teknede dünya mutfağı & Canlı DJ | WhatsApp ile Özel Teklif |
+| Tekne / Operatör Tipi | Program Özeti & Duraklar | Yetişkin Fiyatı | Çocuk Fiyatı (4-11 Yaş) |
+| :--- | :--- | :--- | :--- |
+| **Büyük Tekne (Big Boat BJ Canoeing)** | Sarsıntısız geniş tekne + Panak & Hong kano + Panyi + James Bond + Lawa Adası yüzme + Teknede açık büfe | **3.000 THB** | **2.000 THB** *(2-10 yaş)* |
+| **SeaStar Lazy James Bond (Speedboat)** | 10:00 geç kalkış + Panak mağarası + James Bond + Panyi büfe + Hong kano + Koh Yao Yai Dragon Spine plajı | **3.500 THB** | **2.500 THB** |
+| **Diamond Sea Luxury Speedboat** | Boat Lagoon çıkışlı + Panak + 45 dk Hong kano + Panyi köyü + Khao Khien mağara resimleri + Naka Adası | **3.600 THB** | **2.500 THB** |
+| **SeaStar Speed Catamaran** | Sarsıntısız hızlı katamaran + Panak mağarası + James Bond + Panyi + Hong kano + Khai Adası şnorkel | **3.800 THB** | **2.800 THB** |
+| **Sawanu Luxury Speed Catamaran** | Royal Phuket Marina çıkışlı + Naka Yai + Panak + Hong + Panyi + James Bond + Rang Yai Adası | **3.800 THB** | **2.800 THB** *(0-3 yaş ücretsiz)* |
+| **The Seanery Catamaran Yat** | Ao Por çıkışlı + Su kaydırağı + Paddleboard + Naka + Hong + James Bond + Teknede dünya mutfağı & Canlı DJ | **Fiyat Teklifi** | **Fiyat Teklifi** |
 
 ---
 

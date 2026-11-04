@@ -26,7 +26,7 @@ included:
   - "Teknede gün boyu soğuk içecekler, su ve tropik taze meyveler"
   - "İngilizce lisanslı profesyonel rehber ve seyahat kaza sigortası"
 excluded:
-  - "Palet kiralama (isteğe bağlı)"
+  - "Palet kiralama (isteğe bağlı ~100 THB)"
   - "Kişisel harcamalar"
   - "Rehber ve tekne personeli bahşişleri"
 packages:
@@ -73,11 +73,13 @@ Koh Rok'un ayak basmaya kıyılamayan pudra beyazı kumsalları ve dev monitör 
 
 ---
 
-### 🏝️ Resmi Tur Seçenekleri
+### 🏝️ Resmi Tur Fiyatlandırması
 
-| Operatör & Tekne | Rota & Dahil Olanlar | Teklif & Bilgi |
-| :--- | :--- | :--- |
-| **SeaStar Rok & Haa (Speedboat)** | Siam Koyu + Koh Rok Nok Kumsalı + Açık Büfe Yemek + Pakrong Koyu + Koh Haa Lagünü + Milli Park Dahil | WhatsApp ile Özel Teklif |
+| Operatör & Tekne | Rota & Dahil Olanlar | Yetişkin Fiyatı (Phuket) | Çocuk Fiyatı (4-11 Yaş) |
+| :--- | :--- | :--- | :--- |
+| **SeaStar Rok & Haa (Speedboat)** | Siam Koyu + Koh Rok Nok Kumsalı + Açık Büfe Yemek + Pakrong Koyu + Koh Haa Lagünü + Milli Park Dahil | **4.800 THB** | **3.400 THB** |
+
+*Khao Lak otellerinden transferli binişlerde: Yetişkin 5.200 THB / Çocuk 3.800 THB.*
 
 ---
 

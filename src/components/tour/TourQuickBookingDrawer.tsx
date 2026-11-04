@@ -403,7 +403,7 @@ export default function TourQuickBookingDrawer({
                       WhatsApp ile Özel Fiyat
                     </strong>
                     <span className="text-[11px] text-slate-400 block">
-                      Temsilcimiz müsaitlik ve en uygun fiyatı onaylar.
+                      Temsilcimiz müsaitlik ve kişi sayınıza göre en uygun fiyatı onaylar.
                     </span>
                   </div>
 

@@ -33,6 +33,19 @@ const { tour, whatsappNumber, googleRating, googleReviewCount, initialWhatsAppUr
       </p>
     </div>
 
+    <!-- Güven Garantisi Bloğu (Fiyatın Yerini Dolduran Risk Tersine Çevirme) -->
+    <div class="mb-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800 space-y-2.5">
+      <div class="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200 uppercase tracking-wide">
+        <span class="text-base">🛡️</span>
+        <span>Rezervasyon Garantiniz</span>
+      </div>
+      <ul class="text-xs text-slate-600 dark:text-slate-400 space-y-2 leading-relaxed">
+        <li class="flex items-start gap-1.5"><span class="text-green-500 shrink-0">✓</span><span>Hava koşulları nedeniyle tur iptal edilirse ücret iadesi veya ücretsiz tarih değişikliği</span></li>
+        <li class="flex items-start gap-1.5"><span class="text-green-500 shrink-0">✓</span><span>Ön ödeme sonrası kalan tutar tur gününden önce ödenir — sürpriz masraf yok</span></li>
+        <li class="flex items-start gap-1.5"><span class="text-green-500 shrink-0">✓</span><span>Tam kapsamlı yolcu sigortası ve TAT lisanslı acente güvencesi</span></li>
+      </ul>
+    </div>
+
     <!-- Booking Interactive Form (Syncs to WhatsApp message) -->
     <div class="space-y-4 mb-6">
       {tour.data.packages && tour.data.packages.length > 0 && (

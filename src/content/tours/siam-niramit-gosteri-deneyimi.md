@@ -21,9 +21,9 @@ included:
   - "Akşam yemekli biletlerde açık büfe restoranında zengin Tayland sokak lezzetleri ve dünya mutfağı büfesi"
   - "Park içi kaza sigortası"
 excluded:
-  - "Otelden paylaşımlı çift yönlü servis transferi (İsteğe bağlı eklenebilir)"
+  - "Otelden paylaşımlı çift yönlü servis transferi (Kişi başı 350 THB ek ücretle)"
   - "Kişisel hediyelik eşya ve barda tüketilen özel içecekler"
-  - "Göl üzerinde küçük kano gezisi (isteğe bağlı)"
+  - "Göl üzerinde küçük kano gezisi (isteğe bağlı ~50 THB)"
 packages:
   - name: "Silver Koltuk (Sadece Gösteri)"
     price_thb: 1800
@@ -75,14 +75,14 @@ Guinness Rekorlar Kitabı'na giren dünyanın en büyük sahne alanlarından bir
 
 ---
 
-### 🎟️ Resmi Koltuk Kategorileri ve Paket Seçenekleri
+### 🎟️ Resmi Koltuk Kategorileri ve Fiyatlandırma Tablosu
 
-| Koltuk Kategorisi | Konsept Detayı | Teklif & Rezervasyon |
-| :--- | :--- | :--- |
-| **Silver (Gümüş Koltuk)** | Standart sahne görüşü + İsteğe bağlı açık büfe akşam yemeği | WhatsApp ile Özel Teklif |
-| **Gold (Altın Koltuk)** | Merkezi panoramik sahne açısı + İsteğe bağlı akşam yemeği | WhatsApp ile Özel Teklif |
-| **Platinum (VIP Platin Koltuk)** | En ön sıra VIP konforu + Zengin akşam yemeği büfesi | WhatsApp ile Özel Teklif |
-| **Otel Çift Yönlü Transfer** | Klimalı araçla otel lobi karşılama & dönüş servisi | Teklife dahil edilebilir |
+| Koltuk Kategorisi | Sadece Gösteri (Show Only) | Gösteri + Açık Büfe Akşam Yemeği | Çocuk Fiyatı (100-140 cm - Yemekli) |
+| :--- | :--- | :--- | :--- |
+| **Silver (Gümüş Koltuk)** | **1.800 THB** *(Çocuk: 1.600 THB)* | **2.200 THB** | **1.800 THB** |
+| **Gold (Altın Koltuk)** | **2.000 THB** *(Çocuk: 1.800 THB)* | **2.400 THB** | **2.000 THB** |
+| **Platinum (VIP Platin Koltuk)** | **2.200 THB** *(Çocuk: 2.000 THB)* | **2.600 THB** | **2.200 THB** |
+| **Otel Çift Yönlü Transfer** | **350 THB** *(Kişi başı)* | **350 THB** | **350 THB** |
 
 *Boyu 100 cm altındaki bebekler ve küçük çocuklar ücretsizdir.*
 

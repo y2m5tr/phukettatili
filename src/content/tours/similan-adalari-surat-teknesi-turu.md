@@ -26,7 +26,7 @@ included:
   - "Tayland Millî Park yabancı ziyaretçi giriş harçları"
   - "İngilizce lisanslı profesyonel deniz rehberliği ve seyahat kaza sigortası"
 excluded:
-  - "Palet kiralama (İskelede isteğe bağlı)"
+  - "Palet kiralama (İskelede isteğe bağlı günlük ~100-150 THB)"
   - "Kişisel plaj harcamaları"
   - "Tekne personeli ve rehber bahşişleri"
 program:
@@ -73,14 +73,12 @@ Tayland'ın en sıkı korunan deniz rezervi olan **Mu Ko Similan Millî Parkı**
 
 ### 🌊 Resmi Similan Tur Seçenekleri ve Fiyatlandırma
 
-### 🏝️ Resmi Tur ve Tekne Seçenekleri
-
-| Tur Konsepti & Operatör | Tekne & Özellikler | Teklif & Bilgi |
-| :--- | :--- | :--- |
-| **Fantastic Similan (Erken Çıkış)** | Sürat Teknesi + Ada 8 Sailing Rock + Ada 9 & 7 Şnorkel + Ada 4 Öğle Yemeği | WhatsApp ile Özel Teklif |
-| **SeaStar Lazy Similan (Speedboat)** | 10:00 Rahat Çıkış + Sürat Teknesi + Ada 8 + Ada 9 + Ada 4 + Gurme büfe | WhatsApp ile Özel Teklif |
-| **SeaStar Lazy Similan (Speed Catamaran)** | Çift gövdeli sarsıntısız Hızlı Katamaran + VIP konfor + Ada 8 + Ada 9 + Ada 4 | WhatsApp ile Özel Teklif |
-| **SeaStar 2 Gün 1 Gece Fun Dive (Canlı Tekne)** | MV Koon 1 lüks canlı teknede konaklama + Gece dalışı / şnorkel + Mangalda Barbekü | WhatsApp ile Özel Teklif |
+| Tur Konsepti & Operatör | Tekne & Özellikler | Yetişkin (Phuket) | Çocuk (4-11 Yaş) | Khao Lak Kalkış |
+| :--- | :--- | :--- | :--- | :--- |
+| **Fantastic Similan (Erken Çıkış)** | Sürat Teknesi + Ada 8 Sailing Rock + Ada 9 & 7 Şnorkel + Ada 4 Öğle Yemeği | **3.500 THB** | **2.500 THB** | *3.200 THB* |
+| **SeaStar Lazy Similan (Speedboat)** | 10:00 Rahat Çıkış + Sürat Teknesi + Ada 8 + Ada 9 + Ada 4 + Gurme büfe | **4.100 THB** | **3.000 THB** | *3.700 THB* |
+| **SeaStar Lazy Similan (Speed Catamaran)** | Çift gövdeli sarsıntısız Hızlı Katamaran + VIP konfor + Ada 8 + Ada 9 + Ada 4 | **4.500 THB** | **3.400 THB** | *4.100 THB* |
+| **SeaStar 2 Gün 1 Gece Fun Dive (Canlı Tekne)** | MV Koon 1 lüks canlı teknede konaklama + Gece dalışı / şnorkel + Mangalda Barbekü | **11.000 THB** *(Non-diver)* | **-** | *Dalgıç: 14.500 THB* |
 
 ---
 

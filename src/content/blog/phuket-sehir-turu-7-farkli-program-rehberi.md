@@ -16,15 +16,15 @@ Günübirlik şehir turlarımızda her gezginin ilgi alanına, bütçesine ve ai
 
 ## 7 Programın Karşılaştırmalı Özeti
 
-| Program | Dahil Olan Temel ve Özel Aktiviteler | En Uygun Profil | Teklif & Bilgi |
-| :--- | :--- | :--- | :--- |
-| **Program 1** | Big Buddha + Wat Chalong + Phuket Old Town + Kaju & Bal Çiftliği + Hafta Sonu Pazarı | Klasik kültür ve tarih meraklıları | WhatsApp ile Özel Teklif |
-| **Program 2** | Big Buddha + Wat Chalong + Promthep Burnu + Brahma Tapınağı + Bebek Fil Fotoğrafı + Pazarlar | Manzara ve fotoğraf tutkunları | WhatsApp ile Özel Teklif |
-| **Program 3** | Program 1/2 Durakları + **30 Dk Fil Orman Safarisi** + Bebek Fil Fotoğrafı | Doğa ve fil deneyimi arayanlar | WhatsApp ile Özel Teklif |
-| **Program 4** | Temel Duraklar + **Yılan Şovu + Maymun Şovu** + 30 Dk Fil Safarisi | Çocuklu aileler için eğlenceli | WhatsApp ile Özel Teklif |
-| **Program 5** | Temel Duraklar + 30 Dk Fil Safarisi + **30 Dk Orman ATV Safarisi** | Kültür + Adrenalin arayan gençler ve çiftler | WhatsApp ile Özel Teklif |
-| **Program 6** | Temel Duraklar + **Tiger Kingdom Kaplan Fotoğrafı (1 Boy)** + Bebek Fil | Kaplanlarla unutulmaz anı fotoğrafı isteyenler | WhatsApp ile Özel Teklif |
-| **Program 7** | Temel Duraklar + **30 Dk Fil Safarisi + Tiger Kingdom Kaplan Fotoğrafı** | Phuket'in tüm simgelerini tek günde yaşamak isteyenler | WhatsApp ile Özel Teklif |
+| Program | Dahil Olan Temel ve Özel Aktiviteler | Yetişkin Fiyatı | Çocuk (4-11 Yaş) | En Uygun Profil |
+| :--- | :--- | :--- | :--- | :--- |
+| **Program 1** | Big Buddha + Wat Chalong + Phuket Old Town + Kaju & Bal Çiftliği + Hafta Sonu Pazarı | **1.450 THB** | **1.050 THB** | Klasik kültür ve tarih meraklıları |
+| **Program 2** | Big Buddha + Wat Chalong + Promthep Burnu + Brahma Tapınağı + Bebek Fil Fotoğrafı + Pazarlar | **1.450 THB** | **1.050 THB** | Manzara ve fotoğraf tutkunları |
+| **Program 3** | Program 1/2 Durakları + **30 Dk Fil Orman Safarisi** + Bebek Fil Fotoğrafı | **1.850 THB** | **1.450 THB** | Doğa ve fil deneyimi arayanlar |
+| **Program 4** | Temel Duraklar + **Yılan Şovu + Maymun Şovu** + 30 Dk Fil Safarisi | **2.450 THB** | **2.050 THB** | Çocuklu aileler için eğlenceli |
+| **Program 5** | Temel Duraklar + 30 Dk Fil Safarisi + **30 Dk Orman ATV Safarisi** | **2.650 THB** | **2.250 THB** | Kültür + Adrenalin arayan gençler ve çiftler |
+| **Program 6** | Temel Duraklar + **Tiger Kingdom Kaplan Fotoğrafı (1 Boy)** + Bebek Fil | **2.850 THB** | **2.450 THB** | Kaplanlarla unutulmaz anı fotoğrafı isteyenler |
+| **Program 7** | Temel Duraklar + **30 Dk Fil Safarisi + Tiger Kingdom Kaplan Fotoğrafı** | **3.050 THB** | **2.650 THB** | Phuket'in tüm simgelerini tek günde yaşamak isteyenler |
 
 ---
 

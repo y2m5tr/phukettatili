@@ -81,14 +81,14 @@ Gölün dingin sularından yüzlerce metre dimdik yükselen kireçtaşı karst k
 
 ---
 
-### 🌿 Resmi Mega Tur Seçenekleri
+### 🌿 Resmi Mega Tur Seçenekleri ve Fiyatlandırma
 
-| Program Kodu | Süre & Konsept | Program İçeriği & Aktiviteler | Teklif & Bilgi |
-| :--- | :--- | :--- | :--- |
-| **Mega 4** | **1 Gün (Günübirlik)** | Samet Nangshe (Avatar Manzarası) + Wat Bangthong Tapınağı + Cheow Lan Longtail Tekne + Guilin Kayaları + Yüzen Evde Öğle Yemeği + Kano & Yüzme | WhatsApp ile Özel Teklif |
-| **Mega 1** | **1 Gün (Günübirlik Maceracı)** | Wat Suwankhuha (Maymun Tapınağı) + Cheow Lan Longtail Tekne + Yüzen Evde Öğle Yemeği + Kano + Klong Sok Bambu Raftingi + 30 Dk Fil Banyosu | WhatsApp ile Özel Teklif |
-| **Mega 2** | **2 Gün 1 Gece (Yüzen Ev)** | Wat Bangthong + Cheow Lan Tekne + **Yüzen Evde 1 Gece Konaklama** + Akşam Yemeği + Sabah Vahşi Yaşam Safarisi + Bambu Rafting + Fil Banyosu + Rommanee Kaplıcaları | WhatsApp ile Özel Teklif |
-| **Mega 3** | **2 Gün 1 Gece (Resort Otel)** | Wat Bangthong + Cheow Lan Tekne + Yüzen Ev Öğle Yemeği + **Khao Sok Orman Oteli 1 Gece Konaklama** + Bambu Rafting + Bridge Hill Cafe + Seyir Tepesi + Fil Banyosu | WhatsApp ile Özel Teklif |
+| Program Kodu | Süre & Konsept | Program İçeriği & Aktiviteler | Yetişkin Fiyatı | Çocuk Fiyatı (4-11 Yaş) |
+| :--- | :--- | :--- | :--- | :--- |
+| **Mega 4** | **1 Gün (Günübirlik)** | Samet Nangshe (Avatar Manzarası) + Wat Bangthong Tapınağı + Cheow Lan Longtail Tekne + Guilin Kayaları + Yüzen Evde Öğle Yemeği + Kano & Yüzme | **4.500 THB** | **3.500 THB** |
+| **Mega 1** | **1 Gün (Günübirlik Maceracı)** | Wat Suwankhuha (Maymun Tapınağı) + Cheow Lan Longtail Tekne + Yüzen Evde Öğle Yemeği + Kano + Klong Sok Bambu Raftingi + 30 Dk Fil Banyosu | **5.900 THB** | **4.900 THB** |
+| **Mega 2** | **2 Gün 1 Gece (Yüzen Ev)** | Wat Bangthong + Cheow Lan Tekne + **Yüzen Evde 1 Gece Konaklama** + Akşam Yemeği + Sabah Vahşi Yaşam Safarisi + Bambu Rafting + Fil Banyosu + Rommanee Kaplıcaları | **9.900 THB** | **8.900 THB** |
+| **Mega 3** | **2 Gün 1 Gece (Resort Otel)** | Wat Bangthong + Cheow Lan Tekne + Yüzen Ev Öğle Yemeği + **Khao Sok Orman Oteli 1 Gece Konaklama** + Bambu Rafting + Bridge Hill Cafe + Seyir Tepesi + Fil Banyosu | **9.900 THB** | **8.900 THB** |
 
 *Çocuk Yaş Sınırı: 4 - 11 yaş arası ve maksimum 140 cm boy sınırı geçerlidir. 0-3 yaş ücretsizdir.*
 

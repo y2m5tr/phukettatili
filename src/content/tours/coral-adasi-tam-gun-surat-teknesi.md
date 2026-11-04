@@ -62,12 +62,12 @@ Coral Adası'nın hareketli plaj kulüpleri ve heyecan dolu su sporları ile Rac
 
 ---
 
-### ⛵ Resmi Tur ve Tekne Seçenekleri
+### ⛵ Resmi Tur Seçenekleri ve Fiyatlandırma
 
-| Tekne Tipi & Tur Konsepti | Rota ve Öne Çıkanlar | Teklif & Bilgi |
-| :--- | :--- | :--- |
-| **Sürat Teknesi (Speedboat)** | Coral Adası plajı + Racha Yai şnorkel + Açık büfe öğle yemeği | WhatsApp ile Özel Teklif |
-| **İkonik Gün Batımı Katamaranı (Sunset Catamaran)** | 75 feet lüks katamaran yat + Coral + Racha Yai + Su kaydırağı + Paddleboard + Gün batımı akşam yemeği | WhatsApp ile Özel Teklif |
+| Tekne Tipi & Tur Konsepti | Rota ve Öne Çıkanlar | Yetişkin Fiyatı | Çocuk Fiyatı (4-11 Yaş) |
+| :--- | :--- | :--- | :--- |
+| **Sürat Teknesi (Speedboat)** | Coral Adası plajı + Racha Yai şnorkel + Açık büfe öğle yemeği | **2.100 THB** | **1.800 THB** |
+| **İkonik Gün Batımı Katamaranı (Sunset Catamaran)** | 75 feet lüks katamaran yat + Coral + Racha Yai + Su kaydırağı + Paddleboard + Gün batımı akşam yemeği | **3.700 THB** | **3.000 THB** |
 
 ---
 

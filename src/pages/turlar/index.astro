@@ -3,6 +3,7 @@ import { getCollection, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import TourShowcase from '../../components/ui/TourShowcase';
 import { getCloudTours, applyTourOverlay } from '../../lib/server/tourContent';
+import { fmtMoney } from '../../lib/moneyFormat';
 import TourCardImageCarousel from '../../components/tour/TourCardImageCarousel.astro';
 
 // Dinamik SSR: panelde değişen fiyat/başlık/kapak listede de görünsün. Eskiden
@@ -236,10 +237,11 @@ const schemas: Record<string, unknown>[] = [
                     <span class="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
                       <span>⏱️</span> {tour.data.duration || 'Tam Gün'}
                     </span>
-                    <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500 hover:text-white px-3 py-1 rounded-full border border-emerald-500/20 transition-all flex items-center gap-1">
-                      <span>Teklif Al</span>
-                      <span>→</span>
-                    </span>
+                    {tour.data.price_thb && tour.data.price_thb > 0 ? (
+                      <span class="text-sm font-bold text-brand-primary dark:text-white tracking-tight">{fmtMoney(tour.data.price_thb)} <span class="text-[10px] font-semibold text-amber-500 dark:text-amber-400">THB</span></span>
+                    ) : (
+                      <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Teklif Al →</span>
+                    )}
                   </div>
                 </div>
               </a>

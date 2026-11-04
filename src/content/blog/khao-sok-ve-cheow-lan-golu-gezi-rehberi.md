@@ -27,12 +27,12 @@ Suyun içinden yüzlerce metre dimdik gökyüzüne yükselen dev kireçtaşı ku
 
 Khao Sok ve Cheow Lan turlarımız farklı tatil süreleri ve tercihlere göre 4 ana kategoride düzenlenmektedir:
 
-| Paket Kodu | Süre | Program İçeriği | Teklif & Bilgi |
+| Paket Kodu | Süre | Program İçeriği | Fiyat (Yetişkin / Çocuk) |
 | :--- | :--- | :--- | :--- |
-| **Mega 4** | **1 Gün (Günübirlik)** | Samet Nangshe Avatar Manzarası + Wat Bangthong Tapınağı + Cheow Lan Tekne + Yüzen Evde Öğle Yemeği & Kano | WhatsApp ile Özel Teklif |
-| **Mega 1** | **1 Gün (Macera)** | Maymun Tapınağı + Cheow Lan Tekne + Yüzen Ev Yemeği + Bambu Raftingi + 30 Dk Fil Banyosu | WhatsApp ile Özel Teklif |
-| **Mega 2** | **2 Gün 1 Gece (Yüzen Ev)** | Cheow Lan Tekne + **Yüzen Evde Konaklama** + Akşam Yemeği + Sabah Vahşi Yaşam Safarisi + Bambu Rafting + Fil Banyosu + Rommanee Kaplıcaları | WhatsApp ile Özel Teklif |
-| **Mega 3** | **2 Gün 1 Gece (Resort)** | Cheow Lan Tekne + Yüzen Ev Yemeği + **Khao Sok Orman Oteli Konaklama** + Bambu Rafting + Fil Banyosu | WhatsApp ile Özel Teklif |
+| **Mega 4** | **1 Gün (Günübirlik)** | Samet Nangshe Avatar Manzarası + Wat Bangthong Tapınağı + Cheow Lan Tekne + Yüzen Evde Öğle Yemeği & Kano | **4.500 THB** / 3.500 THB |
+| **Mega 1** | **1 Gün (Macera)** | Maymun Tapınağı + Cheow Lan Tekne + Yüzen Ev Yemeği + Bambu Raftingi + 30 Dk Fil Banyosu | **5.900 THB** / 4.900 THB |
+| **Mega 2** | **2 Gün 1 Gece (Yüzen Ev)** | Cheow Lan Tekne + **Yüzen Evde Konaklama** + Akşam Yemeği + Sabah Vahşi Yaşam Safarisi + Bambu Rafting + Fil Banyosu + Rommanee Kaplıcaları | **9.900 THB** / 8.900 THB |
+| **Mega 3** | **2 Gün 1 Gece (Resort)** | Cheow Lan Tekne + Yüzen Ev Yemeği + **Khao Sok Orman Oteli Konaklama** + Bambu Rafting + Fil Banyosu | **9.900 THB** / 8.900 THB |
 
 ---
 
