@@ -12,7 +12,6 @@ import QuickTripAssistantDrawer from '../components/tour/QuickTripAssistantDrawe
 import PhuketMarineSafetyModal from '../components/weather/PhuketMarineSafetyModal.astro';
 import siteSettings from '../content/settings/site.json';
 import { resolveAssetUrl, responsiveSrcset } from '../lib/assets';
-import '../lib/livePriceConverter';
 
 interface Props {
 	title: string;
@@ -297,6 +296,15 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 
         <!-- Phuket Canlı Deniz & Hava Durumu Modalı (Root Seviyesi) -->
         <PhuketMarineSafetyModal />
+
+        <!-- Canlı Para Birimi Dönüştürücü: data-thb-price elementleri -->
+        <script>
+          import { initLivePriceConverter } from '../lib/livePriceConverter';
+          // View transition sayfa değişince yeni fiyat elementleri gelir;
+          // her page-load'da yeniden bağlan (idempotent: eski listener
+          // window'da kalır ama renderAll zararsızdır).
+          document.addEventListener('astro:page-load', () => initLivePriceConverter());
+        </script>
 
         <script>
           document.addEventListener('astro:page-load', () => {

@@ -105,9 +105,24 @@ function renderAll(currency: string) {
 }
 
 let currentCurrency = 'THB';
+let bound = false;
 
 /** Sayfa yüklendiğinde ve kur hazır olduğunda bir kez çalıştır. */
 export function initLivePriceConverter(): void {
+  // Listener'ları yalnızca ilk çağrıda bağla (view transition'da script
+  // module olarak bir kez yüklenir ama astro:page-load her navigasyonda
+  // tekrar init çağırır — çift dinleyici birikmesini önle).
+  if (!bound) {
+    bound = true;
+    window.addEventListener('ptt:currency-changed', (e) => {
+      const detail = (e as CustomEvent).detail as { currency?: string } | null;
+      if (detail?.currency) {
+        currentCurrency = detail.currency;
+        renderAll(currentCurrency);
+      }
+    });
+  }
+
   currentCurrency = (() => {
     try {
       return localStorage.getItem('ptt_currency') || 'THB';
@@ -116,22 +131,10 @@ export function initLivePriceConverter(): void {
     }
   })();
 
-  window.addEventListener('ptt:currency-changed', (e) => {
-    const detail = (e as CustomEvent).detail as { currency?: string } | null;
-    if (detail?.currency) {
-      currentCurrency = detail.currency;
-      renderAll(currentCurrency);
-    }
-  });
-
   // Kur gelince mevcut seçimle bir kez render et (THB ise kur gerekmez).
   if (currentCurrency === 'THB') {
     renderAll('THB');
   } else {
     fetchRates().then(() => renderAll(currentCurrency));
   }
-}
-
-if (typeof window !== 'undefined') {
-  document.addEventListener('astro:page-load', () => initLivePriceConverter());
 }
