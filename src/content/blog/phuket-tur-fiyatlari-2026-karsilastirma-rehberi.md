@@ -39,7 +39,7 @@ Fiyatlar paket ve tekne tipine göre değişir: aynı Phi Phi rotası sürat tek
 
 ## Fiyatı Yükselten ve Düşüren 5 Gerçek
 
-1. **Sezon:** Kasım-Nisan yüksek sezon; simillar gibi uzak ada turları Mayıs-Ekim'de deniz koşulları nedeniyle iptal edilebilir ve fiyata yansır. Esnek tarihte bize sorun — aynı turu daha uygun pencerede planlayabiliriz.
+1. **Sezon:** Kasım-Nisan yüksek sezon; Similan gibi uzak ada turları Mayıs-Ekim'de deniz koşulları nedeniyle iptal edilebilir ve fiyata yansır. Esnek tarihte bize sorun — aynı turu daha uygun pencerede planlayabiliriz.
 2. **Tekne tipi:** Aynı rota, üç fiyat. Büyük tekne sakin ama yavaş; sürat teknesi hızlı; katamaran konforun orta yoludur. Deniz tutması yaşayanlar için katamaran farkı ödediğine değer.
 3. **Gizli ücretler:** Phi Phi Don iskele harcı (20 THB), millî park giriş ücretleri, kano kürekçisi bahşişi (50-100 THB) — bunları tur paketiniz kapsıyor mu, sormadan bilemezsiniz. Bizim turlarımızda millî park ücretleri SeaStar ve Andaman Surprise paketlerinde dahildir.
 4. **Grup büyüklüğü:** 6+ kişi özel grup teklifiyle kişi başı fiyat belirgin düşer. Aile ve arkadaş grupları için WhatsApp'tan tek mesajla net rakam alınır.

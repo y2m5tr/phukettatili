@@ -1,10 +1,24 @@
-# Site haritası ve LLM kılavuzu
+# phukettatili.com — robots.txt
+# Yapı notu: Disallow kuralları HER grubun içinde kendi başına durmalı.
+# Grupsuz sonda duran kurallar robots.txt standardına göre önceki gruba
+# (Applebot-Extended) aitti — isimsiz tarayıcılar (Bingbot, CCBot, Meta-
+# ExternalAgent...) için geçerli DEĞİLDİ. Bu sürüm o hatayı düzeltir.
+
 Sitemap: https://phukettatili.com/sitemap.xml
+Sitemap: https://phukettatili.com/sitemap-turlar.xml
+Sitemap: https://phukettatili.com/sitemap-blog.xml
+Sitemap: https://phukettatili.com/rss.xml
 
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /.astro/
+Disallow: /admin/
+Disallow: /ops-login/
+Disallow: /ekip/
+Disallow: /bilet/
 
-# AI Search Engines & Crawlers (Explicitly permitted for AEO/GEO Visibility)
+# AI Search Engines & Crawlers (AEO/GEO görünürlüğü için açıkça izinli)
 User-agent: GPTBot
 Allow: /
 Disallow: /api/
@@ -53,29 +67,8 @@ Disallow: /ops-login/
 Disallow: /ekip/
 Disallow: /bilet/
 
-# Sitemaps
-Sitemap: https://phukettatili.com/sitemap.xml
-Sitemap: https://phukettatili.com/sitemap-index.xml
-Sitemap: https://phukettatili.com/sitemap-turlar.xml
-Sitemap: https://phukettatili.com/sitemap-blog.xml
-Sitemap: https://phukettatili.com/rss.xml
-
-# Meta Commerce & Google Merchant Product Catalog Feed (Allowed)
+# Meta Commerce & Google Merchant ürün katalog akışları herkese açık
+# (grupsuz Allow satırları önceki gruba düştüğü için * grubuna taşındı)
 Allow: /api/meta-catalog.xml
 Allow: /api/meta-catalog.csv
 Allow: /api/google-catalog.xml
-
-# Block search bots from internal, operational and private paths
-Disallow: /api/
-Disallow: /.astro/
-Disallow: /admin
-Disallow: /admin/
-Disallow: /ops-login
-Disallow: /ops-login/
-Disallow: /ekip
-Disallow: /ekip/
-Disallow: /bilet
-Disallow: /bilet/
-
-# Crawl delay for polite bots
-Crawl-delay: 1

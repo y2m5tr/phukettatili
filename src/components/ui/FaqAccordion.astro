@@ -1,0 +1,62 @@
+---
+/**
+ * SSR "akordeon" — <details>/<summary> tabanlı.
+ *
+ * Neden React Accordion yerine bu: cevap metni JS hidrasyonu BEKLEMEZ,
+ * ham HTML'de tam görünür halde gelir. Google AI Overviews ve diğer
+ * çıkarıcılar astro-island props'undaki metni okumaz; görünür HTML
+ * ister. <details> aynı zamanda klavye/ekran okuyucu erişilebilirliğini
+ * (WAI-ARIA üstü) bedavaya getirir.
+ *
+ * Görsel dil React sürümüyle aynı: kart, yuvarlak köşe, amber vurgu,
+ * chevron animasyonu (rotate-180, group-open varyantıyla).
+ */
+interface FAQ {
+  q: string;
+  a: string;
+}
+
+interface Props {
+  faqs: FAQ[];
+  /** Varsayılan açık madde indeksi (React sürümündeki 0 davranışı). */
+  defaultOpen?: number;
+}
+
+const { faqs, defaultOpen = 0 } = Astro.props;
+---
+
+{faqs && faqs.length > 0 && (
+  <div class="w-full max-w-3xl mx-auto space-y-4">
+    {faqs.map((faq, index) => (
+      <details
+        name="faq-group"
+        open={index === defaultOpen}
+        class="group bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-colors"
+      >
+        <summary
+          id={`faq-trigger-${index}`}
+          class="w-full px-6 py-5 flex items-center justify-between text-left cursor-pointer list-none focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-accent [&::-webkit-details-marker]:hidden"
+        >
+          <span class="ptt-faq-question font-bold text-lg text-brand-primary dark:text-slate-200 group-hover:text-brand-accent transition-colors">
+            {faq.q}
+          </span>
+          <svg
+            class="w-6 h-6 shrink-0 text-brand-accent transform transition-transform duration-300 group-open:rotate-180"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </summary>
+        <div
+          id={`faq-panel-${index}`}
+          class="px-6 pb-5 pt-4 text-slate-600 dark:text-slate-400 leading-relaxed border-t border-slate-50 dark:border-slate-700"
+        >
+          {faq.a}
+        </div>
+      </details>
+    ))}
+  </div>
+)}

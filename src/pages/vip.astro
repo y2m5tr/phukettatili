@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import FadeIn from '../components/ui/FadeIn';
-import Accordion from '../components/ui/Accordion';
+import FaqAccordion from '../components/ui/FaqAccordion.astro';
 import siteSettings from '../content/settings/site.json';
 
 export const prerender = true;
@@ -180,7 +180,7 @@ const schemas: Record<string, unknown>[] = [
           <span class="text-xs font-bold uppercase tracking-wider text-brand-accent">Merak Edilenler</span>
           <h2 class="text-3xl font-serif text-brand-primary font-bold mt-2">VIP Hizmetler Sıkça Sorulan Sorular</h2>
         </div>
-        <Accordion client:visible faqs={vipFaqs} />
+        <FaqAccordion faqs={vipFaqs} />
       </div>
 
     </div>

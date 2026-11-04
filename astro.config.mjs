@@ -134,6 +134,9 @@ export default defineConfig({
           tr: 'tr-TR',
         },
       },
+      // lastmod: sitemap-0'da tarih yoktu — Google ana sayfaların tazelik
+      // sinyalini göremiyordu. Deploy başına güncellenen tarih eklenir.
+      lastmod: new Date(),
     }),
   ],
   outDir: process.env.ASTRO_OUTPUT_DIR || 'dist',

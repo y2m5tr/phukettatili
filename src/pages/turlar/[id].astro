@@ -1,7 +1,7 @@
 ---
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import Accordion from '../../components/ui/Accordion';
+import FaqAccordion from '../../components/ui/FaqAccordion.astro';
 import siteSettings from '../../content/settings/site.json';
 import TourQuickBookingDrawer from '../../components/tour/TourQuickBookingDrawer';
 import TourSmartBundle from '../../components/tour/TourSmartBundle';
@@ -121,7 +121,7 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
                 {tourFaqs.length} Soru & Cevap
               </span>
             </div>
-            <Accordion client:load faqs={tourFaqs} />
+            <FaqAccordion faqs={tourFaqs} />
           </div>
         )}
       </div>

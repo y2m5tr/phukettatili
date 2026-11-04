@@ -1,6 +1,6 @@
 ---
 import FadeIn from '../ui/FadeIn';
-import Accordion from '../ui/Accordion';
+import FaqAccordion from '../ui/FaqAccordion.astro';
 
 interface FaqItem {
   q: string;
@@ -23,7 +23,7 @@ const { faqs } = Astro.props;
           <h2 class="text-3xl md:text-5xl text-brand-primary dark:text-white font-serif font-bold mt-2">Sıkça Sorulan Sorular</h2>
         </div>
       </FadeIn>
-      <Accordion client:visible faqs={faqs} />
+      <FaqAccordion faqs={faqs} />
     </div>
   </section>
 )}
