@@ -62,7 +62,9 @@ export default function TourShowcase({ tours }: { tours: TourSlide[] }) {
             <a href={`/turlar/${current.id}`} className="inline-flex items-center gap-3 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Turu keşfet <span aria-hidden="true">↗</span></a>
             {current.data.duration && <span className="rounded-full border border-white/25 bg-white/10 px-4 py-3 text-xs text-white/90 backdrop-blur-md">◷ &nbsp;{current.data.duration}</span>}
             {current.data.price_thb != null && current.data.price_thb > 0 ? (
-              <span className="text-sm font-medium text-white">{fmtMoney(current.data.price_thb)} THB</span>
+              <span className="rounded-full border border-white/25 bg-white/10 px-4 py-3 text-xs font-medium text-white backdrop-blur-md" data-thb-price={current.data.price_thb} data-price-label="kişi başı">
+                {fmtMoney(current.data.price_thb)} THB
+              </span>
             ) : (
               <span className="rounded-full border border-emerald-400/30 bg-emerald-500/20 px-4 py-3 text-xs font-semibold text-emerald-300 backdrop-blur-md">Özel Fiyat Teklifi</span>
             )}

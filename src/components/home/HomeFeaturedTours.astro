@@ -86,7 +86,8 @@ function getDifferentiatorBadge(tour: CollectionEntry<'tours'>, index: number): 
                     </span>
                     {hasPrice ? (
                       <span class="text-lg sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                        {fmtMoney(tour.data.price_thb || 0)} <span class="text-xs font-semibold text-amber-500 dark:text-amber-400">THB</span>
+                        <span data-thb-price={tour.data.price_thb} data-price-label="kişi başı">{fmtMoney(tour.data.price_thb || 0)} THB</span>
+                        <span class="block text-[10px] font-medium text-slate-400" data-price-secondary></span>
                       </span>
                     ) : (
                       <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full flex items-center gap-1 mt-0.5">

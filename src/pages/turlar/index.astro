@@ -238,7 +238,10 @@ const schemas: Record<string, unknown>[] = [
                       <span>⏱️</span> {tour.data.duration || 'Tam Gün'}
                     </span>
                     {tour.data.price_thb && tour.data.price_thb > 0 ? (
-                      <span class="text-sm font-bold text-brand-primary dark:text-white tracking-tight">{fmtMoney(tour.data.price_thb)} <span class="text-[10px] font-semibold text-amber-500 dark:text-amber-400">THB</span></span>
+                      <span class="text-sm font-bold text-brand-primary dark:text-white tracking-tight">
+                        <span data-thb-price={tour.data.price_thb} data-price-label="kişi başı">{fmtMoney(tour.data.price_thb)} THB</span>
+                        <span class="block text-[10px] font-medium text-slate-400" data-price-secondary></span>
+                      </span>
                     ) : (
                       <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">Teklif Al →</span>
                     )}

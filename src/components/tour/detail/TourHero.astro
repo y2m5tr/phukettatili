@@ -50,7 +50,7 @@ const { tour, weeklyViewCount } = Astro.props;
       )}
       {tour.data.price_thb && tour.data.price_thb > 0 ? (
         <div class="flex items-center gap-2 font-bold text-2xl text-white drop-shadow-md">
-          <span>{fmtMoney(tour.data.price_thb)} <span class="text-sm font-semibold text-amber-300">THB</span></span>
+          <span data-thb-price={tour.data.price_thb} data-price-label="kişi başı">{fmtMoney(tour.data.price_thb)} THB</span>
           <span class="text-[10px] font-semibold text-slate-300 uppercase tracking-wider bg-white/10 backdrop-blur px-2 py-0.5 rounded-full border border-white/20">kişi başı</span>
         </div>
       ) : (

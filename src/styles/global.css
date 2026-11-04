@@ -158,6 +158,73 @@
   height: auto;
 }
 
+/* Markdown tabloları — fiyat karşılaştırma tabloları için tam stil.
+   Tailwind preflight tablo stillerini sıfırladığı için tanım olmazsa
+   tablolar kenarlıksız, sıkışık ve okunamaz render ediliyordu. */
+.prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.5em;
+  margin-bottom: 1.5em;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  display: block;
+  overflow-x: auto;
+  white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 768px) {
+  .prose table {
+    display: table;
+    white-space: normal;
+    table-layout: fixed;
+  }
+}
+.prose thead {
+  border-bottom: 2px solid var(--color-brand-primary);
+}
+.prose th {
+  text-align: left;
+  font-weight: 700;
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #0f172a;
+  background: #f1f5f9;
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+.prose td {
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid #e2e8f0;
+  vertical-align: top;
+  color: #334155;
+}
+.prose tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+.prose tbody tr:hover {
+  background: #fffbeb;
+}
+.prose tbody tr:last-child td {
+  border-bottom: 2px solid #e2e8f0;
+}
+/* Yatay kaydırmalı tabloların masaüstünde kayma kenarı görünmez olsun */
+.prose th:first-child, .prose td:first-child {
+  border-top-left-radius: 0.375rem;
+}
+.prose th:last-child, .prose td:last-child {
+  border-top-right-radius: 0.375rem;
+}
+
+/* Ayraç çizgisi (---) — markdown bölüm ayrımı */
+.prose hr {
+  border: 0;
+  height: 1px;
+  margin: 3em 0;
+  background: linear-gradient(to right, transparent, #e2e8f0 20%, #e2e8f0 80%, transparent);
+}
+
 /* Dark mode prose */
 .dark .prose {
   color: #cbd5e1;
@@ -174,6 +241,27 @@
 .dark .prose blockquote {
   color: #94a3b8;
   border-color: var(--color-brand-accent);
+}
+.dark .prose th {
+  color: #f8fafc;
+  background: #1e293b;
+  border-bottom-color: #334155;
+}
+.dark .prose td {
+  color: #cbd5e1;
+  border-bottom-color: #334155;
+}
+.dark .prose tbody tr:nth-child(even) {
+  background: rgba(15, 23, 42, 0.35);
+}
+.dark .prose tbody tr:hover {
+  background: rgba(30, 41, 59, 0.6);
+}
+.dark .prose tbody tr:last-child td {
+  border-bottom-color: #334155;
+}
+.dark .prose hr {
+  background: linear-gradient(to right, transparent, #334155 20%, #334155 80%, transparent);
 }
 
 @keyframes ken-burns {

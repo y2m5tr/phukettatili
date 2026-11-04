@@ -63,7 +63,7 @@ const cleanPhone = whatsappNumber.replace(/[^0-9]/g, '');
             </span>
           )}
           {tour.data.price_thb != null && tour.data.price_thb > 0 ? (
-            <span class="font-bold text-white text-sm">
+            <span class="font-bold text-white text-sm" data-thb-price={tour.data.price_thb} data-price-label="kişi başı">
               {fmtMoney(tour.data.price_thb)} THB
             </span>
           ) : (
