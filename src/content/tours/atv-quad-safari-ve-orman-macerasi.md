@@ -27,10 +27,10 @@ program:
   - "Orman patikaları, tepe tırmanışları ve seyir noktası molası"
   - "İstasyona dönüş, temizlenme ve otele transfer"
 program_images:
-  - "itinerary/hotel_transfer.webp"
+  - "phuket_transfer.webp"
+  - "atv-1.webp"
   - "atv-2.webp"
   - "atv-3.webp"
-  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Ehliyet gerekiyor mu?"
     a: "Hayır, tur rehber eşliğinde trafiğe kapalı özel arazide ve doğa patikalarında gerçekleştiği için ehliyet zorunlu değildir. Kullanım öncesi sürüş eğitimi verilir."

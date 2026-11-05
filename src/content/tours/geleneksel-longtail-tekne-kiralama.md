@@ -24,11 +24,11 @@ program:
   - "Kumsalda serbest zaman veya piknik"
   - "İskeleye dönüş"
 program_images:
-  - "itinerary/hotel_transfer.webp"
-  - "itinerary/speedboat_sea.webp"
-  - "itinerary/tropical_reef_fish.webp"
-  - "itinerary/white_sand_beach.webp"
-  - "itinerary/sunset_sea_cruise.webp"
+  - "phuket_transfer.webp"
+  - "longtail.webp"
+  - "longtail.webp"
+  - "underwater.webp"
+  - "phuket_transfer.webp"
 faq:
   - q: "Longtail teknede gölgelik var mı?"
     a: "Evet, tüm teknelerimiz güneşten koruyan branda gölgelik ile donatılmıştır."

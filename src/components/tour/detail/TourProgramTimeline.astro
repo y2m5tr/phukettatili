@@ -11,99 +11,98 @@ function getContextualStepImage(desc: string, tourData: any, idx: number): strin
   const text = (desc || '').toLowerCase();
   const slug = (tour.id || '').toLowerCase();
 
-  // 1. Otel & Karşılama
+  // 1. Otel & Alınış
   if (idx === 0 || text.includes('otel') || text.includes('alınış') || text.includes('servis')) {
-    return 'itinerary/hotel_transfer.webp';
-  }
-  if (text.includes('iskele') || text.includes('marina') || text.includes('brifing') || text.includes('karşılama') || text.includes('kahvaltı') || text.includes('atıştırmalık')) {
-    return 'itinerary/pier_lounge.webp';
+    return 'phuket_transfer.webp';
   }
 
-  // 2. Özel Macera Turları
+  // 2. İskele & Karşılama
+  if (text.includes('iskele') || text.includes('marina') || text.includes('brifing') || text.includes('karşılama') || text.includes('check-in')) {
+    return 'phuket_ferry_speedboat.webp';
+  }
+
+  // 3. Özel Macera Turları
   if (slug.includes('atv') || text.includes('atv') || text.includes('quad')) {
     const atvImgs = ['atv-1.webp', 'atv-2.webp', 'atv-3.webp'];
     return atvImgs[idx % atvImgs.length];
   }
   if (slug.includes('fil') || text.includes('fil') || text.includes('kerchor')) {
-    return 'itinerary/elephant_mud_bath.webp';
+    return 'elephant.webp';
   }
-  if (slug.includes('zipline') || slug.includes('hanuman') || text.includes('zipline') || text.includes('canopy')) {
-    return 'itinerary/zipline_canopy_bridge.webp';
+  if (slug.includes('zipline') || slug.includes('hanuman')) {
+    return 'hanuman_cover.webp';
   }
-  if (slug.includes('rafting') || text.includes('rafting') || text.includes('akarsu')) {
-    return 'itinerary/whitewater_rafting_rapid.webp';
+  if (slug.includes('rafting') || text.includes('rafting')) {
+    return 'phang_nga_rafting.webp';
   }
   if (slug.includes('khao-sok') || text.includes('cheow lan') || text.includes('göl')) {
-    return 'itinerary/cheow_lan_lake_raft.webp';
+    return 'khao_sok_cheow_lan.webp';
   }
 
-  // 3. İkonik Rotalar (James Bond & Phang Nga)
+  // 4. James Bond & Phang Nga
   if (text.includes('james bond') || text.includes('khao tapu') || text.includes('khao phing')) {
     return 'james-bond-1.webp';
   }
   if (text.includes('panyi') || text.includes('yüzen köy')) {
-    return 'itinerary/koh_panyi_stilt_village.webp';
+    return 'james-bond-5.webp';
   }
-  if (text.includes('panak') || text.includes('hong') || text.includes('kano') || text.includes('mağara')) {
-    return 'itinerary/sea_kayak_cave.webp';
+  if (text.includes('panak') || text.includes('mağara')) {
+    return 'james-bond-2.webp';
+  }
+  if (text.includes('hong') || text.includes('kano')) {
+    return 'james-bond-3.webp';
   }
 
-  // 4. Şov & Sahne Turları
+  // 5. Şov Turları
   if (slug.includes('fantasea')) return 'phuket_fantasea.webp';
   if (slug.includes('carnival')) return 'carnival_magic.webp';
   if (slug.includes('simon')) return 'simon_cabaret.webp';
   if (slug.includes('siam-niramit')) return 'siam_niramit_cover.webp';
 
-  // 5. Şehir ve Kültür
-  if (text.includes('old town') || text.includes('şehir') || text.includes('sino')) {
-    return 'itinerary/old_phuket_heritage.webp';
-  }
-  if (text.includes('buddha') || text.includes('wat') || text.includes('tapınak')) {
-    return 'itinerary/big_buddha_temple.webp';
+  // 6. Şehir & Kültür
+  if (text.includes('old town') || text.includes('sino')) return 'phuket_culture.webp';
+  if (text.includes('buddha') || text.includes('tapınak') || text.includes('chalong')) return 'culture.webp';
+
+  // 7. Ada Rotaları
+  if (text.includes('sailing rock') || text.includes('similan')) return 'similan_islands.webp';
+  if (text.includes('surin') || text.includes('moken')) return 'surin_islands.webp';
+  if (text.includes('banana beach')) return 'banana_beach.webp';
+  if (text.includes('rok') || text.includes('haa')) return 'koh_rok_haa.webp';
+
+  // 8. Phi Phi & Maya Bay
+  if (text.includes('pileh') || text.includes('lagün')) return 'pileh.webp';
+  if (text.includes('maya bay')) return 'bay.webp';
+  if (text.includes('longtail') || text.includes('maymun') || text.includes('viking')) return 'longtail.webp';
+
+  // 9. Şnorkel & Sualtı
+  if (text.includes('şnorkel') || text.includes('mercan') || text.includes('resif') || text.includes('kaplumbağa')) {
+    return 'underwater.webp';
   }
 
-  // 6. Similan & Surin
-  if (text.includes('sailing rock') || text.includes('yelken kaya')) {
-    return 'itinerary/sailing_rock_view.webp';
-  }
-  if (text.includes('kaplumbağa') || text.includes('turtle')) {
-    return 'itinerary/sea_turtle_reef.webp';
-  }
-
-  // 7. Phi Phi & Maya Bay
-  if (text.includes('maya bay') || text.includes('pileh') || text.includes('lagün')) {
-    return 'itinerary/maya_bay_lagoon.webp';
-  }
-  if (text.includes('maymun') || text.includes('monkey')) {
-    return 'itinerary/monkey_beach_wild.webp';
-  }
-
-  // 8. Şnorkel & Sualtı
-  if (text.includes('şnorkel') || text.includes('resif') || text.includes('mercan') || text.includes('balık')) {
-    return 'itinerary/tropical_reef_fish.webp';
-  }
-
-  // 9. Yemek & Mola
-  if (text.includes('öğle yemeği') || text.includes('yemek') || text.includes('açık büfe')) {
-    return 'itinerary/thai_buffet_lunch.webp';
-  }
-
-  // 10. Plaj & Deniz
-  if (text.includes('plaj') || text.includes('kumsal') || text.includes('yüzme') || text.includes('paddleboard')) {
-    return 'itinerary/white_sand_beach.webp';
+  // 10. Yemek & Mola
+  if (text.includes('öğle yemeği') || text.includes('yemek') || text.includes('açık büfe') || text.includes('meyve')) {
+    return 'food.webp';
   }
 
   // 11. Dönüş & Gün Batımı
-  if (text.includes('dönüş') || text.includes('sunset') || text.includes('gün batımı')) {
-    return 'itinerary/sunset_sea_cruise.webp';
+  if (text.includes('dönüş') || text.includes('gün batımı') || text.includes('sunset')) {
+    return 'honeymoon_sunset_beach.webp';
   }
 
-  // 12. Seyir & Tekne
-  if (text.includes('sürat teknesi') || text.includes('katamaran') || text.includes('seyir')) {
-    return 'itinerary/speedboat_sea.webp';
+  // 12. Plaj & Yüzme
+  if (text.includes('plaj') || text.includes('kumsal') || text.includes('yüzme') || text.includes('paddleboard')) {
+    return 'beach.webp';
   }
 
-  return tourData.image || 'itinerary/white_sand_beach.webp';
+  // 13. Tekne & Seyir
+  if (text.includes('katamaran') || text.includes('yat')) {
+    return 'phuket_yacht.webp';
+  }
+  if (text.includes('sürat teknesi') || text.includes('feribot') || text.includes('tekne')) {
+    return 'phuket_ferry_speedboat.webp';
+  }
+
+  return tourData.image || 'beach.webp';
 }
 ---
 

@@ -21,7 +21,7 @@ program:
   - "75 dakikalık kesintisiz dünya müzikalleri ve dans performansı"
   - "Çıkışta sanatçılarla fotoğraf molası"
 program_images:
-  - "itinerary/hotel_transfer.webp"
+  - "phuket_transfer.webp"
   - "simon_cabaret.webp"
   - "simon_cabaret.webp"
   - "simon_cabaret.webp"

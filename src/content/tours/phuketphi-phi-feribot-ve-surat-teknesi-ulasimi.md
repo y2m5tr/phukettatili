@@ -29,10 +29,10 @@ program:
   - "08:30 veya 13:30 - Phuket Rassada İskelesi'nden hareket (Büyük Feribot ile 2 saat, Sürat Teknesi ile 50 dakika)"
   - "10:30 veya 15:30 - Phi Phi Don Tonsai İskelesi'ne varış ve adaya giriş"
 program_images:
-  - "itinerary/hotel_transfer.webp"
-  - "itinerary/white_sand_beach.webp"
-  - "itinerary/speedboat_sea.webp"
-  - "itinerary/white_sand_beach.webp"
+  - "phuket_transfer.webp"
+  - "phuket_ferry_speedboat.webp"
+  - "phuket_ferry_speedboat.webp"
+  - "bay.webp"
 faq:
   - q: "Günde kaç sefer düzenleniyor ve saatleri nedir?"
     a: "Phuket Rassada'dan Phi Phi Tonsai'ye her gün sabah 08:30 ve öğleden sonra 13:30'da büyük feribot kalkar. Dönüşte ise Phi Phi Tonsai'den sabah 09:00 ve öğleden sonra 14:30'da Phuket yönüne hareket edilir. Sürat tekneleri ise gün içinde daha sık aralıklarla çalışmaktadır."

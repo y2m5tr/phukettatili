@@ -31,13 +31,13 @@ program:
   - "22:15 - Gösteri bitimi; emanetlerin teslim alınması ve ışıklandırılmış saray önünde fotoğraf molası"
   - "22:45 - Otellere dönüş transferi"
 program_images:
-  - "itinerary/hotel_transfer.webp"
+  - "phuket_transfer.webp"
+  - "phuket_fantasea.webp"
+  - "food.webp"
   - "phuket_fantasea.webp"
   - "phuket_fantasea.webp"
   - "phuket_fantasea.webp"
-  - "itinerary/elephant_mud_bath.webp"
-  - "phuket_fantasea.webp"
-  - "itinerary/hotel_transfer.webp"
+  - "phuket_transfer.webp"
 faq:
   - q: "FantaSea hangi günler açıktır?"
     a: "Park her hafta Salı, Cuma ve Pazar günleri akşam 17:30 ile 23:30 saatleri arasında açıktır."

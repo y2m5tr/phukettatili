@@ -24,11 +24,11 @@ program:
   - "Skywalk gökyüzü köprüsünde manzara molası"
   - "Dinlenme ve otele dönüş"
 program_images:
-  - "itinerary/hotel_transfer.webp"
-  - "itinerary/pier_lounge.webp"
-  - "itinerary/zipline_canopy_bridge.webp"
-  - "itinerary/zipline_canopy_bridge.webp"
-  - "itinerary/hotel_transfer.webp"
+  - "phuket_transfer.webp"
+  - "hanuman_cover.webp"
+  - "hanuman_cover.webp"
+  - "hanuman_cover.webp"
+  - "phuket_transfer.webp"
 faq:
   - q: "Kilo sınırı var mı?"
     a: "Güvenlik standartları gereği maksimum ağırlık sınırı 120 kg'dır."
