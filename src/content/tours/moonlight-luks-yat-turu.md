@@ -40,6 +40,18 @@ program:
   - "16:15 - Maithon açıklarında vahşi yunus sürüsü gözlemi ve kristal mercan resiflerinde şnorkel"
   - "17:30 - Akşamüstü altın saatte (Sunset) müzik ve gün batımı manzarası eşliğinde Chalong'a dönüş seyri"
   - "18:30 - Chalong İskelesi'ne varış ve otelinize transfer"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/speedboat_sea.webp"
+  - "itinerary/maya_bay_lagoon.webp"
+  - "itinerary/sea_kayak_cave.webp"
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/sea_kayak_cave.webp"
+  - "itinerary/white_sand_beach.webp"
+  - "itinerary/tropical_reef_fish.webp"
+  - "itinerary/sunset_sea_cruise.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Moonlight yatı standart turlardan nasıl ayrışır?"
     a: "Sürat teknelerinin yarattığı sarsıntı ve kalabalıktan uzaktır. 2 katlı geniş güvertesi, rahat deri koltukları, üst kattaki panoramik güneşlenme terası ve maksimum 55 kişilik butik kontenjanıyla lüks ve huzurlu bir seyir konforu sunar."

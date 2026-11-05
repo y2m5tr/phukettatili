@@ -37,6 +37,16 @@ program:
   - "14:45 - Racha Yai kumsalında güneşlenme veya gün batımı katamaranında su kaydırağı ve paddleboard keyfi"
   - "16:15 - Chalong İskelesi'ne dönüş seyri (Gün batımı seçeneğinde altın saatte müzik eşliğinde sunset seyri)"
   - "17:00 - 18:45 - Phuket otellerine konforlu transfer"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/speedboat_sea.webp"
+  - "itinerary/white_sand_beach.webp"
+  - "itinerary/thai_buffet_lunch.webp"
+  - "itinerary/speedboat_sea.webp"
+  - "itinerary/tropical_reef_fish.webp"
+  - "itinerary/white_sand_beach.webp"
+  - "itinerary/sunset_sea_cruise.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Coral ve Racha adası arasındaki fark nedir?"
     a: "Coral Adası (Koh Hey) Phuket'e çok yakındır (15 dk), su sporları (parasailing, muz bot vb.) ve eğlenceli plaj atmosferiyle öne çıkar. Racha Yai ise biraz daha güneydedir; Maldivler'i andıran neon turkuaz suyu ve derin sualtı görünürlüğüyle birinci sınıf şnorkel ve dalış noktasıdır."

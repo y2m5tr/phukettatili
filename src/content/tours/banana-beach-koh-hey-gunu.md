@@ -48,6 +48,16 @@ program:
   - "13:30 - Şeffaf kano ile koyda kürek çekme, fotoğraf çekimi veya parasailing / su sporları serbest zamanı"
   - "14:00 veya 16:30 - Sürat teknesi ile Chalong İskelesi'ne dönüş"
   - "14:45 veya 17:30 - Otelinize konforlu transfer"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/white_sand_beach.webp"
+  - "itinerary/white_sand_beach.webp"
+  - "itinerary/tropical_reef_fish.webp"
+  - "itinerary/thai_buffet_lunch.webp"
+  - "itinerary/whitewater_rafting_rapid.webp"
+  - "itinerary/sunset_sea_cruise.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Banana Beach'e gitmek ne kadar sürer? Deniz tutması olur mu?"
     a: "Banana Beach, Chalong İskelesi'ne yalnızca 15 dakika (yaklaşık 9 km) mesafededir. Yolculuk çok kısa olduğu ve ada Phuket'in güney burnu tarafından korunduğu için dalga hissi minimumdur. Bebekli aileler, yaşlı misafirler ve deniz tutmasından çekinenler için Phuket'in en ideal ada rotasıdır."

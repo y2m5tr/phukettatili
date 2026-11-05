@@ -53,6 +53,18 @@ program:
   - "16:15 - Doğal ortamında fillerle buluşma, besleme ve nehirde 30 dakika fil banyosu"
   - "17:30 - Phuket'e dönüş yolculuğu (Günübirlik paketler) veya Yüzen Ev / Resortta gün batımı akşam yemeği (2G1G paketler)"
   - "19:00 - Phuket otellerine varış"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/cheow_lan_lake_raft.webp"
+  - "itinerary/cheow_lan_lake_raft.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/cheow_lan_lake_raft.webp"
+  - "itinerary/cheow_lan_lake_raft.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/whitewater_rafting_rapid.webp"
+  - "itinerary/elephant_mud_bath.webp"
+  - "itinerary/cheow_lan_lake_raft.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "4 farklı Mega program arasındaki farklar nelerdir?"
     a: "Mega 1: Klasik tam gün göl, tekne, bambu raftingi ve fil banyosu turudur. Mega 2: Göldeki yüzen evlerde 1 gece konaklamalı, sabah vahşi yaşam safarisi, kaplıca ve fil banyolu en eksiksiz programdır. Mega 3: Orman içi butik resort otelde konaklamalı seçenektir. Mega 4: Büyüleyici Samet Nangshe Avatar manzarası ile Cheow Lan gölünü birleştiren günübirlik ekonomik rotadır."

@@ -53,6 +53,18 @@ program:
   - "15:30 - Tone Pariwat Şelalesi tatlı su havuzunda yüzme ve dinlenme"
   - "16:15 - Phuket'e dönüş yolculuğu"
   - "17:30 - Otelinize varış"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/whitewater_rafting_rapid.webp"
+  - "itinerary/whitewater_rafting_rapid.webp"
+  - "itinerary/whitewater_rafting_rapid.webp"
+  - "itinerary/whitewater_rafting_rapid.webp"
+  - "itinerary/zipline_canopy_bridge.webp"
+  - "atv-1.webp"
+  - "itinerary/elephant_mud_bath.webp"
+  - "itinerary/whitewater_rafting_rapid.webp"
+  - "itinerary/whitewater_rafting_rapid.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Rafting turu güvenli midir? Yüzme bilmek gerekir mi?"
     a: "Tone Pariwat Nehri'ndeki rafting turlarımız uluslararası güvenlik standartlarındadır. Her botta en az 2 profesyonel yerel kürek kaptanı bulunur. Can yeleği ve kask takmak zorunludur; yüzme bilmeyen misafirler de güvenle katılabilir."

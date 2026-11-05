@@ -30,6 +30,14 @@ program:
   - "21:00 - 'Fantasy of a Kingdom' başyapıt sahne gösterisi: Tay mitolojisi, akrobatik hava gösterileri, illüzyonlar, 30'u aşkın fil ve 150 kişilik dev oyuncu kadrosu"
   - "22:15 - Gösteri bitimi; emanetlerin teslim alınması ve ışıklandırılmış saray önünde fotoğraf molası"
   - "22:45 - Otellere dönüş transferi"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "phuket_fantasea.webp"
+  - "phuket_fantasea.webp"
+  - "phuket_fantasea.webp"
+  - "itinerary/elephant_mud_bath.webp"
+  - "phuket_fantasea.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "FantaSea hangi günler açıktır?"
     a: "Park her hafta Salı, Cuma ve Pazar günleri akşam 17:30 ile 23:30 saatleri arasında açıktır."

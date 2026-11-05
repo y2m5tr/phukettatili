@@ -49,6 +49,15 @@ program:
   - "20:30 - Siam Niramit Başyapıt Sahne Gösterisi: 65 metre genişliğinde sahne, sahnede akan gerçek nehir, havada uçan melekler, gök gürültüsü ve 100'ü aşkın oyuncuyla Tayland'ın 700 yıllık tarihi ve mitolojisi"
   - "21:50 - Gösteri sonu, oyuncularla hatıra fotoğrafları"
   - "22:15 - Phuket otellerine transfer"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/cheow_lan_lake_raft.webp"
+  - "siam_niramit_cover.webp"
+  - "siam_niramit_cover.webp"
+  - "siam_niramit_cover.webp"
+  - "siam_niramit_cover.webp"
+  - "siam_niramit_cover.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Siam Niramit hangi günler açıktır?"
     a: "Park Salı günleri hariç haftanın 6 günü açıktır (Çarşamba - Pazartesi arası, 17:30 - 22:30)."

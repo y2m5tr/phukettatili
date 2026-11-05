@@ -23,6 +23,12 @@ program:
   - "19:00 - Zengin dünya ve Tay mutfağı açık büfe yemeği"
   - "20:30 - River Carnivale görkemli sahne ve robotik geçit şovu"
   - "21:30 - 40 milyon ışıklı Kingdom of Lights gezisi ve otele dönüş"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "carnival_magic.webp"
+  - "carnival_magic.webp"
+  - "carnival_magic.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Küçük çocuklar ve bebekler eğlenir mi?"
     a: "Carnival Magic özellikle çocuklar ve aileler için büyülü bir masal dünyasıdır. Rengarenk ışıklar, müzikli geçitler ve dev animasyon figürleri her yaş grubuna hitap eder."

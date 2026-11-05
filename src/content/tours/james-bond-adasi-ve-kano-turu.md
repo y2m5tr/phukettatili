@@ -57,6 +57,17 @@ program:
   - "15:30 - Naka Adası, Khai Adası veya Koh Yao Yai plajında yüzme, paddleboard ve kumsalda dinlenme"
   - "16:45 - Phuket iskelesine dönüş seyri"
   - "17:30 - İskeleden otelinize konforlu transfer"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/speedboat_sea.webp"
+  - "itinerary/sea_kayak_cave.webp"
+  - "itinerary/whitewater_rafting_rapid.webp"
+  - "itinerary/koh_panyi_stilt_village.webp"
+  - "itinerary/elephant_mud_bath.webp"
+  - "itinerary/white_sand_beach.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Kano yaparken kendimiz mi kürek çekiyoruz?"
     a: "Hayır, turlarımızda her kanoda deneyimli ve güçlü yerel rehberler kürek çeker. Siz sadece arkada arkanıza yaslanıp kaskınızla mağaraların, sarkıtların ve gizli lagünlerin tadını çıkarır ve bolca fotoğraf çekebilirsiniz."

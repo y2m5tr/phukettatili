@@ -20,6 +20,11 @@ program:
   - "Giriş ve salondaki koltuğunuza yerleşme"
   - "75 dakikalık kesintisiz dünya müzikalleri ve dans performansı"
   - "Çıkışta sanatçılarla fotoğraf molası"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "simon_cabaret.webp"
+  - "simon_cabaret.webp"
+  - "simon_cabaret.webp"
 faq:
   - q: "Aileler için uygun mudur?"
     a: "Evet, Simon Cabaret tamamen koreografi, müzik, göz alıcı kostümler ve sahne sanatına odaklanan profesyonel ve eğlenceli bir kabare şovudur."

@@ -40,6 +40,17 @@ program:
   - "15:15 - Similan Adaları'ndan ana karaya dönüş seyri"
   - "16:45 - Tub-Lamu iskelesine varış; taze meyve, dondurma ve sıcak çorba/atıştırmalık ikramı"
   - "18:30 - 19:30 - Phuket otellerine varış"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/speedboat_sea.webp"
+  - "itinerary/sailing_rock_view.webp"
+  - "itinerary/tropical_reef_fish.webp"
+  - "itinerary/sea_turtle_reef.webp"
+  - "itinerary/thai_buffet_lunch.webp"
+  - "itinerary/sunset_sea_cruise.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Similan Adaları hangi tarihler arasında ziyarete açıktır?"
     a: "Tayland Çevre Bakanlığı Millî Parklar İdaresi (DNP) koruma takvimi uyarınca Similan Adaları her yıl yalnızca 15 Ekim - 15 Mayıs tarihleri arasında ziyarete açıktır. Muson sezonunda (Mayıs - Ekim ortası) deniz kaplumbağalarının yumurtlaması ve mercanların yenilenmesi amacıyla kesinlikle kapatılır."

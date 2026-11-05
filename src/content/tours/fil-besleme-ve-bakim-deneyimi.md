@@ -42,6 +42,15 @@ program:
   - "10:30 veya 15:30 - Yağmur Duşu ve Havuz: Filleri fırçalayarak tatlı su havuzunda ve dev yağmurlama sisteminde serinletme"
   - "11:00 veya 16:00 - Sıcak duş, temiz giysilerin giyilmesi ve taze hazırlanmış otantik Tayland yemeği tadımı"
   - "11:45 veya 16:45 - Otelinize konforlu transfer"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/elephant_mud_bath.webp"
+  - "itinerary/elephant_mud_bath.webp"
+  - "itinerary/elephant_mud_bath.webp"
+  - "itinerary/elephant_mud_bath.webp"
+  - "itinerary/elephant_mud_bath.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Bu parkta fillere biniliyor mu (Trekking yapılıyor mu)?"
     a: "Hayır. Kerchor Elephant Family Park, Chiang Mai Mae Wang kökenli etik bir koruma alanıdır. Burada fillerin sırtına semer takılmaz, binilmez veya gösteri yaptırılmaz. Program tamamen onların doğal davranışlarını gözlemlemeye, beslemeye ve temizlenmelerine yardımcı olmaya odaklıdır."

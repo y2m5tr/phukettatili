@@ -25,6 +25,13 @@ program:
   - "17:30 - Teknede taze deniz ürünleri akşam yemeği ve muhteşem gün batımı"
   - "19:00 - Gece karanlığında mağarada geleneksel Kratong yüzdürme ve biyolüminesans plankton gözlemi"
   - "21:30 - İskeleye dönüş ve otellere transfer"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/thai_buffet_lunch.webp"
+  - "itinerary/sea_kayak_cave.webp"
+  - "itinerary/sunset_sea_cruise.webp"
+  - "itinerary/sea_kayak_cave.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Planktonları kendi gözümüzle görebilir miyiz?"
     a: "Evet! Gece karanlığında mağaranın içinde suya elinizi daldırıp hareket ettirdiğinizde veya kürek vurduğunuzda mavi-yeşil parıldayan milyonlarca mikroskobik biyolüminesans canlıyı net bir şekilde görürsünüz."

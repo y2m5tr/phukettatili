@@ -48,6 +48,18 @@ program:
   - "15:30 - Surin Adaları'ndan ana karaya hareket"
   - "17:00 - Baan Namkhem iskelesine varış; taze meyve ve sıcak atıştırmalık ikramı"
   - "18:45 - 19:30 - Phuket otellerine varış"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/speedboat_sea.webp"
+  - "itinerary/sea_kayak_cave.webp"
+  - "itinerary/white_sand_beach.webp"
+  - "itinerary/thai_buffet_lunch.webp"
+  - "itinerary/tropical_reef_fish.webp"
+  - "itinerary/sea_turtle_reef.webp"
+  - "itinerary/speedboat_sea.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Surin Adaları neden Andaman'ın en iyi şnorkel noktası olarak bilinir?"
     a: "Surin Adaları, anakaradan uzaklığı ve sıkı milli park koruma kuralları sayesinde Tayland'ın en sağlıklı ve el değmemiş sığ mercan resiflerine sahiptir. Similan derin granit kayalıklarıyla ünlüyken, Surin Adaları rengarenk sert ve yumuşak mercan bahçeleriyle şnorkelciler için eşsiz bir zenginlik sunar."

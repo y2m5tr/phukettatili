@@ -47,6 +47,17 @@ program:
   - "14:20 - Koh Haa (5 Adalar) lagününe hareket; dev kireçtaşı kanyonları arasındaki doğal lagünde 3. şnorkel seansı"
   - "15:40 - Phuket'e dönüş seyri"
   - "17:30 - Leam Nga iskelesine varış ve otelinize konforlu transfer"
+program_images:
+  - "itinerary/hotel_transfer.webp"
+  - "itinerary/pier_lounge.webp"
+  - "itinerary/speedboat_sea.webp"
+  - "itinerary/tropical_reef_fish.webp"
+  - "itinerary/white_sand_beach.webp"
+  - "itinerary/thai_buffet_lunch.webp"
+  - "itinerary/tropical_reef_fish.webp"
+  - "itinerary/maya_bay_lagoon.webp"
+  - "itinerary/sunset_sea_cruise.webp"
+  - "itinerary/hotel_transfer.webp"
 faq:
   - q: "Koh Rok neden 'Tayland'ın Maldivleri' olarak adlandırılıyor?"
     a: "Koh Rok'un kumsalı Tayland'daki en ince taneli, parlayan beyaz kumlardan birine sahiptir. Denizin rengi ise açık neon turkuazdan koyu zümrüte doğru büyüleyici tonlar sergiler; su o kadar berraktır ki teknenin gölgesi deniz tabanına düşer."
