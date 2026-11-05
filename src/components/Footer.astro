@@ -11,7 +11,8 @@ try {
 
 const currentYear = new Date().getFullYear();
 const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
-const whatsappUrl = `https://wa.me/${whatsappNumber}`;
+const whatsappDefaultMsg = encodeURIComponent("Merhaba! Phuket Tatili turları ve hizmetleri hakkında bilgi ve fiyat teklifi almak istiyorum.");
+const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${whatsappDefaultMsg}`;
 const email = siteSettings?.email || 'info@phukettatili.com';
 const instagramUrl = siteSettings?.instagramUrl || 'https://instagram.com/phukettatili';
 const logoUrl = siteSettings?.logoUrl || '/assets/logo-main-transparent.png';

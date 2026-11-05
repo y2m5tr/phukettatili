@@ -2,7 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 import FadeIn from '../components/ui/FadeIn';
 import siteSettings from '../content/settings/site.json';
-const whatsappUrl = `https://wa.me/${siteSettings.whatsappNumber || '66828950665'}`;
+const defaultMsg = encodeURIComponent("Merhaba! Phuket tatilimiz için Türkçe destek ve tur fiyatları hakkında bilgi almak istiyorum.");
+const whatsappUrl = `https://wa.me/${siteSettings.whatsappNumber || '66828950665'}?text=${defaultMsg}`;
 
 export const prerender = true;
 

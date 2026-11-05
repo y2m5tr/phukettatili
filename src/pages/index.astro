@@ -43,7 +43,8 @@ const panelContent = await getPublicHomeContent();
 const homeData = mergeHomeSettings(homeDataJson, panelContent.homeSettings);
 const siteSettings = mergeSiteSettings(siteSettingsJson, panelContent.siteSettings);
 
-const whatsappUrl = `https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}`;
+const defaultWaMsg = encodeURIComponent("Merhaba! Phuket seyahatimiz için turlar, transferler ve ada gezileri hakkında bilgi ve özel fiyat teklifi almak istiyoruz.");
+const whatsappUrl = `https://wa.me/${siteSettings?.whatsappNumber || '66828950665'}?text=${defaultWaMsg}`;
 const googleRating = siteSettings?.googleRating || '4.9';
 const googleReviewCount = Number(siteSettings?.googleReviewCount) || 148;
 
