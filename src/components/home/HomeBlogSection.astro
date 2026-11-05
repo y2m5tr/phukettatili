@@ -26,7 +26,8 @@ const topPosts = [...posts]
   .slice(0, 3);
 
 function getPostCategory(id: string): string {
-  if (id.includes('hava-durumu')) return 'Hava Durumu';
+  if (id.includes('vize')) return 'Vize & Giriş';
+  if (id.includes('hava-durumu') || id.includes('ne-zaman')) return 'Mevsim & Hava';
   if (id.includes('plajlar')) return 'Plaj Rehberi';
   if (id.includes('fil')) return 'Doğa & Etik';
   if (id.includes('mutfagi') || id.includes('yemek')) return 'Yeme - İçme';

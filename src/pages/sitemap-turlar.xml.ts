@@ -13,6 +13,25 @@ import { getCloudTours, applyTourOverlay } from '../lib/server/tourContent';
 
 export const prerender = false;
 
+function escapeXml(str: string): string {
+  return str.replace(/[<>&'"]/g, (c) => {
+    switch (c) {
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '&':
+        return '&amp;';
+      case "'":
+        return '&apos;';
+      case '"':
+        return '&quot;';
+      default:
+        return c;
+    }
+  });
+}
+
 export const GET: APIRoute = async () => {
   const mdTours = await getCollection('tours');
   const cloudTours = await getCloudTours();
@@ -22,17 +41,40 @@ export const GET: APIRoute = async () => {
 
   const urls = tours
     .map((tour) => {
+      const images: string[] = [];
+      if (tour.data.image) {
+        images.push(tour.data.image);
+      }
+      if (Array.isArray(tour.data.gallery)) {
+        for (const img of tour.data.gallery) {
+          if (typeof img === 'string' && img && !images.includes(img)) {
+            images.push(img);
+          }
+        }
+      }
+
+      const imageTags = images
+        .slice(0, 5)
+        .map((img) => {
+          const imgUrl = img.startsWith('http') ? img : `${site}/assets/${img}`;
+          return `    <image:image>
+      <image:loc>${escapeXml(imgUrl)}</image:loc>
+      <image:title>${escapeXml(tour.data.title)}</image:title>
+    </image:image>`;
+        })
+        .join('\n');
+
       return `  <url>
     <loc>${site}/turlar/${tour.id}/</loc>
     <lastmod>${today}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>`;
+${imageTags ? `${imageTags}\n` : ''}  </url>`;
     })
     .join('\n');
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
 ${urls}
 </urlset>`;
 

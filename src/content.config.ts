@@ -101,6 +101,14 @@ const blogCollection = defineCollection({
     author: z.string().optional(),
     featured: z.boolean().default(false),
     related_tour: z.string().optional(),
+    faq: z
+      .array(
+        z.object({
+          q: z.string(),
+          a: z.string(),
+        })
+      )
+      .optional(),
   }),
 });
 

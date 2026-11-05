@@ -2,6 +2,7 @@
 import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import BlogRelatedTour from '../../components/BlogRelatedTour.astro';
+import FaqAccordion from '../../components/ui/FaqAccordion.astro';
 import siteSettings from '../../content/settings/site.json';
 import { getCloudBlogPosts, applyBlogOverlayToEntry } from '../../lib/server/blogContent';
 
@@ -19,7 +20,7 @@ const mdPosts: CollectionEntry<'blog'>[] = await getCollection('blog');
 const post = mdPosts.find((p) => p.id === id);
 
 if (!post) {
-  return Astro.redirect('/blog', 302);
+  return Astro.redirect('/blog', 301);
 }
 
 // Bulut overlay: panelde düzenlenen metadata alanları bu yazıya uygulanır.
@@ -109,6 +110,22 @@ const schemas: Record<string, unknown>[] = [
       { "@type": "ListItem", "position": 3, "name": post.data.title, "item": postURL },
     ],
   },
+  ...(post.data.faq && post.data.faq.length > 0
+    ? [
+        {
+          "@type": "FAQPage",
+          "speakable": {
+            "@type": "SpeakableSpecification",
+            "cssSelector": [".ptt-faq-question"],
+          },
+          "mainEntity": post.data.faq.map((item) => ({
+            "@type": "Question",
+            "name": item.q,
+            "acceptedAnswer": { "@type": "Answer", "text": item.a },
+          })),
+        },
+      ]
+    : []),
 ];
 ---
 
@@ -166,6 +183,16 @@ const schemas: Record<string, unknown>[] = [
       <article class="prose prose-lg prose-slate dark:prose-invert prose-headings:font-serif prose-headings:text-brand-primary dark:prose-headings:text-white prose-a:text-brand-accent hover:prose-a:underline max-w-none">
         <Content />
       </article>
+
+      {post.data.faq && post.data.faq.length > 0 && (
+        <div class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-800">
+          <div class="mb-6">
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-accent">Merak Edilenler</span>
+            <h2 class="text-2xl font-serif text-brand-primary dark:text-white font-bold mt-1">Sıkça Sorulan Sorular</h2>
+          </div>
+          <FaqAccordion faqs={post.data.faq} />
+        </div>
+      )}
 
       {relatedTour && (
         <BlogRelatedTour tour={relatedTour} badgeText={badgeText} whatsappNumber={whatsappNumber} />
