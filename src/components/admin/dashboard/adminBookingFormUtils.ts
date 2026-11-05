@@ -128,6 +128,8 @@ export function buildSubmittedBooking(
     id: `BK-${Math.floor(1000 + Math.random() * 9000)}`,
     customerName: formData.customerName || 'İsimsiz Misafir',
     phone: formData.phone || '',
+    lineId: formData.lineId || '',
+    salesRep: formData.salesRep || '',
     hotel: formData.hotel || 'Belirtilmedi',
     hotelZone: resolvedZone,
     roomNumber: formData.roomNumber,

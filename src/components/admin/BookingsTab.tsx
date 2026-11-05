@@ -69,6 +69,7 @@ export default function BookingsTab({
   allBookings,
   showToast,
 }: BookingsTabProps) {
+  const [isSalesView, setIsSalesView] = useState(true);
   const [isBulkDispatchOpen, setIsBulkDispatchOpen] = useState(false);
   const [selectedDispatchDate, setSelectedDispatchDate] = useState('');
 
@@ -118,6 +119,8 @@ export default function BookingsTab({
         onOpenFieldCashier={onOpenFieldCashier}
         onExportCSV={onExportCSV}
         onOpenCreate={onOpenCreate}
+        isSalesView={isSalesView}
+        onToggleSalesView={() => setIsSalesView((prev) => !prev)}
       />
 
       {/* Rezervasyon Listesi Tablosu */}
@@ -132,7 +135,9 @@ export default function BookingsTab({
                 <th className="py-4 px-5">Kişi</th>
                 <th className="py-4 px-5">Fiyat / Tahsilat</th>
                 <th className="py-4 px-5">Durum</th>
-                <th className="py-4 px-5 text-right whitespace-nowrap">İşlemler (Portallar / Yönetim)</th>
+                <th className="py-4 px-5 text-right whitespace-nowrap">
+                  {isSalesView ? 'Satış İşlemleri (WhatsApp / LINE / Bilet)' : 'İşlemler (Portallar / Yönetim)'}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -147,6 +152,7 @@ export default function BookingsTab({
                   <BookingTableRow
                     key={b.id}
                     booking={b}
+                    isSalesView={isSalesView}
                     pendingBookingIds={pendingBookingIds}
                     canDelete={canDelete}
                     googleReviewUrl={googleReviewUrl}

@@ -15,7 +15,7 @@ export interface OpsUser {
   id: string;
   username: string;
   full_name: string;
-  role: 'owner' | 'manager' | 'guide' | 'driver';
+  role: 'owner' | 'manager' | 'sales' | 'guide' | 'driver';
   is_active: boolean;
   created_at: string;
   last_login_at: string | null;
@@ -24,6 +24,7 @@ export interface OpsUser {
 const ROLE_LABELS: Record<OpsUser['role'], string> = {
   owner: '👑 Yönetici',
   manager: '🧭 Müdür',
+  sales: '💼 Satış Temsilcisi',
   guide: '🗣️ Rehber',
   driver: '🚐 Şoför',
 };
@@ -31,6 +32,7 @@ const ROLE_LABELS: Record<OpsUser['role'], string> = {
 const ROLE_DESCRIPTIONS: Record<OpsUser['role'], string> = {
   owner: 'Her şey: kullanıcı yönetimi, silme, ayarlar, tüm sekmeler',
   manager: 'Admin paneli ve CMS yazma; kullanıcı yönetimi ve kalıcı silme yok',
+  sales: 'Rezervasyon alma, hızlı satış, WhatsApp & LINE ile bilet/teklif paylaşımı',
   guide: 'Saha paneli (tam): manifest, tahsilat, hızlı satış',
   driver: 'Saha paneli (sade): günün transfer listesi',
 };

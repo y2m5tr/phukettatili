@@ -9,7 +9,7 @@ import {
 } from '../adminNav';
 
 export interface UseAdminNavigationArgs {
-  viewerRole?: 'owner' | 'manager' | 'guide' | 'driver' | null;
+  viewerRole?: 'owner' | 'manager' | 'guide' | 'driver' | 'sales' | null;
 }
 
 export function useAdminNavigation({ viewerRole = null }: UseAdminNavigationArgs) {

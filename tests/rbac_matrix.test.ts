@@ -72,6 +72,34 @@ describe('Aşama 3: Role-Based Access Control (RBAC) & Security Matrix', () => {
     });
   });
 
+  describe('Sales Representative Permissions', () => {
+    it('grants bookings, proposals, tours and whatsapp access to sales rep', () => {
+      const perms = getRolePermissions('sales');
+      expect(perms.canDeleteBookings).toBe(false);
+      expect(perms.canManageUsers).toBe(false);
+      expect(perms.canViewFinancialMargins).toBe(false);
+      expect(perms.canManageSettings).toBe(false);
+      expect(perms.canCreateBookings).toBe(true);
+      expect(perms.canAssignTransfers).toBe(false);
+      expect(perms.canExportData).toBe(false);
+      expect(perms.canManageCms).toBe(false);
+      expect(perms.defaultTab).toBe('bookings');
+
+      // Allowed tabs
+      expect(isTabAllowed('bookings', 'sales')).toBe(true);
+      expect(isTabAllowed('proposals', 'sales')).toBe(true);
+      expect(isTabAllowed('tours', 'sales')).toBe(true);
+      expect(isTabAllowed('whatsapp', 'sales')).toBe(true);
+
+      // Forbidden tabs
+      expect(isTabAllowed('users', 'sales')).toBe(false);
+      expect(isTabAllowed('finance', 'sales')).toBe(false);
+      expect(isTabAllowed('settlements', 'sales')).toBe(false);
+      expect(isTabAllowed('fleet', 'sales')).toBe(false);
+      expect(isTabAllowed('settings', 'sales')).toBe(false);
+    });
+  });
+
   describe('Guide / Field Operations Permissions', () => {
     it('restricts guide strictly to transfers, bookings manifest, and whatsapp', () => {
       const perms = getRolePermissions('guide');

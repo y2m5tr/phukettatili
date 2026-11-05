@@ -7,6 +7,7 @@ import type {
   TourCostItem,
 } from '../../data/adminInitialData';
 import { BookingModalHeader } from './booking/BookingModalHeader';
+import { QuickBookingForm } from './booking/QuickBookingForm';
 import { BookingCustomerPassengers } from './booking/BookingCustomerPassengers';
 import { BookingToursList } from './booking/BookingToursList';
 import { BookingHotelAndPickup } from './booking/BookingHotelAndPickup';
@@ -48,6 +49,7 @@ export default function BookingModal({
   tourCosts,
   showToast,
 }: BookingModalProps) {
+  const [formMode, setFormMode] = React.useState<'simple' | 'advanced'>('simple');
   const formState = useBookingFormState({
     formData,
     setFormData,
@@ -63,6 +65,8 @@ export default function BookingModal({
         {/* Üst Başlık & Sekmeler */}
         <BookingModalHeader
           editingBooking={editingBooking}
+          formMode={formMode}
+          setFormMode={setFormMode}
           activeTab={formState.activeTab}
           setActiveTab={formState.setActiveTab}
           isQuickPasteOpen={formState.isQuickPasteOpen}
@@ -76,7 +80,19 @@ export default function BookingModal({
         />
 
         {/* Form Alanı (Kaydırılabilir İçerik) */}
-        <form onSubmit={onSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
+        {formMode === 'simple' ? (
+          <form onSubmit={onSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6">
+            <QuickBookingForm
+              formData={formData}
+              setFormData={setFormData}
+              tours={tours}
+              onSubmit={onSubmit}
+              onClose={onClose}
+              editingBooking={editingBooking}
+            />
+          </form>
+        ) : (
+          <form onSubmit={onSubmit} className="flex-1 overflow-y-auto p-5 sm:p-6 space-y-5">
           {/* SEKME 1: REZERVASYON & OTEL (ANA EKRAN) */}
           {formState.activeTab === 'main' && (
             <div className="space-y-4">
@@ -163,6 +179,7 @@ export default function BookingModal({
             onClose={onClose}
           />
         </form>
+        )}
       </div>
     </div>
   );

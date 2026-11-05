@@ -19,6 +19,7 @@ describe('Booking Modular Subcomponents', () => {
     const html = renderToString(
       React.createElement(BookingModalHeader, {
         editingBooking: null,
+        formMode: 'advanced',
         activeTab: 'main',
         setActiveTab: () => {},
         isQuickPasteOpen: false,
@@ -34,6 +35,24 @@ describe('Booking Modular Subcomponents', () => {
     expect(html).toContain('Yeni Rezervasyon Ekle');
     expect(html).toContain('Hızlı Doldur');
     expect(html).toContain('1. Rezervasyon &amp; Otel');
+
+    const simpleHtml = renderToString(
+      React.createElement(BookingModalHeader, {
+        editingBooking: null,
+        formMode: 'simple',
+        activeTab: 'main',
+        setActiveTab: () => {},
+        isQuickPasteOpen: false,
+        setIsQuickPasteOpen: () => {},
+        quickPasteText: '',
+        setQuickPasteText: () => {},
+        onApplyWhatsAppPaste: () => {},
+        onClose: () => {},
+        remainingBalance: 0,
+        hasB2bOrSupplier: false,
+      })
+    );
+    expect(simpleHtml).toContain('Hızlı Satış Modu');
   });
 
   it('renders BookingCustomerPassengers with passenger rows', () => {

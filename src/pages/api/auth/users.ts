@@ -20,7 +20,7 @@ import { getSupabaseAdmin, isSupabaseAdminConfigured } from '../../../lib/server
 
 export const prerender = false;
 
-const ROLES = ['owner', 'manager', 'guide', 'driver'] as const;
+const ROLES = ['owner', 'manager', 'sales', 'guide', 'driver'] as const;
 type MembershipRole = (typeof ROLES)[number];
 
 function isValidRole(r: unknown): r is MembershipRole {

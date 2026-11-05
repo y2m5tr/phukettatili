@@ -94,6 +94,8 @@ export interface Booking {
   id: string;
   customerName: string;
   phone: string;
+  lineId?: string;
+  salesRep?: string;
   email?: string;
   hotel: string;
   roomNumber?: string;

@@ -154,6 +154,22 @@ export const ROLE_PERMISSIONS: Record<OpsRole, RolePermissions> = {
     canManageCms: false,
   },
 
+  // 💼 SATIŞ TEMSİLCİSİ (SALES REP)
+  // Rezervasyon alma, teklif hazırlama, tur kataloğu ve WhatsApp/LINE iletişimi.
+  // Net finansal maliyetler, kullanıcı yönetimi, silme ve hassas ayarlar gizlidir.
+  sales: {
+    allowedTabs: ['bookings', 'proposals', 'tours', 'whatsapp'],
+    defaultTab: 'bookings',
+    canDeleteBookings: false,
+    canManageUsers: false,
+    canViewFinancialMargins: false,
+    canManageSettings: false,
+    canCreateBookings: true,
+    canAssignTransfers: false,
+    canExportData: false,
+    canManageCms: false,
+  },
+
   // 🚐 TRANSFER ŞOFÖRÜ
   // Sadece günün otel/havalimanı transfer manifestosu, uçuş takibi ve biniş durumu
   driver: {
@@ -210,6 +226,12 @@ export function getRoleBadge(role: OpsRole | null | undefined): {
         label: '🧭 Operasyon Amiri (Dispatcher)',
         shortRole: 'Dispatcher',
         badgeClass: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+      };
+    case 'sales':
+      return {
+        label: '💼 Satış Temsilcisi',
+        shortRole: 'Satış',
+        badgeClass: 'bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20',
       };
     case 'guide':
     case 'field':

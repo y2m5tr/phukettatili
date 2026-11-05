@@ -43,9 +43,10 @@ describe('roleRank — hiyerarşi', () => {
 });
 
 describe('isMembershipRole', () => {
-  it('dört yeni rolü tanır', () => {
+  it('üyelik rollerini tanır', () => {
     expect(isMembershipRole('owner')).toBe(true);
     expect(isMembershipRole('manager')).toBe(true);
+    expect(isMembershipRole('sales')).toBe(true);
     expect(isMembershipRole('guide')).toBe(true);
     expect(isMembershipRole('driver')).toBe(true);
   });

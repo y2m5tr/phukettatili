@@ -19,12 +19,12 @@ export const SESSION_TTL_SECONDS = 12 * 60 * 60;
  * Eski iki-parçalı sistem ('admin' | 'field') geçiş döneminde kabul
  * edilir; yeni oturumlar dört rollerden birini taşır.
  */
-export type OpsRole = 'admin' | 'field' | 'owner' | 'manager' | 'guide' | 'driver';
-export type MembershipRole = 'owner' | 'manager' | 'guide' | 'driver';
+export type OpsRole = 'admin' | 'field' | 'owner' | 'manager' | 'sales' | 'guide' | 'driver';
+export type MembershipRole = 'owner' | 'manager' | 'sales' | 'guide' | 'driver';
 
 /** Üyelik rolü mü (yeni sistem) yoksa eski şifre-rolü mü? */
 export function isMembershipRole(role: OpsRole | null): role is MembershipRole {
-  return role === 'owner' || role === 'manager' || role === 'guide' || role === 'driver';
+  return role === 'owner' || role === 'manager' || role === 'sales' || role === 'guide' || role === 'driver';
 }
 
 /**
@@ -38,6 +38,8 @@ export function roleRank(role: OpsRole | null): number {
       return 4;
     case 'manager':
       return 3;
+    case 'sales':
+      return 2;
     case 'guide':
     case 'field':
       return 2;

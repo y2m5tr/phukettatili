@@ -1,34 +1,20 @@
 
 import {
   Phone,
-  ExternalLink,
-  Ticket,
-  MessageCircle,
-  Edit2,
-  Trash2,
   Ship,
-  FileText,
-  Star,
-  Gift,
   Coins,
-  Compass,
-  ShieldCheck,
-  Plane,
-  Building,
   QrCode,
   Luggage,
-  Zap,
   CheckCircle2,
 } from 'lucide-react';
 import { type Booking, detectHotelZone, getPhuketSeason } from '../../../data/adminInitialData';
-import { isTourEligibleForReview, getGoogleReviewWhatsAppUrl } from '../../../lib/reviewBooster';
-import { getCrossSellWhatsAppUrl } from '../../../lib/crossSell';
 import { analyzeBookingDietaryAndMedical, DIETARY_CATEGORIES } from '../../../lib/dietaryManifest';
-import { generateDriverPickupJobThai, generateGuestPickupReminderTurkish } from '../../../lib/whatsappEngine';
 import { fmtMoney } from '../../../lib/moneyFormat';
+import { BookingRowActions } from './BookingRowActions';
 
 export interface BookingTableRowProps {
   booking: Booking;
+  isSalesView?: boolean;
   pendingBookingIds?: Set<string>;
   canDelete?: boolean;
   googleReviewUrl?: string;
@@ -50,6 +36,7 @@ export interface BookingTableRowProps {
 
 export function BookingTableRow({
   booking: b,
+  isSalesView = false,
   pendingBookingIds,
   canDelete = true,
   googleReviewUrl,
@@ -94,14 +81,32 @@ export function BookingTableRow({
           )}
         </div>
         <span className="font-bold text-slate-900 dark:text-white block">{b.customerName}</span>
-        <a
-          href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 mt-0.5"
-        >
-          <Phone className="w-3 h-3" /> {b.phone}
-        </a>
+        <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+          <a
+            href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline inline-flex items-center gap-1"
+          >
+            <Phone className="w-3 h-3" /> {b.phone}
+          </a>
+          {b.lineId && (
+            <a
+              href={`https://line.me/R/ti/p/~${b.lineId.replace(/^@/, '')}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[10px] font-bold text-[#06C755] bg-[#06C755]/10 px-1.5 py-0.2 rounded hover:underline inline-flex items-center gap-0.5"
+              title={`LINE: ${b.lineId}`}
+            >
+              LINE: {b.lineId}
+            </a>
+          )}
+        </div>
+        {b.salesRep && (
+          <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold block mt-0.5">
+            💼 Temsilci: {b.salesRep}
+          </span>
+        )}
         {dietaryAlert && dietaryAlert.categories.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1.5">
             {dietaryAlert.categories.map((c) => {
@@ -282,200 +287,22 @@ export function BookingTableRow({
       </td>
 
       <td className="py-3 px-5 text-right align-middle">
-        <div className="flex flex-col items-end gap-1.5">
-          {/* Satır 1: Misafir Portalları & Saha Servisleri */}
-          <div
-            className="inline-flex items-center justify-end gap-1 p-1 bg-amber-500/5 dark:bg-amber-500/10 rounded-xl border border-amber-500/15"
-            title="Misafir Portalları & Saha Linkleri"
-          >
-            <a
-              href={`/bilet/${b.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors"
-              title="🎟️ Misafir Canlı Takip Portalını Aç (/bilet/[kod])"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href={`/gezi/${b.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/50 text-teal-600 dark:text-teal-400 hover:bg-teal-600 hover:text-white transition-colors"
-              title="🧭 Misafir Gün Gün Dijital Tatil Ajandası (/gezi/[id])"
-            >
-              <Compass className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href={`/sigorta/${b.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded-lg bg-rose-50 dark:bg-rose-950/50 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white transition-colors"
-              title="🛡️ TAT Tur Sigortası & Sağlık Beyanı Formu (/sigorta/[id])"
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-            </a>
-            <a
-              href={`/foto/${b.id}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors flex items-center justify-center"
-              title="📸 Misafir Fotoğraf Kasası (/foto/[kod])"
-            >
-              <span className="text-xs leading-none">📸</span>
-            </a>
-            {onOpenWelcomeBoard && (
-              <button
-                type="button"
-                onClick={() => onOpenWelcomeBoard(b)}
-                className="p-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/50 text-amber-600 dark:text-amber-400 hover:bg-amber-500 hover:text-slate-950 transition-colors cursor-pointer flex items-center justify-center"
-                title="🪧 VIP Karşılama İsimlik & Tablet Tabelası"
-              >
-                <span className="text-xs leading-none">🪧</span>
-              </button>
-            )}
-            {onOpenFlightRadar && (
-              <button
-                type="button"
-                onClick={() => onOpenFlightRadar(undefined, b.customerName)}
-                className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-colors cursor-pointer"
-                title="✈️ Havalimanı Uçuş Radarı & Canlı Karşılama"
-              >
-                <Plane className="w-3.5 h-3.5" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setVoucherBooking(b)}
-              className="p-1.5 rounded-lg bg-purple-50 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors cursor-pointer"
-              title="🎫 Bilet / Voucher Kuponu Aç"
-            >
-              <Ticket className="w-3.5 h-3.5" />
-            </button>
-          </div>
-
-          {/* Satır 2: İletişim, Satış & Yönetim İşlemleri */}
-          <div
-            className="inline-flex items-center justify-end gap-1 p-1 bg-slate-100/80 dark:bg-slate-900/60 rounded-xl border border-slate-200/80 dark:border-slate-800/80"
-            title="İletişim, Satış & Rezervasyon Yönetimi"
-          >
-            <button
-              type="button"
-              onClick={() => setWhatsAppModalBooking(b)}
-              className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 hover:bg-emerald-500 hover:text-white transition-colors cursor-pointer"
-              title="💬 WhatsApp Şablonları & Otomatik Mesaj"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const job = generateDriverPickupJobThai(b);
-                window.open(job.waUrl, '_blank', 'noopener,noreferrer');
-              }}
-              className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center text-xs"
-              title="🇹🇭 Şoför için Tayca & İngilizce Alınış Kartını WhatsApp'ta Aç"
-            >
-              <span className="leading-none">🇹🇭</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const reminder = generateGuestPickupReminderTurkish(b);
-                window.open(reminder.waUrl, '_blank', 'noopener,noreferrer');
-              }}
-              className="p-1.5 rounded-lg bg-teal-500/15 text-teal-700 dark:text-teal-300 hover:bg-teal-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center text-xs"
-              title="🇹🇷 Misafire Türkçe Lobi Alınış Hatırlatmasını WhatsApp'ta Aç"
-            >
-              <span className="leading-none">🇹🇷</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const url = getGoogleReviewWhatsAppUrl(b, { googleReviewUrl });
-                window.open(url, '_blank', 'noopener,noreferrer');
-              }}
-              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                isTourEligibleForReview(b)
-                  ? 'bg-amber-400/25 text-amber-600 dark:text-amber-400 hover:bg-amber-400 hover:text-slate-950'
-                  : 'bg-slate-200/70 dark:bg-slate-800 text-slate-400 hover:text-amber-500'
-              }`}
-              title="⭐ 5-Yıldızlı Google Yorum İste (WhatsApp Review Booster)"
-            >
-              <Star className="w-3.5 h-3.5 fill-current" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const url = getCrossSellWhatsAppUrl(b);
-                window.open(url, '_blank', 'noopener,noreferrer');
-              }}
-              className="p-1.5 rounded-lg bg-purple-500/15 text-purple-600 dark:text-purple-400 hover:bg-purple-600 hover:text-white transition-colors cursor-pointer"
-              title="🎁 %10 İkinci Tur İndirimi & Çapraz Satış Teklifi Gönder (WhatsApp)"
-            >
-              <Gift className="w-3.5 h-3.5" />
-            </button>
-            {onOpenTourMedia && (
-              <button
-                type="button"
-                onClick={() => onOpenTourMedia(b)}
-                className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-400 hover:bg-sky-600 hover:text-white transition-colors cursor-pointer flex items-center justify-center"
-                title="📂 Fotoğraf Albüm Linki Ekle & WhatsApp Gönder"
-              >
-                <span className="text-xs leading-none">📂</span>
-              </button>
-            )}
-            {onOpenSupplierDispatch && (
-              <button
-                type="button"
-                onClick={() => onOpenSupplierDispatch(b)}
-                className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white transition-colors cursor-pointer"
-                title="🏢 Tedarikçiye (Andaman Wave, Seastar vb.) WhatsApp Tur Siparişi İlet"
-              >
-                <Building className="w-3.5 h-3.5" />
-              </button>
-            )}
-            {onOpenQuotePdf && (
-              <button
-                type="button"
-                onClick={() => onOpenQuotePdf(b)}
-                className="p-1.5 rounded-lg bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white transition-colors cursor-pointer"
-                title="📄 Kurumsal Teklif / Voucher (PDF) Oluştur"
-              >
-                <FileText className="w-3.5 h-3.5" />
-              </button>
-            )}
-            {onOpenWorkflow && (
-              <button
-                type="button"
-                onClick={() => onOpenWorkflow(b)}
-                className="px-2 py-1 rounded-lg bg-amber-500/20 text-amber-700 dark:text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition-colors cursor-pointer flex items-center gap-1 font-bold text-xs"
-                title="⚡ Saha İş Akışı & 5 Adımlı Operasyon Yönetimi"
-              >
-                <Zap className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">İş Akışı</span>
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => onOpenEdit(b)}
-              className="p-1.5 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-brand-primary hover:text-white transition-colors cursor-pointer"
-              title="✏️ Rezervasyonu Düzenle"
-            >
-              <Edit2 className="w-3.5 h-3.5" />
-            </button>
-            {canDelete && (
-              <button
-                type="button"
-                onClick={() => onDelete(b.id, b.customerName)}
-                className="p-1.5 rounded-lg bg-slate-200/80 dark:bg-slate-800 text-slate-400 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
-                title="🗑️ Kalıcı Olarak Sil"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        </div>
+        <BookingRowActions
+          booking={b}
+          isSalesView={isSalesView}
+          canDelete={canDelete}
+          googleReviewUrl={googleReviewUrl}
+          onOpenEdit={onOpenEdit}
+          onDelete={onDelete}
+          setVoucherBooking={setVoucherBooking}
+          setWhatsAppModalBooking={setWhatsAppModalBooking}
+          onOpenQuotePdf={onOpenQuotePdf}
+          onOpenFlightRadar={onOpenFlightRadar}
+          onOpenWelcomeBoard={onOpenWelcomeBoard}
+          onOpenTourMedia={onOpenTourMedia}
+          onOpenSupplierDispatch={onOpenSupplierDispatch}
+          onOpenWorkflow={onOpenWorkflow}
+        />
       </td>
     </tr>
   );

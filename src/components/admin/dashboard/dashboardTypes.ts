@@ -56,5 +56,5 @@ export interface AdminDashboardProps {
   initialHomeSettings?: any;
   availableImages?: string[];
   /** Giriş yapan üyenin rolü (üyelik sistemi) — null: eski şifre girişi. */
-  viewerRole?: 'owner' | 'manager' | 'guide' | 'driver' | null;
+  viewerRole?: 'owner' | 'manager' | 'guide' | 'driver' | 'sales' | null;
 }

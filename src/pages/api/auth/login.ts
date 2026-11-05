@@ -34,7 +34,7 @@ interface UserRow {
   id: string;
   username: string;
   full_name: string;
-  role: 'owner' | 'manager' | 'guide' | 'driver';
+  role: 'owner' | 'manager' | 'sales' | 'guide' | 'driver';
   is_active: boolean;
   password_hash: string;
 }

@@ -190,8 +190,16 @@ Keyifli bir tatil geçirmenizi dileriz! ✨🇹🇭`;
   };
 
   const handleSendWhatsApp = () => {
-    const cleanPhone = booking.phone.replace(/[^0-9]/g, '');
-    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(customText)}`, '_blank');
+    const cleanPhone = (booking.phone || '').replace(/[^0-9]/g, '');
+    const url = cleanPhone
+      ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(customText)}`
+      : `https://wa.me/?text=${encodeURIComponent(customText)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const handleSendLine = () => {
+    const url = `https://line.me/R/msg/text/?${encodeURIComponent(customText)}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   const templatesList: { id: TemplateId; label: string; icon: string; desc: string }[] = [
@@ -274,10 +282,20 @@ Keyifli bir tatil geçirmenizi dileriz! ✨🇹🇭`;
             </div>
             <div>
               <h3 className="font-bold text-sm sm:text-base leading-tight">
-                WhatsApp Otomasyonu & Şablon Motoru
+                WhatsApp & LINE İletişim Merkezi
               </h3>
-              <p className="text-[11px] text-emerald-100 font-medium">
-                Misafir: <span className="font-bold text-white">{booking.customerName}</span> ({booking.phone})
+              <p className="text-[11px] text-emerald-100 font-medium flex items-center gap-2 flex-wrap">
+                <span>Misafir: <span className="font-bold text-white">{booking.customerName}</span> ({booking.phone})</span>
+                {booking.lineId && (
+                  <span className="px-1.5 py-0.2 rounded bg-[#06C755] text-white text-[10px] font-bold">
+                    LINE: {booking.lineId}
+                  </span>
+                )}
+                {booking.salesRep && (
+                  <span className="px-1.5 py-0.2 rounded bg-white/20 text-white text-[10px] font-bold">
+                    💼 {booking.salesRep}
+                  </span>
+                )}
               </p>
             </div>
           </div>
@@ -369,11 +387,20 @@ Keyifli bir tatil geçirmenizi dileriz! ✨🇹🇭`;
             </button>
             <button
               type="button"
+              onClick={handleSendLine}
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-[#06C755] hover:bg-[#05b34c] text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 active:scale-98 transition-all cursor-pointer"
+              title="LINE Uygulamasında Mesajı Paylaş"
+            >
+              <span className="font-extrabold text-[11px] bg-white text-[#06C755] px-1 py-0.2 rounded">LINE</span>
+              <span>Paylaş</span>
+            </button>
+            <button
+              type="button"
               onClick={handleSendWhatsApp}
-              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-98 transition-all"
+              className="flex-1 sm:flex-none px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 active:scale-98 transition-all cursor-pointer"
             >
               <Send className="w-4 h-4" />
-              <span>WhatsApp ile Gönder ({booking.phone})</span>
+              <span>WhatsApp ({booking.phone})</span>
             </button>
           </div>
         </div>
