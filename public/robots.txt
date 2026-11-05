@@ -11,6 +11,10 @@ Sitemap: https://phukettatili.com/rss.xml
 
 User-agent: *
 Allow: /
+# Meta Commerce & Google Merchant ürün katalog akışları herkese açık
+Allow: /api/meta-catalog.xml
+Allow: /api/meta-catalog.csv
+Allow: /api/google-catalog.xml
 Disallow: /api/
 Disallow: /.astro/
 Disallow: /admin/
@@ -21,6 +25,9 @@ Disallow: /bilet/
 # AI Search Engines & Crawlers (AEO/GEO görünürlüğü için açıkça izinli)
 User-agent: GPTBot
 Allow: /
+Allow: /api/meta-catalog.xml
+Allow: /api/meta-catalog.csv
+Allow: /api/google-catalog.xml
 Disallow: /api/
 Disallow: /admin/
 Disallow: /ops-login/
@@ -29,6 +36,9 @@ Disallow: /bilet/
 
 User-agent: OAI-SearchBot
 Allow: /
+Allow: /api/meta-catalog.xml
+Allow: /api/meta-catalog.csv
+Allow: /api/google-catalog.xml
 Disallow: /api/
 Disallow: /admin/
 Disallow: /ops-login/
@@ -37,6 +47,9 @@ Disallow: /bilet/
 
 User-agent: PerplexityBot
 Allow: /
+Allow: /api/meta-catalog.xml
+Allow: /api/meta-catalog.csv
+Allow: /api/google-catalog.xml
 Disallow: /api/
 Disallow: /admin/
 Disallow: /ops-login/
@@ -45,6 +58,9 @@ Disallow: /bilet/
 
 User-agent: ClaudeBot
 Allow: /
+Allow: /api/meta-catalog.xml
+Allow: /api/meta-catalog.csv
+Allow: /api/google-catalog.xml
 Disallow: /api/
 Disallow: /admin/
 Disallow: /ops-login/
@@ -53,6 +69,9 @@ Disallow: /bilet/
 
 User-agent: Google-Extended
 Allow: /
+Allow: /api/meta-catalog.xml
+Allow: /api/meta-catalog.csv
+Allow: /api/google-catalog.xml
 Disallow: /api/
 Disallow: /admin/
 Disallow: /ops-login/
@@ -61,14 +80,11 @@ Disallow: /bilet/
 
 User-agent: Applebot-Extended
 Allow: /
+Allow: /api/meta-catalog.xml
+Allow: /api/meta-catalog.csv
+Allow: /api/google-catalog.xml
 Disallow: /api/
 Disallow: /admin/
 Disallow: /ops-login/
 Disallow: /ekip/
 Disallow: /bilet/
-
-# Meta Commerce & Google Merchant ürün katalog akışları herkese açık
-# (grupsuz Allow satırları önceki gruba düştüğü için * grubuna taşındı)
-Allow: /api/meta-catalog.xml
-Allow: /api/meta-catalog.csv
-Allow: /api/google-catalog.xml
