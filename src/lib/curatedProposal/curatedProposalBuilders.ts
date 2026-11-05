@@ -153,6 +153,13 @@ export function buildSingleTourProposal(
   childCount: number = 0
 ): CuratedProposalData {
   const preset = PROPOSAL_CATALOG_TOURS.find((p) => p.id === presetId) || PROPOSAL_CATALOG_TOURS[0];
+  const isTransfer = preset.category === 'transfer' || preset.id === 'vip_airport_transfer';
+  const effectiveHotelName = isTransfer && (!hotelName || hotelName === 'Amari Phuket')
+    ? 'Phuket Havalimanı (HKT) Karşılama Kapısı'
+    : hotelName;
+  const effectiveHotelZone = isTransfer && (!hotelZone || hotelZone === 'Patong & Kalim')
+    ? 'Kuzey / Havalimanı'
+    : hotelZone;
   const today = new Date();
   const validUntil = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
   const formatIsoDate = (d: Date) => d.toISOString().split('T')[0];
@@ -189,8 +196,8 @@ export function buildSingleTourProposal(
     included: [...preset.included],
     image: preset.image,
     priceThb: dayPrice,
-    hotelName,
-    hotelZone,
+    hotelName: effectiveHotelName,
+    hotelZone: effectiveHotelZone,
   };
 
   const proposalNumber = `PT-TOUR-${today.getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -199,8 +206,8 @@ export function buildSingleTourProposal(
   const hotels: CuratedProposalHotelStay[] = [
     {
       id: 'hotel-1',
-      hotelName,
-      hotelZone,
+      hotelName: effectiveHotelName,
+      hotelZone: effectiveHotelZone,
       checkInDate: effectiveTourDate,
       checkOutDate: effectiveTourDate,
     },

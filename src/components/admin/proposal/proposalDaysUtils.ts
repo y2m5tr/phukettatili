@@ -11,6 +11,7 @@ export function addTourFromCatalogToDays(
 ): { nextDays: CuratedProposalDay[]; newDayId: string } {
   const newDayNumber = days.length + 1;
   const newDayId = `DAY-${Date.now().toString().slice(-4)}-${Math.floor(Math.random() * 1000)}`;
+  const isTransfer = preset.category === 'transfer' || preset.id === 'vip_airport_transfer';
   const newDay: CuratedProposalDay = {
     id: newDayId,
     dayNumber: newDayNumber,
@@ -27,6 +28,8 @@ export function addTourFromCatalogToDays(
     included: [...preset.included],
     image: preset.image,
     priceThb: preset.priceThb * adultCount + Math.round(preset.priceThb * 0.7 * childCount),
+    hotelName: isTransfer ? 'Phuket Havalimanı (HKT) Karşılama Kapısı' : undefined,
+    hotelZone: isTransfer ? 'Kuzey / Havalimanı' : undefined,
   };
 
   return {

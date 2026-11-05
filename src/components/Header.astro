@@ -211,11 +211,10 @@ const logoAccentPart = lastSpaceIdx !== -1 ? logoText.substring(lastSpaceIdx + 1
         <!-- Canlı Phuket Saat & Hava Durumu Rozeti -->
         <PhuketLiveStatusPill />
 
-        {/* Mobil sosyal kanıt: masaüstü rozeti xl'de kaldığı için telefonlarda
-            güven sinyali hiç görünmüyordu — hamburger'in yanında kompakt çip. */}
+        {/* Mobil sosyal kanıt: tüm telefonlarda hamburger'in yanında kompakt güven çipi. */}
         <a
           href="/#testimonials"
-          class="hidden sm:flex lg:hidden items-center gap-1 px-2.5 py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0"
+          class="flex lg:hidden items-center gap-1 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-full bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-[11px] sm:text-xs font-bold text-slate-800 dark:text-slate-200 shrink-0"
           title={`Google Doğrulanmış Misafir Yorumları (${googleRating} / 5)`}
           aria-label={`Google puanı ${googleRating} bölü 5, ${googleReviewCount} üzeri yorum`}
         >

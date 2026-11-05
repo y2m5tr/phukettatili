@@ -37,7 +37,7 @@ describe('Meta Commerce & Google Merchant Catalog Generator', () => {
     expect(xml).toContain('<g:id>phi-phi-maya-ve-bamboo-adasi</g:id>');
     expect(xml).toContain('<g:title>Phi Phi &amp; Maya Bay Deluxe Turu</g:title>');
     expect(xml).toContain('<g:price>2800 THB</g:price>');
-    expect(xml).toContain('<g:link>https://phukettatili.com/turlar/phi-phi-maya-ve-bamboo-adasi</g:link>');
+    expect(xml).toContain('<g:link>https://phukettatili.com/turlar/phi-phi-maya-ve-bamboo-adasi/</g:link>');
     expect(xml).toContain('<g:image_link>https://phukettatili.com/assets/couple.webp</g:image_link>');
     expect(xml).toContain('<g:brand>Phuket Tatili</g:brand>');
     expect(xml).toContain('<g:availability>in stock</g:availability>');

@@ -19,7 +19,7 @@ export const POPULAR_TOUR_STORIES: TourStory[] = [
     title: 'Maya Bay & Pileh Lagoon',
     subtitle: 'Kristal berrak turkuaz lagünde yüzme ve şnorkel',
     badge: '🔥 En Popüler',
-    image: '/images/pileh.webp',
+    image: '/assets/pileh.webp',
     location: 'Phi Phi Leh',
     tourSlug: '/turlar/phi-phi-maya-ve-bamboo-adasi',
     highlights: ['Viking Mağarası ve Maymun Plajı', 'Açık deniz şnorkeli', 'Bamboo Adası kumsalı'],
@@ -30,7 +30,7 @@ export const POPULAR_TOUR_STORIES: TourStory[] = [
     title: 'Similan Adaları Cenneti',
     subtitle: 'Yılda sadece 6 ay açık olan dünyanın en iyi dalış noktası',
     badge: '⭐ VIP Rota',
-    image: '/images/underwater.webp',
+    image: '/assets/underwater.webp',
     location: 'Similan National Park',
     tourSlug: '/turlar/similan-adalari-surat-teknesi-turu',
     highlights: ['Yelken Kayası (Sail Rock)', 'Deniz kaplumbağaları', 'Un gibi pudra beyaz kum'],
@@ -41,7 +41,7 @@ export const POPULAR_TOUR_STORIES: TourStory[] = [
     title: 'James Bond & Phang Nga',
     subtitle: 'Zümrüt yeşili lagünlerde kano ile sarkıt mağara keşfi',
     badge: '🛶 Kano Keyfi',
-    image: '/images/railay.webp',
+    image: '/assets/railay.webp',
     location: 'Phang Nga Bay',
     tourSlug: '/turlar/james-bond-adasi-ve-kano-turu',
     highlights: ['Ko Tapu iğne kayası', 'Hong Adası kano turu', 'Yüzen Müslüman Köyü Panyee'],
@@ -52,7 +52,7 @@ export const POPULAR_TOUR_STORIES: TourStory[] = [
     title: 'Etik Fil Koruma Parkı',
     subtitle: 'Kafessiz ve binmesiz, doğal ortamda fil besleme ve çamur banyosu',
     badge: '🐘 Etik Deneyim',
-    image: '/images/elephant.webp',
+    image: '/assets/elephant.webp',
     location: 'Kathu / Chalong',
     tourSlug: '/turlar/fil-besleme-ve-bakim-deneyimi',
     highlights: ['Kurtarılmış filleri besleme', 'Doğal çamur spa', 'Eğitmen eşliğinde nehir banyosu'],
@@ -63,7 +63,7 @@ export const POPULAR_TOUR_STORIES: TourStory[] = [
     title: 'Moonlight Sunset Katamaran',
     subtitle: 'Promthep Cape açıklarında müzik eşliğinde gün batımı yelkeni',
     badge: '🥂 Romantik VIP',
-    image: '/images/yacht.webp',
+    image: '/assets/yacht.webp',
     location: 'Chalong / Promthep Cape',
     tourSlug: '/turlar/moonlight-luks-yat-turu',
     highlights: ['Geniş güneşlenme ağları', 'Meyve ve içecek ikramı', 'Altın saat fotoğraf çekimi'],
@@ -153,7 +153,7 @@ export default function TourStoriesReel() {
                     alt={story.title}
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src = '/images/hero-bg.webp';
+                      (e.target as HTMLImageElement).src = '/assets/hero.webp';
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -185,7 +185,7 @@ export default function TourStoriesReel() {
               alt={activeStory.title}
               className="absolute inset-0 w-full h-full object-cover"
               onError={(e) => {
-                (e.target as HTMLImageElement).src = '/images/hero-bg.webp';
+                (e.target as HTMLImageElement).src = '/assets/hero.webp';
               }}
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/60" />

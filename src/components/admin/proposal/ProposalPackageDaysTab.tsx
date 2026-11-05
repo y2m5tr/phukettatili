@@ -161,31 +161,68 @@ export function ProposalPackageDaysTab({
                     />
                   </div>
 
-                  {proposalHotels.length > 1 && (
-                    <div>
-                      <label className="text-[10px] font-bold text-slate-500 block mb-0.5">
-                        🏨 Bu Günün Alınış Oteli:
+                  {/* Alınış Yeri / Oteli / Havalimanı Karşılama */}
+                  <div>
+                    <div className="flex items-center justify-between mb-0.5">
+                      <label className="text-[10px] font-bold text-slate-500 block">
+                        📍 Alınış Yeri / Karşılama:
                       </label>
-                      <select
-                        value={day.hotelName || proposalHotels[0]?.hotelName || ''}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          const matched = proposalHotels.find((h) => h.hotelName === val);
-                          handleUpdateDay(day.id, {
-                            hotelName: val,
-                            hotelZone: matched?.hotelZone || proposal.hotelZone,
-                          });
-                        }}
-                        className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold"
-                      >
-                        {proposalHotels.map((h, hIdx) => (
-                          <option key={h.id || hIdx} value={h.hotelName}>
-                            #{hIdx + 1}: {h.hotelName || `Otel ${hIdx + 1}`} ({h.hotelZone})
-                          </option>
-                        ))}
-                      </select>
+                      {(day.category === 'transfer' || day.tourTitle.toLowerCase().includes('transfer') || day.tourTitle.toLowerCase().includes('karşılama')) && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleUpdateDay(day.id, {
+                                hotelName: 'Phuket Havalimanı (HKT) Karşılama Kapısı',
+                                hotelZone: 'Kuzey / Havalimanı',
+                                pickupWindow: 'Uçuş İniş Saatinde',
+                              })
+                            }
+                            className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition-all border border-amber-500/30 cursor-pointer"
+                          >
+                            ✈️ Havalimanı Karşılama
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleUpdateDay(day.id, {
+                                hotelName: proposalHotels[0]?.hotelName ? `${proposalHotels[0]?.hotelName} (Dönüş)` : 'Otel Lobisi (Havalimanı Dönüş)',
+                                pickupWindow: 'Uçuş Saatinden 3.5 Saat Önce',
+                              })
+                            }
+                            className="px-1.5 py-0.2 rounded text-[9px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-all border border-slate-300 dark:border-slate-700 cursor-pointer"
+                          >
+                            🏨 Otel → Havalimanı
+                          </button>
+                        </div>
+                      )}
                     </div>
-                  )}
+                    <select
+                      value={day.hotelName || (day.category === 'transfer' ? 'Phuket Havalimanı (HKT) Karşılama Kapısı' : (proposalHotels[0]?.hotelName || ''))}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        const matched = proposalHotels.find((h) => h.hotelName === val);
+                        handleUpdateDay(day.id, {
+                          hotelName: val,
+                          hotelZone: val.includes('Havalimanı') ? 'Kuzey / Havalimanı' : (matched?.hotelZone || proposal.hotelZone),
+                          pickupWindow: val.includes('Havalimanı') && (day.category === 'transfer' || day.tourTitle.toLowerCase().includes('transfer')) ? 'Uçuş İniş Saatinde' : day.pickupWindow,
+                        });
+                      }}
+                      className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold"
+                    >
+                      <option value="Phuket Havalimanı (HKT) Karşılama Kapısı">
+                        ✈️ Phuket Havalimanı (HKT) Karşılama Kapısı
+                      </option>
+                      <option value="Otel Lobisi (Havalimanı Dönüş Transferi)">
+                        🚐 Otel Lobisi → Havalimanı Dönüş Transferi
+                      </option>
+                      {proposalHotels.map((h, hIdx) => (
+                        <option key={h.id || hIdx} value={h.hotelName}>
+                          🏨 #{hIdx + 1}: {h.hotelName || `Otel ${hIdx + 1}`} ({h.hotelZone})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   <div className="grid grid-cols-2 gap-2">
                     <div>

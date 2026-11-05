@@ -23,14 +23,13 @@ const currencies: DisplayCurrency[] = ['THB', 'TRY', 'USD', 'EUR'];
       <div class="flex items-center gap-2.5 sm:gap-4 shrink-0">
         
         <!-- Bilet & Plan Sorgula Butonu -->
-        <button
-          type="button"
-          id="btn-quick-ticket-lookup"
-          class="flex items-center gap-1.5 min-h-[44px] text-slate-300 hover:text-white transition font-medium cursor-pointer"
+        <a
+          href="/bilet"
+          class="flex items-center gap-1.5 min-h-[44px] text-slate-300 hover:text-white transition font-medium"
           title="Bilet veya Gezi Takvimi Kodu Sorgula"
         >
           <span class="hidden xs:inline sm:inline">Biletini Sorgula</span>
-        </button>
+        </a>
 
         <!-- Tayca Asistan Bağlantısı -->
         <a
@@ -90,17 +89,5 @@ const currencies: DisplayCurrency[] = ['THB', 'TRY', 'USD', 'EUR'];
         }
       });
     });
-
-    // Bilet Kodu Hızlı Sorgulama Dialogu
-    const ticketBtn = document.getElementById('btn-quick-ticket-lookup');
-    if (ticketBtn) {
-      ticketBtn.addEventListener('click', () => {
-        const code = prompt('Lütfen Bilet veya Rezervasyon Kodunuzu girin (Örn: BK-8291):');
-        if (code && code.trim()) {
-          const clean = code.trim().toUpperCase();
-          window.location.href = `/bilet/${clean}`;
-        }
-      });
-    }
   </script>
 )}

@@ -128,12 +128,16 @@ export function useCuratedProposalState(args: UseCuratedProposalStateArgs) {
   };
 
   const handleApplySingleTourPreset = (preset: CatalogTourPreset) => {
+    const isTransfer = preset.category === 'transfer' || preset.id === 'vip_airport_transfer';
+    const hotelToPass = isTransfer ? 'Phuket Havalimanı (HKT) Karşılama Kapısı' : proposal.hotelName;
+    const zoneToPass = isTransfer ? 'Kuzey / Havalimanı' : proposal.hotelZone;
+
     const updated = buildSingleTourProposal(
       proposal.customerName,
       preset.id,
       proposal.singleTourDate || proposal.createdAtDate,
-      proposal.hotelName,
-      proposal.hotelZone,
+      hotelToPass,
+      zoneToPass,
       proposal.adultCount,
       proposal.childCount
     );

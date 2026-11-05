@@ -44,12 +44,12 @@ export function generateMetaCatalogXml(
 ): string {
   const itemsXml = tours
     .map((tour) => {
-      const tourUrl = `${baseUrl.replace(/\/$/, '')}/turlar/${tour.id}`;
+      const tourUrl = `${baseUrl.replace(/\/$/, '')}/turlar/${tour.id}/`;
       const imageUrl = resolveOgImageUrl(tour.image, baseUrl);
       const title = escapeXml(tour.title);
       const description = escapeXml(tour.excerpt || tour.title);
       const category = escapeXml(tour.category_label || tour.category || 'Ada Turları');
-      const validPrice = Math.max(tour.price_thb || 0, 2300);
+      const validPrice = Number(tour.price_thb) > 0 ? Number(tour.price_thb) : 2800;
       const price = `${validPrice} THB`;
       const featuredLabel = tour.featured ? 'Featured' : 'Standard';
 
@@ -105,10 +105,10 @@ export function generateMetaCatalogCsv(
   ];
 
   const rows = tours.map((tour) => {
-    const tourUrl = `${baseUrl.replace(/\/$/, '')}/turlar/${tour.id}`;
+    const tourUrl = `${baseUrl.replace(/\/$/, '')}/turlar/${tour.id}/`;
     const imageUrl = resolveOgImageUrl(tour.image, baseUrl);
     const category = tour.category_label || tour.category || 'Ada Turları';
-    const validPrice = Math.max(tour.price_thb || 0, 2300);
+    const validPrice = Number(tour.price_thb) > 0 ? Number(tour.price_thb) : 2800;
     const price = `${validPrice} THB`;
     const featured = tour.featured ? 'Featured' : 'Standard';
 

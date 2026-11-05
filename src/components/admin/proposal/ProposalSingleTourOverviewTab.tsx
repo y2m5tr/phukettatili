@@ -194,9 +194,59 @@ export function ProposalSingleTourOverviewTab({
         </div>
 
         <div>
-          <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1">
-            Alınış Oteli:
-          </label>
+          <div className="flex items-center justify-between mb-1">
+            <label className="font-bold text-slate-700 dark:text-slate-300">
+              Alınış Yeri / Karşılama:
+            </label>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setProposal((prev) => ({
+                    ...prev,
+                    hotelName: 'Phuket Havalimanı (HKT) Karşılama Kapısı',
+                    hotelZone: 'Kuzey / Havalimanı',
+                    days: prev.days.map((d, i) =>
+                      i === 0
+                        ? {
+                            ...d,
+                            hotelName: 'Phuket Havalimanı (HKT) Karşılama Kapısı',
+                            hotelZone: 'Kuzey / Havalimanı',
+                            pickupWindow: 'Uçuş İniş Saatinde',
+                          }
+                        : d
+                    ),
+                  }));
+                }}
+                className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-800 dark:text-amber-300 hover:bg-amber-500 hover:text-slate-950 transition-all border border-amber-500/30 cursor-pointer"
+                title="Havalimanı inişte isimlik ile karşılama"
+              >
+                ✈️ Havalimanı Karşılama
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setProposal((prev) => ({
+                    ...prev,
+                    hotelName: 'Otel Lobisi (Havalimanına Dönüş)',
+                    days: prev.days.map((d, i) =>
+                      i === 0
+                        ? {
+                            ...d,
+                            hotelName: 'Otel Lobisi (Havalimanına Dönüş)',
+                            pickupWindow: 'Uçuş Saatinden 3.5 Saat Önce',
+                          }
+                        : d
+                    ),
+                  }));
+                }}
+                className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition-all border border-slate-300 dark:border-slate-700 cursor-pointer"
+                title="Otelden havalimanına dönüş transferi"
+              >
+                🏨 Otel → Havalimanı
+              </button>
+            </div>
+          </div>
           <input
             type="text"
             value={proposal.hotelName}
@@ -210,7 +260,7 @@ export function ProposalSingleTourOverviewTab({
                 days: prev.days.map((d, i) => (i === 0 ? { ...d, hotelName: h, hotelZone: detected || d.hotelZone } : d)),
               }));
             }}
-            placeholder="Örn: Katathani Phuket Beach Resort"
+            placeholder="Örn: Phuket Havalimanı (HKT) Karşılama veya Otel Adı"
             className="w-full px-3 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-medium"
           />
         </div>
