@@ -7,7 +7,7 @@
  *   2. Dosyayi proje kokune kopyalayin ve calistirin:
  *      npx tsx scripts/apply-cms.ts phuket-cms-data.json
  *   3. Script tour/faq/testimonial dosyalarini gunceller.
- *   4. git add + commit + push -> Vercel rebuild -> site guncellenir.
+ *   4. git add + commit + push -> sunucuya otomatik dağıtılır.
  */
 
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';

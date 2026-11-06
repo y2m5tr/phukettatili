@@ -8,7 +8,7 @@
  * maliyetleri (`costThb`) ve acente komisyon oranları. Ana sayfa gibi
  * public bir component oradan tek bir sabit (`HOTEL_ZONES`) import ettiğinde
  * Vite tüm modülü client bundle'a taşır ve dosya
- * `.vercel/output/static/_astro/…` altında AUTH'SUZ, herkese açık servis
+ * `dist/client/_astro/…` altında AUTH'SUZ, herkese açık servis
  * edilir. Yani pazarlama sayfasını açan herkes maliyet ve komisyon verisini
  * indirebilir.
  *

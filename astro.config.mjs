@@ -5,18 +5,7 @@ import sentryAstro from '@sentry/astro';
 
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
-import vercel from '@astrojs/vercel';
-
-// Çift Dağıtım Desteği: Linux VPS (Node.js Standalone) & Vercel Serverless
-let adapter = vercel();
-if (process.env.DEPLOY_TARGET === 'node' || process.env.ASTRO_ADAPTER === 'node') {
-  try {
-    const nodeAdapter = (await import('@astrojs/node')).default;
-    adapter = nodeAdapter({ mode: 'standalone' });
-  } catch {
-    // @astrojs/node yüklü değilse varsayılan adapter kullanılır
-  }
-}
+import node from '@astrojs/node';
 
 // https://astro.build/config
 export default defineConfig({
@@ -26,7 +15,7 @@ export default defineConfig({
   // `export const prerender = false` diyen /admin, /ekip ve /ops-login
   // sunucu fonksiyonu olarak çalışır — middleware oturum kontrolü için şart.
   output: 'server',
-  adapter,
+  adapter: node({ mode: 'standalone' }),
   trailingSlash: 'ignore',
   redirects: {
     '/admin-login': '/ops-login',
@@ -34,7 +23,7 @@ export default defineConfig({
   env: {
     schema: {
       // `secret: true` => değer build çıktısına INLINE EDİLMEZ, runtime'da
-      // okunur. Local'de .env'den, Vercel'de ortam değişkeninden gelir.
+      // okunur. Local'de .env'den, sunucuda sistem ortam değişkeninden gelir.
       // Böylece şifre bundle'a sızmaz ve sunucuda değiştirilebilir kalır.
       ADMIN_PASSCODE: envField.string({
         context: 'server',
@@ -76,7 +65,7 @@ export default defineConfig({
       }),
 
       // Sentry — sunucu tarafı DSN'u (sentry.server.config.ts okur).
-      // Tanımsızsa SDK hiç etkinleşmez; Vercel'de eklenince açılır.
+      // Tanımsızsa SDK hiç etkinleşmez; sunucu env'ine eklenince açılır.
       SENTRY_DSN: envField.string({
         context: 'server',
         access: 'secret',
@@ -100,13 +89,12 @@ export default defineConfig({
   integrations: [
     react(),
     // Sentry hata izleme — DSN yoksa init dosyaları boş kalır ve SDK
-    // etkinleşmez; Vercel'de SENTRY_DSN/PUBLIC_SENTRY_DSN eklendiğinde
+    // etkinleşmez; sunucuda SENTRY_DSN/PUBLIC_SENTRY_DSN eklendiğinde
     // otomatik çalışır. Yerel geliştirmede maliyeti sıfır.
     // requestHandler: SSR rotalarındaki (/api/*, /admin) sunucu hatalarını
     // otomatik yakalar; prerender sayfalarına dokunmaz.
     // telemetry + sourcemap upload kapalı: auth token eklenmeden
-    // sessiz çalışır, CI log'ları temiz kalır. Release takibi istenirse
-    // SENTRY_AUTH_TOKEN Vercel'e eklenip burada açılabilir.
+    // sessiz çalışır, CI log'ları temiz kalır.
     sentryAstro({
       autoInstrumentation: { requestHandler: true },
       telemetry: false,

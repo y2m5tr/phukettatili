@@ -27,7 +27,7 @@ import {
 // Bulut yoksa site statik veriyle calismaya devam eder.
 export const prerender = false;
 
-// CDN cache: Vercel edge'de 60sn, istemci tarayıcıda max-age=0 (her zaman güncel HTML)
+// CDN / HTTP cache: 60sn, istemci tarayıcıda max-age=0 (her zaman güncel HTML)
 Astro.response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=60, stale-while-revalidate=120');
 
 // Tur kaydini id'den bul (dinamik route — props yok)

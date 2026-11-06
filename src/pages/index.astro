@@ -36,7 +36,7 @@ import { getCloudTours, applyTourOverlay } from '../lib/server/tourContent';
 // yansımıyordu. Bulut erişilemezse merge sessizce statik JSON'lara düşer.
 export const prerender = false;
 
-// CDN cache: Vercel edge'de 300sn, istemci tarayıcıda max-age=0
+// CDN / HTTP cache: 300sn, istemci tarayıcıda max-age=0
 Astro.response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=300, stale-while-revalidate=600');
 
 const panelContent = await getPublicHomeContent();

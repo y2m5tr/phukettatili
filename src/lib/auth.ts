@@ -187,7 +187,7 @@ function isUUID(value: string): boolean {
 /* -------------------------------------------------------------------------
    Brute-force koruması
    Not: serverless ortamda sayaç instance başınadır, yani kabaca bir
-   yavaşlatma sağlar. Kalıcı koruma için Vercel WAF / rate-limit önerilir.
+   yavaşlatma sağlar. Kalıcı koruma için WAF / rate-limit önerilir.
    ------------------------------------------------------------------------- */
 
 const MAX_ATTEMPTS = 5;

@@ -11,7 +11,7 @@ import { getCloudBlogPosts, applyBlogOverlay } from '../../lib/server/blogConten
 // Not: gövde içeriği yalnızca .md dosyalarından gelir (panelde gövde alanı yok).
 export const prerender = false;
 
-// CDN cache: sayfa 60sn Vercel edge'de, 5 dk bayat kabul edilir.
+// CDN / HTTP cache: sayfa 60sn, 5 dk bayat kabul edilir.
 Astro.response.headers.set('Cache-Control', 'public, s-maxage=60, stale-while-revalidate=300');
 
 const mdPosts: CollectionEntry<'blog'>[] = await getCollection('blog');

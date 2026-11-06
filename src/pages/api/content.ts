@@ -29,18 +29,6 @@ import {
 } from '../../lib/server/supabaseAdmin';
 
 
-/** Site yeniden insa tetikleyici — panel CMS degisikligi canli sayfaya
- *  yansimasi icin Vercel Deploy Hook'u cagirir. Tanimsizsa sessiz gecer. */
-async function triggerSiteRebuild(): Promise<void> {
-  const hook = process.env.VERCEL_DEPLOY_HOOK;
-  if (!hook) return;
-  try {
-    await fetch(hook, { method: 'POST' });
-  } catch {
-    // Deploy hook'un erisilememesi kaydi engellememeli.
-  }
-}
-
 export const prerender = false;
 
 /** CMS koleksiyon beyaz listesi — localStorage anahtar uzayıyla hizalı. */
@@ -173,9 +161,6 @@ export const PUT: APIRoute = async (context) => {
 
   // Payload'sız sinyal — açık paneller GET ile tazeler.
   broadcastBookingsChanged('admin-cms');
-  // Site statik sayfalari build'den geldigi icin yeniden insa tetikle
-  // (VERCEL_DEPLOY_HOOK tanimliysa ~1-2 dk icinde canliya yansir).
-  void triggerSiteRebuild();
   return jsonOk({ ok: true, key, updatedAt: now });
 };
 

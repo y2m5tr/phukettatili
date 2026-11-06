@@ -78,7 +78,7 @@ jobs:
       # maliyet/komisyon) statik çıktıya düşmemeli — yalnızca sunucuda kalmalı.
       - name: Statik çıktı sızıntı taraması
         run: |
-          static=.vercel/output/static
+          static=dist/client
           if [ -d "$static/_astro" ]; then
             if ls "$static"/_astro/adminInitialData*.js >/dev/null 2>&1; then
               echo "::error::adminInitialData chunk statik çıktıya sızmış (tohum verisi herkese açık olur)."

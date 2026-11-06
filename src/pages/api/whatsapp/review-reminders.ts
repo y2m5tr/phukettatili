@@ -7,7 +7,7 @@
  * 3. Başarıyla gönderilenleri veritabanında `whatsapp_review_sent = true` yapar.
  *
  * ÇAĞRILMA YÖNTEMLERİ:
- * - Vercel / VPS Cron: Header `Authorization: Bearer ${CRON_SECRET}` veya `x-cron-secret`
+ * - Sunucu / VPS Cron: Header `Authorization: Bearer ${CRON_SECRET}` veya `x-cron-secret`
  * - Admin Paneli: Aktif oturumla tek tıkla manuel tetikleme (`guardApi`).
  */
 

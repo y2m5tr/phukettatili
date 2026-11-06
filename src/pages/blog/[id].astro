@@ -11,7 +11,7 @@ import { getCloudBlogPosts, applyBlogOverlayToEntry } from '../../lib/server/blo
 // gelir. Bulut yoksa site statik veriyle çalışmaya devam eder.
 export const prerender = false;
 
-// CDN cache: Vercel edge'de 60sn, istemci tarayıcıda max-age=0
+// CDN / HTTP cache: 60sn, istemci tarayıcıda max-age=0
 Astro.response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=60, stale-while-revalidate=120');
 
 // Yazı kaydını id'den bul (dinamik route — getStaticPaths yok)

@@ -8,7 +8,7 @@
  * 4. Başarıyla gönderilenleri veritabanında `whatsapp_reminder_sent = true` yapar.
  *
  * ÇAĞRILMA YÖNTEMLERİ:
- * - Vercel Cron: Header `Authorization: Bearer ${CRON_SECRET}` veya `x-vercel-cron`
+ * - Sunucu / VPS Cron: Header `Authorization: Bearer ${CRON_SECRET}` veya `x-cron-secret`
  * - Admin Paneli: Aktif oturumla tek tıkla manuel tetikleme (`guardApi`).
  */
 
