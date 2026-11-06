@@ -51,10 +51,12 @@ export function generateCuratedProposalWhatsAppMessage(
         : '';
 
     return `🌴 *PHUKET TATİLİ — KİŞİYE ÖZEL TEK TUR TEKLİFİ* 🌴
-🏢 *Lisanslı Tur Operatörü · TAT License: 34/02819*
+🏢 *Lisanslı Tur Operatörü · TAT License: 34/02894*
 📋 *Teklif No:* ${proposal.proposalNumber}
 📅 *Tur Tarihi:* ${proposal.singleTourDate || singleDay.date || 'Belirtilecek'}
 👨‍💼 *Operasyon Danışmanı:* ${proposal.agentInfo.name} (${proposal.agentInfo.phone})
+🌐 *Teklifinizin İnteraktif Web Detayları:*
+https://phukettatili.com/teklif/${proposal.proposalNumber}
 
 Sayın *${proposal.customerName}*,
 
@@ -128,10 +130,12 @@ Keyifli bir tur dileriz! 🇹🇭✨`;
   }
 
   return `🌴 *PHUKET TATİLİ — KİŞİYE ÖZEL TATİL & TUR TEKLİFİ* 🌴
-🏢 *Lisanslı Tur Operatörü · TAT License: 34/02819*
+🏢 *Lisanslı Tur Operatörü · TAT License: 34/02894*
 📋 *Teklif No:* ${proposal.proposalNumber}
 📅 *Geçerlilik:* ${proposal.validUntilDate} tarihine kadar
 👨‍💼 *Operasyon Danışmanı:* ${proposal.agentInfo.name} (${proposal.agentInfo.phone})
+🌐 *Teklifinizin İnteraktif Web Detayları:*
+https://phukettatili.com/teklif/${proposal.proposalNumber}
 
 Sayın *${proposal.customerName}*,
 

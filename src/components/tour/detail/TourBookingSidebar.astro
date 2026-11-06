@@ -1,5 +1,6 @@
 ---
 import type { CollectionEntry } from 'astro:content';
+import MarineSafetyBadge from './MarineSafetyBadge.astro';
 
 interface Props {
   tour: CollectionEntry<'tours'>;
@@ -45,6 +46,9 @@ const { tour, whatsappNumber, googleRating, googleReviewCount, initialWhatsAppUr
         <li class="flex items-start gap-1.5"><span class="text-emerald-500 shrink-0 font-bold">✓</span><span><strong>Resmi Güvence:</strong> TAT Lisans No: 34/02894 & 1.000.000 THB resmi kaza sigortası</span></li>
       </ul>
     </div>
+
+    <!-- Canlı Deniz Güvenliği Rozeti (Andaman Denizi Durumu) -->
+    <MarineSafetyBadge tourCategory={tour.data.category} tourTitle={tour.data.title} />
 
     <!-- Booking Interactive Form (Syncs to WhatsApp message) -->
     <div class="space-y-4 mb-6">

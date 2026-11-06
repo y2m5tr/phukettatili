@@ -76,7 +76,7 @@ describe('📄 Kişiye Özel Logolu PDF Tur Teklifi & Tatil Programı (Curated P
     expect(text).toContain('GÜN GÜN TATİL PROGRAMINIZ:');
     expect(text).toContain('FİYATLANDIRMA & ÖDEME PLANI:');
     expect(text).toContain(`${financials.totalThb.toLocaleString('en-US')} THB`);
-    expect(text).toContain('TAT License: 34/02819');
+    expect(text).toContain('TAT License: 34/02894');
     expect(text).toContain('Murat Gençer');
   });
 

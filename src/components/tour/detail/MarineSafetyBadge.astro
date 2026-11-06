@@ -1,0 +1,62 @@
+---
+import { getMarineSafetyStatus, type MarineSafetyReport } from '../../../lib/marineWeather';
+
+interface Props {
+  tourCategory?: string;
+  tourTitle?: string;
+}
+
+const { tourCategory, tourTitle = '' } = Astro.props;
+
+// Yalnızca ada ve deniz turları için göster (kültür ve kara turlarında gereksiz kalabalık yapmaz)
+const isMarineTour =
+  tourCategory === 'island-tours' ||
+  /phi phi|james bond|similan|racha|coral|hong|rok|surin|tekne|yacht|katamaran|speedboat|longtail/i.test(tourTitle);
+
+let marineReport: MarineSafetyReport | null = null;
+if (isMarineTour) {
+  try {
+    marineReport = await getMarineSafetyStatus();
+  } catch {}
+}
+---
+
+{isMarineTour && marineReport && (
+  <div class="mb-5 p-4 rounded-2xl bg-sky-500/10 dark:bg-sky-500/15 border border-sky-500/25 space-y-2.5">
+    <div class="flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2 text-xs font-bold text-sky-800 dark:text-sky-300 uppercase tracking-wide">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-sky-500"></span>
+        </span>
+        <span>Andaman Denizi &bull; Canlı Seyir Durumu</span>
+      </div>
+      <span class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">
+        Tayland Liman Bşk.
+      </span>
+    </div>
+
+    <div class="flex items-baseline gap-2">
+      <span class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100">
+        {marineReport.level === 'calm' && '🟢 Seyir Koşulları Mükemmel (Deniz Sakin)'}
+        {marineReport.level === 'moderate' && '🟡 Orta Dalgalı — Turlar Rutin Devam Ediyor'}
+        {marineReport.level === 'severe' && '🔴 Dalga Uyarısı — Korunaklı Rotalar Açık'}
+      </span>
+    </div>
+
+    <div class="grid grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300 bg-white/70 dark:bg-slate-900/60 p-2.5 rounded-xl border border-sky-500/15">
+      <div>
+        <span class="text-slate-400 block text-[10px]">Öngörülen Dalga:</span>
+        <strong class="text-slate-800 dark:text-slate-200">{marineReport.waveHeightMeters} metre</strong>
+      </div>
+      <div>
+        <span class="text-slate-400 block text-[10px]">Rüzgar Hızı:</span>
+        <strong class="text-slate-800 dark:text-slate-200">{marineReport.windSpeedKnots} knot ({marineReport.windDirectionText})</strong>
+      </div>
+    </div>
+
+    <p class="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed italic">
+      🛡️ <strong>Hava Güvencesi:</strong> Liman Başkanlığı fırtına nedeniyle tur çıkışını durdurursa %100 kesintisiz para iadesi veya ücretsiz tarih değişikliği yapılır.
+    </p>
+  </div>
+)}

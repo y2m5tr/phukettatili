@@ -1,0 +1,181 @@
+---
+import siteSettings from '../../content/settings/site.json';
+
+const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
+const defaultWaMessage = encodeURIComponent(
+  'Merhaba! Siteden ayrılmadan önce danışmak istedim; Phuket tatilim için en uygun tur rotaları ve güncel fiyat teklifleri hakkında bilgi alabilir miyim?'
+);
+const waUrl = `https://wa.me/${whatsappNumber}?text=${defaultWaMessage}`;
+---
+
+<div
+  id="exit-intent-modal"
+  class="fixed inset-0 z-[120] hidden items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm transition-opacity duration-300 opacity-0"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="exit-intent-title"
+>
+  <div
+    id="exit-intent-card"
+    class="relative w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-100 dark:border-slate-800 transform scale-95 transition-transform duration-300 space-y-5"
+  >
+    <!-- Kapatma Butonu -->
+    <button
+      type="button"
+      id="exit-intent-close"
+      class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-slate-900 dark:hover:text-white flex items-center justify-center text-lg transition"
+      aria-label="Kapat"
+    >
+      ✕
+    </button>
+
+    <div class="space-y-2 text-center sm:text-left">
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider bg-amber-500/10 text-amber-600 dark:text-amber-400">
+        <span>🇹🇭</span>
+        <span>Phuket&apos;te Türk Ekibimiz Yanınızda</span>
+      </div>
+      <h3
+        id="exit-intent-title"
+        class="text-xl sm:text-2xl font-serif font-black text-slate-900 dark:text-white leading-tight"
+      >
+        Ayrılmadan Önce: Size Özel Rota & Avantajlı Fiyat Alın!
+      </h3>
+      <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+        Hangi turun otelinize daha yakın olduğunu, hava durumunu veya gizli masrafsız her şey dahil paketleri merak ediyorsanız WhatsApp&apos;tan hemen sorabilirsiniz.
+      </p>
+    </div>
+
+    <!-- Güvence Maddeleri -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-700 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
+      <div class="flex items-center gap-2">
+        <span class="text-emerald-500 font-bold">✓</span>
+        <span>Milli Park & Transfer Dahil</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-emerald-500 font-bold">✓</span>
+        <span>Fırtına & Kötü Hava %100 İade</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-emerald-500 font-bold">✓</span>
+        <span>1.000.000 THB Kaza Sigortası</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-emerald-500 font-bold">✓</span>
+        <span>TAT Lisans No: 34/02894</span>
+      </div>
+    </div>
+
+    <!-- CTA & Vazgeç Butonları -->
+    <div class="space-y-2 pt-1">
+      <a
+        href={waUrl}
+        id="exit-intent-wa-cta"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="w-full py-4 px-6 rounded-2xl bg-whatsapp hover:bg-whatsapp-dark text-white font-bold text-sm shadow-lg shadow-green-500/25 flex items-center justify-center gap-2.5 transition transform hover:scale-[1.02] active:scale-[0.99]"
+      >
+        <span class="text-lg">💬</span>
+        <span>WhatsApp ile Ücretsiz Danış & Teklif Al</span>
+      </a>
+
+      <button
+        type="button"
+        id="exit-intent-dismiss"
+        class="w-full py-2 text-center text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition"
+      >
+        Şimdilik hayır, sayfayı incelemeye devam et
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function setupExitIntent() {
+    const modal = document.getElementById('exit-intent-modal');
+    const card = document.getElementById('exit-intent-card');
+    const closeBtn = document.getElementById('exit-intent-close');
+    const dismissBtn = document.getElementById('exit-intent-dismiss');
+    const waCta = document.getElementById('exit-intent-wa-cta');
+
+    if (!modal || !card) return;
+
+    // Admin, bilet veya teklif sayfalarında çalıştırma
+    const pathname = window.location.pathname;
+    if (
+      pathname.startsWith('/admin') ||
+      pathname.startsWith('/bilet') ||
+      pathname.startsWith('/teklif') ||
+      pathname.startsWith('/rezervasyon')
+    ) {
+      return;
+    }
+
+    const STORAGE_KEY = 'ptt_exit_intent_seen';
+    if (sessionStorage.getItem(STORAGE_KEY) === '1') {
+      return;
+    }
+
+    let isShown = false;
+
+    function showModal() {
+      if (isShown || sessionStorage.getItem(STORAGE_KEY) === '1') return;
+      isShown = true;
+      sessionStorage.setItem(STORAGE_KEY, '1');
+
+      modal?.classList.remove('hidden');
+      modal?.classList.add('flex');
+      // requestAnimationFrame for smooth fade/scale
+      requestAnimationFrame(() => {
+        modal?.classList.remove('opacity-0');
+        modal?.classList.add('opacity-100');
+        card?.classList.remove('scale-95');
+        card?.classList.add('scale-100');
+      });
+    }
+
+    function hideModal() {
+      modal?.classList.remove('opacity-100');
+      modal?.classList.add('opacity-0');
+      card?.classList.remove('scale-100');
+      card?.classList.add('scale-95');
+      setTimeout(() => {
+        modal?.classList.remove('flex');
+        modal?.classList.add('hidden');
+      }, 300);
+    }
+
+    closeBtn?.addEventListener('click', hideModal);
+    dismissBtn?.addEventListener('click', hideModal);
+    waCta?.addEventListener('click', hideModal);
+
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) hideModal();
+    });
+
+    // 1. Desktop: Cursor leaving viewport at the top
+    const handleMouseLeave = (e: MouseEvent) => {
+      if (e.clientY <= 15) {
+        showModal();
+        document.removeEventListener('mouseleave', handleMouseLeave);
+      }
+    };
+    document.addEventListener('mouseleave', handleMouseLeave);
+
+    // 2. Mobile / Tablet: 35 saniye bekleme zamanlayıcısı
+    const timer = setTimeout(() => {
+      showModal();
+    }, 35000);
+
+    // Temizleme: sayfa değiştiğinde timer kaldır
+    document.addEventListener(
+      'astro:before-swap',
+      () => {
+        clearTimeout(timer);
+        document.removeEventListener('mouseleave', handleMouseLeave);
+      },
+      { once: true }
+    );
+  }
+
+  document.addEventListener('astro:page-load', setupExitIntent);
+</script>

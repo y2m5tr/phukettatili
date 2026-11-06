@@ -10,6 +10,7 @@ import MobileBottomNav from '../components/MobileBottomNav.astro';
 import PwaInstallPrompt from '../components/ui/PwaInstallPrompt.astro';
 import QuickTripAssistantDrawer from '../components/tour/QuickTripAssistantDrawer';
 import PhuketMarineSafetyModal from '../components/weather/PhuketMarineSafetyModal.astro';
+import ExitIntentCta from '../components/ui/ExitIntentCta.astro';
 import siteSettings from '../content/settings/site.json';
 import { resolveAssetUrl, responsiveSrcset } from '../lib/assets';
 
@@ -302,6 +303,9 @@ const fullTitle = noTitleSuffix || title.includes('Phuket Tatili') ? title : `${
 
         <!-- Phuket Canlı Deniz & Hava Durumu Modalı (Root Seviyesi) -->
         <PhuketMarineSafetyModal />
+
+        <!-- Çıkış Niyeti & Hareketsizlik WhatsApp Yakalama Kalkanı -->
+        <ExitIntentCta />
 
         <!-- Canlı Para Birimi Dönüştürücü: data-thb-price elementleri -->
         <script>

@@ -167,3 +167,16 @@ export function printCuratedProposalDocument(showToast: (msg: string) => void) {
     window.print();
   });
 }
+
+export function openProposalWebLink(
+  proposal: CuratedProposalData,
+  showToast?: (msg: string) => void
+) {
+  if (!proposal.proposalNumber) {
+    showToast?.('⚠️ Teklif numarası bulunamadı');
+    return;
+  }
+  const url = `/teklif/${encodeURIComponent(proposal.proposalNumber)}`;
+  window.open(url, '_blank');
+  showToast?.('🌐 Dijital teklif sayfası yeni sekmede açıldı!');
+}
