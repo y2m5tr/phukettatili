@@ -14,17 +14,17 @@ const waveHeight = report?.waveHeightMeters ? `${report.waveHeightMeters}m Dalga
 <!-- Phuket Canlı Deniz & Hava Durumu Modalı (Root Seviyesinde Render Edilir) -->
 <div
   id="phuket-status-modal"
-  class="fixed inset-0 z-[120] hidden bg-slate-950/80 backdrop-blur-md flex items-end sm:items-center justify-center p-0 sm:p-4 select-none animate-in fade-in duration-200"
+  class="fixed inset-0 z-[120] hidden bg-slate-950/85 flex items-end sm:items-center justify-center p-0 sm:p-4 select-none"
   role="dialog"
   aria-modal="true"
   aria-labelledby="status-modal-title"
 >
-  <div class="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-2xl p-5 pb-8 sm:pb-6 space-y-4 max-h-[85vh] overflow-y-auto">
+  <div class="w-full sm:max-w-md bg-white dark:bg-slate-900 rounded-t-3xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl p-5 pb-8 sm:pb-6 space-y-4 max-h-[85vh] overflow-y-auto">
     <!-- Başlık & Kapat Butonu -->
     <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
       <div class="flex items-center gap-2.5">
-        <div class="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-500 flex items-center justify-center text-xl shadow-xs">
-          🌊
+        <div class="w-10 h-10 rounded-2xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shadow-xs">
+          <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" /></svg>
         </div>
         <div>
           <h3 id="status-modal-title" class="font-bold text-base text-slate-900 dark:text-white leading-tight">
@@ -38,10 +38,10 @@ const waveHeight = report?.waveHeightMeters ? `${report.waveHeightMeters}m Dalga
       <button
         type="button"
         id="status-modal-close"
-        class="p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        class="p-2 rounded-full text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
         aria-label="Kapat"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
       </button>
@@ -50,13 +50,13 @@ const waveHeight = report?.waveHeightMeters ? `${report.waveHeightMeters}m Dalga
     <!-- Durum Kartları -->
     <div class="grid grid-cols-2 gap-2.5 text-xs">
       <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Hava Sıcaklığı</span>
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-1">Hava Sıcaklığı</span>
         <span class="text-base font-bold text-slate-900 dark:text-white">31°C · Güneşli</span>
         <span class="text-[11px] text-emerald-600 dark:text-emerald-400 block mt-0.5">Deniz suyu: 29°C</span>
       </div>
 
       <div class="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-        <span class="text-[10px] uppercase font-bold text-slate-400 block mb-1">Dalga & Rüzgar</span>
+        <span class="text-xs font-medium text-slate-500 dark:text-slate-400 block mb-1">Dalga & Rüzgar</span>
         <span class="text-base font-bold text-emerald-600 dark:text-emerald-400">{waveHeight}</span>
         <span class="text-[11px] text-slate-500 dark:text-slate-400 block mt-0.5">Sürat teknelerine açık</span>
       </div>
@@ -64,24 +64,24 @@ const waveHeight = report?.waveHeightMeters ? `${report.waveHeightMeters}m Dalga
 
     <!-- Ada Durumları -->
     <div class="space-y-2 pt-1">
-      <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">Ada Rota Güvenliği</span>
+      <span class="text-xs font-semibold text-slate-600 dark:text-slate-300 block">Ada Rota Güvenliği</span>
       <div class="space-y-2 text-xs">
         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
-          <span class="font-medium text-slate-700 dark:text-slate-300">🏝️ Phi Phi Adaları & Maya Bay</span>
+          <span class="font-medium text-slate-700 dark:text-slate-300">Phi Phi Adaları & Maya Bay</span>
           <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Açık & Elverişli
+            <span class="w-2 h-2 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span> Açık & Elverişli
           </span>
         </div>
         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
-          <span class="font-medium text-slate-700 dark:text-slate-300">🛶 James Bond & Phang Nga</span>
+          <span class="font-medium text-slate-700 dark:text-slate-300">James Bond & Phang Nga</span>
           <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Durgun Su · İdeal
+            <span class="w-2 h-2 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span> Durgun Su · İdeal
           </span>
         </div>
         <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
-          <span class="font-medium text-slate-700 dark:text-slate-300">🤿 Similan & Racha Adaları</span>
+          <span class="font-medium text-slate-700 dark:text-slate-300">Similan & Racha Adaları</span>
           <span class="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
-            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Berrak Görüş
+            <span class="w-2 h-2 rounded-full bg-emerald-500 motion-safe:animate-pulse"></span> Berrak Görüş
           </span>
         </div>
       </div>
@@ -89,7 +89,7 @@ const waveHeight = report?.waveHeightMeters ? `${report.waveHeightMeters}m Dalga
 
     <!-- Alt Güvence Notu -->
     <div class="p-3 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 text-xs text-amber-900 dark:text-amber-200 flex items-center gap-2.5">
-      <span class="text-xl shrink-0">🇹🇭</span>
+      <svg aria-hidden="true" class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
       <span class="leading-relaxed">Tüm turlarımız her sabah Phuket Liman Başkanlığı güvenlik onayından geçtikten sonra denize açılır.</span>
     </div>
   </div>

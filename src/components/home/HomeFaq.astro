@@ -18,9 +18,11 @@ const { faqs } = Astro.props;
   <section class="py-24 bg-white dark:bg-surface-2 px-4">
     <div class="max-w-4xl mx-auto">
       <FadeIn delay={0.1}>
-        <div class="text-center mb-16">
-          <span class="text-xs uppercase tracking-widest text-brand-accent font-bold">Merak Edilenler</span>
-          <h2 class="text-3xl md:text-5xl text-brand-primary dark:text-white font-serif font-bold mt-2">Sıkça Sorulan Sorular</h2>
+        <div class="text-center mb-12 sm:mb-16">
+          <h2 class="text-3xl md:text-5xl text-brand-primary dark:text-white font-serif font-bold">Sıkça Sorulan Sorular</h2>
+          <p class="text-slate-600 dark:text-slate-400 text-sm sm:text-base mt-3 max-w-xl mx-auto">
+            Phuket seyahatiniz öncesinde aklınıza takılabilecek tüm detaylar ve operasyonel bilgiler.
+          </p>
         </div>
       </FadeIn>
       <FaqAccordion faqs={faqs} />

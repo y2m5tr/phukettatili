@@ -41,7 +41,7 @@ const { faqs, defaultOpen = 0 } = Astro.props;
             {faq.q}
           </span>
           <svg
-            class="w-6 h-6 shrink-0 text-brand-accent transform transition-transform duration-300 group-open:rotate-180"
+            class="w-6 h-6 shrink-0 text-brand-accent motion-safe:transition-transform duration-300 group-open:rotate-180"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

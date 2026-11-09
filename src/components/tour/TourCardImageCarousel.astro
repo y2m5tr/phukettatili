@@ -31,7 +31,7 @@ const images = Array.from(new Set(rawImages)).slice(0, 4);
           alt={`${title} - Görsel ${idx + 1}`}
           loading={idx === 0 ? loading : 'lazy'}
           decoding="async"
-          class="w-full h-full object-cover transform group-hover/carousel:scale-105 transition-transform duration-700 select-none pointer-events-none"
+          class="w-full h-full object-cover select-none pointer-events-none"
         />
       </div>
     ))}
@@ -45,7 +45,7 @@ const images = Array.from(new Set(rawImages)).slice(0, 4);
       {images.map((_, i) => (
         <span
           data-dot-index={i}
-          class={`carousel-dot transition-all duration-200 rounded-full ${
+          class={`carousel-dot transition-colors duration-200 rounded-full ${
             i === 0
               ? 'w-4 h-1.5 bg-amber-400'
               : 'w-1.5 h-1.5 bg-white/50'

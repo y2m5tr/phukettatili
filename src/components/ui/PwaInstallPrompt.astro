@@ -7,15 +7,15 @@
   class="hidden fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom,0px))] inset-x-3 sm:left-auto sm:right-6 sm:max-w-sm z-50 select-none"
   aria-live="polite"
 >
-  <div class="relative overflow-hidden rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800 shadow-2xl p-4 transition-all duration-300">
+  <div class="relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xl p-4 transition-colors duration-300">
     <!-- Kapat Butonu -->
     <button
       type="button"
       id="pwa-dismiss-btn"
-      class="absolute top-2.5 right-2.5 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+      class="absolute top-2.5 right-2.5 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent"
       aria-label="Kapat"
     >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+      <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
       </svg>
     </button>
@@ -44,9 +44,9 @@
           <button
             type="button"
             id="pwa-install-action-btn"
-            class="w-full py-2 px-3 rounded-xl bg-brand-accent hover:bg-amber-500 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md active:scale-95 transition-all cursor-pointer"
+            class="w-full py-2.5 px-3 min-h-[44px] rounded-xl bg-brand-accent hover:bg-amber-500 active:bg-amber-600 text-white dark:text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent whitespace-nowrap"
           >
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg aria-hidden="true" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
             </svg>
             <span>Ana Ekrana Ekle (Ücretsiz)</span>
@@ -57,13 +57,13 @@
         <div id="pwa-ios-instructions" class="hidden mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-500 dark:text-slate-400 space-y-1">
           <p class="flex items-center gap-1.5">
             <span>1. Alttaki <strong>Paylaş</strong> simgesine</span>
-            <svg class="w-4 h-4 text-sky-500 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <svg aria-hidden="true" class="w-4 h-4 text-sky-500 inline" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path>
             </svg>
             <span>dokunun.</span>
           </p>
           <p class="flex items-center gap-1.5">
-            <span>2. <strong>"Ana Ekrana Ekle"</strong></span>
+            <span>2. <strong>“Ana Ekrana Ekle”</strong></span>
             <span class="inline-flex items-center justify-center w-3.5 h-3.5 rounded-sm bg-slate-200 dark:bg-slate-700 font-bold text-[10px]">+</span>
             <span>seçeneğini seçin.</span>
           </p>
