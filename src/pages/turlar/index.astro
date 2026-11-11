@@ -91,6 +91,29 @@ const schemas: Record<string, unknown>[] = [
       { "@type": "ListItem", "position": 2, "name": "Turlar", "item": new URL('/turlar/', site).toString() },
     ],
   },
+  {
+    // Tanıtım filmi bu sayfada TourShowcase içinden oynatılıyor
+    // (/assets/tours_video.mp4, 32sn, 1280x720). Anasayfadaki tanıtım filmi
+    // SVG+CSS animasyonu olduğu için orada VideoObject şeması yok.
+    // thumbnailUrl gerçek bir video karesinden üretildi: 1280x720.
+    "@type": "VideoObject",
+    "name": "Phuket Turları — Tanıtım Filmi",
+    "description": "Phuket Tatili turlarından kareler: zümrüt lagünler, longtail tekneler, gün batımı yat seyri ve ada deneyimleri.",
+    "thumbnailUrl": [
+      new URL('/assets/tours_video_poster.jpg', site).toString(),
+    ],
+    "uploadDate": "2026-10-07T00:00:00+07:00",
+    "contentUrl": new URL('/assets/tours_video.mp4', site).toString(),
+    "embedUrl": new URL('/turlar/', site).toString(),
+    "duration": "PT32S",
+    "inLanguage": "tr",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Phuket Tatili",
+      "url": site.toString(),
+      "logo": new URL('/assets/logo-main-transparent.png', site).toString(),
+    },
+  },
 ];
 ---
 

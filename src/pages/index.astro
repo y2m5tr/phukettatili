@@ -160,23 +160,19 @@ const schemas: Record<string, unknown>[] = [
     },
   },
   {
-    // Tanıtım filmi: /assets/tours_video.mp4 (32sn, commit 63e1427 ile eklendi).
-    // HomeVideoShowcase varsayılan poster'ı phuket_hero.webp; OG hero ile aynı
-    // çözümleme yoluyla mutlak URL'ye çevrilir.
-    "@type": "VideoObject",
-    "name": "Phuket Turları — Tanıtım Filmi",
-    "description": "Phuket Tatili turlarından kareler: zümrüt lagünler, longtail tekneler, gün batımı yat seyri ve ada deneyimleri.",
-    "thumbnailUrl": new URL("/assets/og-hero.jpg", site).toString(),
-    "uploadDate": "2026-10-07T00:00:00+07:00",
-    "contentUrl": "https://phukettatili.com/assets/tours_video.mp4",
-    "embedUrl": "https://phukettatili.com/",
-    "duration": "PT32S",
+    // NOT: Anasayfada artık oynatılabilir bir video dosyası yok — tanıtım
+    // filmi SVG+CSS animasyonu (TourPromoFilm). VideoObject şeması
+    // `contentUrl` olarak gerçek bir video dosyası ister; animasyonu video
+    // diye işaretlemek geçersiz markup olurdu. tours_video.mp4'ün oynatıldığı
+    // yer /turlar sayfası; VideoObject şeması oraya taşındı.
+    "@type": "WebPage",
+    "name": "Phuket Tatili — Türkçe Rehberli Turlar & VIP Transfer",
+    "url": site.toString(),
     "inLanguage": "tr",
-    "publisher": {
-      "@type": "Organization",
+    "isPartOf": {
+      "@type": "WebSite",
       "name": "Phuket Tatili",
       "url": site.toString(),
-      "logo": new URL("/assets/logo-main-transparent.png", site).toString(),
     },
   },
   ...(formattedFaqs.length > 0
