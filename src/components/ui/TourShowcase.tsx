@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { resolveAssetUrl, responsiveSrcset } from '../../lib/assets';
-import { fmtMoney } from '../../lib/moneyFormat';
+import { ensureRates, formatPriceText, readStoredCurrency } from '../../lib/livePriceConverter';
 
 interface TourSlide {
   id: string;
@@ -10,8 +10,37 @@ interface TourSlide {
 export default function TourShowcase({ tours }: { tours: TourSlide[] }) {
   const [active, setActive] = useState(0);
   const [playing, setPlaying] = useState(false);
+  // Fiyat React'in kendi state'inden çizilir. Dışarıdaki livePriceConverter
+  // aynı düğüme yazsaydı hydration uyuşmazlığı olurdu; bu yüzden ilk değer
+  // daima 'THB' (sunucunun bastığı biçim), gerçek birim mount'ta okunur.
+  const [currency, setCurrency] = useState('THB');
   const touchStart = useRef<number | null>(null);
   const current = tours[active];
+
+  useEffect(() => {
+    const stored = readStoredCurrency();
+    if (stored === 'THB') return;
+    let cancelled = false;
+    ensureRates(stored).then(() => {
+      if (!cancelled) setCurrency(stored);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    const onCurrency = (event: Event) => {
+      const detail = (event as CustomEvent).detail as { currency?: string } | null;
+      const next = detail?.currency;
+      if (!next) return;
+      if (next === 'THB') {
+        setCurrency('THB');
+        return;
+      }
+      ensureRates(next).then(() => setCurrency(next));
+    };
+    window.addEventListener('ptt:currency-changed', onCurrency);
+    return () => window.removeEventListener('ptt:currency-changed', onCurrency);
+  }, []);
 
   useEffect(() => {
     if (playing || tours.length < 2) return;
@@ -62,8 +91,8 @@ export default function TourShowcase({ tours }: { tours: TourSlide[] }) {
             <a href={`/turlar/${current.id}`} className="inline-flex items-center gap-3 rounded-full bg-white px-6 py-3.5 text-sm font-semibold text-slate-950 transition hover:bg-amber-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white">Turu keşfet <span aria-hidden="true">↗</span></a>
             {current.data.duration && <span className="rounded-full border border-white/25 bg-white/10 px-4 py-3 text-xs text-white/90 backdrop-blur-md">◷ &nbsp;{current.data.duration}</span>}
             {current.data.price_thb != null && current.data.price_thb > 0 ? (
-              <span className="rounded-full border border-white/25 bg-white/10 px-4 py-3 text-xs font-medium text-white backdrop-blur-md" data-thb-price={current.data.price_thb} data-price-label="kişi başı">
-                {fmtMoney(current.data.price_thb)} THB
+              <span className="rounded-full border border-white/25 bg-white/10 px-4 py-3 text-xs font-medium text-white backdrop-blur-md" data-thb-price={current.data.price_thb} data-price-label="kişi başı" data-price-react="true">
+                {formatPriceText(current.data.price_thb, currency, 'kişi başı')}
               </span>
             ) : (
               <span className="rounded-full border border-emerald-400/30 bg-emerald-500/20 px-4 py-3 text-xs font-semibold text-emerald-300 backdrop-blur-md">Özel Fiyat Teklifi</span>

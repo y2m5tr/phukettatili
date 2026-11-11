@@ -79,6 +79,45 @@ function convert(amountThb: number, currency: string): number {
 
 const SYMBOLS: Record<string, string> = { THB: '฿', TRY: '₺', USD: '$', EUR: '€' };
 
+/**
+ * React adaları için fiyat metni üretir.
+ *
+ * NEDEN VAR: React bir düğümün metnini kendisi çiziyorsa, bu modülün DOM
+ * yazıcısı o düğüme hydration'dan ÖNCE yazdığında sunucu HTML'i ile istemci
+ * çıktısı uyuşmuyor ve React tüm ağacı çöpe atıp yeniden kuruyordu
+ * (TourShowcase'te "Hydration failed" hatası). Çözüm: React fiyatı kendi
+ * state'inden çizer, işaretli düğümlere DOM yazıcısı hiç dokunmaz.
+ *
+ * `currency === 'THB'` iken renderPrice ile BİREBİR aynı metni üretmek
+ * zorunda: sunucu bu metni basıyor, istemci aynısını çizmeli ki hydration
+ * uyuşsun; ayrıca sayfadaki diğer fiyat düğümleri (tr-TR binlik ayraç) ile
+ * görsel tutarlılık korunsun.
+ */
+export function formatPriceText(amountThb: number, currency: string, label = ''): string {
+  if (!Number.isFinite(amountThb) || amountThb <= 0) return '';
+  if (currency === 'THB') {
+    return `${amountThb.toLocaleString('tr-TR')} THB${label ? ` · ${label}` : ''}`;
+  }
+  const converted = convert(amountThb, currency);
+  const symbol = SYMBOLS[currency] || '';
+  return `${symbol}${converted.toLocaleString('tr-TR')} ${currency}`;
+}
+
+/** React adaları için: kaydedilmiş para birimini okur (SSR'da daima THB). */
+export function readStoredCurrency(): string {
+  try {
+    return localStorage.getItem('ptt_currency') || 'THB';
+  } catch {
+    return 'THB';
+  }
+}
+
+/** React adaları için: THB dışı bir birim seçiliyse kurları yükler. */
+export function ensureRates(currency: string): Promise<void> {
+  if (currency === 'THB') return Promise.resolve();
+  return fetchRates().then(() => undefined);
+}
+
 function renderPrice(el: HTMLElement, currency: string) {
   const base = Number(el.dataset.thbPrice || '0');
   if (!base) return;
@@ -101,7 +140,12 @@ function renderPrice(el: HTMLElement, currency: string) {
 }
 
 function renderAll(currency: string) {
-  document.querySelectorAll<HTMLElement>('[data-thb-price]').forEach((el) => renderPrice(el, currency));
+  document.querySelectorAll<HTMLElement>('[data-thb-price]').forEach((el) => {
+    // React adaları fiyatını kendi state'inden çizer (bkz. formatPriceText).
+    // Buradan yazılırsa hydration uyuşmazlığı doğar — dokunma.
+    if (el.hasAttribute('data-price-react')) return;
+    renderPrice(el, currency);
+  });
 }
 
 let currentCurrency = 'THB';
