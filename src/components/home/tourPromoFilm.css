@@ -21,9 +21,10 @@
   @keyframes pf-rise { from { opacity: 0; transform: translateY(18px) } to { opacity: 1; transform: translateY(0) } }
 
   /* — Perde 2: Sahne animasyonları — */
+  /* Altyazı tek ortak katmanda; her sahne değişiminde .is-active yenilenir */
   .pf-cap-title, .pf-cap-sub { opacity: 0; }
-  .pf-slide.is-active .pf-cap-title { animation: pf-capIn 0.7s ease-out 0.35s forwards; }
-  .pf-slide.is-active .pf-cap-sub { animation: pf-capIn 0.7s ease-out 0.55s forwards; }
+  .pf-caption.is-active .pf-cap-title { animation: pf-capIn 0.7s ease-out 0.2s forwards; }
+  .pf-caption.is-active .pf-cap-sub { animation: pf-capIn 0.7s ease-out 0.4s forwards; }
   @keyframes pf-capIn { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: translateY(0) } }
 
   /* S1 kano: sallanma + kürek */
@@ -116,6 +117,7 @@
     .pf-speedboat, .pf-wake, .pf-spray, .pf-spot-a, .pf-spot-b,
     .pf-dancer-a, .pf-dancer-b, .pf-audience, .pf-sparkles, .pf-yacht,
     .pf-sun-waves, .pf-glow, .pf-twinkle, .pf-night-kayak,
-    .pf-slide.is-active .pf-cap-title, .pf-slide.is-active .pf-cap-sub { animation: none; }
+    .pf-slide.is-active .pf-cap-title, .pf-slide.is-active .pf-cap-sub,
+    .pf-caption.is-active .pf-cap-title, .pf-caption.is-active .pf-cap-sub { animation: none; }
     .pf-cap-title, .pf-cap-sub { opacity: 1; }
   }

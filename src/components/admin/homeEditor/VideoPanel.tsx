@@ -64,10 +64,15 @@ export default function VideoPanel({
             </label>
             <input
               type="text"
-              value={homeSettings?.videoUrl || '/assets/tours_video.mp4'}
+              value={homeSettings?.videoUrl || ''}
+              placeholder="/assets/tours_video.mp4"
               onChange={(e) => setHomeSettings({ ...homeSettings, videoUrl: e.target.value })}
               className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm font-mono focus:outline-none"
             />
+            <p className="text-[11px] text-slate-500 mt-1.5">
+              Boş bırakılırsa anasayfada yalnızca animasyonlu tanıtım filmi görünür. Bir adres girerseniz
+              onun altında ayrı bir video oynatıcı bölümü de çizilir.
+            </p>
           </div>
         </div>
 

@@ -52,17 +52,30 @@ export function initPromoFilm() {
     icons.replay.classList.toggle('hidden', name !== 'replay');
   };
 
-  // Sahne altyazılarını bağla (her slaytta bir başlık/alt başlık kutusu)
-  const sceneCaptions = slideEls.map((el) => ({
-    title: el.querySelector<HTMLElement>('.pf-cap-title'),
-    sub: el.querySelector<HTMLElement>('.pf-cap-sub'),
-  }));
+  // Ortak sahne altyazısı: 9 sahne tek katmanı paylaşır, metni burada yazılır
+  const caption = stage.querySelector<HTMLElement>('.pf-caption');
+  const capTitle = caption?.querySelector<HTMLElement>('.pf-cap-title');
+  const capSub = caption?.querySelector<HTMLElement>('.pf-cap-sub');
+  let shownScene = -1;
 
   const restartEl = (el: Element | null | undefined) => {
     // sınıf toggle'ı animasyonları sıfırdan başlatır
     el?.classList.remove('is-active');
     void (el as HTMLElement)?.offsetWidth; // reflow
     el?.classList.add('is-active');
+  };
+
+  const setCaption = (idx: number) => {
+    if (!caption || idx === shownScene) return;
+    shownScene = idx;
+    if (capTitle) capTitle.textContent = scenes[idx]?.title || '';
+    if (capSub) capSub.textContent = scenes[idx]?.sub || '';
+    restartEl(caption);
+  };
+
+  const hideCaption = () => {
+    shownScene = -1;
+    caption?.classList.remove('is-active');
   };
 
   const applyFrame = () => {
@@ -85,14 +98,10 @@ export function initPromoFilm() {
         }
         if (a === slidesAct) {
           const idx = Math.min(Math.floor((t - INTRO_MS) / SLIDE_MS), slideEls.length - 1);
+          setCaption(idx);
           slideEls.forEach((s, i) => {
             if (i === idx) {
-              if (!s.classList.contains('is-active')) {
-                const cap = sceneCaptions[i];
-                if (cap?.title) cap.title.textContent = scenes[i]?.title || '';
-                if (cap?.sub) cap.sub.textContent = scenes[i]?.sub || '';
-                restartEl(s);
-              }
+              if (!s.classList.contains('is-active')) restartEl(s);
               s.style.opacity = '1';
             } else {
               s.classList.remove('is-active');
@@ -105,6 +114,7 @@ export function initPromoFilm() {
         a.classList.remove('is-active');
         if (a === slidesAct) {
           slideEls.forEach((s) => { s.classList.remove('is-active'); s.style.opacity = '0'; });
+          hideCaption();
         }
       }
     });
@@ -148,6 +158,7 @@ export function initPromoFilm() {
     introRestarted = false;
     [intro, slidesAct, outro].forEach((a) => { a?.classList.remove('is-active'); });
     slideEls.forEach((s) => { s.classList.remove('is-active'); s.style.opacity = '0'; });
+    hideCaption();
     start();
   };
 

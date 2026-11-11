@@ -73,7 +73,12 @@ const whyUsCards = homeData?.whyUsCards;
 const videoBadge = homeData?.videoBadge;
 const videoTitle = homeData?.videoTitle;
 const videoSubtitle = homeData?.videoSubtitle;
-const videoUrl = homeData?.videoUrl;
+// Eski mp4 vitrini yalnızca PANELDE açıkça bir video adresi girildiyse çizilir.
+// home.json tabanındaki videoUrl'e bakılmaz: o alan şablonun varsayılanıydı ve
+// yeni animasyonlu filmle birlikte sayfaya iki ayrı "Tanıtım Filmi" bölümü
+// basıyordu. Panel kaydı (overlay) boşsa bölüm hiç görünmez.
+const panelVideoUrl = (panelContent.homeSettings as { videoUrl?: string } | null)?.videoUrl;
+const videoUrl = typeof panelVideoUrl === 'string' && panelVideoUrl.trim() ? panelVideoUrl.trim() : '';
 const videoPoster = homeData?.videoPoster;
 const guestMomentsBadge = homeData?.guestMomentsBadge;
 const guestMomentsTitle = homeData?.guestMomentsTitle;
