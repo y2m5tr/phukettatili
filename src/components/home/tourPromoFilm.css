@@ -1,0 +1,121 @@
+/* TourPromoFilm — global animasyon stilleri (perde 1-3 + sahneler) */
+  /* — Perde 1 animasyonları — */
+  .pf-sun { animation: pf-pulse 4s ease-in-out infinite; transform-origin: 1330px 150px; }
+  @keyframes pf-pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.75 } }
+  .pf-cloud-1 { animation: pf-drift 26s linear infinite; }
+  .pf-cloud-2 { animation: pf-drift 34s linear infinite reverse; }
+  @keyframes pf-drift { from { transform: translateX(0) } to { transform: translateX(120px) } }
+  .pf-waves-a { animation: pf-wave 9s linear infinite; }
+  .pf-waves-b { animation: pf-wave 13s linear infinite reverse; }
+  @keyframes pf-wave { from { transform: translateX(0) } to { transform: translateX(-160px) } }
+  .pf-boat { animation: pf-bob 3.2s ease-in-out infinite; }
+  @keyframes pf-bob { 0%, 100% { transform: translateY(0) rotate(0deg) } 50% { transform: translateY(-9px) rotate(2deg) } }
+  .pf-route-draw { animation: pf-draw 4.6s ease-in-out forwards; }
+  @keyframes pf-draw { from { stroke-dashoffset: 1 } to { stroke-dashoffset: 0 } }
+  .pf-pin { opacity: 0; }
+  [data-act='intro'].is-active .pf-pin { animation: pf-drop 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) 4.1s forwards; transform-origin: 1180px 560px; }
+  @keyframes pf-drop { from { opacity: 0; transform: translateY(-90px) } to { opacity: 1; transform: translateY(0) } }
+  .pf-title, .pf-sub { opacity: 0; }
+  [data-act='intro'].is-active .pf-title { animation: pf-rise 0.8s ease-out 0.6s forwards; }
+  [data-act='intro'].is-active .pf-sub { animation: pf-rise 0.8s ease-out 1.6s forwards; }
+  @keyframes pf-rise { from { opacity: 0; transform: translateY(18px) } to { opacity: 1; transform: translateY(0) } }
+
+  /* — Perde 2: Sahne animasyonları — */
+  .pf-cap-title, .pf-cap-sub { opacity: 0; }
+  .pf-slide.is-active .pf-cap-title { animation: pf-capIn 0.7s ease-out 0.35s forwards; }
+  .pf-slide.is-active .pf-cap-sub { animation: pf-capIn 0.7s ease-out 0.55s forwards; }
+  @keyframes pf-capIn { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: translateY(0) } }
+
+  /* S1 kano: sallanma + kürek */
+  .pf-kayak-bob { animation: pf-bob 2.8s ease-in-out infinite; }
+  .pf-paddle { animation: pf-paddle 1.4s ease-in-out infinite; transform-origin: 18px -30px; }
+  @keyframes pf-paddle { 0%, 100% { transform: rotate(-8deg) } 50% { transform: rotate(22deg) } }
+  .pf-splash { animation: pf-pulse 1.4s ease-in-out infinite; }
+
+  /* S2 şnorkel: balık sürüleri yüzüsün, yüzücü süzülsün */
+  .pf-fish-a { animation: pf-fish-swim 7s linear infinite; }
+  .pf-fish-b { animation: pf-fish-swim 9s linear infinite; animation-delay: -3s; }
+  .pf-fish-late { animation-delay: -2.5s; }
+  @keyframes pf-fish-swim {
+    0% { transform: translateX(-240px) translateY(0); }
+    25% { transform: translateX(-80px) translateY(-26px); }
+    50% { transform: translateX(80px) translateY(10px); }
+    75% { transform: translateX(240px) translateY(-18px); }
+    100% { transform: translateX(420px) translateY(0); }
+  }
+  .pf-swimmer { animation: pf-float 3.6s ease-in-out infinite; }
+  @keyframes pf-float { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-14px) } }
+  .pf-bubbles circle { animation: pf-bubble 2.4s ease-in infinite; }
+  .pf-bubbles circle:nth-child(2) { animation-delay: 0.5s; }
+  .pf-bubbles circle:nth-child(3) { animation-delay: 1.1s; }
+  .pf-bubbles circle:nth-child(4) { animation-delay: 0.8s; }
+  @keyframes pf-bubble { 0% { transform: translateY(0); opacity: 0.6 } 100% { transform: translateY(-110px); opacity: 0 } }
+
+  /* S3 fil: kuyruk + kulak, bakıcı havuçla ilerlesin */
+  .pf-elephant { animation: pf-float 5s ease-in-out infinite; }
+  .pf-ele-tail { animation: pf-tail 2.2s ease-in-out infinite; transform-origin: 0 0; }
+  @keyframes pf-tail { 0%, 100% { transform: rotate(-6deg) } 50% { transform: rotate(10deg) } }
+  .pf-keeper { animation: pf-keeper-walk 3.4s ease-in-out infinite; }
+  @keyframes pf-keeper-walk { 0%, 100% { transform: translate(0, 0) } 50% { transform: translate(26px, -8px) } }
+  .pf-bucket { animation: pf-paddle 1.7s ease-in-out infinite; transform-origin: 0 -78px; }
+
+  /* S4 zipline: misafir halat boyunca kayar */
+  .pf-zipper { animation: pf-zip-slide 2.8s cubic-bezier(0.3, 0.2, 0.7, 1) forwards; }
+  @keyframes pf-zip-slide { from { transform: translate(220px, 250px) } to { transform: translate(1180px, 30px) } }
+  .pf-speedlines { animation: pf-pulse 0.8s ease-in-out infinite; }
+
+  /* S5 ATV: titrer, toz ve duman geride kalır */
+  .pf-atv { animation: pf-atv-shake 0.5s ease-in-out infinite; }
+  @keyframes pf-atv-shake { 0%, 100% { transform: translate(0, 0) rotate(0deg) } 25% { transform: translate(2px, -3px) rotate(-1deg) } 75% { transform: translate(-2px, -2px) rotate(1deg) } }
+  .pf-dust { animation: pf-fish-swim 3s linear infinite; }
+  .pf-exhaust { animation: pf-bubble 1.6s ease-out infinite; }
+
+  /* S6 sürat teknesi: soldan sağa süzülür */
+  .pf-speedboat { animation: pf-boat-cruise 4.2s linear infinite; }
+  @keyframes pf-boat-cruise { from { transform: translate(260px, 0) } to { transform: translate(1360px, -20px) } }
+  .pf-wake { animation: pf-wake 1.2s ease-out infinite; }
+  @keyframes pf-wake { 0% { opacity: 0.5; transform: translateX(0) } 100% { opacity: 0; transform: translateX(-60px) } }
+  .pf-spray { animation: pf-pulse 0.7s ease-in-out infinite; }
+
+  /* S7 gösteri: spot ışıkları salınır, dansçılar ritim tutar */
+  .pf-spot-a { animation: pf-spot-sway 4s ease-in-out infinite; transform-origin: 610px 0; }
+  .pf-spot-b { animation: pf-spot-sway 4s ease-in-out infinite reverse; transform-origin: 910px 0; }
+  @keyframes pf-spot-sway { 0%, 100% { transform: rotate(-4deg) } 50% { transform: rotate(4deg) } }
+  .pf-dancer-a { animation: pf-dance 1.6s ease-in-out infinite; transform-origin: 800px 700px; }
+  .pf-dancer-b { animation: pf-dance 1.6s ease-in-out infinite reverse; transform-origin: 1010px 720px; }
+  @keyframes pf-dance { 0%, 100% { transform: rotate(-3deg) } 50% { transform: rotate(4deg) } }
+  .pf-audience { animation: pf-float 2.4s ease-in-out infinite; }
+  .pf-sparkles { animation: pf-pulse 2.2s ease-in-out infinite; }
+
+  /* S8 gün batımı: yat süzülür, güneş şeritleri kayar */
+  .pf-yacht { animation: pf-float 4.4s ease-in-out infinite; }
+  .pf-sun-waves { animation: pf-sun-waves 6s linear infinite; }
+  @keyframes pf-sun-waves { 0%, 100% { opacity: 0.55 } 50% { opacity: 0.3 } }
+
+  /* S9 gece: plankton nefes alır, yıldızlar parıldar */
+  .pf-glow { animation: pf-plankton-pulse 3.2s ease-in-out infinite; }
+  @keyframes pf-plankton-pulse { 0%, 100% { opacity: 0.5 } 50% { opacity: 1 } }
+  .pf-twinkle { animation: pf-twinkle 2.4s ease-in-out infinite; }
+  .pf-twinkle-late { animation-delay: 1.2s; }
+  @keyframes pf-twinkle { 0%, 100% { opacity: 0.25; transform: scale(0.7) } 50% { opacity: 1; transform: scale(1.15) } }
+  .pf-night-kayak { animation: pf-night-drift 5s ease-in-out infinite; }
+  @keyframes pf-night-drift { 0%, 100% { transform: translate(0, 0) } 50% { transform: translate(40px, -10px) } }
+
+  /* — Perde 3 — */
+  .pf-outro-el { opacity: 0; }
+  [data-act='outro'].is-active .pf-outro-el { animation: pf-rise 0.8s ease-out forwards; }
+  [data-act='outro'].is-active .pf-outro-el:nth-child(1) { animation-delay: 0.15s; }
+  [data-act='outro'].is-active .pf-outro-el:nth-child(2) { animation-delay: 0.5s; }
+  [data-act='outro'].is-active .pf-outro-el:nth-child(3) { animation-delay: 0.85s; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .pf-sun, .pf-cloud-1, .pf-cloud-2, .pf-waves-a, .pf-waves-b, .pf-boat,
+    .pf-kayak-bob, .pf-paddle, .pf-splash, .pf-fish-a, .pf-fish-b, .pf-swimmer,
+    .pf-bubbles circle, .pf-elephant, .pf-ele-tail, .pf-keeper, .pf-bucket,
+    .pf-zipper, .pf-speedlines, .pf-atv, .pf-dust, .pf-exhaust,
+    .pf-speedboat, .pf-wake, .pf-spray, .pf-spot-a, .pf-spot-b,
+    .pf-dancer-a, .pf-dancer-b, .pf-audience, .pf-sparkles, .pf-yacht,
+    .pf-sun-waves, .pf-glow, .pf-twinkle, .pf-night-kayak,
+    .pf-slide.is-active .pf-cap-title, .pf-slide.is-active .pf-cap-sub { animation: none; }
+    .pf-cap-title, .pf-cap-sub { opacity: 1; }
+  }

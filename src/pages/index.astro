@@ -9,6 +9,7 @@ import HomeFeaturedTours from '../components/home/HomeFeaturedTours.astro';
 import HomePrimaryCta from '../components/home/HomePrimaryCta.astro';
 import HomeHolidayAssistant from '../components/home/HomeHolidayAssistant';
 import HomeVideoShowcase from '../components/home/HomeVideoShowcase.astro';
+import TourPromoFilm from '../components/home/TourPromoFilm.astro';
 import HomeMarquee from '../components/home/HomeMarquee.astro';
 import HomeWhyUs from '../components/home/HomeWhyUs.astro';
 import HomeTestimonials from '../components/home/HomeTestimonials.astro';
@@ -288,8 +289,13 @@ const schemas: Record<string, unknown>[] = [
     <HomeHolidayAssistant client:visible tours={wizardTours} whatsappNumber={siteSettings?.whatsappNumber} />
   )}
 
-  <!-- Tanıtım Filmi -->
+  <!-- Tanıtım Filmi (animasyonlu, mp4'süz) -->
   {sections.videoShowcase !== false && (
+    <TourPromoFilm />
+  )}
+
+  <!-- Eski video oynatıcı: panelde videoUrl tanimliysa yine gosterilir -->
+  {videoUrl && sections.videoShowcase !== false && (
     <HomeVideoShowcase badge={videoBadge} title={videoTitle} subtitle={videoSubtitle} videoSrc={videoUrl} posterImage={videoPoster} />
   )}
 

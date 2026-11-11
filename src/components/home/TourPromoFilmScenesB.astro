@@ -1,0 +1,242 @@
+---
+// TourPromoFilmScenesB — Perde 2 sahne 6-9: sürat teknesi, gösteri, yat,
+// plankton. TourPromoFilm.astro içindeki sahne JS'i bu .pf-slide'leri yönetir.
+---
+
+  <!-- S6: Sürat teknesi adalar arası -->
+  <div class="pf-slide absolute inset-0 opacity-0">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" class="absolute inset-0 w-full h-full">
+      <defs>
+        <linearGradient id="pf-speed-sea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2ea7cf" />
+          <stop offset="1" stop-color="#6fd0e5" />
+        </linearGradient>
+      </defs>
+      <rect width="1600" height="900" fill="url(#pf-speed-sea)" />
+      <circle cx="240" cy="130" r="44" fill="#fff2d9" />
+      <g fill="#ffffff" opacity="0.85">
+        <g class="pf-cloud-2"><ellipse cx="620" cy="120" rx="56" ry="18" /><ellipse cx="668" cy="110" rx="36" ry="13" /></g>
+      </g>
+      <!-- adalar -->
+      <g fill="#5ea286">
+        <path d="M120 900 l 120 -240 l 100 240 z" />
+        <path d="M1330 900 l 130 -280 l 110 280 z" opacity="0.9" />
+        <path d="M1460 900 l 90 -190 l 70 190 z" opacity="0.75" />
+      </g>
+      <g fill="#3f8a6d">
+        <path d="M0 900 q 90 -120 190 0 z" />
+      </g>
+      <!-- izli sürat teknesi -->
+      <g class="pf-speedboat">
+        <g transform="translate(0 0)">
+          <path d="M-120 0 q 120 40 240 -6 l -30 26 q -100 26 -190 0 z" fill="#e05c4a" />
+          <path d="M-120 0 q 120 36 240 -6 l -18 -26 q -100 -20 -200 6 z" fill="#f0785c" />
+          <rect x="-16" y="-60" width="34" height="58" rx="8" fill="#ffffff" />
+          <path d="M-14 -60 q 18 -14 30 0 l -6 24 q -12 -10 -22 0 z" fill="#7fb3d5" />
+          <!-- yolcular -->
+          <circle cx="42" cy="-34" r="10" fill="#ffcf9e" />
+          <circle cx="66" cy="-30" r="10" fill="#ffcf9e" />
+          <path d="M32 -44 q 10 -12 20 0 z" fill="#f5b23a" />
+          <path d="M56 -40 q 10 -12 20 0 z" fill="#5e452c" />
+          <rect x="32" y="-26" width="20" height="24" rx="6" fill="#4bb8d9" />
+          <rect x="56" y="-22" width="20" height="22" rx="6" fill="#e8b84b" />
+          <!-- su püskürmesi -->
+          <g class="pf-spray" fill="#ffffff" opacity="0.75">
+            <path d="M-130 4 q -40 -30 -60 -10 q 30 4 46 22 z" />
+            <path d="M-150 10 q -30 -20 -50 -4 q 26 2 38 16 z" opacity="0.6" />
+          </g>
+        </g>
+      </g>
+      <!-- köpük izi -->
+      <g class="pf-wake" fill="#ffffff" opacity="0.5">
+        <path d="M-360 20 q 40 -26 90 6 q -40 26 -90 -6 z" />
+        <path d="M-460 34 q 34 -20 74 6 q -34 20 -74 -6 z" opacity="0.6" />
+        <path d="M-540 44 q 28 -16 60 4 q -28 16 -60 -4 z" opacity="0.4" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- S7: Akşam gösterisi — sahne ışıkları -->
+  <div class="pf-slide absolute inset-0 opacity-0">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" class="absolute inset-0 w-full h-full">
+      <defs>
+        <linearGradient id="pf-show-bg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2a1a4e" />
+          <stop offset="1" stop-color="#4a2a6e" />
+        </linearGradient>
+        <linearGradient id="pf-spotlight" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffe9a8" stop-opacity="0.55" />
+          <stop offset="1" stop-color="#ffe9a8" stop-opacity="0.05" />
+        </linearGradient>
+      </defs>
+      <rect width="1600" height="900" fill="url(#pf-show-bg)" />
+      <!-- spot ışıkları -->
+      <g class="pf-spot-a">
+        <path d="M520 0 L 700 0 L 900 760 L 720 760 Z" fill="url(#pf-spotlight)" />
+      </g>
+      <g class="pf-spot-b">
+        <path d="M820 0 L 1000 0 L 1180 760 L 1000 760 Z" fill="url(#pf-spotlight)" />
+      </g>
+      <!-- sahne -->
+      <rect y="760" width="1600" height="140" fill="#6e452c" />
+      <rect y="756" width="1600" height="10" fill="#8a5a3b" />
+      <!-- perde -->
+      <g fill="#8e2f4f">
+        <path d="M0 0 L 90 0 L 130 900 L 0 900 Z" />
+        <path d="M1600 0 L 1510 0 L 1470 900 L 1600 900 Z" />
+      </g>
+      <!-- dans eden figürler -->
+      <g class="pf-dancer-a">
+        <g transform="translate(800 700)">
+          <path d="M0 -140 q 60 30 46 90 l -20 60 q -6 20 -26 12 q 6 -40 -6 -74 z" fill="#e8b84b" />
+          <circle cx="-6" cy="-160" r="24" fill="#ffcf9e" />
+          <path d="M-32 -176 q 30 -34 58 -6 q 8 8 -4 14 q -22 -16 -46 4 z" fill="#e05c4a" />
+          <path d="M-30 -168 q -20 44 6 84 l -22 8 q -30 -48 -8 -96 z" fill="#e8b84b" />
+        </g>
+      </g>
+      <g class="pf-dancer-b">
+        <g transform="translate(1010 720)">
+          <path d="M0 -110 q -50 26 -40 76 l 16 50 q 6 18 24 10 q -4 -34 6 -62 z" fill="#6ee7d0" />
+          <circle cx="2" cy="-130" r="20" fill="#ffcf9e" />
+          <path d="M-18 -142 q 22 -28 48 -4 q 6 6 -4 12 q -18 -12 -38 2 z" fill="#2ea7cf" />
+        </g>
+      </g>
+      <!-- seyirci silüetleri -->
+      <g fill="#1a1030">
+        <g class="pf-audience">
+          <circle cx="200" cy="860" r="26" /><rect x="170" y="880" width="60" height="20" rx="8" />
+          <circle cx="320" cy="868" r="24" /><rect x="294" y="886" width="52" height="14" rx="7" />
+          <circle cx="440" cy="858" r="26" /><rect x="410" y="878" width="60" height="22" rx="8" />
+          <circle cx="1240" cy="862" r="25" /><rect x="1212" y="880" width="56" height="20" rx="8" />
+          <circle cx="1380" cy="866" r="24" /><rect x="1354" y="884" width="52" height="16" rx="7" />
+        </g>
+      </g>
+      <!-- parıltılar -->
+      <g class="pf-sparkles" fill="#ffe9a8">
+        <path d="M400 200 l 6 16 l 16 6 l -16 6 l -6 16 l -6 -16 l -16 -6 l 16 -6 z" />
+        <path d="M1200 280 l 5 14 l 14 5 l -14 5 l -5 14 l -5 -14 l -14 -5 l 14 -5 z" />
+        <path d="M1050 120 l 4 12 l 12 4 l -12 4 l -4 12 l -4 -12 l -12 -4 l 12 -4 z" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- S8: Gün batımı yat -->
+  <div class="pf-slide absolute inset-0 opacity-0">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" class="absolute inset-0 w-full h-full">
+      <defs>
+        <linearGradient id="pf-yacht-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#6e3a8e" />
+          <stop offset="0.45" stop-color="#e8734a" />
+          <stop offset="0.75" stop-color="#ffb45c" />
+          <stop offset="1" stop-color="#ffd9a0" />
+        </linearGradient>
+        <linearGradient id="pf-yacht-sea" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#d97b4a" />
+          <stop offset="1" stop-color="#8e4a5e" />
+        </linearGradient>
+      </defs>
+      <rect width="1600" height="900" fill="url(#pf-yacht-sky)" />
+      <rect y="520" width="1600" height="380" fill="url(#pf-yacht-sea)" />
+      <!-- batan güneş -->
+      <g>
+        <circle cx="800" cy="520" r="70" fill="#fff2d9" />
+        <circle cx="800" cy="520" r="100" fill="#ffcf6e" opacity="0.3" />
+        <g class="pf-sun-waves" fill="#2a1a4e" opacity="0.55">
+          <rect x="720" y="486" width="160" height="8" rx="4" />
+          <rect x="740" y="502" width="120" height="8" rx="4" />
+          <rect x="736" y="518" width="128" height="8" rx="4" />
+        </g>
+      </g>
+      <!-- bulut şeritleri -->
+      <g fill="#e8a07a" opacity="0.7">
+        <ellipse cx="300" cy="180" rx="150" ry="16" />
+        <ellipse cx="1200" cy="130" rx="120" ry="13" />
+        <ellipse cx="500" cy="90" rx="90" ry="10" />
+      </g>
+      <!-- yelkenli yat -->
+      <g class="pf-yacht">
+        <g transform="translate(620 520)">
+          <path d="M-140 0 q 140 44 280 -8 l -36 30 q -110 30 -220 0 z" fill="#ffffff" />
+          <path d="M-140 0 q 140 40 280 -8 l -22 -30 q -110 -24 -240 10 z" fill="#f5f0e6" />
+          <rect x="-30" y="-70" width="60" height="66" rx="10" fill="#ffffff" />
+          <rect x="-22" y="-62" width="44" height="30" rx="6" fill="#2a1a4e" opacity="0.75" />
+          <path d="M-28 -70 q 30 -20 58 0 z" fill="#e05c4a" />
+          <rect x="-6" y="-118" width="7" height="50" fill="#8a7a8d" />
+          <path d="M2 -116 q 76 -26 96 44 l -88 -8 z" fill="#ffffff" opacity="0.95" />
+          <path d="M-4 -110 q -54 30 -44 76 l 40 -14 z" fill="#f5f0e6" opacity="0.9" />
+          <circle cx="10" cy="-36" r="8" fill="#ffcf9e" />
+          <circle cx="30" cy="-32" r="8" fill="#ffcf9e" />
+        </g>
+      </g>
+      <g class="pf-waves-b" stroke="#ffd9a0" stroke-width="3" fill="none" opacity="0.45" stroke-linecap="round">
+        <path d="M0 780 q 40 -12 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0 t 80 0" />
+      </g>
+    </svg>
+  </div>
+
+  <!-- S9: Gece — kano ve plankton -->
+  <div class="pf-slide absolute inset-0 opacity-0">
+    <svg viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" class="absolute inset-0 w-full h-full">
+      <defs>
+        <linearGradient id="pf-night-sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#0a1030" />
+          <stop offset="1" stop-color="#1a2a5e" />
+        </linearGradient>
+        <radialGradient id="pf-plankton" cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stop-color="#7ef7e0" stop-opacity="0.9" />
+          <stop offset="1" stop-color="#7ef7e0" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="1600" height="900" fill="url(#pf-night-sky)" />
+      <!-- yıldızlar -->
+      <g class="pf-stars" fill="#ffffff">
+        <circle cx="140" cy="80" r="2.4" /><circle cx="320" cy="50" r="1.8" /><circle cx="540" cy="110" r="2.2" />
+        <circle cx="760" cy="60" r="1.6" /><circle cx="980" cy="100" r="2.6" /><circle cx="1200" cy="50" r="1.8" />
+        <circle cx="1420" cy="90" r="2.2" /><circle cx="240" cy="170" r="1.6" /><circle cx="660" cy="180" r="1.8" />
+        <circle cx="1100" cy="170" r="1.6" /><circle cx="860" cy="30" r="1.8" /><circle cx="1330" cy="180" r="1.8" />
+        <!-- parıldayan iki yıldız -->
+        <path class="pf-twinkle" d="M420 90 l 5 14 l 14 5 l -14 5 l -5 14 l -5 -14 l -14 -5 l 14 -5 z" />
+        <path class="pf-twinkle pf-twinkle-late" d="M1250 120 l 4 12 l 12 4 l -12 4 l -4 12 l -4 -12 l -12 -4 l 12 -4 z" />
+      </g>
+      <!-- ay -->
+      <circle cx="1400" cy="140" r="42" fill="#fdf6d8" />
+      <circle cx="1420" cy="128" r="36" fill="#0a1030" opacity="0" />
+      <!-- karst silüetleri -->
+      <g fill="#050a1e">
+        <path d="M200 620 l 100 -300 l 90 300 z" />
+        <path d="M340 620 l 120 -360 l 100 360 z" opacity="0.9" />
+        <path d="M1280 620 l 110 -320 l 95 320 z" opacity="0.9" />
+        <path d="M1420 620 l 80 -220 l 70 220 z" />
+      </g>
+      <rect y="620" width="1600" height="280" fill="#0d1b4a" />
+      <!-- plankton parlamaları -->
+      <g class="pf-glow">
+        <ellipse cx="500" cy="760" rx="90" ry="26" fill="url(#pf-plankton)" />
+        <ellipse cx="820" cy="800" rx="120" ry="32" fill="url(#pf-plankton)" />
+        <ellipse cx="1120" cy="740" rx="70" ry="20" fill="url(#pf-plankton)" />
+        <circle cx="420" cy="830" r="5" fill="#7ef7e0" opacity="0.9" />
+        <circle cx="640" cy="845" r="4" fill="#7ef7e0" opacity="0.8" />
+        <circle cx="900" cy="780" r="5" fill="#7ef7e0" opacity="0.9" />
+        <circle cx="1040" cy="850" r="4" fill="#7ef7e0" opacity="0.8" />
+        <circle cx="1200" cy="800" r="4" fill="#7ef7e0" opacity="0.7" />
+      </g>
+      <!-- parlayan kürek izi çizen kano -->
+      <g class="pf-night-kayak">
+        <g transform="translate(680 740)">
+          <path d="M-90 0 q 90 32 180 0 l -16 8 q -74 22 -148 0 z" fill="#f0785c" />
+          <path d="M-90 0 q 90 28 180 0 l -10 -14 q -80 -20 -160 0 z" fill="#e0634a" />
+          <circle cx="-14" cy="-24" r="13" fill="#ffcf9e" />
+          <path d="M-28 -28 q 14 -18 28 0 l -2 10 q -12 -8 -24 0 z" fill="#2a1a4e" />
+          <rect x="-24" y="-14" width="24" height="18" rx="6" fill="#e05c4a" />
+          <ellipse rx="9" ry="16" fill="#8a5a3b" transform="translate(18 -34) rotate(20)" />
+          <!-- parlayan kürek izi -->
+          <path class="pf-glow-trail" d="M-96 12 q -40 10 -80 -6" stroke="#7ef7e0" stroke-width="7" fill="none" stroke-linecap="round" opacity="0.85" />
+        </g>
+      </g>
+    </svg>
+    <!-- Sahne altyazıları: aktif sahne index'ine göre JS besler -->
+    <div class="absolute bottom-0 left-0 right-0 p-5 md:p-7 bg-gradient-to-t from-slate-950/70 to-transparent pointer-events-none">
+      <p class="pf-cap-title font-serif text-xl md:text-3xl font-bold text-white drop-shadow-lg"></p>
+      <p class="pf-cap-sub text-xs md:text-sm text-slate-200/90 mt-1 font-light tracking-wide"></p>
+    </div>
+  </div>
