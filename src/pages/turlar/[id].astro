@@ -73,6 +73,52 @@ const weeklyViewCount = getWeeklyViewCount(tour.id);
 // Zengin Sıkça Sorulan Sorular (Google FAQPage Rich Snippet Destekli)
 const tourFaqs = tour.data.faq && tour.data.faq.length > 0 ? tour.data.faq : defaultTourFaqs;
 
+// Bu tura karşılık gelen otoriter gezi rehberi (Topic Siloing & Internal Linking)
+const tourToBlogMap: Record<string, { slug: string; title: string; excerpt: string }> = {
+  'phi-phi-maya-ve-bamboo-adasi': {
+    slug: 'phi-phi-adalari-rehberi-ilk-kez-gidecekler-icin-ipuclari',
+    title: 'Phi Phi Adaları Gezi Rehberi: İlk Kez Gidecekler İçin İpuçları',
+    excerpt: 'Maya Bay kuralları, en iyi ziyaret saatleri ve şnorkel noktaları hakkında bilmeniz gereken her şey.',
+  },
+  'james-bond-adasi-ve-kano-turu': {
+    slug: 'james-bond-adasi-ve-phang-nga-korfezi-rehberi',
+    title: 'James Bond Adası ve Phang Nga Körfezi Gezi Rehberi',
+    excerpt: 'Zümrüt yeşili lagünler, kano rotaları ve Koh Panyee yüzen köyü rehberi.',
+  },
+  'fil-besleme-ve-bakim-deneyimi': {
+    slug: 'phuket-etik-fil-koruma-alanlari-rehberi',
+    title: 'Phuket Etik Fil Koruma Alanları (Sanctuary) Rehberi',
+    excerpt: 'Fil binişi neden yapılmamalı? Etik barınak standartları ve ziyaret deneyimi.',
+  },
+  'similan-adalari-surat-teknesi-turu': {
+    slug: 'similan-adalari-mi-surin-adalari-mi-karsilastirma-rehberi',
+    title: 'Similan Adaları mı Surin Adaları mı? Karşılaştırma Rehberi',
+    excerpt: 'Turkuaz sular, mercan resifleri, görüş mesafesi ve sezonluk açılış tarihleri.',
+  },
+  'khao-sok-ve-cheow-lan-golu-macerasi': {
+    slug: 'khao-sok-ve-cheow-lan-golu-gezi-rehberi',
+    title: 'Khao Sok ve Cheow Lan Gölü Gezi Rehberi',
+    excerpt: 'Yüzen bungalovlar, kireçtaşı kayalıklar ve göl safarisi detayları.',
+  },
+  'phuket-sehir-ve-kultur-turu': {
+    slug: 'phuket-sehir-turu-7-farkli-program-rehberi',
+    title: 'Phuket Şehir Turu: 7 Farklı Program ve Rota Rehberi',
+    excerpt: 'Big Buddha, Wat Chalong, Old Town ve gizli seyir tepeleri rotası.',
+  },
+  'geleneksel-longtail-tekne-kiralama': {
+    slug: 'phukette-tekne-secimi-longtail-surat-teknesi-katamaran-karsilastirmasi',
+    title: 'Phuket Tekne Seçimi: Longtail mi, Sürat Teknesi mi, Katamaran mı?',
+    excerpt: 'Deniz durumu, konfor, hız ve bütçeye göre doğru tekne tipi rehberi.',
+  },
+  'moonlight-luks-yat-turu': {
+    slug: 'phuket-balayi-rehberi-en-romantik-rotalar-ve-oteller',
+    title: 'Phuket Balayı Rehberi: En Romantik Rotalar ve Oteller',
+    excerpt: 'Gün batımı yat turları, özel koylar ve balayı çiftlerine özel öneriler.',
+  },
+};
+
+const relatedBlogGuide = tourToBlogMap[tour.id] || null;
+
 // JSON-LD şemaları (TouristTrip, Product, BreadcrumbList, FAQPage) — SEO kritik,
 // tur bazında aggregateRating basılmaz (bkz. tourDetailSchemas.ts notu).
 const schemas = buildTourDetailSchemas(tour, site, tourFaqs);
@@ -98,6 +144,30 @@ const initialWhatsAppUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComp
       <div class="lg:col-span-2 prose prose-lg prose-slate dark:prose-invert prose-headings:font-serif prose-headings:text-brand-primary dark:prose-headings:text-white prose-a:text-brand-accent hover:prose-a:text-brand-primary max-w-none">
         <h2 class="text-3xl border-b border-slate-200 dark:border-slate-800 pb-4 mb-8">Tur Hakkında</h2>
         <Content />
+
+        {relatedBlogGuide && (
+          <div class="my-10 p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 not-prose flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="space-y-1">
+              <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-wider">
+                <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                Detaylı Gezi Rehberimiz
+              </span>
+              <h4 class="text-base font-bold text-slate-900 dark:text-white leading-snug">
+                {relatedBlogGuide.title}
+              </h4>
+              <p class="text-xs text-slate-600 dark:text-slate-400 line-clamp-1">
+                {relatedBlogGuide.excerpt}
+              </p>
+            </div>
+            <a
+              href={`/blog/${relatedBlogGuide.slug}/`}
+              class="shrink-0 inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-colors shadow-sm"
+            >
+              Rehberi Oku
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        )}
 
         <TourProgramTimeline tour={tour} />
         <TourGallery tour={tour} />

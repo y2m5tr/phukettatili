@@ -73,8 +73,27 @@ ${imageTags ? `${imageTags}\n` : ''}  </url>`;
     })
     .join('\n');
 
+  const categories = [
+    'ada-turlari',
+    'ozel-yat-kiralama',
+    'macera-ve-doga',
+    'kultur-ve-gosteri',
+  ];
+
+  const categoryUrls = categories
+    .map(
+      (cat) => `  <url>
+    <loc>${site}/turlar/kategori/${cat}/</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>`
+    )
+    .join('\n');
+
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${categoryUrls}
 ${urls}
 </urlset>`;
 

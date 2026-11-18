@@ -1,0 +1,357 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+import TourCardImageCarousel from '../../../components/tour/TourCardImageCarousel.astro';
+import FaqAccordion from '../../../components/ui/FaqAccordion.astro';
+import siteSettings from '../../../content/settings/site.json';
+import { getCloudTours, applyTourOverlay } from '../../../lib/server/tourContent';
+import { fmtMoney } from '../../../lib/moneyFormat';
+
+export const prerender = false;
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=0, must-revalidate, s-maxage=60, stale-while-revalidate=120');
+
+interface CategoryMeta {
+  rawSlug: string;
+  trSlug: string;
+  title: string;
+  h1: string;
+  badge: string;
+  description: string;
+  heroImage: string;
+  faqs: { q: string; a: string }[];
+  relatedBlogId?: string;
+  relatedBlogTitle?: string;
+}
+
+const CATEGORY_MAP: Record<string, CategoryMeta> = {
+  'ada-turlari': {
+    rawSlug: 'island-tours',
+    trSlug: 'ada-turlari',
+    title: 'Phuket Ada Turları — Phi Phi, James Bond ve Similan',
+    h1: 'Phuket Ada Turları (Island Hopping)',
+    badge: 'En Popüler Tropikal Rotalar',
+    description: 'Andaman Denizi’nin dünyaca ünlü adaları: Maya Bay, Pileh Lagünü, James Bond kireçtaşı kayalıkları ve Similan’ın kristal sularında Türkçe rehber destekli günübirlik sürat teknesi ve katamaran turları.',
+    heroImage: '/assets/pileh.webp',
+    relatedBlogId: 'phi-phi-mi-james-bond-mu-karsilastirma-rehberi',
+    relatedBlogTitle: 'Phi Phi mi, James Bond mu? Hangi Ada Turunu Seçmelisiniz?',
+    faqs: [
+      {
+        q: 'İlk kez Phuket’e geliyorum, hangi ada turunu öncelikli seçmeliyim?',
+        a: 'İlk ziyaret için tartışmasız en popüler rota Phi Phi, Maya Bay ve Bamboo Adası turudur. Eğer deniz kanosu ve büyüleyici kaya oluşumları ilginizi çekiyorsa James Bond Adası da mutlaka ikinci gün rotanızda yer almalıdır.',
+      },
+      {
+        q: 'Ada turlarında otel transferi ve öğle yemeği fiyata dahil mi?',
+        a: 'Evet, tüm ada turlarımızda Patong, Kata, Karon ve ana bölgelerdeki otellerinizden klimalı lobi transferi, milli park sigortası, ada açık büfe öğle yemeği ve şnorkel ekipmanları fiyata dahildir.',
+      },
+      {
+        q: 'Hava muhalefetinde veya yüksek dalgada ne yapılıyor?',
+        a: 'Tayland Liman Başkanlığı (Marine Department) güvenlik onayına göre hareket edilir. Sefer iptal edilirse turunuz ücretsiz ertelenir veya dilediğiniz takdirde %100 kesintisiz ücret iadeniz yapılır.',
+      },
+    ],
+  },
+  'ozel-yat-kiralama': {
+    rawSlug: 'private-charters',
+    trSlug: 'ozel-yat-kiralama',
+    title: 'Phuket Özel Yat ve Katamaran Kiralama — VIP Seyir',
+    h1: 'Özel Yat ve Katamaran Kiralama',
+    badge: 'Kişiye Özel Rotalar ve VIP Konfor',
+    description: 'Sadece ailenize, balayı çiftinize veya arkadaş grubunuza özel lüks motor yat, yelkenli katamaran ve geleneksel longtail tekneler. Kaptan, yakıt, meyve ikramları ve otel transferi dahil.',
+    heroImage: '/assets/phuket_vip_yacht.jpg',
+    relatedBlogId: 'phuket-balayi-rehberi-en-romantik-rotalar-ve-oteller',
+    relatedBlogTitle: 'Phuket Balayı Rehberi: En Romantik Rotalar ve Oteller',
+    faqs: [
+      {
+        q: 'Özel yat kiralarken rota ve saatleri biz belirleyebilir miyiz?',
+        a: 'Evet. Özel kiralamalarda kalkış saati, şnorkel molası vereceğiniz koylar ve gün batımı noktaları tamamen sizin ve grubunuzun tercihlerine göre esnek planlanır.',
+      },
+      {
+        q: 'Özel teknelere dışarıdan yiyecek ve içecek getirebilir miyiz?',
+        a: 'Evet, tüm özel yatlarımızda misafirlerimiz kendi özel içecek ve atıştırmalıklarını ekstra servis ücreti ödemeden tekneye getirebilir; teknede soğutucu ve servis ekipmanı mevcuttur.',
+      },
+    ],
+  },
+  'macera-ve-doga': {
+    rawSlug: 'adventure-tours',
+    trSlug: 'macera-ve-doga',
+    title: 'Phuket Macera ve Doğa Turları — ATV, Zipline ve Rafting',
+    h1: 'Macera, Doğa ve Yağmur Ormanı Turları',
+    badge: 'Adrenalin ve Vahşi Doğa',
+    description: 'Yağmur ormanlarında zipline, tropikal arazide ATV quad safari, Phang Nga akarsu raftingi ve etik fil bakım koruma alanları. Doğayla iç içe unutulmaz maceralar.',
+    heroImage: '/assets/phang_nga_rafting.jpg',
+    relatedBlogId: 'phuket-etik-fil-koruma-alanlari-rehberi',
+    relatedBlogTitle: 'Etik Fil Koruma Alanı Seçerken Dikkat Edilmesi Gerekenler',
+    faqs: [
+      {
+        q: 'Fil koruma turunda fillere biniş yapılıyor mu?',
+        a: 'Kesinlikle hayır. Programlarımızda yalnızca hayvan refahını gözeten etik kurtarma çiftlikleriyle çalışılmaktadır; fillere binilmez, yalnızca besleme ve çamur banyosu deneyimi sunulur.',
+      },
+      {
+        q: 'ATV veya rafting turlarında tecrübe gerekiyor mu?',
+        a: 'Hayır, tüm turlar öncesinde profesyonel eğitmenler tarafından Türkçe/İngilizce brifing verilir ve kask, can yeleği gibi tüm güvenlik ekipmanları eksiksiz sağlanır.',
+      },
+    ],
+  },
+  'kultur-ve-gosteri': {
+    rawSlug: 'entertainment-tours',
+    trSlug: 'kultur-ve-gosteri',
+    title: 'Phuket Şovları ve Kültür Turları — FantaSea ve Şehir Turu',
+    h1: 'Phuket Kültür Turları ve Akşam Şovları',
+    badge: 'Gece Hayatı ve Kültür',
+    description: 'Guinness rekorlu Carnival Magic ışık parkı, Phuket FantaSea, Simon Cabaret ve özel araçlı Phuket şehir/manzara turları. Tayland kültürünü ve sahne sanatlarını yerinde keşfedin.',
+    heroImage: '/assets/carnival_magic.jpg',
+    relatedBlogId: 'phuket-sehir-turu-7-farkli-program-rehberi',
+    relatedBlogTitle: 'Phuket Şehir Turu: Big Buddha ve Wat Chalong Rotaları',
+    faqs: [
+      {
+        q: 'Şov biletlerine otel transferi ve akşam yemeği dahil edilebilir mi?',
+        a: 'Evet, FantaSea, Carnival Magic ve Siam Niramit gibi büyük tema parkı şovlarında açık büfe akşam yemeği ve gidiş-dönüş otel transferli VIP bilet seçeneklerimiz mevcuttur.',
+      },
+      {
+        q: 'Phuket şehir turu kaç saat sürer ve nereleri kapsar?',
+        a: 'Şehir turlarımız ortalama 5–6 saat sürer; Big Buddha heykeli, Wat Chalong Tapınağı, Karon Manzara Noktası ve Tarihi Phuket Old Town sokaklarını kapsar.',
+      },
+    ],
+  },
+};
+
+// İngilizce slug alias'larını Türkçe slug'a eşle
+const ALIAS_MAP: Record<string, string> = {
+  'island-tours': 'ada-turlari',
+  'private-charters': 'ozel-yat-kiralama',
+  'adventure-tours': 'macera-ve-doga',
+  'entertainment-tours': 'kultur-ve-gosteri',
+};
+
+const reqCategory = (Astro.params.category || '').toLowerCase().replace(/\/+$/, '');
+
+// İngilizce slug ile gelinmişse kanonik Türkçe adrese yönlendir (301)
+if (ALIAS_MAP[reqCategory]) {
+  return Astro.redirect(`/turlar/kategori/${ALIAS_MAP[reqCategory]}/`, 301);
+}
+
+const catMeta = CATEGORY_MAP[reqCategory];
+
+if (!catMeta) {
+  return Astro.redirect('/turlar/', 301);
+}
+
+const mdTours: CollectionEntry<'tours'>[] = await getCollection('tours');
+const allTours: CollectionEntry<'tours'>[] = applyTourOverlay(mdTours, await getCloudTours());
+
+// Yalnızca bu kategoriye ait turları filtrele
+const categoryTours = allTours
+  .filter((tour) => tour.data.category === catMeta.rawSlug)
+  .sort((a, b) => a.data.order - b.data.order);
+
+const site = Astro.site || 'https://phukettatili.com';
+const currentUrl = new URL(`/turlar/kategori/${catMeta.trSlug}/`, site).toString();
+const whatsappNumber = siteSettings?.whatsappNumber || '66828950665';
+const defaultWaMsg = `Merhaba, ${catMeta.h1} hakkında detaylı bilgi ve güncel fiyat teklifi almak istiyorum.`;
+const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(defaultWaMsg)}`;
+
+const schemas: Record<string, unknown>[] = [
+  {
+    "@type": "CollectionPage",
+    "name": catMeta.title,
+    "description": catMeta.description,
+    "url": currentUrl,
+  },
+  {
+    "@type": "ItemList",
+    "name": catMeta.h1,
+    "numberOfItems": categoryTours.length,
+    "itemListElement": categoryTours.map((tour, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "url": new URL(`/turlar/${tour.id}/`, site).toString(),
+      "name": tour.data.title,
+    })),
+  },
+  {
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Ana Sayfa", "item": new URL('/', site).toString() },
+      { "@type": "ListItem", "position": 2, "name": "Turlar", "item": new URL('/turlar/', site).toString() },
+      { "@type": "ListItem", "position": 3, "name": catMeta.h1, "item": currentUrl },
+    ],
+  },
+  {
+    "@type": "FAQPage",
+    "mainEntity": catMeta.faqs.map((faq) => ({
+      "@type": "Question",
+      "name": faq.q,
+      "acceptedAnswer": { "@type": "Answer", "text": faq.a },
+    })),
+  },
+];
+---
+
+<Layout
+  title={catMeta.title}
+  description={catMeta.description}
+  image={catMeta.heroImage}
+  schemas={schemas}
+>
+  <!-- Kategori Hero -->
+  <section class="relative min-h-[420px] md:min-h-[460px] flex items-end pb-12 pt-28 overflow-hidden bg-brand-primary">
+    <div class="absolute inset-0 z-0">
+      <img
+        src={catMeta.heroImage}
+        alt={catMeta.h1}
+        class="w-full h-full object-cover"
+        loading="eager"
+        fetchpriority="high"
+      />
+      <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-slate-950/30 z-10"></div>
+    </div>
+
+    <div class="relative z-20 max-w-6xl mx-auto px-4 w-full">
+      <!-- Breadcrumb -->
+      <nav class="flex items-center gap-2 text-xs text-slate-300 mb-4" aria-label="Breadcrumb">
+        <a href="/" class="hover:text-amber-400 transition-colors">Ana Sayfa</a>
+        <span>/</span>
+        <a href="/turlar/" class="hover:text-amber-400 transition-colors">Turlar</a>
+        <span>/</span>
+        <span class="text-amber-400 font-semibold">{catMeta.h1}</span>
+      </nav>
+
+      <span class="inline-block bg-amber-400/20 text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full text-xs font-bold mb-3">
+        {catMeta.badge}
+      </span>
+      <h1 class="text-3xl sm:text-4xl md:text-5xl text-white font-serif font-bold mb-4 drop-shadow-md">
+        {catMeta.h1}
+      </h1>
+      <p class="text-slate-200 max-w-3xl text-sm sm:text-base leading-relaxed">
+        {catMeta.description}
+      </p>
+
+      <div class="mt-6 flex flex-wrap gap-3">
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center justify-center gap-2 bg-whatsapp hover:bg-whatsapp-dark text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400"
+        >
+          <span>WhatsApp ile Bilgi Al</span>
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+          </svg>
+        </a>
+        <a
+          href="/turlar/"
+          class="inline-flex items-center justify-center px-5 py-3 rounded-xl border border-white/30 text-white font-semibold text-sm hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+        >
+          Tüm 21 Turu Gör
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Kategoriye Ait Turlar Grid -->
+  <section class="py-16 bg-slate-50 dark:bg-surface-1 px-4">
+    <div class="max-w-6xl mx-auto">
+      <div class="flex items-center justify-between mb-8 pb-4 border-b border-slate-200 dark:border-slate-800">
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-serif font-bold text-slate-900 dark:text-white">
+            Mevcut {catMeta.h1}
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            Yerel acente güvencesi ve Türkçe operasyon desteğiyle sunulan {categoryTours.length} aktif tur.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {categoryTours.map((tour) => {
+          const hasPrice = tour.data.price_thb && tour.data.price_thb > 0;
+          return (
+            <a
+              href={`/turlar/${tour.id}/`}
+              class="premium-card group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-md hover:shadow-xl transition-shadow border border-slate-200 dark:border-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            >
+              <div class="relative h-60 overflow-hidden bg-slate-900">
+                <TourCardImageCarousel
+                  image={tour.data.image || '/assets/phuket_hero.webp'}
+                  gallery={tour.data.gallery}
+                  title={tour.data.title}
+                />
+                <div class="absolute top-3.5 right-3.5 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-800 shadow-sm z-20 pointer-events-none">
+                  {tour.data.duration || 'Tam Gün'}
+                </div>
+              </div>
+
+              <div class="p-5 flex flex-col justify-between">
+                <div>
+                  <h3 class="text-lg font-serif font-bold text-slate-900 dark:text-white group-hover:text-amber-500 transition-colors leading-snug mb-2">
+                    {tour.data.title}
+                  </h3>
+                  <p class="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed mb-4">
+                    {tour.data.excerpt}
+                  </p>
+                </div>
+
+                <div class="flex items-center justify-between border-t border-slate-100 dark:border-slate-700/80 pt-3 mt-1">
+                  <div>
+                    <span class="block text-[10px] text-slate-400">Kişi başı</span>
+                    {hasPrice ? (
+                      <span class="text-base font-bold text-slate-900 dark:text-white">
+                        {fmtMoney(tour.data.price_thb || 0)} THB
+                      </span>
+                    ) : (
+                      <span class="text-xs font-semibold text-emerald-600">Teklif Alın</span>
+                    )}
+                  </div>
+                  <span class="text-xs font-bold text-slate-950 bg-amber-400 px-3 py-1.5 rounded-lg group-hover:bg-amber-300 transition-colors">
+                    İncele
+                  </span>
+                </div>
+              </div>
+            </a>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <!-- İlgili Blog Rehberi Köprüsü (Internal Silo Link) -->
+  {catMeta.relatedBlogId && (
+    <section class="py-10 bg-white dark:bg-surface-2 border-y border-slate-200 dark:border-slate-800 px-4">
+      <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-2xl bg-amber-50 dark:bg-slate-800/80 border border-amber-200/80 dark:border-slate-700">
+        <div>
+          <span class="text-xs font-bold text-amber-700 dark:text-amber-400">Rehber Tavsiyesi</span>
+          <h3 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mt-1">
+            {catMeta.relatedBlogTitle}
+          </h3>
+          <p class="text-xs text-slate-600 dark:text-slate-300 mt-1">
+            Seyahatiniz öncesinde rotaları, fiyatları ve yerel ipuçlarını inceleyin.
+          </p>
+        </div>
+        <a
+          href={`/blog/${catMeta.relatedBlogId}/`}
+          class="shrink-0 inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 dark:bg-amber-400 text-white dark:text-slate-950 font-bold text-xs hover:bg-slate-800 dark:hover:bg-amber-300 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+        >
+          <span>Rehberi Oku</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+          </svg>
+        </a>
+      </div>
+    </section>
+  )}
+
+  <!-- Sıkça Sorulan Sorular -->
+  <section class="py-16 bg-slate-50 dark:bg-surface-1 px-4">
+    <div class="max-w-4xl mx-auto">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-serif font-bold text-slate-900 dark:text-white">
+          {catMeta.h1} Hakkında Sıkça Sorulanlar
+        </h2>
+        <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-2">
+          Rezervasyon öncesi bilmeniz gereken operasyonel detaylar.
+        </p>
+      </div>
+      <FaqAccordion faqs={catMeta.faqs} />
+    </div>
+  </section>
+</Layout>

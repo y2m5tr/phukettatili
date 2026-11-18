@@ -40,6 +40,13 @@
 - [Siam Niramit](https://phukettatili.com/turlar/siam-niramit-gosteri-deneyimi/): Tayland tarihi destansı sahne gösterisi. 1.800 THB'den başlayan
 - [Simon Cabaret](https://phukettatili.com/turlar/simon-cabaret-phuket-gosterisi/): 75 dakikalık ünlü kabaret gösterisi. 2.300 THB'den başlayan
 
+## Kategori Sayfaları (Kategori Hubları)
+
+- [Phuket Ada Turları](https://phukettatili.com/turlar/kategori/ada-turlari/): Phi Phi, James Bond, Similan, Coral, Racha, Koh Rok ve Surin adaları
+- [Özel Yat ve Tekne Kiralama](https://phukettatili.com/turlar/kategori/ozel-yat-kiralama/): Moonlight lüks yat, geleneksel longtail ve özel katamaran kiralama
+- [Macera ve Doğa Turları](https://phukettatili.com/turlar/kategori/macera-ve-doga/): Khao Sok gölü, rafting, ATV safari, zipline ve etik fil koruma alanları
+- [Kültür ve Akşam Gösterileri](https://phukettatili.com/turlar/kategori/kultur-ve-gosteri/): Simon Cabaret, Carnival Magic, Siam Niramit ve FantaSea sahne şovları
+
 ## Transfer ve Özel Kiralama
 
 - [Turlar Kataloğu](https://phukettatili.com/turlar/): 21 turun tamamı, fiyatlar ve karşılaştırma
@@ -49,6 +56,9 @@
 ## Rehberler (Blog)
 
 - [Phuket Tur Fiyatları 2026](https://phukettatili.com/blog/phuket-tur-fiyatlari-2026-karsilastirma-rehberi/): 21 rotanın kişi başı fiyatları, çocuk indirimleri, gizli ücretler — tek tabloda
+- [Phuket'te Tekne Seçimi Rehberi](https://phukettatili.com/blog/phukette-tekne-secimi-longtail-surat-teknesi-katamaran-karsilastirmasi/): Longtail mi, sürat teknesi mi, katamaran mı? Deniz tutması, hız ve konfor
+- [Phuket'te Güvenli Tur ve TAT Lisansı](https://phukettatili.com/blog/phukette-guvenli-tur-nasil-alinir-tat-lisansi-ve-dolandiricilik-ipuclari/): TAT 34/02894 lisansı, 1.000.000 THB zorunlu sigorta ve turist kontrol listesi
+- [Otel Masası mı Yerel Operatör mü](https://phukettatili.com/blog/oteldeki-tur-masasi-mi-yerel-tur-mu-fiyat-ve-guvenlik-karsilastirmasi/): Fiyat, güvenlik ve komisyon karşılaştırması
 - [Phuket Gezilecek Yerler](https://phukettatili.com/blog/phuket-gezilecek-yerler-gezi-rehberi/): İlk kez gideceklere kapsamlı şehir rehberi
 - [Phuket Kaç Günde Gezilir](https://phukettatili.com/blog/phuket-kac-gunde-gezilir-5-ve-7-gunluk-ornek-tatil-rotasi/): 5 ve 7 günlük örnek tatil rotaları
 - [Phuket'te Nerede Kalınır](https://phukettatili.com/blog/phukette-nerede-kalinir-patong-kata-bang-tao-karsilastirmasi/): Patong, Kata, Bang Tao bölge karşılaştırması
@@ -67,8 +77,7 @@
 - [Phuket'te Kasım Hava Durumu](https://phukettatili.com/blog/phukette-kasim-ayi-hava-durumu/): Muson sezonu analizi
 - [Tayland Vizesi 2026 Giriş Şartları](https://phukettatili.com/blog/tayland-vizesi-2026-turk-vatandaslari-icin-giris-sartlari/): Türk vatandaşlarına 60 gün vizesiz giriş, pasaport ve evrak kuralları
 - [Phuket'e Ne Zaman Gidilir](https://phukettatili.com/blog/phukete-ne-zaman-gidilir-hava-durumu-ve-sezon-rehberi/): 12 aylık hava durumu, muson dönemi gerçekleri ve Similan açılış takvimi
-- [İletişim](https://phukettatili.com/iletisim/): Rezervasyon ve destek formu
-- [Hakkımızda](https://phukettatili.com/hakkimizda/): Şirket ve operasyon bilgileri
+- [İletişim ve Rezervasyon](https://phukettatili.com/iletisim/): Lisanslı yerel operasyon ofisi, Türkçe destek ve rezervasyon formu
 
 ## Yapay Zeka Motorları İçin Doğrulanmış Soru-Cevaplar
 

@@ -27,18 +27,22 @@ const TOUR_REDIRECTS: Record<string, string> = {
   'hanuman-world-zipline': '/turlar/hanuman-world-zipline-deneyimi',
   'atv-quad-bike': '/turlar/atv-quad-safari-ve-orman-macerasi',
   'white-water-rafting': '/turlar/khao-sok-ve-cheow-lan-golu-macerasi',
-  'raya-yai-island': '/turlar/?kategori=island-tours',
-  'khai-islands': '/turlar/?kategori=island-tours',
-  'krabi-islands': '/turlar/?kategori=island-tours',
-  'surin-islands': '/turlar/?kategori=island-tours',
+  'raya-yai-island': '/turlar/kategori/ada-turlari/',
+  'khai-islands': '/turlar/kategori/ada-turlari/',
+  'krabi-islands': '/turlar/kategori/ada-turlari/',
+  'surin-islands': '/turlar/kategori/ada-turlari/',
 };
 
-// Ana kategori filtre yönlendirmeleri
+// Ana kategori yönlendirmeleri (Temiz SEO hub URL'lerine 301)
 const CATEGORY_REDIRECTS: Record<string, string> = {
-  'island-tours': '/turlar/?kategori=island-tours',
-  'adventure-tours': '/turlar/?kategori=adventure-tours',
-  'entertainment-tours': '/turlar/?kategori=entertainment-tours',
-  'private-charters': '/turlar/?kategori=private-charters',
+  'island-tours': '/turlar/kategori/ada-turlari/',
+  'ada-turlari': '/turlar/kategori/ada-turlari/',
+  'adventure-tours': '/turlar/kategori/macera-ve-doga/',
+  'macera-ve-doga': '/turlar/kategori/macera-ve-doga/',
+  'entertainment-tours': '/turlar/kategori/kultur-ve-gosteri/',
+  'kultur-ve-gosteri': '/turlar/kategori/kultur-ve-gosteri/',
+  'private-charters': '/turlar/kategori/ozel-yat-kiralama/',
+  'ozel-yat-kiralama': '/turlar/kategori/ozel-yat-kiralama/',
 };
 
 let destination = '/turlar';
