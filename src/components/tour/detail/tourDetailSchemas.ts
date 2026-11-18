@@ -122,6 +122,7 @@ export function buildTourDetailSchemas(
   const isoDuration = formatIsoDuration(tour.data.duration);
   const currentYear = new Date().getFullYear();
   const priceValidUntil = `${currentYear + 1}-12-31`;
+  const validFrom = `${currentYear}-01-01`;
   const itinerary = buildItinerary(tour.data.program);
   // Puan TEK KAYNAKTAN: site.json googleRating/googleReviewCount (görünen
   // sayfa değeriyle aynı 4.9/148). Değer yoksa basılmaz — uydurma review
@@ -139,6 +140,52 @@ export function buildTourDetailSchemas(
         }
       : undefined;
 
+  const offerDetails: Record<string, unknown> = {
+    "@type": "Offer",
+    "price": realPrice,
+    "priceCurrency": "THB",
+    "url": tourURL,
+    "availability": "https://schema.org/InStock",
+    "itemCondition": "https://schema.org/NewCondition",
+    "validFrom": validFrom,
+    "priceValidUntil": priceValidUntil,
+    "hasMerchantReturnPolicy": {
+      "@type": "MerchantReturnPolicy",
+      "applicableCountry": "TH",
+      "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnWindow",
+      "merchantReturnDays": 1,
+      "returnMethod": "https://schema.org/ReturnInStore",
+      "returnFees": "https://schema.org/FreeReturn"
+    },
+    "shippingDetails": {
+      "@type": "OfferShippingDetails",
+      "shippingRate": {
+        "@type": "MonetaryAmount",
+        "value": "0",
+        "currency": "THB"
+      },
+      "shippingDestination": {
+        "@type": "DefinedRegion",
+        "addressCountry": "TH"
+      },
+      "deliveryTime": {
+        "@type": "ShippingDeliveryTime",
+        "handlingTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 0,
+          "maxValue": 0,
+          "unitCode": "DAY"
+        },
+        "transitTime": {
+          "@type": "QuantitativeValue",
+          "minValue": 0,
+          "maxValue": 0,
+          "unitCode": "DAY"
+        }
+      }
+    }
+  };
+
   const touristTripSchema: Record<string, unknown> = {
     "@type": "TouristTrip",
     "name": tour.data.title,
@@ -154,32 +201,19 @@ export function buildTourDetailSchemas(
     ...(tour.data.image ? { "image": resolveOgImageUrl(tour.data.image, site) } : {}),
     "duration": isoDuration,
     ...(itinerary ? { "itinerary": itinerary } : {}),
-    "offers": {
-      "@type": "Offer",
-      "price": realPrice,
-      "priceCurrency": "THB",
-      "url": tourURL,
-      "availability": "https://schema.org/InStock",
-      "priceValidUntil": priceValidUntil
-    }
+    "offers": offerDetails
   };
 
   const productSchema: Record<string, unknown> = {
     "@type": "Product",
     "name": tour.data.title,
     "description": tour.data.excerpt || tour.data.title,
+    "sku": tour.id,
     "url": tourURL,
     ...(tour.data.image ? { "image": resolveOgImageUrl(tour.data.image, site) } : {}),
     "brand": { "@type": "Brand", "name": "Phuket Tatili" },
     ...(aggregateRating ? { "aggregateRating": aggregateRating } : {}),
-    "offers": {
-      "@type": "Offer",
-      "price": realPrice,
-      "priceCurrency": "THB",
-      "url": tourURL,
-      "availability": "https://schema.org/InStock",
-      "priceValidUntil": priceValidUntil
-    }
+    "offers": offerDetails
   };
 
   const breadcrumbSchema = {
