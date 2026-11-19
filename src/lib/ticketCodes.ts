@@ -12,18 +12,31 @@
  * (0/O, 1/I/L) alfabe — 31^7 ≈ 27,5 milyar kombinasyon.
  */
 
-import { randomInt } from 'node:crypto';
-
 /** Karışıklık yaratmayan alfabe: 0,1,I,L,O çıkarıldı. */
 const ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
 const CODE_LENGTH = 7;
 const CODE_PREFIX = 'PT-';
 
-/** Kriptografik rastgelelik (node:crypto randomInt) ile tahmin edilemez token üretimi. */
+/** Kriptografik rastgele tamsayı üretimi (Node.js & Tarayıcı Web Crypto uyumlu). */
+function getSecureRandomInt(max: number): number {
+  if (typeof globalThis.crypto?.getRandomValues === 'function') {
+    const arr = new Uint32Array(1);
+    const limit = Math.floor(0x100000000 / max) * max;
+    let val = 0;
+    do {
+      globalThis.crypto.getRandomValues(arr);
+      val = arr[0];
+    } while (val >= limit);
+    return val % max;
+  }
+  return Math.floor(Math.random() * max);
+}
+
+/** Kriptografik rastgelelik ile tahmin edilemez token üretimi. */
 function randomChars(n: number): string {
   let out = '';
   for (let i = 0; i < n; i++) {
-    out += ALPHABET[randomInt(0, ALPHABET.length)];
+    out += ALPHABET[getSecureRandomInt(ALPHABET.length)];
   }
   return out;
 }
