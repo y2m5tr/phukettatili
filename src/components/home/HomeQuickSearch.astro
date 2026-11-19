@@ -155,10 +155,19 @@ const travelerTypes = [
       const catSelect = document.getElementById('search-category') as HTMLSelectElement | null;
       const targetCategory = catSelect?.value;
 
+      const catHubMap: Record<string, string> = {
+        'island-tours': '/turlar/kategori/ada-turlari/',
+        'adventure-tours': '/turlar/kategori/macera-ve-doga/',
+        'entertainment-tours': '/turlar/kategori/kultur-ve-gosteri/',
+        'private-charters': '/turlar/kategori/ozel-yat-kiralama/',
+      };
+
       if (!targetCategory || targetCategory === 'all') {
         window.location.href = '/turlar/';
+      } else if (catHubMap[targetCategory]) {
+        window.location.href = catHubMap[targetCategory];
       } else {
-        window.location.href = `/turlar/?kategori=${encodeURIComponent(targetCategory)}`;
+        window.location.href = `/turlar/kategori/${encodeURIComponent(targetCategory)}/`;
       }
     });
   });

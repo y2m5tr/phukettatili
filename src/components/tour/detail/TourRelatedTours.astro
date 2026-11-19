@@ -8,6 +8,14 @@ interface Props {
   relatedTours: CollectionEntry<'tours'>[];
 }
 const { tour, relatedTours } = Astro.props;
+
+const categorySlugMap: Record<string, string> = {
+  'island-tours': 'ada-turlari',
+  'private-charters': 'ozel-yat-kiralama',
+  'adventure-tours': 'macera-ve-doga',
+  'entertainment-tours': 'kultur-ve-gosteri',
+};
+const categoryHub = categorySlugMap[tour.data.category] || 'ada-turlari';
 ---
 
 <!-- Related Tours (same category, SEO cross-links) -->
@@ -20,13 +28,13 @@ const { tour, relatedTours } = Astro.props;
             {tour.data.category_label || 'Aynı Kategoride'} Turları
           </h2>
         </div>
-        <a href={`/turlar/?kategori=${tour.data.category}`} class="text-sm font-semibold text-brand-accent hover:underline whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent rounded-lg px-2 py-1">
+        <a href={`/turlar/kategori/${categoryHub}/`} class="text-sm font-semibold text-brand-accent hover:underline whitespace-nowrap shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent rounded-lg px-2 py-1">
           Tümünü İncele
         </a>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         {relatedTours.map((t) => (
-          <a href={`/turlar/${t.id}`} class="premium-card group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-shadow duration-300 border border-slate-200/80 dark:border-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
+          <a href={`/turlar/${t.id}/`} class="premium-card group block rounded-2xl overflow-hidden bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-shadow duration-300 border border-slate-200/80 dark:border-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent">
             <div class="relative h-44 overflow-hidden">
               <img
                 src={resolveAssetUrl(t.data.image)}

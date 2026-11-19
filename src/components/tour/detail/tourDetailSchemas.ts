@@ -216,6 +216,14 @@ export function buildTourDetailSchemas(
     "offers": offerDetails
   };
 
+  const categorySlugMap: Record<string, string> = {
+    'island-tours': 'ada-turlari',
+    'private-charters': 'ozel-yat-kiralama',
+    'adventure-tours': 'macera-ve-doga',
+    'entertainment-tours': 'kultur-ve-gosteri',
+  };
+  const categoryHub = tour.data.category ? (categorySlugMap[tour.data.category] || 'ada-turlari') : '';
+
   const breadcrumbSchema = {
     "@type": "BreadcrumbList",
     "itemListElement": [
@@ -226,7 +234,7 @@ export function buildTourDetailSchemas(
             "@type": "ListItem",
             "position": 3,
             "name": tour.data.category_label || tour.data.category,
-            "item": new URL(`/turlar/?kategori=${tour.data.category}`, site).toString(),
+            "item": new URL(`/turlar/kategori/${categoryHub}/`, site).toString(),
           }]
         : []),
       { "@type": "ListItem", "position": tour.data.category ? 4 : 3, "name": tour.data.title, "item": tourURL },
