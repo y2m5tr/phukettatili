@@ -67,6 +67,14 @@ describe('üyelik çerezi — üret/oku turu', () => {
     expect(session!.role).toBe('manager');
   });
 
+  it('sales rolü üyelik çerezi olarak başarıyla üretilir ve okunur', () => {
+    const cookie = createMembershipSessionValue(UUID_A, 'sales');
+    const session = readMembershipSession(cookie);
+    expect(session).not.toBeNull();
+    expect(session!.userId).toBe(UUID_A);
+    expect(session!.role).toBe('sales');
+  });
+
   it('userId değiştirilirse imza geçersiz olur (sahtecilik engeli)', () => {
     const cookie = createMembershipSessionValue(UUID_A, 'owner');
     // userId'yi B ile değiştir, imzayı koru — doğrulama reddetmeli.
@@ -155,5 +163,45 @@ describe('passwords — scrypt hash turları', () => {
     expect(validatePasswordPolicy('54131984')).not.toBeNull(); // sadece rakam, harf yok
     expect(validatePasswordPolicy('sadeceharf')).not.toBeNull(); // sadece harf, rakam yok
     expect(validatePasswordPolicy('guclu-sifre-2026')).toBeNull(); // geçerli (harf + rakam >= 8)
+  });
+});
+
+describe('güvenlik — imza anahtarı fail-closed garantisi', () => {
+  it('secret veya passcode yoksa sahte çerez kabul edilmez (fail-closed)', () => {
+    const originalPasscode = process.env.ADMIN_PASSCODE;
+    const originalKey = process.env.SESSION_SIGNING_KEY;
+    try {
+      delete process.env.ADMIN_PASSCODE;
+      delete process.env.SESSION_SIGNING_KEY;
+
+      const payload = `${UUID_A}.owner.${Math.floor(Date.now() / 1000) + 3600}`;
+      // readMembershipSession boş anahtarla doğrulamayı doğrudan reddetmelidir:
+      expect(readMembershipSession(`${payload}.any-signature`)).toBeNull();
+      expect(readSessionValue(`owner.${Math.floor(Date.now() / 1000) + 3600}.any-sig`)).toBeNull();
+    } finally {
+      process.env.ADMIN_PASSCODE = originalPasscode;
+      if (originalKey) process.env.SESSION_SIGNING_KEY = originalKey;
+    }
+  });
+
+  it('SESSION_SIGNING_KEY ADMIN_PASSCODE yerine öncelikli kullanılır', () => {
+    const originalPasscode = process.env.ADMIN_PASSCODE;
+    const originalKey = process.env.SESSION_SIGNING_KEY;
+    try {
+      process.env.ADMIN_PASSCODE = 'passcode-xyz';
+      process.env.SESSION_SIGNING_KEY = 'super-secret-signing-key-64bytes-long';
+
+      const cookie = createMembershipSessionValue(UUID_A, 'owner');
+      const session = readMembershipSession(cookie);
+      expect(session).not.toBeNull();
+      expect(session?.role).toBe('owner');
+    } finally {
+      process.env.ADMIN_PASSCODE = originalPasscode;
+      if (originalKey !== undefined) {
+        process.env.SESSION_SIGNING_KEY = originalKey;
+      } else {
+        delete process.env.SESSION_SIGNING_KEY;
+      }
+    }
   });
 });

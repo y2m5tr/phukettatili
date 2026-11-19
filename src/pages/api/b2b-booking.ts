@@ -1,4 +1,5 @@
 import type { APIRoute } from 'astro';
+import { getCollection } from 'astro:content';
 import { jsonError, jsonOk } from '../../lib/server/apiGuard';
 import { checkRateLimit } from '../../lib/server/rateLimit';
 import {
@@ -69,8 +70,8 @@ export const POST: APIRoute = async (context) => {
     pickupTime,
     adultCount = 1,
     childCount = 0,
-    pricePerAdultThb = 2800,
-    pricePerChildThb = 1900,
+    pricePerAdultThb,
+    pricePerChildThb,
     paymentPreference = 'office_cash_on_pickup',
     specialNotes = '',
   } = body;
@@ -86,6 +87,12 @@ export const POST: APIRoute = async (context) => {
 
   if (!matchedAgent) {
     return jsonError(403, 'Geçersiz veya pasif acente kodu. Lütfen yetkili acenta kodunuzu kontrol ediniz.');
+  }
+
+  // Acente bazlı hız limiti (kodun kötüye kullanımını engeller)
+  const agentLimiter = await checkRateLimit(`b2b-agent:${matchedAgent.code}`, clientIp, 25, 60);
+  if (!agentLimiter.allowed) {
+    return jsonError(429, 'Bu acente kodu ile çok fazla istek yapıldı. Lütfen biraz bekleyin.');
   }
 
   if (!customerName || customerName.trim().length === 0) {
@@ -109,7 +116,55 @@ export const POST: APIRoute = async (context) => {
 
   const adults = Math.max(1, Math.min(100, adultCount));
   const children = Math.max(0, Math.min(50, Number(childCount) || 0));
-  const calculatedTotal = adults * pricePerAdultThb + children * pricePerChildThb;
+
+  // --- Sunucu Taraflı Fiyat Doğrulama (Finding 2 Mitigasyonu) ---
+  // İstemciden gelen kontrolsüz fiyat (ör. 1 THB) kabul edilmez. Katalog fiyatı taban alınır.
+  let catalogPriceAdult = 2800;
+  try {
+    const mdTours = await getCollection('tours');
+    const matchedTour = mdTours.find(
+      (t) =>
+        t.id === tourId ||
+        (tourTitle && t.data.title.toLowerCase().trim() === tourTitle.toLowerCase().trim())
+    );
+    if (matchedTour && typeof matchedTour.data.price_thb === 'number' && matchedTour.data.price_thb > 0) {
+      catalogPriceAdult = matchedTour.data.price_thb;
+    }
+  } catch {
+    // Koleksiyon okunamadıysa varsayılan 2800 THB tabanı kullanılır
+  }
+
+  const catalogPriceChild = Math.round(catalogPriceAdult * 0.7);
+  const minAllowedAdultPrice = Math.max(500, Math.round(catalogPriceAdult * 0.7));
+  const minAllowedChildPrice = Math.max(300, Math.round(catalogPriceChild * 0.7));
+
+  const inputAdultPrice = Number(pricePerAdultThb);
+  if (Number.isFinite(inputAdultPrice) && inputAdultPrice < minAllowedAdultPrice) {
+    return jsonError(
+      422,
+      `Geçersiz fiyat: Yetişkin fiyatı taban fiyat olan ${minAllowedAdultPrice} THB'nin altında olamaz.`
+    );
+  }
+
+  const inputChildPrice = Number(pricePerChildThb);
+  if (Number.isFinite(inputChildPrice) && inputChildPrice < minAllowedChildPrice) {
+    return jsonError(
+      422,
+      `Geçersiz fiyat: Çocuk fiyatı taban fiyat olan ${minAllowedChildPrice} THB'nin altında olamaz.`
+    );
+  }
+
+  const verifiedPriceAdult =
+    Number.isFinite(inputAdultPrice) && inputAdultPrice >= minAllowedAdultPrice
+      ? inputAdultPrice
+      : catalogPriceAdult;
+
+  const verifiedPriceChild =
+    Number.isFinite(inputChildPrice) && inputChildPrice >= minAllowedChildPrice
+      ? inputChildPrice
+      : catalogPriceChild;
+
+  const calculatedTotal = adults * verifiedPriceAdult + children * verifiedPriceChild;
 
   const commissionThb = calculateAgentCommission(matchedAgent, calculatedTotal, adults, children);
   const detectedZone = hotelZone || detectHotelZone(hotel);
@@ -122,6 +177,10 @@ export const POST: APIRoute = async (context) => {
 
   const ticketCode = generateTicketCode();
   const nowIso = new Date().toISOString();
+
+  const auditNotePrefix = isAgentPaid
+    ? `[B2B Acente Portalı: ${matchedAgent.name} (${matchedAgent.code}) — Acente Tahsilatı / Mutabakat Bekliyor]`
+    : `[B2B Acente Portalı: ${matchedAgent.name} (${matchedAgent.code}) — Ofis / Şoför Tahsilatı]`;
 
   const newBooking: Booking = {
     id: ticketCode,
@@ -154,7 +213,7 @@ export const POST: APIRoute = async (context) => {
     status: 'confirmed',
     pickupStatus: 'pending',
     paymentStatus,
-    specialNotes: `[B2B Acente Portalı: ${matchedAgent.name} (${matchedAgent.code})] ${specialNotes}`.trim(),
+    specialNotes: `${auditNotePrefix} ${specialNotes}`.trim(),
     agentId: matchedAgent.id,
     agentName: matchedAgent.name,
     agentCommissionThb: commissionThb,

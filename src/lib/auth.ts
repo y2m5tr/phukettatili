@@ -50,9 +50,43 @@ export function roleRank(role: OpsRole | null): number {
   }
 }
 
-/** Çerez imza anahtarı, yönetici şifresinden türetilir (ayrı secret gerekmez). */
+/**
+ * Oturum imza anahtarı — SESSION_SIGNING_KEY veya ADMIN_PASSCODE'tan okunur.
+ *
+ * Güvenlik mimarisi:
+ * 1. `SESSION_SIGNING_KEY` ortam değişkeni tanımlıysa birincil olarak kullanılır.
+ * 2. Tanımlı değilse geriye dönük uyum için `ADMIN_PASSCODE`'a düşülür.
+ * 3. İkisi de yoksa kesinlikle BOŞ DÖNER (fail-closed) — asla bilinen sabit bir string
+ *    üzerinden anahtar türetilmez; böylece yetkisiz çerez üretimi (session forgery) engellenir.
+ */
+export function readSessionSigningSecret(): string {
+  try {
+    const secret = getSecret('SESSION_SIGNING_KEY');
+    if (typeof secret === 'string' && secret.trim().length > 0) {
+      return secret.trim();
+    }
+  } catch {
+    // astro:env/server şeması yüklenemezse (ör. test ortamı) process.env'e düş
+  }
+
+  const envKey = process.env.SESSION_SIGNING_KEY;
+  if (typeof envKey === 'string' && envKey.trim().length > 0) {
+    return envKey.trim();
+  }
+
+  const passcode = readPasscode();
+  if (passcode.length > 0) {
+    return passcode;
+  }
+
+  return '';
+}
+
+/** Çerez imza anahtarı; anahtar yoksa boş döner (fail-closed). */
 function signingSecret(): string {
-  return `ptt-ops-v1:${readPasscode()}`;
+  const secret = readSessionSigningSecret();
+  if (!secret) return '';
+  return `ptt-ops-v1:${secret}`;
 }
 
 /**
@@ -118,7 +152,9 @@ export function verifyPasscode(candidate: string): boolean {
 }
 
 function sign(payload: string): string {
-  return createHmac('sha256', signingSecret()).update(payload).digest('hex');
+  const secret = signingSecret();
+  if (!secret) return '';
+  return createHmac('sha256', secret).update(payload).digest('hex');
 }
 
 /** İmzalı oturum çerezi değeri üretir: `rol.bitmeZamani.imza` */
@@ -148,35 +184,43 @@ export interface MembershipSession {
 /** Çerezi doğrular; geçerliyse rolü, değilse null döner. */
 export function readSessionValue(value: string | undefined): OpsRole | null {
   if (!value) return null;
+  const secret = signingSecret();
+  if (!secret) return null; // Fail-closed: Anahtar yoksa çerez kabul edilmez
+
   const parts = value.split('.');
   if (parts.length !== 3) return null;
 
   const [role, rawExpiresAt, signature] = parts;
-  if (!['admin', 'field', 'owner', 'manager', 'guide', 'driver'].includes(role)) return null;
+  if (!['admin', 'field', 'owner', 'manager', 'sales', 'guide', 'driver'].includes(role)) return null;
 
   const expiresAt = Number(rawExpiresAt);
   if (!Number.isFinite(expiresAt)) return null;
   if (expiresAt * 1000 < Date.now()) return null;
 
-  if (!safeEqual(signature, sign(`${role}.${rawExpiresAt}`))) return null;
+  const expected = sign(`${role}.${rawExpiresAt}`);
+  if (!expected || !safeEqual(signature, expected)) return null;
   return role as OpsRole;
 }
 
 /** Üyelik çerezini okur — geçerliyse userId + rol, değilse null. */
 export function readMembershipSession(value: string | undefined): MembershipSession | null {
   if (!value) return null;
+  const secret = signingSecret();
+  if (!secret) return null; // Fail-closed: Anahtar yoksa üyelik çerezi kabul edilmez
+
   const parts = value.split('.');
   if (parts.length !== 4) return null;
 
   const [userId, role, rawExpiresAt, signature] = parts;
   if (!isUUID(userId)) return null;
-  if (!['owner', 'manager', 'guide', 'driver'].includes(role)) return null;
+  if (!['owner', 'manager', 'sales', 'guide', 'driver'].includes(role)) return null;
 
   const expiresAt = Number(rawExpiresAt);
   if (!Number.isFinite(expiresAt)) return null;
   if (expiresAt * 1000 < Date.now()) return null;
 
-  if (!safeEqual(signature, sign(`${userId}.${role}.${rawExpiresAt}`))) return null;
+  const expected = sign(`${userId}.${role}.${rawExpiresAt}`);
+  if (!expected || !safeEqual(signature, expected)) return null;
   return { userId, role: role as MembershipRole };
 }
 

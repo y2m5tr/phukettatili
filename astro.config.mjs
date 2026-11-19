@@ -31,6 +31,14 @@ export default defineConfig({
         optional: true,
       }),
 
+      // Oturum imza anahtarı — tanımlıysa ADMIN_PASSCODE yerine bu kullanılır.
+      // Opsiyoneldir; boşsa ADMIN_PASSCODE'a düşer. İkisi de yoksa fail-closed.
+      SESSION_SIGNING_KEY: envField.string({
+        context: 'server',
+        access: 'secret',
+        optional: true,
+      }),
+
       // Servis rolü anahtarı RLS'i BYPASS EDER. Asla client'a inmemeli:
       // `context: 'server'` + `access: 'secret'` ikilisi bunu derleme
       // zamanında garanti eder. Yalnızca /api/* route'ları kullanır.
