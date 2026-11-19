@@ -20,7 +20,7 @@ const mdPosts: CollectionEntry<'blog'>[] = await getCollection('blog');
 const post = mdPosts.find((p) => p.id === id);
 
 if (!post) {
-  return Astro.redirect('/blog', 301);
+  return Astro.redirect('/blog/', 301);
 }
 
 // Bulut overlay: panelde düzenlenen metadata alanları bu yazıya uygulanır.

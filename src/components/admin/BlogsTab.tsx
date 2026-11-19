@@ -64,7 +64,7 @@ export default function BlogsTab({ blogs, onOpenCreate, onOpenEdit, onDelete }: 
 
               <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <a
-                  href={`/blog/${b.id}`}
+                  href={`/blog/${b.id}/`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-xs text-brand-accent hover:underline flex items-center gap-1"

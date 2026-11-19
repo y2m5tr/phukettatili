@@ -102,7 +102,7 @@ export function FieldSettingsTab({
       <div className="space-y-2">
         {canAccessAdmin && (
           <a
-            href="/admin"
+            href="/admin/"
             className="w-full p-4 rounded-2xl bg-slate-900 border border-slate-800 text-slate-200 text-xs font-semibold flex items-center justify-between hover:bg-slate-800 transition-all cursor-pointer"
           >
             <div className="flex items-center gap-2.5">
