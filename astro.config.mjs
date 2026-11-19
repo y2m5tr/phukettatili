@@ -16,7 +16,7 @@ export default defineConfig({
   // sunucu fonksiyonu olarak çalışır — middleware oturum kontrolü için şart.
   output: 'server',
   adapter: node({ mode: 'standalone' }),
-  trailingSlash: 'ignore',
+  trailingSlash: 'always',
   redirects: {
     '/admin-login': '/ops-login',
   },
