@@ -209,33 +209,33 @@ const schemas: Record<string, unknown>[] = [
           {heroTitleAccent && heroTitle.includes(heroTitleAccent) ? (
             <>
               {heroTitle.split(heroTitleAccent)[0]}
-              <span class="text-brand-accent italic">{heroTitleAccent}</span>
+              <span class="text-brand-gold italic">{heroTitleAccent}</span>
               {heroTitle.split(heroTitleAccent)[1]}
             </>
           ) : (
             heroTitle
           )}
         </h1>
-        <p class="text-base sm:text-lg md:text-xl text-slate-100/90 mb-7 max-w-xl mx-auto font-light leading-relaxed">
+        <p class="text-base sm:text-lg md:text-xl text-slate-100/95 mb-7 max-w-xl font-light leading-relaxed">
           {heroSubtitle}
         </p>
-        <div class="flex flex-col sm:flex-row gap-3 justify-start mb-4">
-          <a href={heroCtaPrimaryLink} class="premium-cta bg-brand-gold hover:bg-amber-300 text-slate-950 px-8 py-3.5 rounded-full font-bold transition-transform duration-300 hover:-translate-y-0.5 shadow-xl shadow-slate-950/20">
+        <div class="flex flex-col sm:flex-row gap-3.5 justify-start mb-5">
+          <a href={heroCtaPrimaryLink} class="premium-cta w-full sm:w-auto inline-flex items-center justify-center min-h-[48px] bg-brand-gold hover:bg-amber-300 active:scale-[0.98] text-slate-950 px-8 py-3.5 rounded-full font-bold transition-all duration-200 shadow-xl shadow-black/30">
             {heroCtaPrimaryText}
           </a>
-          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-wa-lead-source="home-hero" class="premium-cta bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border border-white/35 px-8 py-3.5 rounded-full font-semibold transition-colors duration-300">
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" data-wa-lead-source="home-hero" class="premium-cta w-full sm:w-auto inline-flex items-center justify-center min-h-[48px] bg-white/10 hover:bg-white/20 active:scale-[0.98] backdrop-blur-md text-white border border-white/30 px-8 py-3.5 rounded-full font-semibold transition-all duration-200">
             {heroCtaSecondaryText}
           </a>
         </div>
         <!-- Hero içine küçük editorial güven satırı -->
-        <div class="inline-flex flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-[11px] sm:text-xs text-slate-200/90 font-medium tracking-wide bg-slate-950/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/10">
+        <div class="inline-flex flex-wrap items-center justify-center sm:justify-start gap-x-2.5 gap-y-1 text-[11px] sm:text-xs text-slate-200/90 font-medium tracking-wide bg-slate-950/50 backdrop-blur-md px-4 py-2 rounded-full border border-white/15 shadow-sm">
           <span class="text-amber-400 font-bold">★ {googleRating}/5</span>
           <span class="text-white/35">·</span>
           <span>{googleReviewCount}+ Doğrulanmış Yorum</span>
           <span class="text-white/35">·</span>
           <span>Türkçe Yerel Ekip</span>
           <span class="text-white/35">·</span>
-          <span>7/24 Destek</span>
+          <span>7/24 Canlı Destek</span>
         </div>
       </div>
       </div>

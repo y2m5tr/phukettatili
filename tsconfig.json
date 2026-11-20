@@ -6,7 +6,10 @@
   ],
   "exclude": [
     "dist",
-    "legacy_phukettatili"
+    "legacy_phukettatili",
+    ".agents",
+    "skills",
+    "scratch"
   ],
   "compilerOptions": {
     "jsx": "react-jsx",
